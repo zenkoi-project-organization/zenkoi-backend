@@ -1,0 +1,6 @@
+@Zenkoi.API_HostAddress = http://localhost:5111
+
+GET {{Zenkoi.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
