@@ -1,5 +1,4 @@
-﻿using ClickFlow.DAL.Configurations;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Zenkoi.DAL.Configurations;
@@ -19,7 +18,7 @@ namespace Zenkoi.DAL.EF
 		#region DbSet
 		public DbSet<UserDetail> UserDetail { get; set; }
 		public DbSet<RefreshToken> RefreshTokens { get; set; }
-	
+		public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
 		#endregion
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,6 +28,7 @@ namespace Zenkoi.DAL.EF
 			modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration());
             modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
             modelBuilder.ApplyConfiguration(new UserDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new PaymentTransactionConfiguration());
             modelBuilder.Entity<IdentityUserLogin<int>>(entity =>
 			{
 				entity.ToTable("UserLogin");

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Net.payOS;
 using System.Text;
 using System.Text.Json.Serialization;
 using Zenkoi.API.ConfigExtensions;
@@ -97,21 +98,21 @@ namespace Zenkoi.API
 
             builder.Services.Configure<ApiBehaviorOptions>(options => { options.SuppressModelStateInvalidFilter = true; });
 
-            //builder.Services.AddSingleton<PayOS>(provider =>
-            //{
-            //    var configuration = provider.GetRequiredService<IConfiguration>();
+            builder.Services.AddSingleton<PayOS>(provider =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
 
-            //    var clientId = configuration["PayOS:ClientId"];
-            //    var apiKey = configuration["PayOS:ApiKey"];
-            //    var checksumKey = configuration["PayOS:ChecksumKey"];
+                var clientId = configuration["PayOS:ClientId"];
+                var apiKey = configuration["PayOS:ApiKey"];
+                var checksumKey = configuration["PayOS:ChecksumKey"];
 
-            //    if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(checksumKey))
-            //    {
-            //        throw new ArgumentException("PayOS configuration is missing. Please check appsettings.json");
-            //    }
+                if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(checksumKey))
+                {
+                    throw new ArgumentException("PayOS configuration is missing. Please check appsettings.json");
+                }
 
-            //    return new PayOS(clientId, apiKey, checksumKey);
-            //});
+                return new PayOS(clientId, apiKey, checksumKey);
+            });
 
 
             var app = builder.Build();
