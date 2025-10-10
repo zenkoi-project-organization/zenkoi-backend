@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Zenkoi.DAL.EF;
+using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Repositories;
 
 
@@ -11,10 +12,24 @@ namespace Zenkoi.DAL.UnitOfWork
 		private readonly ZenKoiContext _context;
 		private readonly IServiceProvider _serviceProvider;
 		private IDbContextTransaction _transaction;
+		private IRepoBase<PaymentTransaction> _paymentTransactions;
+
 		public UnitOfWork(ZenKoiContext masterContext, IServiceProvider serviceProvider)
 		{
 			_context = masterContext;
 			_serviceProvider = serviceProvider;
+		}
+
+		public IRepoBase<PaymentTransaction> PaymentTransactions
+		{
+			get
+			{
+				if (_paymentTransactions == null)
+				{
+					_paymentTransactions = _serviceProvider.GetRequiredService<IRepoBase<PaymentTransaction>>();
+				}
+				return _paymentTransactions;
+			}
 		}
 		public async Task BeginTransactionAsync()
 		{

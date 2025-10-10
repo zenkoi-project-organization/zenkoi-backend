@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zenkoi.DAL.Entities;
 
-namespace ClickFlow.DAL.Configurations
+namespace Zenkoi.DAL.Configurations
 {
 	public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 	{
