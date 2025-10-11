@@ -19,10 +19,23 @@ namespace Zenkoi.DAL.EF
 		#region DbSet
 		public DbSet<UserDetail> UserDetail { get; set; }
 		public DbSet<RefreshToken> RefreshTokens { get; set; }
-	
-		#endregion
+        public DbSet<KoiFish> KoiFishes { get; set; }
+        public DbSet<Variety> Varieties { get; set; }
+        public DbSet<PondType> PondTypes {  get; set; }
+        public DbSet<Pond> Ponds { get; set; }
+        public DbSet<Area> Areas { get; set; }
+        public DbSet<BreedingProcess> BreedingProcesses {  get; set; }
+        public DbSet<EggBatch> EggBatches { get; set; }
+        public DbSet<IncubationDailyRecord> IncubationDailyRecords { get; set; }
+        public DbSet<FryFish> FryFishes { get; set; }
+        public DbSet<FrySurvivalRecord> FrySurvivalRecords { get; set; }
+        public DbSet<ClassificationStage> ClassificationStages { get; set; }
+        public DbSet<ClassificationRecord> ClassificationRecords { get; set; }
+ 
 
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
+        #endregion
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.HasDefaultSchema("dbo");
 			base.OnModelCreating(modelBuilder);
