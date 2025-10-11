@@ -109,7 +109,7 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.SaveChangesAsync();
 			}
 			#endregion
-			#region Seeding UserDetail
+			#region Seeding Data
 			if (!context.UserDetail.Any())
 			{
 				await context.UserDetail.AddRangeAsync(
@@ -124,9 +124,9 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 					);
 			}
-            #endregion
 
-            if (!context.UserRoles.Any(x => x.RoleId == 1))
+
+			if (!context.UserRoles.Any(x => x.RoleId == 1))
 			{
 				await context.UserRoles.AddAsync(
 					// Manager
@@ -134,6 +134,233 @@ namespace Zenkoi.API.ConfigExtensions
 				);
 				await context.SaveChangesAsync();
 			}
+			if (!context.Areas.Any())
+			{
+				await context.Areas.AddRangeAsync(
+					new Area
+					{
+						AreaName = "Khu A",
+						TotalAreaSQM = 500.5,
+						Description = "Khu nuôi cá koi cao cấp"
+					}
+				);
+				await context.SaveChangesAsync();
+			}
+			if (!context.Varieties.Any())
+			{
+				await context.Varieties.AddRangeAsync(
+				   new Variety
+				   {
+					   Id = 1,
+					   VarietyName = "Kohaku",
+					   Characteristic = "Thân trắng với các mảng đỏ",
+					   OriginCountry = "Nhật Bản"
+				   },
+				   new Variety
+				   {
+					   Id = 2,
+					   VarietyName = "Sanke",
+					   Characteristic = "Thân trắng, đốm đỏ và đen",
+					   OriginCountry = "Nhật Bản"
+				   }
+			   );
+			}
+			if (!context.Ponds.Any())
+			{
+				await context.Ponds.AddRangeAsync(
+					 new Pond
+					 {
+						 Id = 1,
+						 PondName = "Pond A1",
+						 PondTypeId = 1,
+						 AreaId = 1,
+						 Location = "Khu A - Góc Đông",
+						 PondStatus = "Hoạt động",
+						 CapacityLiters = 10000,
+						 DepthMeters = 1.5,
+						 CreatedAt = DateTime.Now
+					 }
+				);
+			}
+			if (!context.PondTypes.Any())
+			{
+				await context.PondTypes.AddRangeAsync(
+					 new PondType
+					 {
+						 PondTypeID = 1,
+						 TypeName = "Ao sinh sản",
+						 Description = "Ao dành cho cá bố mẹ sinh sản",
+						 RecommendedCapacity = 8000
+					 },
+						new PondType
+						{
+							PondTypeID = 2,
+							TypeName = "Ao ương cá bột",
+							Description = "Ao ương cá con sau khi nở",
+							RecommendedCapacity = 5000
+						}
+					);
+			}
+			if (context.KoiFishes.Any())
+			{
+				await context.KoiFishes.AddRangeAsync(
+					new KoiFish
+					{
+						Id = 1,
+						PondId = 1,
+						VarietyId = 1,
+						RFID = "RFID-001",
+						Size = 25.5,
+						BirthDate = new DateTime(2023, 3, 15),
+						Gender = "Male",
+						HealthStatus = "Healthy",
+						ImagesVideos = "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+						SellingPrice = 3500000,
+						BodyShape = "Slim and symmetrical",
+						Description = "Kohaku koi with vibrant red markings",
+						CreatedAt = DateTime.Now
+					}
+					);
+			}
+			if (context.BreedingProcesses.Any())
+			{
+				await context.BreedingProcesses.AddRangeAsync(
+				new BreedingProcess
+				{
+					Id = 1,
+					MaleKoiId = 1,
+					FemaleKoiId = 2,
+					PondId = 1,
+					StartDate = new DateTime(2025, 1, 10),
+					EndDate = new DateTime(2025, 2, 15),
+					Status = "Completed",
+					Note = "Quá trình sinh sản thành công, nhiều trứng nở khỏe mạnh.",
+					Result = "Successful",
+					TotalFishQualified = 120,
+					TotalPackage = 3
+				}
+				);
+			}
+			if (context.EggBatches.Any())
+			{
+				await context.EggBatches.AddRangeAsync(
+					new EggBatch
+					{
+						Id = 1,
+						BreedingProcessId = 1,
+						PondId = 1,
+						Quantity = 5000,
+						FertilizationRate = 0.85,
+						Status = "Đang ấp",
+						SpawnDate = new DateTime(2025, 2, 16),
+						HatchingTime = new DateTime(2025, 2, 22)
+					}
+				);
+			}
+			if (context.IncubationDailyRecords.Any())
+			{
+				await context.IncubationDailyRecords.AddRangeAsync(
+					new IncubationDailyRecord
+					{
+						Id = 1,
+						EggBatchId = 1,
+						DayNumber = 1,
+						HealthyEggs = 4800,
+						RottenEggs = 200,
+						HatchedEggs = 0
+					},
+					new IncubationDailyRecord
+					{
+						Id = 2,
+						EggBatchId = 1,
+						DayNumber = 3,
+						HealthyEggs = 4700,
+						RottenEggs = 300,
+						HatchedEggs = 0
+					}
+					);
+			}
+			if (context.FryFishes.Any())
+			{
+				await context.FryFishes.AddRangeAsync(
+					new FryFish
+					{
+						Id = 1,
+						BreedingProcessId = 1,
+						PondId = 1,
+						InitialCount = 4500,
+						Status = "Đang phát triển tốt",
+						CurrentSurvivalRate = 0.93
+					},
+					new FryFish
+					{
+						Id = 2,
+						BreedingProcessId = 2,
+						PondId = 2,
+						InitialCount = 6200,
+						Status = "Ổn định",
+						CurrentSurvivalRate = 0.89
+					}
+					);
+			}
+			if (context.FrySurvivalRecords.Any())
+			{
+				await context.FrySurvivalRecords.AddRangeAsync(
+					new FrySurvivalRecord
+					{
+						Id = 1,
+						FryFishId = 1,
+						DayNumber = 1,
+						SurvivalRate = 0.95,
+						CountAlive = 4275
+					},
+					new FrySurvivalRecord
+					{
+						Id = 2,
+						FryFishId = 1,
+						DayNumber = 3,
+						SurvivalRate = 0.93,
+						CountAlive = 4185
+					}
+					);
+			}
+			if (context.ClassificationStages.Any())
+			{
+				await context.ClassificationStages.AddRangeAsync(
+					new ClassificationStage
+					{
+						Id = 1,
+						BreedingProcessId = 1,
+						TotalCount = 4200,
+						HighQualifiedCount = 800,
+						QualifiedCount = 2500,
+						UnqualifiedCount = 900,
+						Notes = "Phân loại lần đầu — nhóm cá khoẻ mạnh, màu sắc rõ nét chiếm khoảng 20%."
+					}
+					);
+			}
+			if (context.ClassificationRecords.Any())
+			{
+				await context.ClassificationRecords.AddRangeAsync(
+					new ClassificationRecord
+					{
+						Id = 1,
+						ClassificationStageId = 1,
+						StageName = "Lần 1 - Tuần 2",
+						HighQualifiedCount = 300,
+						QualifiedCount = 500,
+						UnqualifiedCount = 200,
+						Notes = "Đánh giá ban đầu, cá khỏe mạnh đạt 30%."
+					}
+					);
+			}
+		}
+        #endregion
+    }
+}
+
+	
+
 	
 			
 			}
