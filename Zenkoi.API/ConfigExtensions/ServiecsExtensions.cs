@@ -83,9 +83,8 @@ namespace Zenkoi.API.ConfigExtensions
 
 			if (env.IsDevelopment())
 			{
-				await context.Database.EnsureDeletedAsync();
-				await context.Database.EnsureCreatedAsync();
-			}
+                await TruncateAllTablesExceptMigrationHistory(context);
+            }
 
 			#region Seeding Roles
 			if (!context.Roles.Any())
@@ -362,3 +361,58 @@ namespace Zenkoi.API.ConfigExtensions
 
 	
 
+	
+			
+			}
+
+        private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+            -- Set QUOTED_IDENTIFIER ON cho toàn bộ batch
+            SET QUOTED_IDENTIFIER ON;
+
+            -- Disable tất cả constraints
+            DECLARE @sql NVARCHAR(MAX) = N'';
+            
+            SELECT @sql += 'ALTER TABLE ' + QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME) + ' NOCHECK CONSTRAINT ALL;'
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_TYPE = 'BASE TABLE';
+            
+            EXEC sp_executesql @sql;
+
+            -- Xóa dữ liệu tất cả bảng NGOẠI TRỪ __EFMigrationsHistory
+            SET @sql = N'';
+            
+            SELECT @sql += 'DELETE FROM ' + QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME) + ';'
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_TYPE = 'BASE TABLE' 
+            AND TABLE_NAME != '__EFMigrationsHistory';
+            
+            EXEC sp_executesql @sql;
+
+            -- Re-enable constraints
+            SET @sql = N'';
+            
+            SELECT @sql += 'ALTER TABLE ' + QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME) + ' WITH CHECK CHECK CONSTRAINT ALL;'
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_TYPE = 'BASE TABLE';
+            
+            EXEC sp_executesql @sql;
+
+            -- Reset Identity columns
+            SET @sql = N'';
+            
+            SELECT @sql += 
+                'IF EXISTS (SELECT 1 FROM sys.identity_columns WHERE object_id = OBJECT_ID(''' 
+                + QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME) + ''')) ' +
+                'DBCC CHECKIDENT (''' + QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME) + ''', RESEED, 0);'
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_TYPE = 'BASE TABLE' 
+            AND TABLE_NAME != '__EFMigrationsHistory';
+            
+            EXEC sp_executesql @sql;
+        ");
+        }
+    }		
+	
+}

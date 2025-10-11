@@ -1,5 +1,4 @@
-﻿using ClickFlow.DAL.Configurations;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Zenkoi.DAL.Configurations;
@@ -32,8 +31,8 @@ namespace Zenkoi.DAL.EF
         public DbSet<ClassificationStage> ClassificationStages { get; set; }
         public DbSet<ClassificationRecord> ClassificationRecords { get; set; }
  
-
-        #endregion
+		public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+		#endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -42,6 +41,7 @@ namespace Zenkoi.DAL.EF
 			modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration());
             modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
             modelBuilder.ApplyConfiguration(new UserDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new PaymentTransactionConfiguration());
             modelBuilder.Entity<IdentityUserLogin<int>>(entity =>
 			{
 				entity.ToTable("UserLogin");
@@ -78,9 +78,32 @@ namespace Zenkoi.DAL.EF
 					.HasForeignKey(r => r.UserId)
 					.OnDelete(DeleteBehavior.Cascade);
 			});
+            modelBuilder.Entity<BreedingProcess>()
+			  .HasOne(bp => bp.MaleKoi)
+			  .WithMany()
+			  .HasForeignKey(bp => bp.MaleKoiId)
+			  .OnDelete(DeleteBehavior.Restrict);
 
-			
-		}
+            modelBuilder.Entity<BreedingProcess>()
+                .HasOne(bp => bp.FemaleKoi)
+                .WithMany()
+                .HasForeignKey(bp => bp.FemaleKoiId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BreedingProcess>()
+                .HasOne(bp => bp.Pond)
+                .WithMany()
+                .HasForeignKey(bp => bp.PondId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BreedingProcess>()
+                .HasMany(bp => bp.KoiFishes)
+                .WithOne(k => k.BreedingProcess)
+                .HasForeignKey(k => k.BreedingProcessId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+        }
 	}
 
 }
