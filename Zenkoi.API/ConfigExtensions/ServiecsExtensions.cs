@@ -83,8 +83,8 @@ namespace Zenkoi.API.ConfigExtensions
 
 			if (env.IsDevelopment())
 			{
-                await TruncateAllTablesExceptMigrationHistory(context);
-            }
+				await TruncateAllTablesExceptMigrationHistory(context);
+			}
 
 			#region Seeding Roles
 			if (!context.Roles.Any())
@@ -355,16 +355,8 @@ namespace Zenkoi.API.ConfigExtensions
 					);
 			}
 		}
-        #endregion
-    }
-}
-
+		#endregion
 	
-
-	
-			
-			}
-
         private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
         {
             await context.Database.ExecuteSqlRawAsync(@"
