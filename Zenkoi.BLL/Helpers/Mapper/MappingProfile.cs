@@ -2,6 +2,10 @@
 using System.Globalization;
 using System.Reflection;
 using Zenkoi.BLL.DTOs.ApplicationUserDTOs;
+using Zenkoi.BLL.DTOs.AreaDTOs;
+using Zenkoi.BLL.DTOs.PondDTOs;
+using Zenkoi.BLL.DTOs.PondTypeDTOs;
+using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.DAL.Entities;
 
 namespace Zenkoi.BLL.Helpers.Mapper
@@ -15,9 +19,9 @@ namespace Zenkoi.BLL.Helpers.Mapper
 
 
 			var entityTypes = dalAssembly.GetTypes().Where(t => t.IsClass && t.Namespace == "Zenkoi.DAL.Entities");
+            
 
-
-			foreach (var entityType in entityTypes)
+            foreach (var entityType in entityTypes)
 			{
 				var dtoTypes = bllAssembly.GetTypes()
 					.Where(t => t.IsClass && t.Namespace == $"Zenkoi.BLL.DTOs.{entityType.Name}DTOs" && t.Name.StartsWith(entityType.Name));
@@ -28,6 +32,14 @@ namespace Zenkoi.BLL.Helpers.Mapper
 				}
 			}
             CreateMap<ApplicationUser, ApplicationUserResponseDTO>();
+            CreateMap<Area, AreaResponseDTO>().ReverseMap();
+            CreateMap<AreaRequestDTO, Area>();
+			CreateMap<PondType,PondTypeResponseDTO>().ReverseMap();
+			CreateMap<PondTypeRequestDTO, PondType>();
+			CreateMap<Pond, PondResponseDTO>().ReverseMap();
+			CreateMap<PondRequestDTO, Pond>();
+			CreateMap<Variety , VarietyResponseDTO>().ReverseMap();
+			CreateMap<VarietyRequestDTO, Variety>();
         }
 	}
 }

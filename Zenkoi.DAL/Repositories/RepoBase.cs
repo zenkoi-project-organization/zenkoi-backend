@@ -113,5 +113,19 @@ namespace Zenkoi.DAL.Repositories
 			}
 			return false;
 		}
-	}
+        public async Task<T?> GetByIdAsync(int id)
+        {
+            return await _dbSet.FindAsync(id);
+        }
+        public async Task<IEnumerable<T>> GetAllAsync()
+        {
+            return await _dbSet.ToListAsync();
+        }
+
+        public async Task<bool> CheckExistAsync(int id)
+        {
+            var entity = await _dbSet.FindAsync(id);
+            return entity != null;
+        }
+    }
 }

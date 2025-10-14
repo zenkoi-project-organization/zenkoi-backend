@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.DAL.Entities
 {
@@ -17,8 +18,8 @@ namespace Zenkoi.DAL.Entities
         public string RFID { get; set; }
         public double? Size { get; set; }
         public DateTime? BirthDate { get; set; }
-        public string Gender { get; set; }
-        public string HealthStatus { get; set; }
+        public Gender Gender { get; set; }
+        public HealthStatus HealthStatus { get; set; }
         public string ImagesVideos { get; set; }
         public decimal? SellingPrice { get; set; }
         public string BodyShape { get; set; }
@@ -31,6 +32,6 @@ namespace Zenkoi.DAL.Entities
         public BreedingProcess BreedingProcess { get; set; }
         public Pond Pond { get; set; }
         public Variety Variety { get; set; }
-        
+         
     }
 }

@@ -13,6 +13,12 @@ namespace Zenkoi.DAL.UnitOfWork
 		private readonly IServiceProvider _serviceProvider;
 		private IDbContextTransaction _transaction;
 		private IRepoBase<PaymentTransaction> _paymentTransactions;
+		private IRepoBase<Area> _areas;
+		private IRepoBase<PondType> _pondTypes;
+		private IRepoBase<Pond> _ponds;
+		private IRepoBase<Variety> _varieties;
+		private IRepoBase<KoiFish> _koiFishes;
+	
 
 		public UnitOfWork(ZenKoiContext masterContext, IServiceProvider serviceProvider)
 		{
@@ -20,7 +26,64 @@ namespace Zenkoi.DAL.UnitOfWork
 			_serviceProvider = serviceProvider;
 		}
 
-		public IRepoBase<PaymentTransaction> PaymentTransactions
+
+		public IRepoBase<KoiFish> KoiFishes
+		{
+			get
+			{
+                if (_koiFishes == null)
+                {
+                    _koiFishes = _serviceProvider.GetRequiredService<IRepoBase<KoiFish>>();
+                }
+                return _koiFishes;
+            }
+		}
+		public IRepoBase<Variety> Varieties
+		{
+			get
+			{
+                if (_varieties == null)
+                {
+                    _varieties = _serviceProvider.GetRequiredService<IRepoBase<Variety>>();
+                }
+                return _varieties;
+            }
+		}
+		public IRepoBase<Pond> Ponds
+		{
+			get
+			{
+				if (_ponds == null)
+				{
+					_ponds = _serviceProvider.GetRequiredService<IRepoBase<Pond>>();
+				}
+				return _ponds;
+			}
+		}
+        public IRepoBase<PondType> PondTypes
+        {
+            get
+            {
+                if (_pondTypes == null)
+                {
+                    _pondTypes = _serviceProvider.GetRequiredService<IRepoBase<PondType>>();
+                }
+                return _pondTypes;
+            }
+        }
+        public IRepoBase<Area> Areas
+        {
+            get
+            {
+                if (_areas == null)
+                {
+                    _areas = _serviceProvider.GetRequiredService<IRepoBase<Area>>();
+                }
+                return _areas;
+            }
+        }
+
+        public IRepoBase<PaymentTransaction> PaymentTransactions
 		{
 			get
 			{

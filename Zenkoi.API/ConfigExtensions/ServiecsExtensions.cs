@@ -83,8 +83,8 @@ namespace Zenkoi.API.ConfigExtensions
 
 			if (env.IsDevelopment())
 			{
-                await TruncateAllTablesExceptMigrationHistory(context);
-            }
+				await TruncateAllTablesExceptMigrationHistory(context);
+			}
 
 			#region Seeding Roles
 			if (!context.Roles.Any())
@@ -175,7 +175,7 @@ namespace Zenkoi.API.ConfigExtensions
 						 PondTypeId = 1,
 						 AreaId = 1,
 						 Location = "Khu A - Góc Đông",
-						 PondStatus = "Hoạt động",
+						 PondStatus = PondStatus.Empty,
 						 CapacityLiters = 10000,
 						 DepthMeters = 1.5,
 						 CreatedAt = DateTime.Now
@@ -355,19 +355,11 @@ namespace Zenkoi.API.ConfigExtensions
 					);
 			}
 		}
-        #endregion
-    }
-}
-
-	
-
-	
-			
-			}
-
-        private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
-        {
-            await context.Database.ExecuteSqlRawAsync(@"
+		#endregion
+		
+		private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
+		{
+			await context.Database.ExecuteSqlRawAsync(@"
             -- Set QUOTED_IDENTIFIER ON cho toàn bộ batch
             SET QUOTED_IDENTIFIER ON;
 
@@ -412,7 +404,6 @@ namespace Zenkoi.API.ConfigExtensions
             
             EXEC sp_executesql @sql;
         ");
-        }
-    }		
-	
+		}
+	}
 }
