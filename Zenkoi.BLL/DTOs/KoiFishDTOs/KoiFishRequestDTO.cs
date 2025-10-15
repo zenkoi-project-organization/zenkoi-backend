@@ -23,10 +23,7 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
 
         public DateTime? BirthDate { get; set; }
 
-        [MaxLength(10, ErrorMessage = "Gender cannot exceed 10 characters.")]
         public Gender Gender { get; set; }
-
-        [MaxLength(100, ErrorMessage = "HealthStatus cannot exceed 100 characters.")]
         public HealthStatus HealthStatus { get; set; }
 
         [MaxLength(500, ErrorMessage = "ImagesVideos cannot exceed 500 characters.")]

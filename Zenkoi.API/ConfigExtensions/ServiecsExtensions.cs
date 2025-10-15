@@ -187,14 +187,14 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.PondTypes.AddRangeAsync(
 					 new PondType
 					 {
-						 PondTypeID = 1,
+						 Id = 1,
 						 TypeName = "Ao sinh sản",
 						 Description = "Ao dành cho cá bố mẹ sinh sản",
 						 RecommendedCapacity = 8000
 					 },
 						new PondType
 						{
-							PondTypeID = 2,
+							Id = 2,
 							TypeName = "Ao ương cá bột",
 							Description = "Ao ương cá con sau khi nở",
 							RecommendedCapacity = 5000
@@ -212,8 +212,8 @@ namespace Zenkoi.API.ConfigExtensions
 						RFID = "RFID-001",
 						Size = 25.5,
 						BirthDate = new DateTime(2023, 3, 15),
-						Gender = "Male",
-						HealthStatus = "Healthy",
+						Gender = Gender.Male,
+						HealthStatus = HealthStatus.Healthy,
 						ImagesVideos = "https://res.cloudinary.com/demo/image/upload/sample.jpg",
 						SellingPrice = 3500000,
 						BodyShape = "Slim and symmetrical",
@@ -356,10 +356,10 @@ namespace Zenkoi.API.ConfigExtensions
 			}
 		}
 		#endregion
-		
-		private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
-		{
-			await context.Database.ExecuteSqlRawAsync(@"
+	
+        private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
             -- Set QUOTED_IDENTIFIER ON cho toàn bộ batch
             SET QUOTED_IDENTIFIER ON;
 

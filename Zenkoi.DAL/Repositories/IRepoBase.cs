@@ -17,6 +17,5 @@ namespace Zenkoi.DAL.Repositories
 		Task<bool> CheckExistAsync(int id);
         public Task<IEnumerable<T>> GetAllAsync();
 
-
     }
 }

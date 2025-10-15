@@ -30,11 +30,13 @@ namespace Zenkoi.DAL.Entities
         // Navigation
         public PondType PondType { get; set; }
         public Area Area { get; set; }
-        public BreedingProcess BreedingProcess { get; set; }
-        public EggBatch EggBatch { get; set; }
-        public FryFish FryFish { get; set; }
+        public ICollection<BreedingProcess> BreedingProcesses { get; set; } = new List<BreedingProcess>();
+        public ICollection<EggBatch> EggBatches { get; set; } = new List<EggBatch>();
+        public ICollection<FryFish> FryFishes { get; set; } = new List<FryFish>();
         public ICollection<KoiFish> KoiFishes { get; set; }
-
-       //public ICollection<PondPacketFish> PondPacketFishes { get; set; }
+        public ICollection<WaterParameterRecord> WaterParameters { get; set; } = new List<WaterParameterRecord>();
+        public ICollection<TaskTemplate> Tasks { get; set; } = new List<TaskTemplate>();
+        public ICollection<PondPacketFish> PondPacketFishes { get; set; } = new List<PondPacketFish>();
+        public ICollection<PondIncident> PondIncidents { get; set; } = new List<PondIncident>();
     }
 }

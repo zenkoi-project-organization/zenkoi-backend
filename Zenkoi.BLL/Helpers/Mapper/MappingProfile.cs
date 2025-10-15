@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Reflection;
 using Zenkoi.BLL.DTOs.ApplicationUserDTOs;
 using Zenkoi.BLL.DTOs.AreaDTOs;
+using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.PondDTOs;
 using Zenkoi.BLL.DTOs.PondTypeDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
@@ -40,6 +41,10 @@ namespace Zenkoi.BLL.Helpers.Mapper
 			CreateMap<PondRequestDTO, Pond>();
 			CreateMap<Variety , VarietyResponseDTO>().ReverseMap();
 			CreateMap<VarietyRequestDTO, Variety>();
+			CreateMap<KoiFish,KoiFishResponseDTO>().ReverseMap();
+			CreateMap<KoiFishRequestDTO, KoiFish>();
+            CreateMap<Pond, PondBasicDTO>();
+            CreateMap<Variety, VarietyBasicDTO>();
         }
 	}
 }

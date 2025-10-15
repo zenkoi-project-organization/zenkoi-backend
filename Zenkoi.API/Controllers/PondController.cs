@@ -15,7 +15,6 @@ namespace Zenkoi.API.Controllers
             _pondService = pondService;
         }
 
-        // GET: api/Pond
         [HttpGet]
         public async Task<IActionResult> GetAllPonds()
         {
@@ -36,7 +35,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        // GET: api/Pond/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPondById(int id)
         {
@@ -58,7 +56,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        // POST: api/Pond
         [HttpPost]
         public async Task<IActionResult> CreatePond([FromBody] PondRequestDTO dto)
         {
@@ -88,15 +85,11 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        // PUT: api/Pond/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePond(int id, [FromBody] PondRequestDTO dto)
         {
             try
             {
-                if (id <= 0)
-                    return GetError("Id phải là số nguyên dương.");
-
                 if (dto == null)
                     return GetError("Dữ liệu không hợp lệ.");
 
@@ -115,15 +108,12 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        // DELETE: api/Pond/{id}
+    
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePond(int id)
         {
             try
             {
-                if (id <= 0)
-                    return GetError("Id phải là số nguyên dương.");
-
                 var success = await _pondService.DeleteAsync(id);
                 if (!success)
                     return GetError("Không tìm thấy ao cần xóa.");

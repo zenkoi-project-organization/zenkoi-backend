@@ -248,14 +248,16 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<string>("AreaName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
-                    b.Property<double?>("TotalAreaSQM")
-                        .HasColumnType("float");
+                    b.Property<decimal?>("TotalAreaSQM")
+                        .HasColumnType("decimal(10,2)");
 
                     b.HasKey("Id");
 
@@ -281,7 +283,8 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<string>("Note")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("PondId")
                         .HasColumnType("int");
@@ -291,14 +294,16 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<string>("Result")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int?>("TotalFishQualified")
                         .HasColumnType("int");
@@ -314,9 +319,7 @@ namespace Zenkoi.DAL.Migrations
 
                     b.HasIndex("PondId");
 
-                    b.HasIndex("PondId1")
-                        .IsUnique()
-                        .HasFilter("[PondId1] IS NOT NULL");
+                    b.HasIndex("PondId1");
 
                     b.ToTable("BreedingProcesses", "dbo");
                 });
@@ -390,6 +393,56 @@ namespace Zenkoi.DAL.Migrations
                     b.ToTable("ClassificationStages", "dbo");
                 });
 
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Customer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicationUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContactNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("ShippingAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("TotalOrders")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<decimal>("TotalSpent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId")
+                        .IsUnique();
+
+                    b.ToTable("Customers", "dbo");
+                });
+
             modelBuilder.Entity("Zenkoi.DAL.Entities.EggBatch", b =>
                 {
                     b.Property<int>("Id")
@@ -424,8 +477,7 @@ namespace Zenkoi.DAL.Migrations
 
                     b.HasIndex("BreedingProcessId");
 
-                    b.HasIndex("PondId")
-                        .IsUnique();
+                    b.HasIndex("PondId");
 
                     b.ToTable("EggBatches", "dbo");
                 });
@@ -458,8 +510,7 @@ namespace Zenkoi.DAL.Migrations
 
                     b.HasIndex("BreedingProcessId");
 
-                    b.HasIndex("PondId")
-                        .IsUnique();
+                    b.HasIndex("PondId");
 
                     b.ToTable("FryFishes", "dbo");
                 });
@@ -489,6 +540,102 @@ namespace Zenkoi.DAL.Migrations
                     b.HasIndex("FryFishId");
 
                     b.ToTable("FrySurvivalRecords", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Incident", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("IncidentTitle")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("IncidentTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int>("ReportedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResolutionNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ResolvedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncidentTypeId");
+
+                    b.HasIndex("OccurredAt");
+
+                    b.HasIndex("ReportedByUserId");
+
+                    b.HasIndex("ResolvedByUserId");
+
+                    b.ToTable("Incidents", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.IncidentType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AffectsBreeding")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool?>("RequiresQuarantine")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SeverityLevel")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("IncidentTypes", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.IncubationDailyRecord", b =>
@@ -534,17 +681,21 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<string>("BodyShape")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("BreedingProcessId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Gender")
                         .IsRequired()
@@ -556,20 +707,22 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<string>("ImagesVideos")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("PondId")
                         .HasColumnType("int");
 
                     b.Property<string>("RFID")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal?>("SellingPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<double?>("Size")
-                        .HasColumnType("float");
+                    b.Property<decimal?>("Size")
+                        .HasColumnType("decimal(8,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -583,9 +736,274 @@ namespace Zenkoi.DAL.Migrations
 
                     b.HasIndex("PondId");
 
+                    b.HasIndex("RFID")
+                        .IsUnique();
+
                     b.HasIndex("VarietyId");
 
                     b.ToTable("KoiFishes", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.KoiIncident", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AffectedFrom")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("AffectedStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("IncidentId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsIsolated")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("KoiFishId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RecoveredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("RequiresTreatment")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SpecificSymptoms")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("TreatmentNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncidentId");
+
+                    b.HasIndex("KoiFishId");
+
+                    b.ToTable("KoiIncidents", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("OrderNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("PromotionId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ShippingFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("OrderNumber")
+                        .IsUnique();
+
+                    b.HasIndex("PromotionId");
+
+                    b.ToTable("Orders", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.OrderDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("KoiFishId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PacketFishId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KoiFishId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("PacketFishId");
+
+                    b.ToTable("OrderDetails", "dbo", t =>
+                        {
+                            t.HasCheckConstraint("CK_OrderDetail_KoiOrPacket", "(KoiFishId IS NOT NULL AND PacketFishId IS NULL) OR (KoiFishId IS NULL AND PacketFishId IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.PacketFish", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AgeMonths")
+                        .HasColumnType("decimal(8,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ImagesVideo")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsAvailable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Size")
+                        .HasColumnType("decimal(8,2)");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("PacketFishes", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Gateway")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsDefault")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PaidAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("PaymentInfo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.HasIndex("TransactionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Payments", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.PaymentTransaction", b =>
@@ -667,67 +1085,202 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int>("AreaId")
                         .HasColumnType("int");
 
-                    b.Property<double?>("CapacityLiters")
-                        .HasColumnType("float");
+                    b.Property<decimal?>("CapacityLiters")
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<double?>("DepthMeters")
-                        .HasColumnType("float");
+                    b.Property<decimal?>("DepthMeters")
+                        .HasColumnType("decimal(8,2)");
 
-                    b.Property<double?>("LengthMeters")
-                        .HasColumnType("float");
+                    b.Property<decimal?>("LengthMeters")
+                        .HasColumnType("decimal(8,2)");
 
                     b.Property<string>("Location")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("PondName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("PondStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("PondStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("int");
 
                     b.Property<int>("PondTypeId")
                         .HasColumnType("int");
 
-                    b.Property<double?>("WidthMeters")
-                        .HasColumnType("float");
+                    b.Property<decimal?>("WidthMeters")
+                        .HasColumnType("decimal(8,2)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AreaId");
+
+                    b.HasIndex("PondName");
 
                     b.HasIndex("PondTypeId");
 
                     b.ToTable("Ponds", "dbo");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.PondType", b =>
+            modelBuilder.Entity("Zenkoi.DAL.Entities.PondIncident", b =>
                 {
-                    b.Property<int>("PondTypeID")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PondTypeID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CorrectiveActions")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("EnvironmentalChanges")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int?>("FishDiedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImpactLevel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("IncidentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("PondId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReportedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<bool>("RequiresWaterChange")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncidentId");
+
+                    b.HasIndex("PondId");
+
+                    b.ToTable("PondIncidents", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.PondPacketFish", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("PacketFishId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PondId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PacketFishId");
+
+                    b.HasIndex("PondId", "PacketFishId")
+                        .IsUnique();
+
+                    b.ToTable("PondPacketFishes", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.PondType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int?>("RecommendedCapacity")
                         .HasColumnType("int");
 
                     b.Property<string>("TypeName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.HasKey("PondTypeID");
+                    b.HasKey("Id");
+
+                    b.HasIndex("TypeName")
+                        .IsUnique();
 
                     b.ToTable("PondTypes", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Promotion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("DiscountPercent")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ValidTo")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("ValidFrom");
+
+                    b.HasIndex("ValidTo");
+
+                    b.ToTable("Promotions", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.RefreshToken", b =>
@@ -767,6 +1320,52 @@ namespace Zenkoi.DAL.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshToken", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.TaskTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssignedToUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsRecurring")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("PondId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RecurrenceRule")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("ScheduledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedToUserId");
+
+                    b.HasIndex("PondId");
+
+                    b.HasIndex("ScheduledAt");
+
+                    b.ToTable("TaskTemplates", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.UserDetail", b =>
@@ -812,19 +1411,266 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<string>("Characteristic")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("OriginCountry")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("VarietyName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("VarietyName")
+                        .IsUnique();
+
                     b.ToTable("Varieties", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.VarietyPacketFish", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PacketFishId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VarietyId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PacketFishId");
+
+                    b.HasIndex("VarietyId", "PacketFishId")
+                        .IsUnique();
+
+                    b.ToTable("VarietyPacketFishes", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WaterAlert", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<bool>("IsResolved")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<decimal>("MeasuredValue")
+                        .HasColumnType("decimal(10,4)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ParameterName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("PondId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ResolvedByUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("IsResolved");
+
+                    b.HasIndex("PondId");
+
+                    b.HasIndex("ResolvedByUserId");
+
+                    b.ToTable("WaterAlerts", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WaterParameterRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AmmoniaLevel")
+                        .HasColumnType("decimal(8,4)");
+
+                    b.Property<decimal?>("CarbonHardness")
+                        .HasColumnType("decimal(8,2)");
+
+                    b.Property<decimal?>("NitrateLevel")
+                        .HasColumnType("decimal(8,4)");
+
+                    b.Property<decimal?>("NitriteLevel")
+                        .HasColumnType("decimal(8,4)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal?>("OxygenLevel")
+                        .HasColumnType("decimal(8,2)");
+
+                    b.Property<decimal?>("PHLevel")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("PondId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int?>("RecordedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("TemperatureCelsius")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("TotalChlorines")
+                        .HasColumnType("decimal(8,4)");
+
+                    b.Property<decimal?>("Turbidity")
+                        .HasColumnType("decimal(8,2)");
+
+                    b.Property<decimal?>("WaterLevelMeters")
+                        .HasColumnType("decimal(8,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PondId");
+
+                    b.HasIndex("RecordedAt");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.ToTable("WaterParameterRecords", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WaterParameterThreshold", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("MaxValue")
+                        .HasColumnType("decimal(10,4)");
+
+                    b.Property<decimal>("MinValue")
+                        .HasColumnType("decimal(10,4)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ParameterName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("PondTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParameterName");
+
+                    b.HasIndex("PondTypeId");
+
+                    b.ToTable("WaterParameterThresholds", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WorkSchedule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CheckedInAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CheckedOutAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan?>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("ManagerNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("StaffId")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan?>("StartTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("time")
+                        .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0));
+
+                    b.Property<int>("TaskTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("WorkDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("StaffId");
+
+                    b.HasIndex("TaskTemplateId");
+
+                    b.HasIndex("WorkDate");
+
+                    b.ToTable("WorkSchedules", "dbo");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -899,8 +1745,8 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("Zenkoi.DAL.Entities.Pond", null)
-                        .WithOne("BreedingProcess")
-                        .HasForeignKey("Zenkoi.DAL.Entities.BreedingProcess", "PondId1");
+                        .WithMany("BreedingProcesses")
+                        .HasForeignKey("PondId1");
 
                     b.Navigation("FemaleKoi");
 
@@ -931,6 +1777,17 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("BreedingProcess");
                 });
 
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Customer", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Zenkoi.DAL.Entities.EggBatch", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.BreedingProcess", "BreedingProcess")
@@ -940,8 +1797,8 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
-                        .WithOne("EggBatch")
-                        .HasForeignKey("Zenkoi.DAL.Entities.EggBatch", "PondId")
+                        .WithMany("EggBatches")
+                        .HasForeignKey("PondId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -959,8 +1816,8 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
-                        .WithOne("FryFish")
-                        .HasForeignKey("Zenkoi.DAL.Entities.FryFish", "PondId")
+                        .WithMany("FryFishes")
+                        .HasForeignKey("PondId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -978,6 +1835,32 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("FryFish");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Incident", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.IncidentType", "IncidentType")
+                        .WithMany("Incidents")
+                        .HasForeignKey("IncidentTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "ReportedBy")
+                        .WithMany()
+                        .HasForeignKey("ReportedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "ResolvedBy")
+                        .WithMany()
+                        .HasForeignKey("ResolvedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("IncidentType");
+
+                    b.Navigation("ReportedBy");
+
+                    b.Navigation("ResolvedBy");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.IncubationDailyRecord", b =>
@@ -1001,13 +1884,13 @@ namespace Zenkoi.DAL.Migrations
                     b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
                         .WithMany("KoiFishes")
                         .HasForeignKey("PondId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Zenkoi.DAL.Entities.Variety", "Variety")
                         .WithMany("KoiFishes")
                         .HasForeignKey("VarietyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("BreedingProcess");
@@ -1015,6 +1898,86 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("Pond");
 
                     b.Navigation("Variety");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.KoiIncident", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.Incident", "Incident")
+                        .WithMany("KoiIncidents")
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.KoiFish", "KoiFish")
+                        .WithMany("KoiIncidents")
+                        .HasForeignKey("KoiFishId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Incident");
+
+                    b.Navigation("KoiFish");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Order", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.Customer", "Customer")
+                        .WithMany("Orders")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.Promotion", "Promotion")
+                        .WithMany()
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Promotion");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.OrderDetail", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.KoiFish", "KoiFish")
+                        .WithMany("OrderDetails")
+                        .HasForeignKey("KoiFishId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Zenkoi.DAL.Entities.Order", "Order")
+                        .WithMany("OrderDetails")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.PacketFish", "PacketFish")
+                        .WithMany("OrderDetails")
+                        .HasForeignKey("PacketFishId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("KoiFish");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("PacketFish");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Payment", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.Order", "Order")
+                        .WithOne("Payment")
+                        .HasForeignKey("Zenkoi.DAL.Entities.Payment", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Order");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.PaymentTransaction", b =>
@@ -1033,18 +1996,56 @@ namespace Zenkoi.DAL.Migrations
                     b.HasOne("Zenkoi.DAL.Entities.Area", "Area")
                         .WithMany("Ponds")
                         .HasForeignKey("AreaId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Zenkoi.DAL.Entities.PondType", "PondType")
                         .WithMany("Ponds")
                         .HasForeignKey("PondTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Area");
 
                     b.Navigation("PondType");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.PondIncident", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.Incident", "Incident")
+                        .WithMany("PondIncidents")
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
+                        .WithMany("PondIncidents")
+                        .HasForeignKey("PondId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Incident");
+
+                    b.Navigation("Pond");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.PondPacketFish", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.PacketFish", "PacketFish")
+                        .WithMany("PondPacketFishes")
+                        .HasForeignKey("PacketFishId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
+                        .WithMany("PondPacketFishes")
+                        .HasForeignKey("PondId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PacketFish");
+
+                    b.Navigation("Pond");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.RefreshToken", b =>
@@ -1058,6 +2059,24 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
+            modelBuilder.Entity("Zenkoi.DAL.Entities.TaskTemplate", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "AssignedTo")
+                        .WithMany()
+                        .HasForeignKey("AssignedToUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
+                        .WithMany("Tasks")
+                        .HasForeignKey("PondId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AssignedTo");
+
+                    b.Navigation("Pond");
+                });
+
             modelBuilder.Entity("Zenkoi.DAL.Entities.UserDetail", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "User")
@@ -1067,6 +2086,98 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.VarietyPacketFish", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.PacketFish", "PacketFish")
+                        .WithMany("VarietyPacketFishes")
+                        .HasForeignKey("PacketFishId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.Variety", "Variety")
+                        .WithMany("VarietyPacketFishes")
+                        .HasForeignKey("VarietyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PacketFish");
+
+                    b.Navigation("Variety");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WaterAlert", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
+                        .WithMany()
+                        .HasForeignKey("PondId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "ResolvedBy")
+                        .WithMany()
+                        .HasForeignKey("ResolvedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Pond");
+
+                    b.Navigation("ResolvedBy");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WaterParameterRecord", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
+                        .WithMany("WaterParameters")
+                        .HasForeignKey("PondId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "RecordedBy")
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Pond");
+
+                    b.Navigation("RecordedBy");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WaterParameterThreshold", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.PondType", "PondType")
+                        .WithMany("WaterParameterThresholds")
+                        .HasForeignKey("PondTypeId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("PondType");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WorkSchedule", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.TaskTemplate", "TaskTemplate")
+                        .WithMany("WorkSchedules")
+                        .HasForeignKey("TaskTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Staff");
+
+                    b.Navigation("TaskTemplate");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.ApplicationUser", b =>
@@ -1090,6 +2201,11 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("ClassificationRecords");
                 });
 
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Customer", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
             modelBuilder.Entity("Zenkoi.DAL.Entities.EggBatch", b =>
                 {
                     b.Navigation("IncubationDailyRecords");
@@ -1100,28 +2216,77 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("FrySurvivalRecords");
                 });
 
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Incident", b =>
+                {
+                    b.Navigation("KoiIncidents");
+
+                    b.Navigation("PondIncidents");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.IncidentType", b =>
+                {
+                    b.Navigation("Incidents");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.KoiFish", b =>
+                {
+                    b.Navigation("KoiIncidents");
+
+                    b.Navigation("OrderDetails");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Order", b =>
+                {
+                    b.Navigation("OrderDetails");
+
+                    b.Navigation("Payment");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.PacketFish", b =>
+                {
+                    b.Navigation("OrderDetails");
+
+                    b.Navigation("PondPacketFishes");
+
+                    b.Navigation("VarietyPacketFishes");
+                });
+
             modelBuilder.Entity("Zenkoi.DAL.Entities.Pond", b =>
                 {
-                    b.Navigation("BreedingProcess")
-                        .IsRequired();
+                    b.Navigation("BreedingProcesses");
 
-                    b.Navigation("EggBatch")
-                        .IsRequired();
+                    b.Navigation("EggBatches");
 
-                    b.Navigation("FryFish")
-                        .IsRequired();
+                    b.Navigation("FryFishes");
 
                     b.Navigation("KoiFishes");
+
+                    b.Navigation("PondIncidents");
+
+                    b.Navigation("PondPacketFishes");
+
+                    b.Navigation("Tasks");
+
+                    b.Navigation("WaterParameters");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.PondType", b =>
                 {
                     b.Navigation("Ponds");
+
+                    b.Navigation("WaterParameterThresholds");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.TaskTemplate", b =>
+                {
+                    b.Navigation("WorkSchedules");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.Variety", b =>
                 {
                     b.Navigation("KoiFishes");
+
+                    b.Navigation("VarietyPacketFishes");
                 });
 #pragma warning restore 612, 618
         }

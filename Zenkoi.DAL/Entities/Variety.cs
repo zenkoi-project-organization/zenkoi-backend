@@ -17,5 +17,6 @@ namespace Zenkoi.DAL.Entities
         public string OriginCountry { get; set; }
 
         public ICollection<KoiFish> KoiFishes { get; set; }
+        public ICollection<VarietyPacketFish> VarietyPacketFishes { get; set; } = new List<VarietyPacketFish>();
     }
 }
