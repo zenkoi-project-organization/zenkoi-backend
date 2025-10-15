@@ -131,12 +131,9 @@ namespace Zenkoi.API
                 }
             }
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+            // Configure the HTTP request pipeline.         
                 app.UseSwagger();
                 app.UseSwaggerUI();
-            }   
           
 
             app.UseCors("CorsPolicy");
