@@ -13,6 +13,8 @@ namespace Zenkoi.DAL.UnitOfWork
 		private readonly IServiceProvider _serviceProvider;
 		private IDbContextTransaction _transaction;
 		private IRepoBase<PaymentTransaction> _paymentTransactions;
+		
+	
 
 		public UnitOfWork(ZenKoiContext masterContext, IServiceProvider serviceProvider)
 		{
@@ -20,7 +22,7 @@ namespace Zenkoi.DAL.UnitOfWork
 			_serviceProvider = serviceProvider;
 		}
 
-		public IRepoBase<PaymentTransaction> PaymentTransactions
+        public IRepoBase<PaymentTransaction> PaymentTransactions
 		{
 			get
 			{
@@ -71,11 +73,13 @@ namespace Zenkoi.DAL.UnitOfWork
                 disposed = true;
 			}
 		}
-
+		// mẫu 
 		public IRepoBase<T> GetRepo<T>() where T : class
 		{
 			return _serviceProvider.GetRequiredService<IRepoBase<T>>();
 		}
+
+
 
 		public async Task RollBackAsync()
 		{

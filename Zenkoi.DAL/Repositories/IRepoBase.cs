@@ -13,6 +13,9 @@ namespace Zenkoi.DAL.Repositories
 		public Task<IEnumerable<T>> GetAllAsync(QueryOptions<T> options);
 		public Task<T> GetSingleAsync(QueryOptions<T> options);
 		public Task<bool> AnyAsync(QueryOptions<T> options);
+		public Task<T?> GetByIdAsync(int id);
+		Task<bool> CheckExistAsync(int id);
+        public Task<IEnumerable<T>> GetAllAsync();
 
-	}
+    }
 }

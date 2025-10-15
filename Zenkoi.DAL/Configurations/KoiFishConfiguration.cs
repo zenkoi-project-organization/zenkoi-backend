@@ -30,12 +30,13 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(k => k.BirthDate);
 
             builder.Property(k => k.Gender)
-                .IsRequired()
-                .HasMaxLength(10);
+            .IsRequired()
+            .HasConversion<string>();
+
 
             builder.Property(k => k.HealthStatus)
-                .IsRequired()
-                .HasMaxLength(50);
+              .IsRequired()
+              .HasConversion<string>();
 
             builder.Property(k => k.ImagesVideos)
                 .HasMaxLength(1000);

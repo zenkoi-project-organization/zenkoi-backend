@@ -175,7 +175,7 @@ namespace Zenkoi.API.ConfigExtensions
 						 PondTypeId = 1,
 						 AreaId = 1,
 						 Location = "Khu A - Góc Đông",
-						 PondStatus = "Hoạt động",
+						 PondStatus = PondStatus.Empty,
 						 CapacityLiters = 10000,
 						 DepthMeters = 1.5,
 						 CreatedAt = DateTime.Now
@@ -212,8 +212,8 @@ namespace Zenkoi.API.ConfigExtensions
 						RFID = "RFID-001",
 						Size = 25.5,
 						BirthDate = new DateTime(2023, 3, 15),
-						Gender = "Male",
-						HealthStatus = "Healthy",
+						Gender = Gender.Male,
+						HealthStatus = HealthStatus.Healthy,
 						ImagesVideos = "https://res.cloudinary.com/demo/image/upload/sample.jpg",
 						SellingPrice = 3500000,
 						BodyShape = "Slim and symmetrical",
@@ -404,7 +404,6 @@ namespace Zenkoi.API.ConfigExtensions
             
             EXEC sp_executesql @sql;
         ");
-        }
-    }		
-	
+		}
+	}
 }

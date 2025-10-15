@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.DAL.Entities
 {
@@ -15,8 +16,9 @@ namespace Zenkoi.DAL.Entities
         public int AreaId { get; set; }
 
         public string PondName { get; set; }
+        public PondStatus PondStatus { get; set; }
+
         public string Location { get; set; }
-        public string PondStatus { get; set; }
 
         public double? CapacityLiters { get; set; }
         public double? DepthMeters { get; set; }
