@@ -26,8 +26,10 @@ WORKDIR /app
 
 # Fallback binding (Render provides PORT env var, default 10000)
 ENV ASPNETCORE_URLS=http://+:10000
+ENV ASPNETCORE_ENVIRONMENT=Production
 
 COPY --from=build /app/publish ./
 
 # Use shell entry so we can honors Render's $PORT at runtime
 ENTRYPOINT ["sh", "-lc", "export ASPNETCORE_URLS=http://0.0.0.0:${PORT:-10000} && exec dotnet Zenkoi.API.dll"]
+
