@@ -41,7 +41,7 @@ namespace Zenkoi.API.Controllers
 				Console.ForegroundColor = ConsoleColor.Red;
 				Console.WriteLine(ex.Message);
 				Console.ResetColor();
-				return Error("Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại sau ít phút.");
+				return Error($"Lỗi xử lý user details: {ex.Message}");
 			}
 		}
 
@@ -61,7 +61,7 @@ namespace Zenkoi.API.Controllers
 				Console.ForegroundColor = ConsoleColor.Red;
 				Console.WriteLine(ex.Message);
 				Console.ResetColor();
-				return Error("Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại sau ít phút.");
+				return Error($"Lỗi xử lý user details: {ex.Message}");
 			}
 		}
 
@@ -91,7 +91,7 @@ namespace Zenkoi.API.Controllers
 				Console.ForegroundColor = ConsoleColor.Red;
 				Console.WriteLine(ex.Message);
 				Console.ResetColor();
-				return Error("Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại sau ít phút.");
+				return Error($"Lỗi xử lý user details: {ex.Message}");
 			}
 		}
 
@@ -121,7 +121,7 @@ namespace Zenkoi.API.Controllers
 				Console.ForegroundColor = ConsoleColor.Red;
 				Console.WriteLine(ex.Message);
 				Console.ResetColor();
-				return Error("Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại sau ít phút.");
+				return Error($"Lỗi xử lý user details: {ex.Message}");
 			}
 		}
 
@@ -141,7 +141,7 @@ namespace Zenkoi.API.Controllers
 				Console.ForegroundColor = ConsoleColor.Red;
 				Console.WriteLine(ex.Message);
 				Console.ResetColor();
-				return Error("Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại sau ít phút.");
+				return Error($"Lỗi xử lý user details: {ex.Message}");
 			}
 		}
 	}

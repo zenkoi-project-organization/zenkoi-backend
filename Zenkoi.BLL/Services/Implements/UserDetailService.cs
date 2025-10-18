@@ -35,7 +35,7 @@ namespace Zenkoi.BLL.Services.Implements
 					var userDetail = await repo.GetSingleAsync(new QueryBuilder<UserDetail>()
 																.WithPredicate(x => x.ApplicationUserId == userId)
 																.Build());
-					if (userId != userDetail.ApplicationUserId) return new BaseResponse { IsSuccess = false, Message = "Người dùng không khớp." };
+					if (userId != userDetail.ApplicationUserId) return new BaseResponse { IsSuccess = false, Message = "Bạn không có quyền chỉnh sửa thông tin người dùng này" };
 
 					var updateUserDetail = _mapper.Map(dto, userDetail);
 					await repo.UpdateAsync(updateUserDetail);
@@ -48,7 +48,7 @@ namespace Zenkoi.BLL.Services.Implements
 				}
 				var saver = await _unitOfWork.SaveAsync();
 				await _unitOfWork.CommitTransactionAsync();
-				if (!saver) return new BaseResponse { IsSuccess = false, Message = "Lưu dữ liệu thất bại" };
+				if (!saver) return new BaseResponse { IsSuccess = false, Message = "Không thể lưu thông tin người dùng vào cơ sở dữ liệu" };
 				return new BaseResponse { IsSuccess = true, Message = "Lưu dữ liệu thành công" };
 			}
 			catch (Exception)
@@ -69,14 +69,14 @@ namespace Zenkoi.BLL.Services.Implements
 				var userDetail = await repo.GetSingleAsync(new QueryBuilder<UserDetail>()
 															.WithPredicate(x => x.ApplicationUserId == userId)
 															.Build());
-				if (userId != userDetail.ApplicationUserId) return new BaseResponse { IsSuccess = false, Message = "Người dùng không khớp." };
+				if (userId != userDetail.ApplicationUserId) return new BaseResponse { IsSuccess = false, Message = "Bạn không có quyền xóa thông tin người dùng này" };
 				await repo.DeleteAsync(userDetail);
 				var saver = await _unitOfWork.SaveAsync();
-				if (!saver) return new BaseResponse { IsSuccess = false, Message = "Xóa dữ liệu thất bại" };
+				if (!saver) return new BaseResponse { IsSuccess = false, Message = "Không thể xóa thông tin người dùng khỏi cơ sở dữ liệu" };
 				return new BaseResponse { IsSuccess = true, Message = "Xóa dữ liệu thành công" };
 			}
 
-			return new BaseResponse { IsSuccess = false, Message = "Không tồn tại người dùng." };
+			return new BaseResponse { IsSuccess = false, Message = "Không tìm thấy thông tin người dùng trong hệ thống" };
 		}
 
         public async Task<PaginatedList<UserDetailResponseDTO>> GetAllUserDetails(int pageIndex, int pageSize)

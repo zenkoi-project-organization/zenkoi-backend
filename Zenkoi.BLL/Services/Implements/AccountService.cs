@@ -372,7 +372,9 @@ namespace Zenkoi.BLL.Services.Implements
 				var createResult = await _identityService.CreateAsync(user, accRequest.Password);
 				if (!createResult.Succeeded)
 				{
-					throw new Exception("Một số lỗi xảy ra trong quá trình đăng kí tài khoản. Vui lòn thử lại sau ít phút.");
+					var errors = createResult.Errors.Select(e => e.Description).ToList();
+					var errorMessage = string.Join("; ", errors);
+					throw new Exception(errorMessage);
 				}
 
 				if (!Enum.IsDefined(typeof(Role), accRequest.Role))
@@ -417,23 +419,27 @@ namespace Zenkoi.BLL.Services.Implements
 			}
 
 			var token = await _identityService.GeneratePasswordResetTokenAsync(user);
-			var encodedToken = WebUtility.UrlEncode(token);
+			var encodedToken = HttpUtility.UrlEncode(token);
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.WriteLine($"encode token: {encodedToken}");
 			Console.ResetColor();
 			var forgotUrl = $"{_configuration["FronendURL"]}/renew-password?token={encodedToken}&email={user.Email}";
             var emailContent = $@"
-				<div style='font-family: Arial, sans-serif; max-width: 500px; margin: auto; border: 1px solid #e0e0e0; border-radius: 10px; padding: 24px; background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05);'>
-				  <h2 style='color: #6a0dad; text-align: center; margin-bottom: 20px;'>Yêu cầu đổi mật khẩu</h2>
-				  <p style='color: #333;'>Xin chào <b>{user.FullName ?? user.Email}</b>,</p>
-				  <p style='color: #333;'>Bạn vừa yêu cầu đổi mật khẩu cho tài khoản ClickFlow của mình.</p>
-				  <p style='color: #333;'>Vui lòng nhấn vào nút bên dưới để đặt lại mật khẩu mới:</p>
-				  <div style='text-align: center; margin: 24px 0;'>
-					<a href='{forgotUrl}' style='display: inline-block; padding: 14px 28px; background: #6a0dad; color: #fff; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 16px; transition: background-color 0.3s ease;'>Đổi mật khẩu</a>
+				<div style=""font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: auto; border: 1px solid #dfe6e9; border-radius: 12px; padding: 28px; background: #ffffff; box-shadow: 0 4px 16px rgba(0,0,0,0.05);"">
+				  <h2 style=""color: #e67e22; text-align: center; margin-bottom: 20px;"">Yêu cầu đặt lại mật khẩu</h2>				 
+				  <p style=""color: #2d3436;"">Xin chào <b>{user.FullName ?? user.Email}</b>,</p>
+				  <p style=""color: #2d3436;"">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản ZenKoi của bạn.</p>
+				  <p style=""color: #2d3436;"">Hãy nhấn vào nút bên dưới để tạo mật khẩu mới:</p>
+
+				  <div style=""text-align: center; margin: 28px 0;"">
+					<a href=""{forgotUrl}"" style=""display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #3498db, #2980b9); color: #fff; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px; transition: opacity 0.3s ease;"">Đặt lại mật khẩu</a>
 				  </div>
-				  <p style='color: #888; font-size: 14px; text-align: center;'>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
-				  <hr style='border: none; border-top: 1px solid #e0e0e0; margin: 28px 0;'/>
-				  <p style='font-size: 12px; color: #aaa; text-align: center;'>&copy; Đội ngũ ClickFlow</p>
+
+				  <p style=""color: #95a5a6; font-size: 14px; text-align: center;"">Nếu bạn không gửi yêu cầu này, vui lòng bỏ qua email.</p>
+
+				  <hr style=""border: none; border-top: 1px solid #ecf0f1; margin: 28px 0;""/>
+
+				  <p style=""font-size: 12px; color: #b2bec3; text-align: center;"">🐟 Cảm ơn bạn đã tin tưởng ZenKoi<br/>&copy; Đội ngũ ZenKoi</p>
 				</div>";
             var message = new EmailDTO(
 				new string[] { user.Email! },
@@ -454,7 +460,7 @@ namespace Zenkoi.BLL.Services.Implements
 					return new BaseResponse { IsSuccess = false, Message = "Không tìm thấy người dùng." };
 				}
 
-				var decodedToken = WebUtility.UrlDecode(dto.Token);
+				var decodedToken = HttpUtility.UrlDecode(dto.Token);
 				Console.ForegroundColor = ConsoleColor.Red;
 				Console.WriteLine($"encode token: {decodedToken}");
 				Console.ResetColor();
@@ -527,7 +533,7 @@ namespace Zenkoi.BLL.Services.Implements
 				return new BaseResponse
 				{
 					IsSuccess = false,
-					Message = $"Đã xảy ra lỗi khi gửi mã OTP: {ex.Message}"
+					Message = $"Lỗi gửi mã OTP: {ex.Message}"
 				};
 			}
 		}

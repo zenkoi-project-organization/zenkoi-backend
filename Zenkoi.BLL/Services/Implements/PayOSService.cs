@@ -26,7 +26,7 @@ namespace Zenkoi.BLL.Services.Implements
 		public async Task<CreatePaymentResult> CreatePaymentLinkAsync(PaymentData data)
 		{
 			CreatePaymentResult response = await _payOS.createPaymentLink(data);
-			if (response == null) throw new Exception("Lỗi khi tạo link thanh toán.");
+			if (response == null) throw new Exception("Không thể tạo link thanh toán PayOS");
 
 			return response;
 		}
@@ -34,7 +34,7 @@ namespace Zenkoi.BLL.Services.Implements
 		public async Task<PaymentLinkInformation> GetPaymentLinkInformation(long orderId)
 		{
 			PaymentLinkInformation response = await _payOS.getPaymentLinkInformation(orderId);
-			if (response == null) throw new Exception($"Lỗi khi lấy thông tin link thanh toán Order: #{orderId}.");
+			if (response == null) throw new Exception($"Không tìm thấy thông tin thanh toán cho đơn hàng: #{orderId}");
 
 			return response;
 		}
@@ -42,7 +42,7 @@ namespace Zenkoi.BLL.Services.Implements
 		public async Task<PaymentLinkInformation> GetPaymentLinkInformationAsync(long orderId)
 		{
 			PaymentLinkInformation response = await _payOS.getPaymentLinkInformation(orderId);
-			if (response == null) throw new Exception($"Lỗi khi lấy thông tin link thanh toán Order: #{orderId}.");
+			if (response == null) throw new Exception($"Không tìm thấy thông tin thanh toán cho đơn hàng: #{orderId}");
 
 			return response;
 		}
