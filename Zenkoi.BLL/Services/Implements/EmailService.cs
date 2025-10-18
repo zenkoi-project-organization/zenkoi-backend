@@ -52,7 +52,7 @@ namespace Zenkoi.BLL.Services.Implements
 			}
 			catch (Exception ex)
 			{
-				throw new Exception("An error occurred while sending the email: " + ex.Message, ex);
+				throw new Exception($"Không thể gửi email: {ex.Message}", ex);
 			}
 			finally
 			{

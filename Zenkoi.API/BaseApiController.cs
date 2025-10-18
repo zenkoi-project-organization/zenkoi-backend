@@ -1,19 +1,30 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.Response;
+using System.Linq;
 
 namespace Zenkoi.API
 {
 	public class BaseAPIController : ControllerBase
 	{
-		protected ActionResult Error(string message, object data = null)
+	protected ActionResult Error(string message, object data = null)
+	{
+		return new BadRequestObjectResult(new ResponseApiDTO
 		{
-			return new BadRequestObjectResult(new ResponseApiDTO
-			{
-				Result = data,
-				StatusCode = System.Net.HttpStatusCode.BadRequest,
-				Message = message,
-			});
-		}
+			Result = null,
+			StatusCode = 400,
+			Message = message,
+			IsSuccess = false
+		});
+	}
+
+	protected string GetIdentityErrorMessage(Microsoft.AspNetCore.Identity.IdentityResult result)
+	{
+		if (result == null || !result.Errors.Any())
+			return "Lỗi không xác định";
+
+		var errors = result.Errors.Select(e => e.Description).ToList();
+		return string.Join("; ", errors);
+	}
 
 		protected ActionResult GetNotFound(string message)
 		{
@@ -21,7 +32,8 @@ namespace Zenkoi.API
 			{
 				IsSuccess = false,
 				Message = message,
-				StatusCode = System.Net.HttpStatusCode.NotFound
+				StatusCode = 404,
+				Result = null
 			});
 		}
 
@@ -31,7 +43,8 @@ namespace Zenkoi.API
 			{
 				IsSuccess = false,
 				Message = message,
-				StatusCode = System.Net.HttpStatusCode.Unauthorized
+				StatusCode = 401,
+				Result = null
 			});
 		}
 
@@ -50,26 +63,29 @@ namespace Zenkoi.API
 			return Error("Save data failed", data);
 		}
 
-		protected ActionResult ModelInvalid()
+	protected ActionResult ModelInvalid()
+	{
+		var errors = ModelState.Where(m => m.Value.Errors.Count > 0)
+			.Select(kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).First())
+			.ToList();
+		
+		var errorMessage = errors.Any() ? string.Join("; ", errors) : "Dữ liệu không hợp lệ";
+		
+		return new BadRequestObjectResult(new ResponseApiDTO
 		{
-			var errors = ModelState.Where(m => m.Value.Errors.Count > 0)
-				.ToDictionary(
-					kvp => kvp.Key,
-					kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).First()).ToList();
-			return new BadRequestObjectResult(new ResponseApiDTO
-			{
-				Errors = errors,
-				StatusCode = System.Net.HttpStatusCode.BadRequest,
-				Message = "Save data failed"
-			});
-		}
+			Result = null,
+			StatusCode = 400,
+			Message = errorMessage,
+			IsSuccess = false
+		});
+	}
 
 		protected ActionResult Success(object data, string message)
 		{
 			return new OkObjectResult(new ResponseApiDTO
 			{
 				Result = data,
-				StatusCode = System.Net.HttpStatusCode.OK,
+				StatusCode = 200,
 				Message = message,
 				IsSuccess = true
 			});
