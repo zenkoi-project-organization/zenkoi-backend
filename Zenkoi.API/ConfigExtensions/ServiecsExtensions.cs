@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using Zenkoi.BLL.Helpers.Mapper;
+using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.EF;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
@@ -33,7 +34,8 @@ namespace Zenkoi.API.ConfigExtensions
 					.AddClasses(classes => classes.Where(type => type.Namespace == $"Zenkoi.BLL.Services.Implements" && type.Name.EndsWith("Service")))
 					.AsImplementedInterfaces()
 					.WithScopedLifetime());
-		}
+
+        }
 
 		// Auto mapper
 		public static void AddMapper(this IServiceCollection services)
@@ -151,14 +153,12 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.Varieties.AddRangeAsync(
 				   new Variety
 				   {
-					   Id = 1,
 					   VarietyName = "Kohaku",
 					   Characteristic = "Thân trắng với các mảng đỏ",
 					   OriginCountry = "Nhật Bản"
 				   },
 				   new Variety
 				   {
-					   Id = 2,
 					   VarietyName = "Sanke",
 					   Characteristic = "Thân trắng, đốm đỏ và đen",
 					   OriginCountry = "Nhật Bản"
@@ -170,7 +170,6 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.Ponds.AddRangeAsync(
 					 new Pond
 					 {
-						 Id = 1,
 						 PondName = "Pond A1",
 						 PondTypeId = 1,
 						 AreaId = 1,
@@ -187,14 +186,12 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.PondTypes.AddRangeAsync(
 					 new PondType
 					 {
-						 Id = 1,
 						 TypeName = "Ao sinh sản",
 						 Description = "Ao dành cho cá bố mẹ sinh sản",
 						 RecommendedCapacity = 8000
 					 },
 						new PondType
 						{
-							Id = 2,
 							TypeName = "Ao ương cá bột",
 							Description = "Ao ương cá con sau khi nở",
 							RecommendedCapacity = 5000
@@ -206,7 +203,6 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.KoiFishes.AddRangeAsync(
 					new KoiFish
 					{
-						Id = 1,
 						PondId = 1,
 						VarietyId = 1,
 						RFID = "RFID-001",
@@ -222,47 +218,44 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 					);
 			}
-			if (context.BreedingProcesses.Any())
+			if (!context.BreedingProcesses.Any())
 			{
 				await context.BreedingProcesses.AddRangeAsync(
 				new BreedingProcess
 				{
-					Id = 1,
 					MaleKoiId = 1,
 					FemaleKoiId = 2,
 					PondId = 1,
 					StartDate = new DateTime(2025, 1, 10),
 					EndDate = new DateTime(2025, 2, 15),
-					Status = "Completed",
+					Status = BreedingStatus.Complete,
 					Note = "Quá trình sinh sản thành công, nhiều trứng nở khỏe mạnh.",
-					Result = "Successful",
+					Result = BreedingResult.Success,
 					TotalFishQualified = 120,
 					TotalPackage = 3
 				}
 				);
 			}
-			if (context.EggBatches.Any())
+			if (!context.EggBatches.Any())
 			{
 				await context.EggBatches.AddRangeAsync(
 					new EggBatch
 					{
-						Id = 1,
 						BreedingProcessId = 1,
 						PondId = 1,
 						Quantity = 5000,
 						FertilizationRate = 0.85,
-						Status = "Đang ấp",
+						Status = EggBatchStatus.Success,
 						SpawnDate = new DateTime(2025, 2, 16),
 						HatchingTime = new DateTime(2025, 2, 22)
 					}
 				);
 			}
-			if (context.IncubationDailyRecords.Any())
+			if (!context.IncubationDailyRecords.Any())
 			{
 				await context.IncubationDailyRecords.AddRangeAsync(
 					new IncubationDailyRecord
 					{
-						Id = 1,
 						EggBatchId = 1,
 						DayNumber = 1,
 						HealthyEggs = 4800,
@@ -271,7 +264,6 @@ namespace Zenkoi.API.ConfigExtensions
 					},
 					new IncubationDailyRecord
 					{
-						Id = 2,
 						EggBatchId = 1,
 						DayNumber = 3,
 						HealthyEggs = 4700,
@@ -280,35 +272,32 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 					);
 			}
-			if (context.FryFishes.Any())
+			if (!context.FryFishes.Any())
 			{
 				await context.FryFishes.AddRangeAsync(
 					new FryFish
 					{
-						Id = 1,
 						BreedingProcessId = 1,
 						PondId = 1,
 						InitialCount = 4500,
-						Status = "Đang phát triển tốt",
+						Status = FryFishStatus.Growing,
 						CurrentSurvivalRate = 0.93
 					},
 					new FryFish
 					{
-						Id = 2,
 						BreedingProcessId = 2,
 						PondId = 2,
 						InitialCount = 6200,
-						Status = "Ổn định",
+						Status = FryFishStatus.Completed,
 						CurrentSurvivalRate = 0.89
 					}
 					);
 			}
-			if (context.FrySurvivalRecords.Any())
+			if (!context.FrySurvivalRecords.Any())
 			{
 				await context.FrySurvivalRecords.AddRangeAsync(
 					new FrySurvivalRecord
 					{
-						Id = 1,
 						FryFishId = 1,
 						DayNumber = 1,
 						SurvivalRate = 0.95,
@@ -316,7 +305,6 @@ namespace Zenkoi.API.ConfigExtensions
 					},
 					new FrySurvivalRecord
 					{
-						Id = 2,
 						FryFishId = 1,
 						DayNumber = 3,
 						SurvivalRate = 0.93,
@@ -324,12 +312,11 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 					);
 			}
-			if (context.ClassificationStages.Any())
+			if (!context.ClassificationStages.Any())
 			{
 				await context.ClassificationStages.AddRangeAsync(
 					new ClassificationStage
 					{
-						Id = 1,
 						BreedingProcessId = 1,
 						TotalCount = 4200,
 						HighQualifiedCount = 800,
@@ -339,14 +326,14 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 					);
 			}
-			if (context.ClassificationRecords.Any())
+			if (!context.ClassificationRecords.Any())
 			{
 				await context.ClassificationRecords.AddRangeAsync(
 					new ClassificationRecord
 					{
-						Id = 1,
 						ClassificationStageId = 1,
-						StageName = "Lần 1 - Tuần 2",
+						StageNumber = 1,
+						CreateAt = DateTime.Now,
 						HighQualifiedCount = 300,
 						QualifiedCount = 500,
 						UnqualifiedCount = 200,

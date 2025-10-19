@@ -25,7 +25,7 @@ namespace Zenkoi.BLL.Services.Implements
         }
         public async Task<IEnumerable<AreaResponseDTO>> GetAllAsync()
         {
-            var areas = await _areaRepo.GetAllAsync();
+            var areas = await _areaRepo.GetAll();
             return _mapper.Map<IEnumerable<AreaResponseDTO>>(areas);
         }
 

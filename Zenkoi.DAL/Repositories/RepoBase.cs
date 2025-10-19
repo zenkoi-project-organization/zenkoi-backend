@@ -113,11 +113,11 @@ namespace Zenkoi.DAL.Repositories
 			}
 			return false;
 		}
-        public async Task<T?> GetByIdAsync(int id)
+        public async Task<T?> GetByIdAsync(int? id)
         {
             return await _dbSet.FindAsync(id);
         }
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<IEnumerable<T>> GetAll()
         {
             return await _dbSet.ToListAsync();
         }

@@ -16,22 +16,27 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllPonds()
+        public async Task<IActionResult> GetAll([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var data = await _pondService.GetAllAsync();
-                if (data == null || !data.Any())
-                    return GetError("Không tìm thấy ao nào.");
+                var result = await _pondService.GetAllPondsAsync(pageIndex, pageSize);
 
-                return GetSuccess(data);
+                var response = new
+                {
+                    result.PageIndex,
+                    result.TotalPages,
+                    result.TotalItems,
+                    result.HasNextPage,
+                    result.HasPreviousPage,
+                    Data = result
+                };
+
+                return GetSuccess(response);
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình lấy danh sách ao.");
+                return GetError($"Get ponds failed: {ex.Message}");
             }
         }
 

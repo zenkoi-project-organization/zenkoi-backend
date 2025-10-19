@@ -18,10 +18,28 @@ namespace Zenkoi.API.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
-            var varieties = await _varietyService.GetAllAsync();
-            return Ok(varieties);
+            try
+            {
+                var result = await _varietyService.GetAllVarietiesAsync(pageIndex, pageSize);
+
+                var response = new
+                {
+                    result.PageIndex,
+                    result.TotalPages,
+                    result.TotalItems,
+                    result.HasNextPage,
+                    result.HasPreviousPage,
+                    Data = result
+                };
+
+                return GetSuccess(response);
+            }
+            catch (Exception ex)
+            {
+                return GetError($"Get varieties failed: {ex.Message}");
+            }
         }
 
         [HttpGet("{id}")]

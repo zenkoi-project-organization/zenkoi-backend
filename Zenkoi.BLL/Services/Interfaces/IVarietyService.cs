@@ -5,12 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AreaDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
+using Zenkoi.DAL.Paging;
 
 namespace Zenkoi.BLL.Services.Interfaces
 {
     public interface IVarietyService
     {
-        Task<IEnumerable<VarietyResponseDTO>> GetAllAsync();
+        Task<PaginatedList<VarietyResponseDTO>> GetAllVarietiesAsync(int pageIndex = 1, int pageSize = 10);
         Task<VarietyResponseDTO?> GetByIdAsync(int id);
         Task<VarietyResponseDTO> CreateAsync(VarietyRequestDTO dto);
         Task<bool> UpdateAsync(int id, VarietyRequestDTO dto);
