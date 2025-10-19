@@ -31,7 +31,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình lấy dữ liệu loại ao.");
+                return Error($"Lỗi lấy dữ liệu loại ao: {ex.Message}");
             }
         }
 
@@ -54,7 +54,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình lấy thông tin loại ao.");
+                return Error($"Lỗi lấy thông tin loại ao: {ex.Message}");
             }
         }
 
@@ -80,7 +80,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình tạo loại ao.");
+                return Error($"Lỗi tạo loại ao: {ex.Message}");
             }
         }
 
@@ -106,7 +106,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình cập nhật loại ao.");
+                return Error($"Lỗi cập nhật loại ao: {ex.Message}");
             }
         }
 
@@ -129,7 +129,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình xóa loại ao.");
+                return Error($"Lỗi xóa loại ao: {ex.Message}");
             }
         }
     }

@@ -66,7 +66,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.ToString());
                 Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình đăng kí. Hãy thử lại sau một ít phút nữa.");
+                return Error($"Lỗi đăng kí: {ex.Message}");
             }
         }
 
@@ -84,7 +84,7 @@ namespace Zenkoi.API.Controllers
 
             if (!response.Succeeded)
             {
-                return Error("Xác thực KHÔNG thành công.");
+                return Error($"Xác thực email thất bại: {GetIdentityErrorMessage(response)}");
             }
 
             return Success(response, "Xác thực tài khoản thành công.");
@@ -174,7 +174,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại sau ít phút");
+                return Error($"Lỗi đăng nhập: {ex.Message}");
             }
         }
 
@@ -289,7 +289,6 @@ namespace Zenkoi.API.Controllers
         //        return SaveSuccess("Tắt xác thực 2 yếu tố thành công.");
         //    }
 
-        //    return SaveError(result.Errors);
         //}
 
         [Authorize]
@@ -322,7 +321,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình đăng xuất. Vui lòng thử lại sau ít phút");
+                return Error($"Lỗi đăng xuất: {ex.Message}");
             }
         }
 
@@ -358,7 +357,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã có lỗi xảy ra trong quá trình tạo mã đăng nhập mới. Vui lòng thử lại sau ít phút nữa.");
+                return Error($"Lỗi tạo mã đăng nhập mới: {ex.Message}");
             }
         }
 
@@ -379,7 +378,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã có lỗi xảy ra trong quá trình tạo mã đổi mật khẩu. Vui lòng thử lại sau ít phút nữa.");
+                return Error($"Lỗi tạo mã đổi mật khẩu: {ex.Message}");
             }
 
         }
@@ -397,7 +396,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã có lỗi xảy ra trong quá trình nhận yêu cầu đổi mật khẩu. Vui lòng thử lại sau ít phút nữa.");
+                return Error($"Lỗi nhận yêu cầu đổi mật khẩu: {ex.Message}");
             }
         }
 
@@ -417,7 +416,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã có lỗi xảy ra trong quá trình thay đổi mật khẩu. Vui lòng thử lại sau ít phút nữa.");
+                return Error($"Lỗi thay đổi mật khẩu: {ex.Message}");
             }
         }
 
@@ -443,7 +442,7 @@ namespace Zenkoi.API.Controllers
                     var token = await _identityService.GeneratePasswordResetTokenAsync(user);
 
                     var success = await _identityService.ResetPasswordAsync(user, token, dto.NewPassword);
-                    if (!success.Succeeded) return SaveError();
+                    if (!success.Succeeded) return Error($"Đặt lại mật khẩu thất bại: {GetIdentityErrorMessage(success)}");
 
                     var newToken = await _accountService.GenerateTokenAsync(user);
                     if (newToken == null) return Error("Đã có lỗi xảy ra trong quá trình sinh mã đăng nhập mới. Xin vui lòng thử lại sau ít phút.");
@@ -459,7 +458,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã có lỗi xảy ra trong quá trình thay đổi mật khẩu. Vui lòng thử lại sau ít phút nữa.");
+                return Error($"Lỗi thay đổi mật khẩu: {ex.Message}");
             }
         }
 
@@ -492,7 +491,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
-                return Error("Đã xảy ra lỗi khi gửi mã OTP. Vui lòng thử lại sau.");
+                return Error($"Lỗi gửi mã OTP: {ex.Message}");
             }
         }     
 
@@ -521,7 +520,7 @@ namespace Zenkoi.API.Controllers
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex);
                 Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình đăng nhập bằng Google. Vui lòng thử lại sau.");
+                return Error($"Lỗi đăng nhập bằng Google: {ex.Message}");
             }
         }
     }
