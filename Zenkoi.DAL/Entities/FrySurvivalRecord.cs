@@ -15,6 +15,12 @@ namespace Zenkoi.DAL.Entities
         public double? SurvivalRate { get; set; }
         public int? CountAlive { get; set; }
 
+        public string? Note { get; set; }
+
+        public DateTime? CreatedAt { get; set; } = DateTime.Now;
+
+        public bool Success { get; set; } = false;
+
         // Navigation
         public FryFish FryFish { get; set; }
     }

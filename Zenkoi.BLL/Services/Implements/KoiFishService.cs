@@ -2,12 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Paging;
+using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 
@@ -29,11 +32,34 @@ namespace Zenkoi.BLL.Services.Implements
             _varietyRepo = _unitOfWork.GetRepo<Variety>();
             _pondRepo = _unitOfWork.GetRepo<Pond>();
         }
-        public async Task<IEnumerable<KoiFishResponseDTO>> GetAllAsync()
+        public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(int pageIndex = 1, int pageSize = 10)
         {
-            var koifishes = await _koiFishRepo.GetAllAsync();
-            return _mapper.Map<IEnumerable<KoiFishResponseDTO>>(koifishes);
+            // 1️⃣ Khai báo QueryOptions để Include các thuộc tính navigation
+            var queryOptions = new QueryOptions<KoiFish>
+            {
+                IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+        {
+            v => v.Variety,
+            p => p.Pond
         }
+            };
+
+            
+            var allKoiFish = await _koiFishRepo.GetAllAsync(queryOptions);
+
+          
+            var mappedList = _mapper.Map<List<KoiFishResponseDTO>>(allKoiFish);
+
+
+            var totalCount = mappedList.Count;
+            var pagedItems = mappedList
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            return new PaginatedList<KoiFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
+        }
+
+
 
         public async Task<KoiFishResponseDTO?> GetByIdAsync(int id)
         {

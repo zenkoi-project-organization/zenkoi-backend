@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using Zenkoi.BLL.Helpers.Mapper;
+using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.EF;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
@@ -33,7 +34,8 @@ namespace Zenkoi.API.ConfigExtensions
 					.AddClasses(classes => classes.Where(type => type.Namespace == $"Zenkoi.BLL.Services.Implements" && type.Name.EndsWith("Service")))
 					.AsImplementedInterfaces()
 					.WithScopedLifetime());
-		}
+
+        }
 
 		// Auto mapper
 		public static void AddMapper(this IServiceCollection services)
@@ -83,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
 			if (env.IsDevelopment())
 			{
-				await TruncateAllTablesExceptMigrationHistory(context);
+		//		await TruncateAllTablesExceptMigrationHistory(context);
 			}
 
 			#region Seeding Roles
@@ -233,9 +235,9 @@ namespace Zenkoi.API.ConfigExtensions
 					PondId = 1,
 					StartDate = new DateTime(2025, 1, 10),
 					EndDate = new DateTime(2025, 2, 15),
-					Status = "Completed",
+					Status = BreedingStatus.Complete,
 					Note = "Quá trình sinh sản thành công, nhiều trứng nở khỏe mạnh.",
-					Result = "Successful",
+					Result = BreedingResult.Success,
 					TotalFishQualified = 120,
 					TotalPackage = 3
 				}
@@ -251,7 +253,7 @@ namespace Zenkoi.API.ConfigExtensions
 						PondId = 1,
 						Quantity = 5000,
 						FertilizationRate = 0.85,
-						Status = "Đang ấp",
+						Status = EggBatchStatus.Success,
 						SpawnDate = new DateTime(2025, 2, 16),
 						HatchingTime = new DateTime(2025, 2, 22)
 					}
@@ -289,7 +291,7 @@ namespace Zenkoi.API.ConfigExtensions
 						BreedingProcessId = 1,
 						PondId = 1,
 						InitialCount = 4500,
-						Status = "Đang phát triển tốt",
+						Status = FryFishStatus.Growing,
 						CurrentSurvivalRate = 0.93
 					},
 					new FryFish
@@ -298,7 +300,7 @@ namespace Zenkoi.API.ConfigExtensions
 						BreedingProcessId = 2,
 						PondId = 2,
 						InitialCount = 6200,
-						Status = "Ổn định",
+						Status = FryFishStatus.Completed,
 						CurrentSurvivalRate = 0.89
 					}
 					);
@@ -346,7 +348,8 @@ namespace Zenkoi.API.ConfigExtensions
 					{
 						Id = 1,
 						ClassificationStageId = 1,
-						StageName = "Lần 1 - Tuần 2",
+						StageNumber = 1,
+						CreateAt = DateTime.Now,
 						HighQualifiedCount = 300,
 						QualifiedCount = 500,
 						UnqualifiedCount = 200,

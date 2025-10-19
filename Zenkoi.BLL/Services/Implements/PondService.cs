@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AreaDTOs;
@@ -10,6 +11,8 @@ using Zenkoi.BLL.DTOs.PondTypeDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Paging;
+using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 
@@ -26,11 +29,30 @@ namespace Zenkoi.BLL.Services.Implements
             _mapper = mapper;
             _pondRepo = _unitOfWork.GetRepo<Pond>();
         }
-        public async Task<IEnumerable<PondResponseDTO>> GetAllAsync()
+        public async Task<PaginatedList<PondResponseDTO>> GetAllPondsAsync(int pageIndex = 1, int pageSize = 10)
         {
-            var pondtypes  = await _pondRepo.GetAllAsync();
-            return _mapper.Map<IEnumerable<PondResponseDTO>>(pondtypes);
+            var queryOptions = new QueryOptions<Pond>
+            {
+                IncludeProperties = new List<Expression<Func<Pond, object>>>
+        {
+            a => a.Area,
+            b => b.PondType
         }
+            };
+
+            var ponds = await _pondRepo.GetAllAsync(queryOptions);
+
+            var mappedList = _mapper.Map<List<PondResponseDTO>>(ponds);
+
+            var totalCount = mappedList.Count;
+            var pagedItems = mappedList
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PaginatedList<PondResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
+        }
+
 
         public async Task<PondResponseDTO?> GetByIdAsync(int id)
         {
@@ -46,7 +68,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception($"không tìm thấy ví trí với AreaId : {dto.AreaId}");
             }
-            var pondRepo = _unitOfWork.GetRepo<Pond>();
+            var pondRepo = _unitOfWork.GetRepo<PondType>();
             var pondType = await pondRepo.CheckExistAsync(dto.PondTypeId);
             if (!pondType)
             {

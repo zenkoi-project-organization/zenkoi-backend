@@ -8,6 +8,7 @@ using Zenkoi.BLL.DTOs.PondDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 
@@ -24,10 +25,19 @@ namespace Zenkoi.BLL.Services.Implements
             _mapper = mapper;
             _varietyRepo = _unitOfWork.GetRepo<Variety>();
         }
-        public async Task<IEnumerable<VarietyResponseDTO>> GetAllAsync()
+        public async Task<PaginatedList<VarietyResponseDTO>> GetAllVarietiesAsync(int pageIndex = 1, int pageSize = 10)
         {
-            var varieties = await _varietyRepo.GetAllAsync();
-            return _mapper.Map<IEnumerable<VarietyResponseDTO>>(varieties);
+            var varieties = await _varietyRepo.GetAll();
+
+            var mappedList = _mapper.Map<List<VarietyResponseDTO>>(varieties);
+
+            var totalCount = mappedList.Count;
+            var pagedItems = mappedList
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PaginatedList<VarietyResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
 
         public async Task<VarietyResponseDTO?> GetByIdAsync(int id)

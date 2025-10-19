@@ -15,26 +15,35 @@ namespace Zenkoi.API.Controllers
             _koiFishService = koiFishService;
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllKoiFish()
+        public async Task<IActionResult> GetAllKoiFish([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var data = await _koiFishService.GetAllAsync();
-                if (data == null || !data.Any())
-                    return GetError("Không tìm thấy cá koi nào.");
+                var result = await _koiFishService.GetAllKoiFishAsync(pageIndex, pageSize);
 
-                return GetSuccess(data);
+                var response = new
+                {
+                    result.PageIndex,
+                    result.TotalPages,
+                    result.TotalItems,
+                    result.HasNextPage,
+                    result.HasPreviousPage,
+                    Data = result
+                };
+
+                return GetSuccess(response);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return GetError(ex.Message);
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"[ERROR] {ex.Message}");
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình lấy danh sách cá koi.");
+                return GetError($"Get koi fish failed: {ex.Message}");
             }
         }
 
-        [HttpGet("{id}")]
+    [HttpGet("{id}")]
         public async Task<IActionResult> GetKoiFishById(int id)
         {
             try
@@ -44,6 +53,10 @@ namespace Zenkoi.API.Controllers
                     return GetError("Không tìm thấy cá koi với ID này.");
 
                 return GetSuccess(data);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return GetError(ex.Message);
             }
             catch (Exception ex)
             {
@@ -68,6 +81,10 @@ namespace Zenkoi.API.Controllers
 
                 return GetSuccess(new { message = "Tạo cá koi thành công.", data = created });
             }
+            catch (KeyNotFoundException ex)
+            {
+                return GetError(ex.Message);
+            }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -91,6 +108,10 @@ namespace Zenkoi.API.Controllers
 
                 return GetSuccess("Cập nhật cá koi thành công.");
             }
+            catch (KeyNotFoundException ex)
+            {
+                return GetError(ex.Message);
+            }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -111,6 +132,10 @@ namespace Zenkoi.API.Controllers
                     return GetError("Không tìm thấy cá koi cần xóa.");
 
                 return GetSuccess("Xóa cá koi thành công.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return GetError(ex.Message);
             }
             catch (Exception ex)
             {

@@ -282,7 +282,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Note")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -292,18 +291,16 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int?>("PondId1")
                         .HasColumnType("int");
 
-                    b.Property<string>("Result")
-                        .IsRequired()
+                    b.Property<int>("Result")
                         .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<int>("Status")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("int");
 
                     b.Property<int?>("TotalFishQualified")
                         .HasColumnType("int");
@@ -335,19 +332,20 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int>("ClassificationStageId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("HighQualifiedCount")
                         .HasColumnType("int");
 
                     b.Property<string>("Notes")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("QualifiedCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("StageName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("StageNumber")
+                        .HasColumnType("int");
 
                     b.Property<int?>("UnqualifiedCount")
                         .HasColumnType("int");
@@ -370,6 +368,9 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int>("BreedingProcessId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("HighQualifiedCount")
                         .HasColumnType("int");
 
@@ -377,7 +378,16 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PondId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("QualifiedCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<int?>("TotalCount")
@@ -388,7 +398,10 @@ namespace Zenkoi.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BreedingProcessId");
+                    b.HasIndex("BreedingProcessId")
+                        .IsUnique();
+
+                    b.HasIndex("PondId");
 
                     b.ToTable("ClassificationStages", "dbo");
                 });
@@ -469,13 +482,16 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<DateTime?>("SpawnDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TotalHatchedEggs")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BreedingProcessId");
+                    b.HasIndex("BreedingProcessId")
+                        .IsUnique();
 
                     b.HasIndex("PondId");
 
@@ -496,19 +512,25 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<double?>("CurrentSurvivalRate")
                         .HasColumnType("float");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("InitialCount")
                         .HasColumnType("int");
 
                     b.Property<int>("PondId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BreedingProcessId");
+                    b.HasIndex("BreedingProcessId")
+                        .IsUnique();
 
                     b.HasIndex("PondId");
 
@@ -526,11 +548,20 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int?>("CountAlive")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("DayNumber")
                         .HasColumnType("int");
 
                     b.Property<int>("FryFishId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("bit");
 
                     b.Property<double?>("SurvivalRate")
                         .HasColumnType("float");
@@ -646,6 +677,9 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("DayNumber")
                         .HasColumnType("int");
 
@@ -660,6 +694,9 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<int?>("RottenEggs")
                         .HasColumnType("int");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -1769,12 +1806,20 @@ namespace Zenkoi.DAL.Migrations
             modelBuilder.Entity("Zenkoi.DAL.Entities.ClassificationStage", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.BreedingProcess", "BreedingProcess")
+                        .WithOne("ClassificationStage")
+                        .HasForeignKey("Zenkoi.DAL.Entities.ClassificationStage", "BreedingProcessId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
                         .WithMany()
-                        .HasForeignKey("BreedingProcessId")
+                        .HasForeignKey("PondId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("BreedingProcess");
+
+                    b.Navigation("Pond");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.Customer", b =>
@@ -1791,8 +1836,8 @@ namespace Zenkoi.DAL.Migrations
             modelBuilder.Entity("Zenkoi.DAL.Entities.EggBatch", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.BreedingProcess", "BreedingProcess")
-                        .WithMany()
-                        .HasForeignKey("BreedingProcessId")
+                        .WithOne("Batch")
+                        .HasForeignKey("Zenkoi.DAL.Entities.EggBatch", "BreedingProcessId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1810,8 +1855,8 @@ namespace Zenkoi.DAL.Migrations
             modelBuilder.Entity("Zenkoi.DAL.Entities.FryFish", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.BreedingProcess", "BreedingProcess")
-                        .WithMany()
-                        .HasForeignKey("BreedingProcessId")
+                        .WithOne("FryFish")
+                        .HasForeignKey("Zenkoi.DAL.Entities.FryFish", "BreedingProcessId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2193,6 +2238,12 @@ namespace Zenkoi.DAL.Migrations
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.BreedingProcess", b =>
                 {
+                    b.Navigation("Batch");
+
+                    b.Navigation("ClassificationStage");
+
+                    b.Navigation("FryFish");
+
                     b.Navigation("KoiFishes");
                 });
 

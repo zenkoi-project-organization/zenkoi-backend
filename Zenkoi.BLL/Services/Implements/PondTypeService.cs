@@ -26,7 +26,7 @@ namespace Zenkoi.BLL.Services.Implements
         }
         public async Task<IEnumerable<PondTypeResponseDTO>> GetAllAsync()
         {
-            var pondtypes  = await _pondtypeRepo.GetAllAsync();
+            var pondtypes  = await _pondtypeRepo.GetAll();
             return _mapper.Map<IEnumerable<PondTypeResponseDTO>>(pondtypes);
         }
 
