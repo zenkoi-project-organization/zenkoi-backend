@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
 			if (env.IsDevelopment())
 			{
-		//		await TruncateAllTablesExceptMigrationHistory(context);
+				await TruncateAllTablesExceptMigrationHistory(context);
 			}
 
 			#region Seeding Roles
@@ -153,14 +153,12 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.Varieties.AddRangeAsync(
 				   new Variety
 				   {
-					   Id = 1,
 					   VarietyName = "Kohaku",
 					   Characteristic = "Thân trắng với các mảng đỏ",
 					   OriginCountry = "Nhật Bản"
 				   },
 				   new Variety
 				   {
-					   Id = 2,
 					   VarietyName = "Sanke",
 					   Characteristic = "Thân trắng, đốm đỏ và đen",
 					   OriginCountry = "Nhật Bản"
@@ -172,7 +170,6 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.Ponds.AddRangeAsync(
 					 new Pond
 					 {
-						 Id = 1,
 						 PondName = "Pond A1",
 						 PondTypeId = 1,
 						 AreaId = 1,
@@ -189,14 +186,12 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.PondTypes.AddRangeAsync(
 					 new PondType
 					 {
-						 Id = 1,
 						 TypeName = "Ao sinh sản",
 						 Description = "Ao dành cho cá bố mẹ sinh sản",
 						 RecommendedCapacity = 8000
 					 },
 						new PondType
 						{
-							Id = 2,
 							TypeName = "Ao ương cá bột",
 							Description = "Ao ương cá con sau khi nở",
 							RecommendedCapacity = 5000
@@ -208,7 +203,6 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.KoiFishes.AddRangeAsync(
 					new KoiFish
 					{
-						Id = 1,
 						PondId = 1,
 						VarietyId = 1,
 						RFID = "RFID-001",
@@ -224,12 +218,11 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 					);
 			}
-			if (context.BreedingProcesses.Any())
+			if (!context.BreedingProcesses.Any())
 			{
 				await context.BreedingProcesses.AddRangeAsync(
 				new BreedingProcess
 				{
-					Id = 1,
 					MaleKoiId = 1,
 					FemaleKoiId = 2,
 					PondId = 1,
@@ -243,12 +236,11 @@ namespace Zenkoi.API.ConfigExtensions
 				}
 				);
 			}
-			if (context.EggBatches.Any())
+			if (!context.EggBatches.Any())
 			{
 				await context.EggBatches.AddRangeAsync(
 					new EggBatch
 					{
-						Id = 1,
 						BreedingProcessId = 1,
 						PondId = 1,
 						Quantity = 5000,
@@ -259,12 +251,11 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 				);
 			}
-			if (context.IncubationDailyRecords.Any())
+			if (!context.IncubationDailyRecords.Any())
 			{
 				await context.IncubationDailyRecords.AddRangeAsync(
 					new IncubationDailyRecord
 					{
-						Id = 1,
 						EggBatchId = 1,
 						DayNumber = 1,
 						HealthyEggs = 4800,
@@ -273,7 +264,6 @@ namespace Zenkoi.API.ConfigExtensions
 					},
 					new IncubationDailyRecord
 					{
-						Id = 2,
 						EggBatchId = 1,
 						DayNumber = 3,
 						HealthyEggs = 4700,
@@ -282,12 +272,11 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 					);
 			}
-			if (context.FryFishes.Any())
+			if (!context.FryFishes.Any())
 			{
 				await context.FryFishes.AddRangeAsync(
 					new FryFish
 					{
-						Id = 1,
 						BreedingProcessId = 1,
 						PondId = 1,
 						InitialCount = 4500,
@@ -296,7 +285,6 @@ namespace Zenkoi.API.ConfigExtensions
 					},
 					new FryFish
 					{
-						Id = 2,
 						BreedingProcessId = 2,
 						PondId = 2,
 						InitialCount = 6200,
@@ -305,12 +293,11 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 					);
 			}
-			if (context.FrySurvivalRecords.Any())
+			if (!context.FrySurvivalRecords.Any())
 			{
 				await context.FrySurvivalRecords.AddRangeAsync(
 					new FrySurvivalRecord
 					{
-						Id = 1,
 						FryFishId = 1,
 						DayNumber = 1,
 						SurvivalRate = 0.95,
@@ -318,7 +305,6 @@ namespace Zenkoi.API.ConfigExtensions
 					},
 					new FrySurvivalRecord
 					{
-						Id = 2,
 						FryFishId = 1,
 						DayNumber = 3,
 						SurvivalRate = 0.93,
@@ -326,12 +312,11 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 					);
 			}
-			if (context.ClassificationStages.Any())
+			if (!context.ClassificationStages.Any())
 			{
 				await context.ClassificationStages.AddRangeAsync(
 					new ClassificationStage
 					{
-						Id = 1,
 						BreedingProcessId = 1,
 						TotalCount = 4200,
 						HighQualifiedCount = 800,
@@ -341,12 +326,11 @@ namespace Zenkoi.API.ConfigExtensions
 					}
 					);
 			}
-			if (context.ClassificationRecords.Any())
+			if (!context.ClassificationRecords.Any())
 			{
 				await context.ClassificationRecords.AddRangeAsync(
 					new ClassificationRecord
 					{
-						Id = 1,
 						ClassificationStageId = 1,
 						StageNumber = 1,
 						CreateAt = DateTime.Now,
