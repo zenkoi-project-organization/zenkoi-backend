@@ -15,6 +15,6 @@ namespace Zenkoi.BLL.DTOs.AccountDTOs
 		public string ConfirmedNewPassword { get; set; } = null!;
 
 		[Required(ErrorMessage = "Token không được để trống.")]
-		public string Token { get; set; } = null!;
+		public string AccsessToken { get; set; } = null!;
 	}
 }
