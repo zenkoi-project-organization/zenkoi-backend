@@ -12,8 +12,8 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    [Migration("20251020125757_fixBreeding")]
-    partial class fixBreeding
+    [Migration("20251020170738_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -288,21 +288,19 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("PondId")
+                    b.Property<int?>("PondId")
                         .HasColumnType("int");
 
                     b.Property<int?>("PondId1")
                         .HasColumnType("int");
 
                     b.Property<int>("Result")
-                        .HasMaxLength(1000)
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("StartDate")
+                    b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
-                        .HasMaxLength(50)
                         .HasColumnType("int");
 
                     b.Property<int?>("TotalFishQualified")
@@ -1784,8 +1782,7 @@ namespace Zenkoi.DAL.Migrations
                     b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
                         .WithMany()
                         .HasForeignKey("PondId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Zenkoi.DAL.Entities.Pond", null)
                         .WithMany("BreedingProcesses")
