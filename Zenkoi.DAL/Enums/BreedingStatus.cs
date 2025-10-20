@@ -15,6 +15,5 @@ namespace Zenkoi.DAL.Enums
        Classification,
        Complete,
        Failed
-
     }
 }
