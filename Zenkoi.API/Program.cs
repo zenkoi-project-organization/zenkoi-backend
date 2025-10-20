@@ -1,4 +1,5 @@
 ﻿
+using Cafe_Web_App.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -137,6 +138,7 @@ namespace Zenkoi.API
           
 
             app.UseCors("CorsPolicy");
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             //app.UseHttpsRedirection();
 

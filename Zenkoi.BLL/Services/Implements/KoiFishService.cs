@@ -9,6 +9,7 @@ using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
@@ -24,6 +25,7 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<KoiFish> _koiFishRepo;
         private readonly IRepoBase<Variety> _varietyRepo;
         private readonly IRepoBase<Pond>  _pondRepo;
+        private readonly IRepoBase<BreedingProcess> _breedRepo;
         public KoiFishService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
@@ -31,25 +33,21 @@ namespace Zenkoi.BLL.Services.Implements
             _koiFishRepo = _unitOfWork.GetRepo<KoiFish>();
             _varietyRepo = _unitOfWork.GetRepo<Variety>();
             _pondRepo = _unitOfWork.GetRepo<Pond>();
+            _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
         }
         public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(int pageIndex = 1, int pageSize = 10)
         {
-            // 1️⃣ Khai báo QueryOptions để Include các thuộc tính navigation
             var queryOptions = new QueryOptions<KoiFish>
             {
                 IncludeProperties = new List<Expression<Func<KoiFish, object>>>
-        {
-            v => v.Variety,
-            p => p.Pond
-        }
+            {
+                v => v.Variety,
+                p => p.Pond
+            }
             };
-
-            
-            var allKoiFish = await _koiFishRepo.GetAllAsync(queryOptions);
-
-          
+        
+            var allKoiFish = await _koiFishRepo.GetAllAsync(queryOptions);         
             var mappedList = _mapper.Map<List<KoiFishResponseDTO>>(allKoiFish);
-
 
             var totalCount = mappedList.Count;
             var pagedItems = mappedList
@@ -58,8 +56,6 @@ namespace Zenkoi.BLL.Services.Implements
                 .ToList();
             return new PaginatedList<KoiFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
-
-
 
         public async Task<KoiFishResponseDTO?> GetByIdAsync(int id)
         {
@@ -78,9 +74,21 @@ namespace Zenkoi.BLL.Services.Implements
             if (!pond){
                 throw new Exception($"không tìm thấy pond với id {dto.PondId}");
             }
+            if (dto.BreedingProcessId.HasValue)
+            {
+                var breed = await _breedRepo.GetByIdAsync(dto.BreedingProcessId);
+                if (breed == null)
+                {
+                    throw new Exception("không tìm thấy quy trình sinh sản");
+                }
+
+                if (!breed.Status.Equals(BreedingStatus.Complete))
+                {
+                    throw new Exception("Quy trình sinh sản này chưa hoàn thành");
+                }
+            }
 
             var entity = _mapper.Map<KoiFish>(dto);
-
             await _koiFishRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<KoiFishResponseDTO>(entity);

@@ -15,122 +15,60 @@ namespace Zenkoi.API.Controllers
             _areaService = areaService;
         }
 
+        /// <summary>
+        /// Lấy danh sách tất cả khu vực
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAllAreas()
         {
-            try
-            {
-                var data = await _areaService.GetAllAsync();
-                if (data == null || !data.Any())
-                    return GetError("Không tìm thấy khu vực nào.");
-
-                return GetSuccess(data);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình lấy dữ liệu khu vực.");
-            }
+            var data = await _areaService.GetAllAsync();
+            return GetSuccess(data);
         }
 
+        /// <summary>
+        /// Lấy thông tin khu vực theo Id
+        /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAreaById(int id)
         {
-            try
-            {
-                if (id <= 0)
-                    return GetError("Id phải là số nguyên dương.");
-
-                var data = await _areaService.GetByIdAsync(id);
-                if (data == null)
-                    return GetError("Không tìm thấy khu vực.");
-
-                return GetSuccess(data);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình xử lý yêu cầu.");
-            }
+            var data = await _areaService.GetByIdAsync(id);
+            return GetSuccess(data);
         }
 
+        /// <summary>
+        /// Tạo khu vực mới
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateArea([FromBody] AreaRequestDTO dto)
         {
-            try
-            {
-                if (dto == null)
-                    return GetError("Dữ liệu không hợp lệ.");
+            if (!ModelState.IsValid)
+                return ModelInvalid();
 
-                if (string.IsNullOrWhiteSpace(dto.AreaName))
-                    return GetError("Tên khu vực không được để trống.");
-
-                var created = await _areaService.CreateAsync(dto);
-                if (created == null)
-                    return GetError("Không thể tạo khu vực mới.");
-
-                return GetSuccess(new { message = "Tạo khu vực thành công.", data = created });
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình tạo khu vực.");
-            }
+            var created = await _areaService.CreateAsync(dto);
+            return SaveSuccess(created);
         }
 
+        /// <summary>
+        /// Cập nhật khu vực
+        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateArea(int id, [FromBody] AreaRequestDTO dto)
         {
-            try
-            {
-                if (id < 0)
-                    return GetError("Id phải là số nguyên dương.");
+            if (!ModelState.IsValid)
+                return ModelInvalid();
 
-                if (dto == null)
-                    return GetError("Dữ liệu không hợp lệ.");
-
-                var success = await _areaService.UpdateAsync(id, dto);
-                if (!success)
-                    return GetError("Không tìm thấy khu vực cần cập nhật.");
-
-                return GetSuccess("Cập nhật khu vực thành công.");
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình cập nhật khu vực.");
-            }
+            var updated = await _areaService.UpdateAsync(id, dto);
+            return SaveSuccess(updated);
         }
 
+        /// <summary>
+        /// Xóa khu vực
+        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArea(int id)
         {
-            try
-            {
-                if (id <= 0)
-                    return GetError("Id phải là số nguyên dương.");
-
-                var success = await _areaService.DeleteAsync(id);
-                if (!success)
-                    return GetError("Không tìm thấy khu vực cần xóa.");
-
-                return GetSuccess("Xóa khu vực thành công.");
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình xóa khu vực.");
-            }
+            var deleted = await _areaService.DeleteAsync(id);
+            return Success(deleted, "Xóa khu vực thành công.");
         }
     }
 }
