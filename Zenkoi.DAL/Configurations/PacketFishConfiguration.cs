@@ -34,7 +34,10 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasColumnType("decimal(8,2)");
 
-            builder.Property(pf => pf.ImagesVideo)
+            builder.Property(pf => pf.Images)
+                .HasMaxLength(1000);
+            
+            builder.Property(pf => pf.Video)
                 .HasMaxLength(1000);
 
             builder.Property(pf => pf.IsAvailable)

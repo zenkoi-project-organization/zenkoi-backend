@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,9 +29,9 @@ namespace Zenkoi.DAL.Entities
         public KoiFish MaleKoi { get; set; }
         public KoiFish FemaleKoi { get; set; }
 
+        [ForeignKey(nameof(PondId))]
         public Pond? Pond { get; set; }
         public ICollection<KoiFish>? KoiFishes { get; set;}
-
         public EggBatch? Batch { get; set; }
         public FryFish? FryFish { get; set; }
         public ClassificationStage? ClassificationStage { get; set;}
