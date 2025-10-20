@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
@@ -14,136 +15,77 @@ namespace Zenkoi.API.Controllers
         {
             _koiFishService = koiFishService;
         }
+
+       
         [HttpGet]
-        public async Task<IActionResult> GetAllKoiFish([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllKoiFish(
+            [FromQuery] KoiFishFilterRequestDTO? filter,
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
         {
-            try
-            {
-                var result = await _koiFishService.GetAllKoiFishAsync(pageIndex, pageSize);
+            var result = await _koiFishService.GetAllKoiFishAsync(filter ?? new KoiFishFilterRequestDTO(), pageIndex, pageSize);
 
-                var response = new
-                {
-                    result.PageIndex,
-                    result.TotalPages,
-                    result.TotalItems,
-                    result.HasNextPage,
-                    result.HasPreviousPage,
-                    Data = result
-                };
+            var response = new
+            {
+                result.PageIndex,
+                result.TotalPages,
+                result.TotalItems,
+                result.HasNextPage,
+                result.HasPreviousPage,
+                Data = result
+            };
 
-                return GetSuccess(response);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return GetError(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return GetError($"Get koi fish failed: {ex.Message}");
-            }
+            return GetSuccess(response);
         }
 
-    [HttpGet("{id}")]
+        
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetKoiFishById(int id)
         {
-            try
-            {
-                var data = await _koiFishService.GetByIdAsync(id);
-                if (data == null)
-                    return GetError("Không tìm thấy cá koi với ID này.");
+            var koi = await _koiFishService.GetByIdAsync(id);
+            if (koi == null)
+                return GetNotFound($"Không tìm thấy cá koi với ID {id}.");
 
-                return GetSuccess(data);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return GetError(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"[ERROR] {ex.Message}");
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình lấy thông tin cá koi.");
-            }
+            return GetSuccess(koi);
         }
 
+      
         [HttpPost]
         public async Task<IActionResult> CreateKoiFish([FromBody] KoiFishRequestDTO dto)
         {
-            try
-            {
-                if (dto == null)
-                    return GetError("Dữ liệu không hợp lệ.");
+            if (!ModelState.IsValid)
+                return ModelInvalid();
 
-                var created = await _koiFishService.CreateAsync(dto);
-                if (created == null)
-                    return GetError("Không thể tạo cá koi mới.");
+            var created = await _koiFishService.CreateAsync(dto);
+            if (created == null)
+                return SaveError();
 
-                return GetSuccess(new { message = "Tạo cá koi thành công.", data = created });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return GetError(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"[ERROR] {ex.Message}");
-                Console.ResetColor();
-                return Error(ex.Message);
-            }
+            return SaveSuccess(created);
         }
 
-        [HttpPut("{id}")]
+      
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateKoiFish(int id, [FromBody] KoiFishRequestDTO dto)
         {
-            try
-            {
-                if (dto == null)
-                    return GetError("Dữ liệu không hợp lệ.");
+            if (!ModelState.IsValid)
+                return ModelInvalid();
 
-                var success = await _koiFishService.UpdateAsync(id, dto);
-                if (!success)
-                    return GetError("Không tìm thấy cá koi cần cập nhật.");
+            var updated = await _koiFishService.UpdateAsync(id, dto);
+            if (!updated)
+                return GetNotFound($"Không tìm thấy cá koi cần cập nhật (ID = {id}).");
 
-                return GetSuccess("Cập nhật cá koi thành công.");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return GetError(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"[ERROR] {ex.Message}");
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình cập nhật cá koi.");
-            }
+            return SaveSuccess($"Cập nhật cá koi thành công (ID = {id}).");
         }
 
        
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteKoiFish(int id)
         {
-            try
-            {
-                var success = await _koiFishService.DeleteAsync(id);
-                if (!success)
-                    return GetError("Không tìm thấy cá koi cần xóa.");
+            var deleted = await _koiFishService.DeleteAsync(id);
+            if (!deleted)
+                return GetNotFound($"Không tìm thấy cá koi cần xóa (ID = {id}).");
 
-                return GetSuccess("Xóa cá koi thành công.");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return GetError(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"[ERROR] {ex.Message}");
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình xóa cá koi.");
-            }
+            return SaveSuccess($"Đã xóa cá koi thành công (ID = {id}).");
         }
     }
 }

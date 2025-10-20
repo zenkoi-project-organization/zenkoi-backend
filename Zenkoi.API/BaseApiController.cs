@@ -85,7 +85,7 @@ namespace Zenkoi.API
 			return new OkObjectResult(new ResponseApiDTO
 			{
 				Result = data,
-				StatusCode = 200,
+				StatusCode = 201,
 				Message = message,
 				IsSuccess = true
 			});
