@@ -79,8 +79,8 @@ namespace Zenkoi.API.Controllers
             {
                 return GetNotFound("Không tìm thấy Email người dùng trong hệ thống.");
             }
-            var decodedToken = HttpUtility.UrlDecode(token);
-            var response = await _identityService.ConfirmEmailAsync(user, decodedToken.Replace(" ", "+"));
+            var decodedEmailToken = HttpUtility.UrlDecode(token);
+            var response = await _identityService.ConfirmEmailAsync(user, decodedEmailToken.Replace(" ", "+"));
 
             if (!response.Succeeded)
             {
@@ -167,7 +167,11 @@ namespace Zenkoi.API.Controllers
                     return Error("Lỗi sinh mã đăng nhập. Vui lòng thử lại sau ít phút.");
                 }
 
-                return Success(token, "Đăng nhập thành công.");
+                var authResult = new { 
+                    accessToken = token.AccessToken, 
+                    refreshToken = token.RefreshToken 
+                };
+                return Success(authResult, "Đăng nhập thành công.");
             }
             catch (Exception ex)
             {
@@ -331,7 +335,7 @@ namespace Zenkoi.API.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(authenResult.Token) || string.IsNullOrEmpty(authenResult.RefreshToken))
+                if (string.IsNullOrEmpty(authenResult.AccessToken) || string.IsNullOrEmpty(authenResult.RefreshToken))
                 {
                     ModelState.AddModelError("Token", "Token không được để trống.");
                     ModelState.AddModelError("RefreshToken", "RefreshToken không được để trống");
@@ -350,7 +354,11 @@ namespace Zenkoi.API.Controllers
                 }
 
 
-                return SaveSuccess(newToken);
+                var renewResult = new { 
+                    accessToken = newToken.AccessToken, 
+                    refreshToken = newToken.RefreshToken 
+                };
+                return SaveSuccess(renewResult);
             }
             catch (Exception ex)
             {
@@ -385,11 +393,11 @@ namespace Zenkoi.API.Controllers
 
         [HttpGet]
         [Route("reset-password-view")]
-        public async Task<IActionResult> GetResetPassRequest([FromQuery] string token, [FromQuery] string email)
+        public async Task<IActionResult> GetResetPassRequest([FromQuery] string IdToken, [FromQuery] string email)
         {
             try
             {
-                return GetSuccess(new { Token = token, Email = email });
+                return GetSuccess(new { passwordResetToken = IdToken, Email = email });
             }
             catch (Exception ex)
             {
@@ -439,15 +447,18 @@ namespace Zenkoi.API.Controllers
                         return ModelInvalid();
                     }
 
-                    var token = await _identityService.GeneratePasswordResetTokenAsync(user);
+                    var passwordResetToken = await _identityService.GeneratePasswordResetTokenAsync(user);
 
-                    var success = await _identityService.ResetPasswordAsync(user, token, dto.NewPassword);
+                    var success = await _identityService.ResetPasswordAsync(user, passwordResetToken, dto.NewPassword);
                     if (!success.Succeeded) return Error($"Đặt lại mật khẩu thất bại: {GetIdentityErrorMessage(success)}");
 
-                    var newToken = await _accountService.GenerateTokenAsync(user);
-                    if (newToken == null) return Error("Đã có lỗi xảy ra trong quá trình sinh mã đăng nhập mới. Xin vui lòng thử lại sau ít phút.");
+                    var newAuthResult = await _accountService.GenerateTokenAsync(user);
+                    if (newAuthResult == null) return Error("Đã có lỗi xảy ra trong quá trình sinh mã đăng nhập mới. Xin vui lòng thử lại sau ít phút.");
 
-                    var result = new { Success = success, Token = newToken };
+                    var result = new { 
+                        accessToken = newAuthResult.AccessToken, 
+                        refreshToken = newAuthResult.RefreshToken 
+                    };
                     return SaveSuccess(result);
                 }
 
@@ -496,6 +507,35 @@ namespace Zenkoi.API.Controllers
         }     
 
         [HttpPost]
+        [Route("verify-otp")]
+        public async Task<IActionResult> VerifyOtpAsync([FromBody] VerifyOtpDTO dto)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(dto.Email))
+                {
+                    ModelState.AddModelError("Email", "Email không được để trống.");
+                    return ModelInvalid();
+                }
+                if (string.IsNullOrEmpty(dto.Code))
+                {
+                    ModelState.AddModelError("Code", "Mã OTP không được để trống.");
+                    return ModelInvalid();
+                }
+
+                var isValid = await _accountService.VerifyOTPByEmailAsync(dto.Email, dto.Code);
+                return Success(new { isValid }, "Xác thực OTP");
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(ex.Message);
+                Console.ResetColor();
+                return Error($"Lỗi xác thực mã OTP: {ex.Message}");
+            }
+        }
+
+        [HttpPost]
         [Route("authen-google")]
         public async Task<IActionResult> SignInWithGoogleAsync([FromBody] GoogleAuthDTO dto)
         {
@@ -507,18 +547,27 @@ namespace Zenkoi.API.Controllers
                     return ModelInvalid();
                 }
 
+                Console.WriteLine($"Received Google IdToken: {dto.IdToken?.Substring(0, Math.Min(50, dto.IdToken?.Length ?? 0))}...");
+                
                 var token = await _accountService.SignInWithGoogleAsync(dto);
                 if (token == null)
                 {
-                    return GetUnAuthorized("Đăng nhập bằng Google không thành công.");
+                    Console.WriteLine("Google authentication failed - check server logs for details");
+                    return GetUnAuthorized("Đăng nhập bằng Google không thành công. Vui lòng kiểm tra token và thử lại.");
                 }
 
-                return Success(token, "Đăng nhập thành công.");
+                Console.WriteLine("Google authentication successful");
+                var googleAuthResult = new { 
+                    accessToken = token.AccessToken, 
+                    refreshToken = token.RefreshToken 
+                };
+                return Success(googleAuthResult, "Đăng nhập thành công.");
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex);
+                Console.WriteLine($"Controller Exception: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
                 Console.ResetColor();
                 return Error($"Lỗi đăng nhập bằng Google: {ex.Message}");
             }

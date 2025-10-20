@@ -63,7 +63,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                 var authenKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
 
-                var token = new JwtSecurityToken(
+                var jwtToken = new JwtSecurityToken(
                         issuer: _configuration["JWT:ValidIssuer"],
                         audience: _configuration["JWT:ValidAudience"],
                         expires: DateTime.Now.AddMinutes(30),
@@ -71,13 +71,13 @@ namespace Zenkoi.BLL.Services.Implements
                         signingCredentials: new SigningCredentials(authenKey, SecurityAlgorithms.HmacSha512)
                     );
 
-                var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+                var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken);
 
                 var refreshToken = GenerateRefreshToken();
                 var refreshTokenInDb = new RefreshToken
                 {
                     Id = Guid.NewGuid(),
-                    JwtId = token.Id,
+                    JwtId = jwtToken.Id,
                     UserId = user.Id,
                     Token = refreshToken,
                     IsUsed = false,
@@ -103,7 +103,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                 return new AuthenResultDTO
                 {
-                    Token = accessToken,
+                    AccessToken = accessToken,
                     RefreshToken = refreshToken,
                 };
             }
@@ -133,7 +133,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             try
             {
-                var tokenInVerification = jwtTokenHandler.ValidateToken(authenResult.Token, tokenValidateParam, out var validatedToken);
+                var tokenInVerification = jwtTokenHandler.ValidateToken(authenResult.AccessToken, tokenValidateParam, out var validatedToken);
 
                 if (validatedToken is JwtSecurityToken jwtSecurityToken)
                 {
@@ -254,9 +254,9 @@ namespace Zenkoi.BLL.Services.Implements
         {
             try
             {
-                var emailToken = await _identityService.GenerateEmailConfirmationTokenAsync(user);
-                var encodedToken = HttpUtility.UrlEncode(emailToken);
-                var confirmationLink = $"https://localhost:7166/api/Accounts/verify-email?token={encodedToken}&email={user.Email}";
+                var emailConfirmationToken = await _identityService.GenerateEmailConfirmationTokenAsync(user);
+                var encodedEmailToken = HttpUtility.UrlEncode(emailConfirmationToken);
+                var confirmationLink = $"https://localhost:7166/api/Accounts/verify-email?token={encodedEmailToken}&email={user.Email}";
                 var message = new EmailDTO
                 (
                     new string[] { user.Email! },
@@ -394,7 +394,7 @@ namespace Zenkoi.BLL.Services.Implements
 					Id = user.Id.ToString(),
 					EmailAddress = user.Email,
 					UserName = user.UserName,
-					PhoneNumBer = user.PhoneNumber,
+					PhoneNumber = user.PhoneNumber,
 
 				};
 			}
@@ -418,12 +418,12 @@ namespace Zenkoi.BLL.Services.Implements
 				};
 			}
 
-			var token = await _identityService.GeneratePasswordResetTokenAsync(user);
-			var encodedToken = HttpUtility.UrlEncode(token);
+			var passwordResetToken = await _identityService.GeneratePasswordResetTokenAsync(user);
+			var encodedPasswordToken = HttpUtility.UrlEncode(passwordResetToken);
 			Console.ForegroundColor = ConsoleColor.Red;
-			Console.WriteLine($"encode token: {encodedToken}");
+			Console.WriteLine($"encode password reset token: {encodedPasswordToken}");
 			Console.ResetColor();
-			var forgotUrl = $"{_configuration["FronendURL"]}/renew-password?token={encodedToken}&email={user.Email}";
+			var forgotUrl = $"{_configuration["FronendURL"]}/renew-password?token={encodedPasswordToken}&email={user.Email}";
             var emailContent = $@"
 				<div style=""font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: auto; border: 1px solid #dfe6e9; border-radius: 12px; padding: 28px; background: #ffffff; box-shadow: 0 4px 16px rgba(0,0,0,0.05);"">
 				  <h2 style=""color: #e67e22; text-align: center; margin-bottom: 20px;"">Yêu cầu đặt lại mật khẩu</h2>				 
@@ -446,7 +446,21 @@ namespace Zenkoi.BLL.Services.Implements
 				"Yêu cầu đổi mật khẩu",
 				emailContent
 			);
-            _emailService.SendEmail(message);
+            
+            Console.WriteLine("Sending forgot password email...");
+            var emailResult = _emailService.SendEmail(message);
+            
+            if (!emailResult.IsSuccess)
+            {
+                Console.WriteLine($"Forgot password email failed: {emailResult.Message}");
+                return new BaseResponse 
+                { 
+                    IsSuccess = false, 
+                    Message = $"Không thể gửi email: {emailResult.Message}" 
+                };
+            }
+            
+            Console.WriteLine("Forgot password email sent successfully");
 			return new BaseResponse { IsSuccess = true, Message = "Url đổi mật khẩu đã được gửi đến email của bạn. Hãy truy cập url để đổi mật khẩu nhé." };
 		}
 
@@ -460,15 +474,15 @@ namespace Zenkoi.BLL.Services.Implements
 					return new BaseResponse { IsSuccess = false, Message = "Không tìm thấy người dùng." };
 				}
 
-				var decodedToken = HttpUtility.UrlDecode(dto.Token);
+				var decodedPasswordToken = HttpUtility.UrlDecode(dto.AccsessToken);
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine($"encode token: {decodedToken}");
+				Console.WriteLine($"decoded password reset token: {decodedPasswordToken}");
 				Console.ResetColor();
-				if (decodedToken.Contains(' '))
+				if (decodedPasswordToken.Contains(' '))
 				{
-					decodedToken = decodedToken.Replace(" ", "+");
+					decodedPasswordToken = decodedPasswordToken.Replace(" ", "+");
 				}
-				var result = await _identityService.ResetPasswordAsync(user, decodedToken, dto.NewPassword);
+				var result = await _identityService.ResetPasswordAsync(user, decodedPasswordToken, dto.NewPassword);
 				if (!result.Succeeded)
 				{
 					return new BaseResponse
@@ -492,23 +506,26 @@ namespace Zenkoi.BLL.Services.Implements
 		{
 			try
 			{
-
-				var user = new ApplicationUser
+				Console.WriteLine($"Starting OTP generation for email: {email}");
+				var user = await _identityService.GetByEmailAsync(email);
+				if (user == null)
 				{
-					Email = email,
-					UserName = email,
-					SecurityStamp = Guid.NewGuid().ToString()
-				};
+					return new BaseResponse
+					{
+						IsSuccess = false,
+						Message = "Email không tồn tại trong hệ thống."
+					};
+				}
 
-				var otp = await _identityService.GenerateTwoFactorTokenAsync(user, "Email");
-
+				Console.WriteLine("Generating OTP token...");
+				var otpToken = await _identityService.GenerateTwoFactorTokenAsync(user, "Email");
+				Console.WriteLine($"OTP token generated: {otpToken}");
 
 				var emailContent = $@"
             <p>Xin chào,</p>
-            <p>Mã OTP của bạn là: <strong>{otp}</strong></p>
+            <p>Mã OTP của bạn là: <strong>{otpToken}</strong></p>
             <p>Mã OTP này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.</p>
             <p>Trân trọng,</p>";
-
 
 				var emailDTO = new EmailDTO
 				(
@@ -517,10 +534,20 @@ namespace Zenkoi.BLL.Services.Implements
 					emailContent
 				);
 
+				Console.WriteLine("Sending OTP email...");
+				var emailResult = _emailService.SendEmail(emailDTO);
+				
+				if (!emailResult.IsSuccess)
+				{
+					Console.WriteLine($"Email sending failed: {emailResult.Message}");
+					return new BaseResponse
+					{
+						IsSuccess = false,
+						Message = $"Không thể gửi email: {emailResult.Message}"
+					};
+				}
 
-				_emailService.SendEmail(emailDTO);
-
-
+				Console.WriteLine("OTP email sent successfully");
 				return new BaseResponse
 				{
 					IsSuccess = true,
@@ -529,7 +556,9 @@ namespace Zenkoi.BLL.Services.Implements
 			}
 			catch (Exception ex)
 			{
-
+				Console.WriteLine($"Exception in SendOTPByEmailAsync: {ex.Message}");
+				Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+				
 				return new BaseResponse
 				{
 					IsSuccess = false,
@@ -537,35 +566,73 @@ namespace Zenkoi.BLL.Services.Implements
 				};
 			}
 		}
+
+		public async Task<bool> VerifyOTPByEmailAsync(string email, string code)
+		{
+			var user = await _identityService.GetByEmailAsync(email);
+			if (user == null) return false;
+			var isValid = await _identityService.VerifyTwoFactorTokenAsync(user, "Email", code);
+			return isValid;
+		}
 		
 		public async Task<AuthenResultDTO> SignInWithGoogleAsync(GoogleAuthDTO dto)
 		{
 			try
 			{
 				var clientId = _configuration["Authentication:Google:ClientId"];
-				var httpClient = new HttpClient();
-				var tokenInfoUrl = $"https://oauth2.googleapis.com/tokeninfo?id_token={dto.IdToken}";
-				var response = await httpClient.GetAsync(tokenInfoUrl);
-				if (!response.IsSuccessStatusCode)
+				Console.WriteLine($"Google ClientId: {clientId}");
+				
+				if (string.IsNullOrEmpty(clientId))
 				{
+					Console.WriteLine("ERROR: Google ClientId is not configured");
 					return null;
 				}
 
-				var tokenInfo = await response.Content.ReadFromJsonAsync<GoogleTokenInfo>();
-				if (tokenInfo == null || tokenInfo.Aud != clientId)
+				var httpClient = new HttpClient();
+				var tokenInfoUrl = $"https://oauth2.googleapis.com/tokeninfo?id_token={dto.IdToken}";
+				Console.WriteLine($"Calling Google API: {tokenInfoUrl}");
+				
+				var response = await httpClient.GetAsync(tokenInfoUrl);
+				Console.WriteLine($"Google API Response Status: {response.StatusCode}");
+				
+				if (!response.IsSuccessStatusCode)
 				{
+					var errorContent = await response.Content.ReadAsStringAsync();
+					Console.WriteLine($"Google API Error: {errorContent}");
+					return null;
+				}
+
+				var responseContent = await response.Content.ReadAsStringAsync();
+				Console.WriteLine($"Google API Response: {responseContent}");
+
+				var tokenInfo = await response.Content.ReadFromJsonAsync<GoogleTokenInfo>();
+				if (tokenInfo == null)
+				{
+					Console.WriteLine("ERROR: Failed to parse Google token info");
+					return null;
+				}
+
+				Console.WriteLine($"Token Info - Aud: {tokenInfo.Aud}, Email: {tokenInfo.Email}, Name: {tokenInfo.Name}");
+				
+				if (tokenInfo.Aud != clientId)
+				{
+					Console.WriteLine($"ERROR: Audience mismatch. Expected: {clientId}, Got: {tokenInfo.Aud}");
 					return null;
 				}
 
 				// Get or create user
+				Console.WriteLine($"Looking for user with email: {tokenInfo.Email}");
 				var user = await _identityService.GetByEmailAsync(tokenInfo.Email);
+				
 				if (user != null && user.IsBlocked)
 				{
+					Console.WriteLine("ERROR: User is blocked");
 					return null;
 				}
 		
 				if (user == null)
 				{
+					Console.WriteLine("Creating new user...");
 					user = new ApplicationUser
 					{
 						Email = tokenInfo.Email,
@@ -578,12 +645,25 @@ namespace Zenkoi.BLL.Services.Implements
 					var createResult = await _identityService.CreateAsync(user, Guid.NewGuid().ToString() + "Aa1!");
 					if (!createResult.Succeeded)
 					{
+						Console.WriteLine($"ERROR: Failed to create user. Errors: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
 						return null;
 					}
-					await _identityService.AddToRoleAsync(user, user.Role.ToString());										
+					
+					var roleResult = await _identityService.AddToRoleAsync(user, user.Role.ToString());
+					if (!roleResult.Succeeded)
+					{
+						Console.WriteLine($"ERROR: Failed to add role to user. Errors: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
+						return null;
+					}
+					Console.WriteLine("User created successfully");
+				}
+				else
+				{
+					Console.WriteLine("User found in database");
 				}
 
 				// Store avatar
+				Console.WriteLine("Processing user details...");
 				var userDetailRepo = _unitOfWork.GetRepo<UserDetail>();
 				var userDetail = await userDetailRepo.GetSingleAsync(new QueryBuilder<UserDetail>()
 				    .WithPredicate(x => x.ApplicationUserId == user.Id)
@@ -592,6 +672,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                 if (userDetail == null)
                 {
+                    Console.WriteLine("Creating user detail with avatar...");
                     userDetail = new UserDetail
                     {
                         ApplicationUserId = user.Id,
@@ -599,14 +680,29 @@ namespace Zenkoi.BLL.Services.Implements
                     };
                     await userDetailRepo.CreateAsync(userDetail);
                 }
+                else
+                {
+                    Console.WriteLine("User detail already exists");
+                }
                
                 await _unitOfWork.SaveChangesAsync();
+                Console.WriteLine("User details saved successfully");
 
-                return await GenerateTokenAsync(user);
+                Console.WriteLine("Generating authentication token...");
+                var authResult = await GenerateTokenAsync(user);
+                if (authResult == null)
+                {
+                    Console.WriteLine("ERROR: Failed to generate authentication token");
+                    return null;
+                }
+                
+                Console.WriteLine("Google authentication successful");
+                return authResult;
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex);
+				Console.WriteLine($"EXCEPTION in SignInWithGoogleAsync: {ex.Message}");
+				Console.WriteLine($"Stack Trace: {ex.StackTrace}");
 				return null;
 			}
 		}
@@ -639,15 +735,13 @@ namespace Zenkoi.BLL.Services.Implements
 			}
 		}
 
-		private DateTime ConvertUnixTimeToDateTime(long utcExpireDate)
-		{
-			var dateTimeInterval = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-			dateTimeInterval.AddSeconds(utcExpireDate).ToUniversalTime();
+        private DateTime ConvertUnixTimeToDateTime(long utcExpireDate)
+        {
+            var dateTimeInterval = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            return dateTimeInterval.AddSeconds(utcExpireDate);
+        }
 
-			return dateTimeInterval;
-		}
+        #endregion
 
-		#endregion
-
-	}
+    }
 }

@@ -19,6 +19,7 @@ namespace Zenkoi.BLL.Services.Interfaces
 		Task<SignInResult> PasswordSignInAsync(ApplicationUser user, string password, bool isPersistent, bool lockOutOnFailure);
 		Task<string> GenerateTwoFactorTokenAsync(ApplicationUser user, string tokenProvider);
 		Task<SignInResult> TwoFactorSignInAsync(string provider, string code, bool isPersistent, bool rememberClient);
+		Task<bool> VerifyTwoFactorTokenAsync(ApplicationUser user, string tokenProvider, string token);
 		Task<bool> IsLockedOutAsync(ApplicationUser user);
 		Task<bool> IsEmailConfirmedAsync(ApplicationUser user);
 		Task ResetAccessFailedCountAsync(ApplicationUser user);

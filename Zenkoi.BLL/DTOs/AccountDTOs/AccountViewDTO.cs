@@ -5,6 +5,6 @@
 		public string Id { get; set; } = null!;
 		public string UserName { get; set; } = null!;
 		public string EmailAddress { get; set; } = null!;
-		public string PhoneNumBer { get; set; } = null!;
+		public string PhoneNumber { get; set; } = null!;
 	}
 }

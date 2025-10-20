@@ -37,9 +37,9 @@ namespace Zenkoi.BLL.Services.Implements
 			return result;
 		}
 
-		public async Task<IdentityResult> ConfirmEmailAsync(ApplicationUser user, string token)
+		public async Task<IdentityResult> ConfirmEmailAsync(ApplicationUser user, string emailConfirmationToken)
 		{
-			var result = await _userManager.ConfirmEmailAsync(user, token);
+			var result = await _userManager.ConfirmEmailAsync(user, emailConfirmationToken);
 			return result;
 		}
 
@@ -51,20 +51,20 @@ namespace Zenkoi.BLL.Services.Implements
 
 		public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user)
 		{
-			var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-			return token;
+			var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+			return emailConfirmationToken;
 		}
 
 		public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
 		{
-			var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-			return token;
+			var passwordResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+			return passwordResetToken;
 		}
 
 		public async Task<string> GenerateTwoFactorTokenAsync(ApplicationUser user, string tokenProvider)
 		{
-			var otp = await _userManager.GenerateTwoFactorTokenAsync(user, tokenProvider);
-			return otp;
+			var twoFactorToken = await _userManager.GenerateTwoFactorTokenAsync(user, tokenProvider);
+			return twoFactorToken;
 		}
 
 		public async Task<ApplicationUser> GetByEmailAsync(string email)
@@ -131,9 +131,9 @@ namespace Zenkoi.BLL.Services.Implements
 			await _userManager.ResetAccessFailedCountAsync(user);
 		}
 
-		public async Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string token, string newPass)
+		public async Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string passwordResetToken, string newPass)
 		{
-			var result = await _userManager.ResetPasswordAsync(user, token, newPass);
+			var result = await _userManager.ResetPasswordAsync(user, passwordResetToken, newPass);
 			return result;
 		}
 
@@ -152,6 +152,12 @@ namespace Zenkoi.BLL.Services.Implements
 		{
 			var signIn = await _signInManager.TwoFactorSignInAsync(provider, code, isPersistent, rememberClient);
 			return signIn;
+		}
+
+		public async Task<bool> VerifyTwoFactorTokenAsync(ApplicationUser user, string tokenProvider, string token)
+		{
+			var result = await _userManager.VerifyTwoFactorTokenAsync(user, tokenProvider, token);
+			return result;
 		}
 	}
 }
