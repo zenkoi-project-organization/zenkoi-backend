@@ -5,8 +5,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
+using Zenkoi.BLL.Helpers.Fillters;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
@@ -35,7 +37,10 @@ namespace Zenkoi.BLL.Services.Implements
             _pondRepo = _unitOfWork.GetRepo<Pond>();
             _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
         }
-        public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(
+         KoiFishFilterRequestDTO filter,
+         int pageIndex = 1,
+         int pageSize = 10)
         {
             var queryOptions = new QueryOptions<KoiFish>
             {
@@ -44,18 +49,23 @@ namespace Zenkoi.BLL.Services.Implements
                 v => v.Variety,
                 p => p.Pond
             }
-            };
-        
-            var allKoiFish = await _koiFishRepo.GetAllAsync(queryOptions);         
-            var mappedList = _mapper.Map<List<KoiFishResponseDTO>>(allKoiFish);
+                };
 
-            var totalCount = mappedList.Count;
-            var pagedItems = mappedList
+            if (filter != null)
+                queryOptions.Predicate = FilterHelper.BuildFilterExpression(filter);
+
+            var koiList = await _koiFishRepo.GetAllAsync(queryOptions);
+            var mapped = _mapper.Map<List<KoiFishResponseDTO>>(koiList);
+
+            var totalCount = mapped.Count;
+            var paged = mapped
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-            return new PaginatedList<KoiFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
+
+            return new PaginatedList<KoiFishResponseDTO>(paged, totalCount, pageIndex, pageSize);
         }
+
 
         public async Task<KoiFishResponseDTO?> GetByIdAsync(int id)
         {

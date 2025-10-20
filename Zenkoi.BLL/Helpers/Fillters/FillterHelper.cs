@@ -1,4 +1,7 @@
 ﻿using System.Linq.Expressions;
+using Zenkoi.BLL.DTOs.FilterDTOs;
+using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.Helpers.Fillters
 {
@@ -96,5 +99,63 @@ namespace Zenkoi.BLL.Helpers.Fillters
 
 			return Expression.Lambda<Func<T, bool>>(expression, parameter);
 		}
-	}
+        public static Expression<Func<KoiFish, bool>> BuildFilterExpression(KoiFishFilterRequestDTO filter)
+        {
+            var parameter = Expression.Parameter(typeof(KoiFish), "x");
+            Expression finalExpr = Expression.Constant(true);
+
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                var searchExpr = BuildSearchExpression<KoiFish>(filter.Search).Body;
+                finalExpr = Expression.AndAlso(finalExpr, searchExpr);
+            }
+
+            if (filter.Gender.HasValue)
+            {
+                var prop = Expression.Property(parameter, nameof(KoiFish.Gender));
+                var equalExpr = Expression.Equal(prop, Expression.Constant(filter.Gender.Value));
+                finalExpr = Expression.AndAlso(finalExpr, equalExpr);
+            }
+
+            // ❤️ Health
+            if (filter.Health.HasValue)
+            {
+                var prop = Expression.Property(parameter, nameof(KoiFish.HealthStatus));
+                var equalExpr = Expression.Equal(prop, Expression.Constant(filter.Health.Value));
+                finalExpr = Expression.AndAlso(finalExpr, equalExpr);
+            }
+
+            if (filter.VarietyId.HasValue)
+            {
+                var prop = Expression.Property(parameter, nameof(KoiFish.VarietyId));
+                var equalExpr = Expression.Equal(prop, Expression.Constant(filter.VarietyId.Value));
+                finalExpr = Expression.AndAlso(finalExpr, equalExpr);
+            }
+
+            if (filter.PondId.HasValue)
+            {
+                var prop = Expression.Property(parameter, nameof(KoiFish.PondId));
+                var equalExpr = Expression.Equal(prop, Expression.Constant(filter.PondId.Value));
+                finalExpr = Expression.AndAlso(finalExpr, equalExpr);
+            }
+
+        
+            if (filter.MinPrice.HasValue)
+            {
+                var prop = Expression.Property(parameter, nameof(KoiFish.SellingPrice));
+                var geExpr = Expression.GreaterThanOrEqual(prop, Expression.Constant(filter.MinPrice.Value));
+                finalExpr = Expression.AndAlso(finalExpr, geExpr);
+            }
+
+            if (filter.MaxPrice.HasValue)
+            {
+                var prop = Expression.Property(parameter, nameof(KoiFish.SellingPrice));
+                var leExpr = Expression.LessThanOrEqual(prop, Expression.Constant(filter.MaxPrice.Value));
+                finalExpr = Expression.AndAlso(finalExpr, leExpr);
+            }
+
+
+            return Expression.Lambda<Func<KoiFish, bool>>(finalExpr, parameter);
+        }
+    }
 }
