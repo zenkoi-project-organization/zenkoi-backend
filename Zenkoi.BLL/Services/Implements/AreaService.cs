@@ -32,6 +32,10 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<AreaResponseDTO?> GetByIdAsync(int id)
         {
             var area = await _areaRepo.GetByIdAsync(id);
+            if (area == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy ví trí");
+            }
             return _mapper.Map<AreaResponseDTO>(area);
         }
 
@@ -47,8 +51,10 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<bool> UpdateAsync(int id, AreaRequestDTO dto)
         {
             var area = await _areaRepo.GetByIdAsync(id);
-            if (area == null) return false;
-
+            if (area == null) if (area == null)
+             {
+                    throw new KeyNotFoundException("không tìm thấy ví trí");
+            }
             _mapper.Map(dto, area);
             _areaRepo.UpdateAsync(area);
             await _unitOfWork.SaveChangesAsync();
@@ -58,7 +64,10 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<bool> DeleteAsync(int id)
         {
             var area = await _areaRepo.GetByIdAsync(id);
-            if (area == null) return false;
+            if (area == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy ví trí");
+            }
 
             _areaRepo.DeleteAsync(area);
             await _unitOfWork.SaveChangesAsync();

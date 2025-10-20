@@ -41,6 +41,18 @@ namespace Zenkoi.BLL.Services.Implements
 
                 throw new KeyNotFoundException($"Lô trứng đã {eggBatch.Status}");
             }
+            // validate nhập liệu
+            var lastRecord = await GetLatestRecordByEggBatchIdAsync(dto.EggBatchId);
+            if (lastRecord != null)
+            {
+                ValidateConsistencyWithLastRecord(lastRecord, dto);
+            }
+
+            if (eggBatch.Quantity < (dto.HatchedEggs + dto.HealthyEggs + dto.RottenEggs))
+            {
+                throw new Exception("tổng số bạn nhập lớn hơn so với lô trứng ghi nhận");
+            } 
+             
             var records = await getAllbyEggBatchId(eggBatch.Id);
             if (records.Any())
             {
@@ -155,6 +167,26 @@ namespace Zenkoi.BLL.Services.Implements
             };
             var records = await _incubationDailyRepo.GetAllAsync(queryOptions);
             return records;
+        }
+        private async Task<IncubationDailyRecord?> GetLatestRecordByEggBatchIdAsync(int eggBatchId)
+        {
+            var queryOptions = new QueryOptions<IncubationDailyRecord>
+            {
+                Predicate = r => r.EggBatchId == eggBatchId,
+                OrderBy = q => q.OrderByDescending(r => r.DayNumber),
+                Tracked = false
+            };
+            var record = await _incubationDailyRepo.GetSingleAsync(queryOptions);
+            return record;
+        }
+        private void ValidateConsistencyWithLastRecord(IncubationDailyRecord last, IncubationDailyRecordRequestDTO dto)
+        {
+            if (last.HealthyEggs < dto.HealthyEggs)
+                throw new InvalidOperationException("Số trứng khỏe không thể tăng so với ngày trước.");
+            if (last.RottenEggs > dto.RottenEggs)
+                throw new InvalidOperationException("Số trứng hỏng không thể giảm so với ngày trước.");
+            if (last.HatchedEggs > dto.HatchedEggs)
+                throw new InvalidOperationException("Số trứng nở không thể giảm so với ngày trước.");
         }
     }
 }
