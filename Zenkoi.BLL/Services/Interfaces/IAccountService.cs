@@ -17,6 +17,7 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<BaseResponse> ForgotPasswordAsync(AccountForgotPasswordDTO dto);
         Task<BaseResponse> ResetPasswordAsync(AccountResetpassDTO dto);
         Task<BaseResponse> SendOTPByEmailAsync(string email);
+		Task<bool> VerifyOTPByEmailAsync(string email, string code);
         Task<AuthenResultDTO> SignInWithGoogleAsync(GoogleAuthDTO dto);
     }
 }

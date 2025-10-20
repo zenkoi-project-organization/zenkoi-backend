@@ -507,13 +507,15 @@ namespace Zenkoi.BLL.Services.Implements
 			try
 			{
 				Console.WriteLine($"Starting OTP generation for email: {email}");
-
-				var user = new ApplicationUser
+				var user = await _identityService.GetByEmailAsync(email);
+				if (user == null)
 				{
-					Email = email,
-					UserName = email,
-					SecurityStamp = Guid.NewGuid().ToString()
-				};
+					return new BaseResponse
+					{
+						IsSuccess = false,
+						Message = "Email không tồn tại trong hệ thống."
+					};
+				}
 
 				Console.WriteLine("Generating OTP token...");
 				var otpToken = await _identityService.GenerateTwoFactorTokenAsync(user, "Email");
@@ -563,6 +565,14 @@ namespace Zenkoi.BLL.Services.Implements
 					Message = $"Lỗi gửi mã OTP: {ex.Message}"
 				};
 			}
+		}
+
+		public async Task<bool> VerifyOTPByEmailAsync(string email, string code)
+		{
+			var user = await _identityService.GetByEmailAsync(email);
+			if (user == null) return false;
+			var isValid = await _identityService.VerifyTwoFactorTokenAsync(user, "Email", code);
+			return isValid;
 		}
 		
 		public async Task<AuthenResultDTO> SignInWithGoogleAsync(GoogleAuthDTO dto)
@@ -725,15 +735,13 @@ namespace Zenkoi.BLL.Services.Implements
 			}
 		}
 
-		private DateTime ConvertUnixTimeToDateTime(long utcExpireDate)
-		{
-			var dateTimeInterval = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-			dateTimeInterval.AddSeconds(utcExpireDate).ToUniversalTime();
+        private DateTime ConvertUnixTimeToDateTime(long utcExpireDate)
+        {
+            var dateTimeInterval = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            return dateTimeInterval.AddSeconds(utcExpireDate);
+        }
 
-			return dateTimeInterval;
-		}
+        #endregion
 
-		#endregion
-
-	}
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using MailKit.Net.Smtp;
+using MailKit.Security;
 using MimeKit;
 using Zenkoi.BLL.DTOs.EmailDTOs;
 using Zenkoi.BLL.DTOs.Response;
@@ -80,9 +81,9 @@ namespace Zenkoi.BLL.Services.Implements
 				client.Timeout = 30000; // 30 seconds
 				
 				Console.WriteLine($"Connecting to SMTP server: {_emailConfig.SmtpServer}:{_emailConfig.Port}");
-				client.Connect(_emailConfig.SmtpServer, _emailConfig.Port, true);
-				
-				Console.WriteLine("SMTP connection established");
+                client.Connect(_emailConfig.SmtpServer, _emailConfig.Port, SecureSocketOptions.StartTls);              
+
+                Console.WriteLine("SMTP connection established");
 				client.AuthenticationMechanisms.Remove("XOAUTH2");
 				
 				Console.WriteLine("Authenticating with SMTP server...");
@@ -100,16 +101,18 @@ namespace Zenkoi.BLL.Services.Implements
 			}
 			finally
 			{
-				try
-				{
-					client.Disconnect(true);
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine($"Error disconnecting SMTP: {ex.Message}");
-				}
-				client.Dispose();
-			}
+                if (client.IsConnected)
+                {
+                    try
+                    {
+                        client.Disconnect(true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error disconnecting: {ex.Message}");
+                    }
+                }
+            }
 		}
 	}
 }
