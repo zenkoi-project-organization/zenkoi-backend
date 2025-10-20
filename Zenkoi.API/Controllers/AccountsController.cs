@@ -70,25 +70,25 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        //[HttpGet]
-        //[Route("verify-email")]
-        //public async Task<IActionResult> ConfirmEmailAsync(string token, string email)
-        //{
-        //    var user = await _identityService.GetByEmailAsync(email);
-        //    if (user == null)
-        //    {
-        //        return GetNotFound("Không tìm thấy Email người dùng trong hệ thống.");
-        //    }
-        //    var decodedEmailToken = HttpUtility.UrlDecode(token);
-        //    var response = await _identityService.ConfirmEmailAsync(user, decodedEmailToken.Replace(" ", "+"));
+        [HttpGet]
+        [Route("verify-email")]
+        public async Task<IActionResult> ConfirmEmailAsync(string token, string email)
+        {
+            var user = await _identityService.GetByEmailAsync(email);
+            if (user == null)
+            {
+                return GetNotFound("Không tìm thấy Email người dùng trong hệ thống.");
+            }
+            var decodedEmailToken = HttpUtility.UrlDecode(token);
+            var response = await _identityService.ConfirmEmailAsync(user, decodedEmailToken.Replace(" ", "+"));
 
-        //    if (!response.Succeeded)
-        //    {
-        //        return Error($"Xác thực email thất bại: {GetIdentityErrorMessage(response)}");
-        //    }
+            if (!response.Succeeded)
+            {
+                return Error($"Xác thực email thất bại: {GetIdentityErrorMessage(response)}");
+            }
 
-        //    return Success(response, "Xác thực tài khoản thành công.");
-        //}
+            return Success(response, "Xác thực tài khoản thành công.");
+        }
 
         [HttpPost]
         [Route("authen")]
@@ -505,6 +505,35 @@ namespace Zenkoi.API.Controllers
                 return Error($"Lỗi gửi mã OTP: {ex.Message}");
             }
         }     
+
+        [HttpPost]
+        [Route("verify-otp")]
+        public async Task<IActionResult> VerifyOtpAsync([FromBody] VerifyOtpDTO dto)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(dto.Email))
+                {
+                    ModelState.AddModelError("Email", "Email không được để trống.");
+                    return ModelInvalid();
+                }
+                if (string.IsNullOrEmpty(dto.Code))
+                {
+                    ModelState.AddModelError("Code", "Mã OTP không được để trống.");
+                    return ModelInvalid();
+                }
+
+                var isValid = await _accountService.VerifyOTPByEmailAsync(dto.Email, dto.Code);
+                return Success(new { isValid }, "Xác thực OTP");
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(ex.Message);
+                Console.ResetColor();
+                return Error($"Lỗi xác thực mã OTP: {ex.Message}");
+            }
+        }
 
         [HttpPost]
         [Route("authen-google")]

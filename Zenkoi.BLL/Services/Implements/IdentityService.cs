@@ -153,5 +153,11 @@ namespace Zenkoi.BLL.Services.Implements
 			var signIn = await _signInManager.TwoFactorSignInAsync(provider, code, isPersistent, rememberClient);
 			return signIn;
 		}
+
+		public async Task<bool> VerifyTwoFactorTokenAsync(ApplicationUser user, string tokenProvider, string token)
+		{
+			var result = await _userManager.VerifyTwoFactorTokenAsync(user, tokenProvider, token);
+			return result;
+		}
 	}
 }
