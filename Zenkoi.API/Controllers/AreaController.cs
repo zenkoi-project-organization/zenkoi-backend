@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.AreaDTOs;
 using Zenkoi.BLL.Services.Interfaces;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Zenkoi.API.Controllers
 {
@@ -43,9 +44,9 @@ namespace Zenkoi.API.Controllers
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();
-
+            
             var created = await _areaService.CreateAsync(dto);
-            return SaveSuccess(created);
+             return GetSuccess(created); ;
         }
 
         /// <summary>
@@ -58,7 +59,7 @@ namespace Zenkoi.API.Controllers
                 return ModelInvalid();
 
             var updated = await _areaService.UpdateAsync(id, dto);
-            return SaveSuccess(updated);
+             return GetSuccess(updated);
         }
 
         /// <summary>

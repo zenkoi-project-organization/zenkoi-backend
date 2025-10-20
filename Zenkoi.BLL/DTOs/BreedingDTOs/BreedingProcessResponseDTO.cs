@@ -18,7 +18,7 @@ namespace Zenkoi.BLL.DTOs.BreedingDTOs
         public int FemaleKoiId { get; set; }
         public string? FemaleKoiName { get; set; }
 
-        public int PondId { get; set; }
+        public int? PondId { get; set; }
         public string? PondName { get; set; }
 
         public DateTime StartDate { get; set; }
