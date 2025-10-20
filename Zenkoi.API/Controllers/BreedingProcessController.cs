@@ -23,7 +23,7 @@ namespace Zenkoi.API.Controllers
             try
             {
                 var breeding = await _service.AddBreeding(dto);
-                return Success(breeding, "tạo breeding thành công");
+                return GetSuccess(breeding);
 
             }
             catch (KeyNotFoundException ex)

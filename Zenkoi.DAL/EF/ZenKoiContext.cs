@@ -135,10 +135,12 @@ namespace Zenkoi.DAL.EF
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<BreedingProcess>()
-                .HasOne(bp => bp.Pond)
-                .WithMany()
-                .HasForeignKey(bp => bp.PondId)
-                .OnDelete(DeleteBehavior.Restrict);
+            .HasOne(bp => bp.Pond)
+            .WithMany()
+            .HasForeignKey(bp => bp.PondId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
 
             modelBuilder.Entity<BreedingProcess>()
                 .HasMany(bp => bp.KoiFishes)

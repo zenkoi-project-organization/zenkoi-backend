@@ -29,7 +29,7 @@ namespace Zenkoi.DAL.Entities
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation
-        public BreedingProcess BreedingProcess { get; set; }
+        public BreedingProcess? BreedingProcess { get; set; }
         public Pond Pond { get; set; }
         public Variety Variety { get; set; }
         public ICollection<KoiIncident> KoiIncidents { get; set; } = new List<KoiIncident>();

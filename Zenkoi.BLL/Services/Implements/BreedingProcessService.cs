@@ -214,6 +214,8 @@ namespace Zenkoi.BLL.Services.Implements
             };
 
             var allBreeds = await _breedRepo.GetAllAsync(queryOptions);
+            Console.WriteLine($"Số lượng BreedingProcess: {allBreeds.Count()}");
+
 
             var mappedList = allBreeds.Select(bp => _mapper.Map<BreedingProcessResponseDTO>(bp)).ToList();
 
