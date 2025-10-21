@@ -54,7 +54,9 @@ namespace Zenkoi.BLL.Services.Implements
             else if(dto.Success == true) {
                 fryfish.Status = FryFishStatus.Completed;
                 fryfish.EndDate = DateTime.Now;
-            }else
+                breed.CurrentSurvivalRate = ((double)dto.CountAlive / fryfish.InitialCount) * 100;
+            }
+            else
             {
                 fryfish.Status = FryFishStatus.Growing;
             }
@@ -64,15 +66,31 @@ namespace Zenkoi.BLL.Services.Implements
                 var maxDay = records.Max(r => r.DayNumber);
 
                 if (records.Any(r => r.DayNumber == dto.DayNumber))
-                    throw new InvalidOperationException($"DayNumber {dto.DayNumber} đã tồn tại trong EggBatch {dto.FryFishId}.");
+                    throw new InvalidOperationException($"DayNumber {dto.DayNumber} đã tồn tại trong fryfish {dto.FryFishId}.");
 
                 if (dto.DayNumber <= maxDay)
                     throw new InvalidOperationException($"DayNumber {dto.DayNumber} phải lớn hơn {maxDay}.");
             }
+                var previousRecord = records
+               .Where(r => r.DayNumber < dto.DayNumber)
+               .OrderByDescending(r => r.DayNumber)
+               .FirstOrDefault();
+
+            if (previousRecord != null)
+            {
+                Console.WriteLine($"Ngày trước ({previousRecord.DayNumber}): CountAlive = {previousRecord.CountAlive}");
+
+                if (dto.CountAlive > previousRecord.CountAlive)
+                {
+                    throw new InvalidOperationException(
+                        $"CountAlive ({dto.CountAlive}) không được lớn hơn ngày trước ({previousRecord.CountAlive})."
+                    );
+                }
+            }
 
 
 
-            var record = _mapper.Map<FrySurvivalRecord>(dto);
+                var record = _mapper.Map<FrySurvivalRecord>(dto);
             record.SurvivalRate = ((double)dto.CountAlive / fryfish.InitialCount) * 100;
             fryfish.CurrentSurvivalRate = record.SurvivalRate;
             await _fryfishRepo.UpdateAsync(fryfish);

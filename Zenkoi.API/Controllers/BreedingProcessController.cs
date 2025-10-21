@@ -25,9 +25,6 @@ namespace Zenkoi.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetBreedingById(int id)
         {
-            if (id <= 0)
-                return GetError("Id phải là số nguyên dương.");
-
             var breeding = await _service.GetBreedingById(id);
             if (breeding == null)
                 return GetError("Không tìm thấy quy trình sinh sản.");

@@ -73,8 +73,8 @@ namespace Zenkoi.BLL.Services.Implements
             eggBatch.PondId = null;
             pond.PondStatus = PondStatus.Active;
             eggPond.PondStatus = PondStatus.Empty;
-
             var fryFish = _mapper.Map<FryFish>(dto);
+            fryFish.InitialCount = eggBatch.TotalHatchedEggs;
             fryFish.Status = FryFishStatus.Hatched;
             fryFish.StartDate = DateTime.Now;
             await _pondRepo.UpdateAsync(eggPond);
