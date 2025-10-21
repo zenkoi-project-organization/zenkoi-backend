@@ -206,19 +206,20 @@ namespace Zenkoi.API.ConfigExtensions
                         PondId = 1,
                         VarietyId = 1,
                         RFID = "RFID-001",
-                        Size = 25.5,
+                        Size = FishSize.From31To40cm,
+                        Type = KoiType.High ,
                         BirthDate = new DateTime(2023, 3, 15),
                         Gender = Gender.Male,
                         HealthStatus = HealthStatus.Healthy,
                         Images = new List<string>
-    {
-        "https://res.cloudinary.com/demo/image/upload/sample.jpg",
-        "https://res.cloudinary.com/demo/image/upload/sample2.jpg"
-    },
-                        Videos = new List<string>
-    {
-        "https://res.cloudinary.com/demo/video/upload/koi_video.mp4"
-    },
+						{
+							"https://res.cloudinary.com/demo/image/upload/sample.jpg",
+							"https://res.cloudinary.com/demo/image/upload/sample2.jpg"
+						},
+											Videos = new List<string>
+						{
+							"https://res.cloudinary.com/demo/video/upload/koi_video.mp4"
+						},
                         SellingPrice = 3500000,
                         BodyShape = "Slim and symmetrical",
                         Description = "Kohaku koi with vibrant red markings",

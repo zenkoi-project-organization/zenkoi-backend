@@ -15,6 +15,7 @@ using Zenkoi.BLL.DTOs.PondDTOs;
 using Zenkoi.BLL.DTOs.PondTypeDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.Helpers.Mapper
 {
@@ -51,8 +52,10 @@ namespace Zenkoi.BLL.Helpers.Mapper
 			CreateMap<PondRequestDTO, Pond>();
 			CreateMap<Variety , VarietyResponseDTO>().ReverseMap();
 			CreateMap<VarietyRequestDTO, Variety>();
-			CreateMap<KoiFish,KoiFishResponseDTO>().ReverseMap();
-			CreateMap<KoiFishRequestDTO, KoiFish>();
+            CreateMap<double, FishSize>().ConvertUsing<FishSizeConverter>();
+            CreateMap<KoiFish,KoiFishResponseDTO>().ReverseMap();
+            CreateMap<KoiFishRequestDTO, KoiFish>()
+            .ForMember(dest => dest.Size, opt => opt.MapFrom(src => src.Size));
             CreateMap<Pond, PondBasicDTO>();
             CreateMap<Variety, VarietyBasicDTO>();
             CreateMap<BreedingProcess, BreedingProcessResponseDTO>()
