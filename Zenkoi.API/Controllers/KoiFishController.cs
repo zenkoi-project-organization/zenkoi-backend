@@ -25,17 +25,9 @@ namespace Zenkoi.API.Controllers
         {
             var result = await _koiFishService.GetAllKoiFishAsync(filter ?? new KoiFishFilterRequestDTO(), pageIndex, pageSize);
 
-            var response = new
-            {
-                result.PageIndex,
-                result.TotalPages,
-                result.TotalItems,
-                result.HasNextPage,
-                result.HasPreviousPage,
-                Data = result
-            };
+            
 
-            return GetSuccess(response);
+            return GetPagedSuccess(result);
         }
 
         

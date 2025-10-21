@@ -8,6 +8,7 @@ using Zenkoi.BLL.DTOs.AreaDTOs;
 using Zenkoi.BLL.DTOs.PondTypeDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 
@@ -24,13 +25,22 @@ namespace Zenkoi.BLL.Services.Implements
             _mapper = mapper;
             _pondtypeRepo = _unitOfWork.GetRepo<PondType>();
         }
-        public async Task<IEnumerable<PondTypeResponseDTO>> GetAllAsync()
+        public async Task<PaginatedList<PondTypeResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
         {
-            var pondtypes  = await _pondtypeRepo.GetAll();
-            return _mapper.Map<IEnumerable<PondTypeResponseDTO>>(pondtypes);
+            var areas = await _pondtypeRepo.GetAll();
+
+            var mappedList = _mapper.Map<List<PondTypeResponseDTO>>(areas);
+
+            var totalCount = mappedList.Count;
+            var pagedItems = mappedList
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PaginatedList<PondTypeResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
 
-        public async Task<PondTypeResponseDTO?> GetByIdAsync(int id)
+    public async Task<PondTypeResponseDTO?> GetByIdAsync(int id)
         {
             var pondtypes = await _pondtypeRepo.GetByIdAsync(id);
             return _mapper.Map<PondTypeResponseDTO>(pondtypes);

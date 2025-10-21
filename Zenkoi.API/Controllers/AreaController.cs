@@ -16,19 +16,15 @@ namespace Zenkoi.API.Controllers
             _areaService = areaService;
         }
 
-        /// <summary>
-        /// Lấy danh sách tất cả khu vực
-        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetAllAreas()
+        [HttpGet]
+        public async Task<IActionResult> GetAllAreas([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
-            var data = await _areaService.GetAllAsync();
-            return GetSuccess(data);
+            var data = await _areaService.GetAllAsync(pageIndex, pageSize);
+            return GetPagedSuccess(data);
         }
 
-        /// <summary>
-        /// Lấy thông tin khu vực theo Id
-        /// </summary>
+      
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAreaById(int id)
         {
@@ -36,9 +32,6 @@ namespace Zenkoi.API.Controllers
             return GetSuccess(data);
         }
 
-        /// <summary>
-        /// Tạo khu vực mới
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateArea([FromBody] AreaRequestDTO dto)
         {
@@ -46,12 +39,9 @@ namespace Zenkoi.API.Controllers
                 return ModelInvalid();
             
             var created = await _areaService.CreateAsync(dto);
-             return GetSuccess(created); ;
+             return SaveSuccess(created); ;
         }
 
-        /// <summary>
-        /// Cập nhật khu vực
-        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateArea(int id, [FromBody] AreaRequestDTO dto)
         {
@@ -62,9 +52,6 @@ namespace Zenkoi.API.Controllers
              return GetSuccess(updated);
         }
 
-        /// <summary>
-        /// Xóa khu vực
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArea(int id)
         {

@@ -110,6 +110,10 @@ namespace Zenkoi.BLL.Services.Implements
                     p => p.Pond
                 }
             });
+            if(eggBatch == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy lô trứng ấp");
+            }
             return _mapper.Map<EggBatchResponseDTO?>(eggBatch);
         }
 

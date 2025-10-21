@@ -16,121 +16,58 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllPondTypes()
+        public async Task<IActionResult> GetAllPondTypes([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
-            try
-            {
-                var data = await _pondTypeService.GetAllAsync();
-                if (data == null || !data.Any())
-                    return GetError("Không tìm thấy loại ao nào.");
-
-                return GetSuccess(data);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error($"Lỗi lấy dữ liệu loại ao: {ex.Message}");
-            }
+            var data = await _pondTypeService.GetAllAsync(pageIndex, pageSize);
+            return GetPagedSuccess(data);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPondTypeById(int id)
         {
-            try
-            {
-                if (id < 0)
-                    return GetError("Id phải là số nguyên dương.");
+         
+            var data = await _pondTypeService.GetByIdAsync(id);
+            if (data == null)
+                return GetError("Không tìm thấy loại ao.");
 
-                var data = await _pondTypeService.GetByIdAsync(id);
-                if (data == null)
-                    return GetError("Không tìm thấy loại ao.");
-
-                return GetSuccess(data);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error($"Lỗi lấy thông tin loại ao: {ex.Message}");
-            }
+            return GetSuccess(data);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreatePondType([FromBody] PondTypeRequestDTO dto)
         {
-            try
-            {
-                if (dto == null)
-                    return GetError("Dữ liệu không hợp lệ.");
+            if (!ModelState.IsValid)
+                return ModelInvalid();
 
-                if (string.IsNullOrWhiteSpace(dto.TypeName))
-                    return GetError("Tên loại ao không được để trống.");
-
-                var created = await _pondTypeService.CreateAsync(dto);
-                if (created == null)
-                    return GetError("Không thể tạo loại ao mới.");
-
-                return GetSuccess(new { message = "Tạo loại ao thành công.", data = created });
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error($"Lỗi tạo loại ao: {ex.Message}");
-            }
+            var created = await _pondTypeService.CreateAsync(dto);
+            return SaveSuccess(created);
         }
 
+   
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePondType(int id, [FromBody] PondTypeRequestDTO dto)
         {
-            try
-            {
-                if (id <= 0)
-                    return GetError("Id phải là số nguyên dương.");
+            if (!ModelState.IsValid)
+                return ModelInvalid();
 
-                if (dto == null)
-                    return GetError("Dữ liệu không hợp lệ.");
+            var updated = await _pondTypeService.UpdateAsync(id, dto);
+            if (updated == null)
+                return GetError("Không tìm thấy loại ao để cập nhật.");
 
-                var success = await _pondTypeService.UpdateAsync(id, dto);
-                if (!success)
-                    return GetError("Không tìm thấy loại ao cần cập nhật.");
-
-                return GetSuccess("Cập nhật loại ao thành công.");
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error($"Lỗi cập nhật loại ao: {ex.Message}");
-            }
+            return Success(updated, "Cập nhật loại ao thành công.");
         }
 
+      
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePondType(int id)
         {
-            try
-            {
-                if (id <= 0)
-                    return GetError("Id phải là số nguyên dương.");
+            var deleted = await _pondTypeService.DeleteAsync(id);
+            if (!deleted)
+                return GetError("Không tìm thấy loại ao để xóa.");
 
-                var success = await _pondTypeService.DeleteAsync(id);
-                if (!success)
-                    return GetError("Không tìm thấy loại ao cần xóa.");
-
-                return GetSuccess("Xóa loại ao thành công.");
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error($"Lỗi xóa loại ao: {ex.Message}");
-            }
+            return Success(deleted, "Xóa loại ao thành công.");
         }
     }
 }

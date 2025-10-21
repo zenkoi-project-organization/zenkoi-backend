@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AreaDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 
@@ -23,10 +24,19 @@ namespace Zenkoi.BLL.Services.Implements
             _mapper = mapper;
             _areaRepo = _unitOfWork.GetRepo<Area>();
         }
-        public async Task<IEnumerable<AreaResponseDTO>> GetAllAsync()
+        public async Task<PaginatedList<AreaResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
         {
             var areas = await _areaRepo.GetAll();
-            return _mapper.Map<IEnumerable<AreaResponseDTO>>(areas);
+
+            var mappedList = _mapper.Map<List<AreaResponseDTO>>(areas);
+
+            var totalCount = mappedList.Count;
+            var pagedItems = mappedList
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PaginatedList<AreaResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
 
         public async Task<AreaResponseDTO?> GetByIdAsync(int id)

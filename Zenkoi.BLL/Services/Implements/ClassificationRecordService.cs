@@ -112,7 +112,7 @@ namespace Zenkoi.BLL.Services.Implements
             });
             if (record == null)
             {
-                throw new KeyNotFoundException(" không tìm thấy bầy cá");
+                throw new KeyNotFoundException(" không tìm thấy ghi nhận");
             }
             return _mapper.Map<ClassificationRecordResponseDTO?>(record);
         }
