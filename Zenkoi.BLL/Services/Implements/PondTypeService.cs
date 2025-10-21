@@ -5,10 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AreaDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.PondTypeDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Paging;
+using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 
@@ -25,11 +27,34 @@ namespace Zenkoi.BLL.Services.Implements
             _mapper = mapper;
             _pondtypeRepo = _unitOfWork.GetRepo<PondType>();
         }
-        public async Task<PaginatedList<PondTypeResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<PondTypeResponseDTO>> GetAllAsync(PondTypeFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var areas = await _pondtypeRepo.GetAll();
+            var queryOptions = new QueryOptions<PondType>();
 
-            var mappedList = _mapper.Map<List<PondTypeResponseDTO>>(areas);
+            System.Linq.Expressions.Expression<System.Func<PondType, bool>>? predicate = null;
+
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                System.Linq.Expressions.Expression<System.Func<PondType, bool>> expr = pt => pt.TypeName.Contains(filter.Search) || (pt.Description != null && pt.Description.Contains(filter.Search));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MinRecommendedCapacity.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<PondType, bool>> expr = pt => pt.RecommendedCapacity >= filter.MinRecommendedCapacity.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxRecommendedCapacity.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<PondType, bool>> expr = pt => pt.RecommendedCapacity <= filter.MaxRecommendedCapacity.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            queryOptions.Predicate = predicate;
+
+            var pondTypes = await _pondtypeRepo.GetAllAsync(queryOptions);
+            var mappedList = _mapper.Map<List<PondTypeResponseDTO>>(pondTypes);
 
             var totalCount = mappedList.Count;
             var pagedItems = mappedList

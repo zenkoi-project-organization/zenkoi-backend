@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.FryFishDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
@@ -16,9 +17,12 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] FryFishFilterRequestDTO? filter,
+            [FromQuery] int pageIndex = 1, 
+            [FromQuery] int pageSize = 10)
         {
-            var data = await _fryFishService.GetAllAsync(pageIndex, pageSize);
+            var data = await _fryFishService.GetAllAsync(filter ?? new FryFishFilterRequestDTO(), pageIndex, pageSize);
             return GetPagedSuccess(data);
         }
 

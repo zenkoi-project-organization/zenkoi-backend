@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.BreedingDTOs;
 using Zenkoi.BLL.DTOs.PondDTOs;
 using Zenkoi.BLL.Services.Interfaces;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
@@ -223,7 +224,7 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<BreedingProcessResponseDTO>(breeding);
         }
 
-        public async Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(BreedingProcessFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
             var queryOptions = new QueryOptions<BreedingProcess>
             {
@@ -234,6 +235,80 @@ namespace Zenkoi.BLL.Services.Implements
                 b => b.Pond
         }
             };
+
+            System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>>? predicate = null;
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => (b.Note != null && b.Note.Contains(filter.Search));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaleKoiId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.MaleKoiId == filter.MaleKoiId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.FemaleKoiId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.FemaleKoiId == filter.FemaleKoiId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.PondId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.PondId == filter.PondId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.Status.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.Status == filter.Status.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.Result.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.Result == filter.Result.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinTotalFishQualified.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.TotalFishQualified >= filter.MinTotalFishQualified.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxTotalFishQualified.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.TotalFishQualified <= filter.MaxTotalFishQualified.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinTotalPackage.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.TotalPackage >= filter.MinTotalPackage.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxTotalPackage.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.TotalPackage <= filter.MaxTotalPackage.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.StartDateFrom.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.StartDate >= filter.StartDateFrom.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.StartDateTo.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.StartDate <= filter.StartDateTo.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.EndDateFrom.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.EndDate >= filter.EndDateFrom.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.EndDateTo.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.EndDate <= filter.EndDateTo.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            queryOptions.Predicate = predicate;
 
             var allBreeds = await _breedRepo.GetAllAsync(queryOptions);
             Console.WriteLine($"Số lượng BreedingProcess: {allBreeds.Count()}");

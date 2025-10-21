@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.FrySurvivalRecordDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Paging;
@@ -96,15 +97,77 @@ namespace Zenkoi.BLL.Services.Implements
             return await _unitOfWork.SaveAsync();
         }
 
-        public async Task<PaginatedList<FrySurvivalRecordResponseDTO>> GetAllVarietiesAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<FrySurvivalRecordResponseDTO>> GetAllVarietiesAsync(FrySurvivalRecordFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var records = await _frysurvivalRepo.GetAllAsync(new QueryOptions<FrySurvivalRecord>
+            var query = new QueryOptions<FrySurvivalRecord>
             {
                 IncludeProperties = new List<Expression<Func<FrySurvivalRecord, object>>>
                 {
                     p => p.FryFish
                 }
-            });
+            };
+
+            System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>>? predicate = null;
+
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => (r.Note != null && r.Note.Contains(filter.Search));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.FryFishId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.FryFishId == filter.FryFishId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinDayNumber.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.DayNumber >= filter.MinDayNumber.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxDayNumber.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.DayNumber <= filter.MaxDayNumber.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinSurvivalRate.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.SurvivalRate >= filter.MinSurvivalRate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxSurvivalRate.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.SurvivalRate <= filter.MaxSurvivalRate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinCountAlive.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.CountAlive >= filter.MinCountAlive.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxCountAlive.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.CountAlive <= filter.MaxCountAlive.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.Success.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.Success == filter.Success.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.CreatedFrom.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.CreatedAt >= filter.CreatedFrom.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.CreatedTo.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.CreatedAt <= filter.CreatedTo.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            query.Predicate = predicate;
+
+            var records = await _frysurvivalRepo.GetAllAsync(query);
 
             var mappedList = _mapper.Map<List<FrySurvivalRecordResponseDTO>>(records);
 

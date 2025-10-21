@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.FrySurvivalRecordDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
@@ -16,9 +17,12 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] FrySurvivalRecordFilterRequestDTO? filter,
+            [FromQuery] int pageIndex = 1, 
+            [FromQuery] int pageSize = 10)
         {
-            var data = await _frySurvivalService.GetAllVarietiesAsync(pageIndex, pageSize);
+            var data = await _frySurvivalService.GetAllVarietiesAsync(filter ?? new FrySurvivalRecordFilterRequestDTO(), pageIndex, pageSize);
             return GetPagedSuccess(data);
         }
 

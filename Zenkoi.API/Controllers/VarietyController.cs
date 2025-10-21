@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
@@ -16,9 +17,12 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllVarieties([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllVarieties(
+            [FromQuery] VarietyFilterRequestDTO? filter,
+            [FromQuery] int pageIndex = 1, 
+            [FromQuery] int pageSize = 10)
         {
-            var data = await _varietyService.GetAllVarietiesAsync(pageIndex, pageSize);
+            var data = await _varietyService.GetAllVarietiesAsync(filter ?? new VarietyFilterRequestDTO(), pageIndex, pageSize);
             return GetPagedSuccess(data);
         }
 
