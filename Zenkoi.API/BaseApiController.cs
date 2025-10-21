@@ -111,7 +111,7 @@ namespace Zenkoi.API
                 paginated.TotalItems,
                 paginated.HasPreviousPage,
                 paginated.HasNextPage,
-                Items = paginated
+                data = paginated
             }, "Get data success");
         }
 
