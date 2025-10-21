@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Zenkoi.DAL.Enums;
 
@@ -21,21 +22,28 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         [Range(0.1, double.MaxValue, ErrorMessage = "Size must be greater than 0.")]
         public double? Size { get; set; }
 
+        public KoiType Type { get; set; }
         public DateTime? BirthDate { get; set; }
 
+        [Required(ErrorMessage = "Gender is required.")]
         public Gender Gender { get; set; }
-        public HealthStatus HealthStatus { get; set; }
 
-        [MaxLength(500, ErrorMessage = "ImagesVideos cannot exceed 500 characters.")]
-        public string ImagesVideos { get; set; }
+        [Required(ErrorMessage = "HealthStatus is required.")]
+        public HealthStatus HealthStatus { get; set; }
+        public string? Origin { get; set; }
+
+
+        // Cho phép gửi nhiều ảnh hoặc video
+        public List<string>? Images { get; set; }
+        public List<string>? Videos { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "SellingPrice must be a positive value.")]
         public decimal? SellingPrice { get; set; }
 
         [MaxLength(100, ErrorMessage = "BodyShape cannot exceed 100 characters.")]
-        public string BodyShape { get; set; }
+        public string? BodyShape { get; set; }
 
         [MaxLength(1000, ErrorMessage = "Description cannot exceed 1000 characters.")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 }
