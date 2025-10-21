@@ -11,6 +11,7 @@ namespace Zenkoi.BLL.DTOs.BreedingDTOs
     public class BreedingProcessResponseDTO
     {
         public int Id { get; set; }
+        public string Code { get; set; } = string.Empty;
 
         public int MaleKoiId { get; set; }
         public string? MaleKoiName { get; set; }

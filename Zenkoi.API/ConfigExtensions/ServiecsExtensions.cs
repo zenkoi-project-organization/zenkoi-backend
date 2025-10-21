@@ -425,20 +425,172 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.BreedingProcesses.Any())
             {
                 await context.BreedingProcesses.AddRangeAsync(
-                new BreedingProcess
-                {
-                    MaleKoiId = 1,
-                    FemaleKoiId = 2,
-                    PondId = 1,
-                    StartDate = new DateTime(2025, 1, 10),
-                    EndDate = new DateTime(2025, 2, 15),
-                    Status = BreedingStatus.Complete,
-                    Note = "Quá trình sinh sản thành công, nhiều trứng nở khỏe mạnh.",
-                    Result = BreedingResult.Success,
-                    TotalFishQualified = 120,
-                    TotalPackage = 3
-                }
+                    // 1️⃣ Pairing
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 1,
+                        FemaleKoiId = 2,
+                        PondId = 4,
+                        StartDate = DateTime.Now,
+                        Status = BreedingStatus.Pairing,
+                        Note = "Đang ghép cặp cá đực và cái, theo dõi phản ứng.",
+                        Result = BreedingResult.Success,
+                        Code = "BP-001"
+                    },
+         
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 1,
+                        FemaleKoiId = 3,
+                        PondId = 4,
+                        StartDate = DateTime.Now.AddDays(-5),
+                        Status = BreedingStatus.Spawned,
+                        Note = "Cặp cá đã đẻ trứng, đang thu gom trứng.",
+                        Result = BreedingResult.PartialSuccess,
+                        FertilizationRate = 85,
+                        TotalEggs = 1500,
+                        Code = "BP-002"
+                    },
+
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 1,
+                        FemaleKoiId = 3,
+                        PondId = 4,
+                        StartDate = DateTime.Now.AddDays(-10),
+                        Status = BreedingStatus.EggBatch,
+                        Note = "Trứng đang được ấp, tỷ lệ thụ tinh ổn định.",
+                        Result = BreedingResult.Unknown,
+                        FertilizationRate = 90,
+                        TotalEggs = 2000,
+                        Code = "BP-003"
+                    },
+
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 1,
+                        FemaleKoiId = 3,
+                        PondId = 3,
+                        StartDate = DateTime.Now.AddDays(-20),
+                        Status = BreedingStatus.FryFish,
+                        Note = "Cá bột đã nở, bắt đầu cho ăn vi sinh.",
+                        Result = BreedingResult.Unknown,
+                        CurrentSurvivalRate = 75.5,
+                        FertilizationRate = 88,
+                        TotalEggs = 2500,
+                        Code = "BP-004"
+                    },
+
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 1,
+                        FemaleKoiId = 3,
+                        PondId = 3,
+                        StartDate = DateTime.Now.AddDays(-30),
+                        Status = BreedingStatus.Classification,
+                        Note = "Phân loại cá bột theo kích thước và màu sắc.",
+                        Result = BreedingResult.PartialSuccess,
+                        TotalFishQualified = 500,
+                        TotalPackage = 5,
+                        CurrentSurvivalRate = 68.3,
+                        FertilizationRate = 90,
+                        TotalEggs = 3000,
+                        Code = "BP-005"
+                    },
+
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 1,
+                        FemaleKoiId = 3,
+                        PondId = 3,
+                        StartDate = DateTime.Now.AddDays(-60),
+                        EndDate = DateTime.Now.AddDays(-1),
+                        Status = BreedingStatus.Complete,
+                        Note = "Hoàn tất quy trình, kết quả đạt chuẩn.",
+                        Result = BreedingResult.Success,
+                        TotalFishQualified = 1000,
+                        TotalPackage = 20,
+                        CurrentSurvivalRate = 82.2,
+                        FertilizationRate = 92,
+                        TotalEggs = 3500,
+                        Code = "BP-006"
+                    },
+
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 1,
+                        FemaleKoiId = 3,
+                        PondId = 4,
+                        StartDate = DateTime.Now.AddDays(-15),
+                        EndDate = DateTime.Now.AddDays(-10),
+                        Status = BreedingStatus.Failed,
+                        Note = "Quá trình sinh sản thất bại do trứng bị nấm.",
+                        Result = BreedingResult.Failed,
+                        TotalFishQualified = 0,
+                        TotalPackage = 0,
+                        CurrentSurvivalRate = 0,
+                        FertilizationRate = 0,
+                        TotalEggs = 500,
+                        Code = "BP-007"
+                    },
+                
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 1,
+                        FemaleKoiId = 2,
+                        PondId = 4,
+                        StartDate = DateTime.Now,
+                        Status = BreedingStatus.Pairing,
+                        Note = "Ghép cặp Kohaku đực với Sanke cái để theo dõi phản ứng ban đầu.",
+                        Result = BreedingResult.Unknown,
+                        Code = "BP-008"
+                    },
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 4,
+                        FemaleKoiId = 3,
+                        PondId = 3,
+                        StartDate = DateTime.Now,
+                        Status = BreedingStatus.Pairing,
+                        Note = "Bắt đầu ghép cặp Ogon đực và Showa cái, kiểm tra hành vi giao phối.",
+                        Result = BreedingResult.Unknown,
+                        Code = "BP-009"
+                    },
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 5,
+                        FemaleKoiId = 2,
+                        PondId = 1,
+                        StartDate = DateTime.Now,
+                        Status = BreedingStatus.Pairing,
+                        Note = "Cặp Asagi đực và Sanke cái đang được chuẩn bị nước và môi trường sinh sản.",
+                        Result = BreedingResult.Unknown,
+                        Code = "BP-010"
+                    },
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 1,
+                        FemaleKoiId = 3,
+                        PondId = 5,
+                        StartDate = DateTime.Now,
+                        Status = BreedingStatus.Pairing,
+                        Note = "Kohaku đực ghép với Showa cái trong ao thử nghiệm X.",
+                        Result = BreedingResult.Unknown,
+                        Code = "BP-011"
+                    },
+                    new BreedingProcess
+                    {
+                        MaleKoiId = 4,
+                        FemaleKoiId = 3,
+                        PondId = 2,
+                        StartDate = DateTime.Now,
+                        Status = BreedingStatus.Pairing,
+                        Note = "Cặp Ogon đực và Showa cái trong giai đoạn kiểm tra sức khỏe trước sinh sản.",
+                        Result = BreedingResult.Unknown,
+                        Code = "BP-012"
+                    }
                 );
+
                 await context.SaveChangesAsync();
             }
             if (!context.EggBatches.Any())
