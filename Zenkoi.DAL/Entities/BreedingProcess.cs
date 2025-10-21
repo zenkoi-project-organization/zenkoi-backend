@@ -23,12 +23,12 @@ namespace Zenkoi.DAL.Entities
         public BreedingStatus Status { get; set; }
         public string? Note { get; set; }
         public BreedingResult Result { get; set; }
-        public int? TotalEggs { get; set; } 
-        public double? FertilizationRate { get; set; }
-        public double? CurrentSurvivalRate { get; set; }
+        public int? TotalEggs { get; set; } = 0;
+        public double? FertilizationRate { get; set; } = 0;
+        public double? CurrentSurvivalRate { get; set; } = 0;
 
-        public int? TotalFishQualified { get; set; }
-        public int? TotalPackage { get; set; }
+        public int? TotalFishQualified { get; set; } = 0;
+        public int? TotalPackage { get; set; } = 0;
 
         [ForeignKey(nameof(MaleKoiId))]
         public KoiFish MaleKoi { get; set; }
