@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace Zenkoi.DAL.Enums
 {
-    public enum HealthStatus
+    public enum KoiType
     {
-        Healthy,
-        Warning,
-        Sick,
-        Dead
+        High ,
+        Show
     }
 }

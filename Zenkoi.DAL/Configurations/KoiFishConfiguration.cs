@@ -1,6 +1,9 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text.Json;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.DAL.Configurations
 {
@@ -9,9 +12,12 @@ namespace Zenkoi.DAL.Configurations
         public void Configure(EntityTypeBuilder<KoiFish> builder)
         {
             builder.ToTable("KoiFishes");
+
+            // Key & Identity
             builder.HasKey(k => k.Id);
             builder.Property(k => k.Id).UseIdentityColumn();
 
+            // Foreign keys
             builder.Property(k => k.PondId)
                 .IsRequired();
 
@@ -20,29 +26,29 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(k => k.VarietyId)
                 .IsRequired();
 
+            // Basic properties
             builder.Property(k => k.RFID)
                 .IsRequired()
                 .HasMaxLength(50);
 
+          
             builder.Property(k => k.Size)
-                .HasColumnType("decimal(8,2)");
+                .IsRequired()
+                .HasConversion<string>();  // FishSize enum
 
-            builder.Property(k => k.BirthDate);
+            builder.Property(k => k.Type)
+                .IsRequired()
+                .HasConversion<string>();  // KoiType enum
 
             builder.Property(k => k.Gender)
-            .IsRequired()
-            .HasConversion<string>();
-
+                .IsRequired()
+                .HasConversion<string>();  
 
             builder.Property(k => k.HealthStatus)
-              .IsRequired()
-              .HasConversion<string>();
+                .IsRequired()
+                .HasConversion<string>(); 
 
-            builder.Property(k => k.Images)
-                .HasMaxLength(1000);
-
-            builder.Property(k => k.Videos)
-                .HasMaxLength(1000);
+            builder.Property(k => k.BirthDate);
 
             builder.Property(k => k.SellingPrice)
                 .HasColumnType("decimal(18,2)");
@@ -53,12 +59,21 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(k => k.Description)
                 .HasMaxLength(1000);
 
+
+
+            builder.Property(k => k.Images)
+             .HasMaxLength(1000);
+
+            builder.Property(k => k.Videos)
+         .HasMaxLength(1000);
+            // Timestamps
             builder.Property(k => k.CreatedAt)
                 .IsRequired()
                 .HasDefaultValueSql("GETUTCDATE()");
 
             builder.Property(k => k.UpdatedAt);
 
+            // Relationships
             builder.HasOne(k => k.Pond)
                 .WithMany(p => p.KoiFishes)
                 .HasForeignKey(k => k.PondId)
@@ -84,6 +99,7 @@ namespace Zenkoi.DAL.Configurations
                 .HasForeignKey(od => od.KoiFishId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+           
             builder.HasIndex(k => k.RFID).IsUnique();
             builder.HasIndex(k => k.PondId);
             builder.HasIndex(k => k.VarietyId);

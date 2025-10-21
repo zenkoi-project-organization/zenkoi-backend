@@ -10,8 +10,11 @@ namespace Zenkoi.DAL.Enums
     {
         Under10cm ,     // Dưới 10 cm
         From10To20cm,  // 10 - 20 cm
-        From21To30cm,  // 21 - 30 cm
+        From21To25cm,  // 21 - 25 cm
+        From26To30cm,  // 26 - 30 cm
         From31To40cm,  // 31 - 40 cm
-        Over40cm
+        From41To45cm,  // 41 - 45 cm
+        From46To50cm,  // 46 - 50 cm
+        Over50cm
     }
 }
