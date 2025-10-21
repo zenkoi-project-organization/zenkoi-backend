@@ -11,6 +11,7 @@ namespace Zenkoi.DAL.Entities
     public class BreedingProcess
     {
         public int Id { get; set; }
+        public string Code { get; set; }
 
         public int MaleKoiId { get; set; }
         public int FemaleKoiId { get; set; }

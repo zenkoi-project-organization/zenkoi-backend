@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251021161928_AddCodeToBreedingProcess")]
+    partial class AddCodeToBreedingProcess
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -277,17 +280,11 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<double?>("CurrentSurvivalRate")
-                        .HasColumnType("float");
-
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("FemaleKoiId")
                         .HasColumnType("int");
-
-                    b.Property<double?>("FertilizationRate")
-                        .HasColumnType("float");
 
                     b.Property<int>("MaleKoiId")
                         .HasColumnType("int");
@@ -309,9 +306,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TotalEggs")
                         .HasColumnType("int");
 
                     b.Property<int?>("TotalFishQualified")
