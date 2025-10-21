@@ -20,10 +20,11 @@ namespace Zenkoi.DAL.Entities
         public DateTime? BirthDate { get; set; }
         public Gender Gender { get; set; }
         public HealthStatus HealthStatus { get; set; }
-        public string ImagesVideos { get; set; }
+        public List<string>? Images { get; set; }
+        public List<string>? Videos { get; set; }
         public decimal? SellingPrice { get; set; }
-        public string BodyShape { get; set; }
-        public string Description { get; set; }
+        public string? BodyShape { get; set; }
+        public string? Description { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
