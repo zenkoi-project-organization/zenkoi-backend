@@ -78,9 +78,16 @@ namespace Zenkoi.BLL.Services.Implements
             if(record.Success)
             {
                 eggBatch.Status = EggBatchStatus.Success;
-                eggBatch.FertilizationRate = ((double)eggBatch.TotalHatchedEggs / eggBatch.Quantity) * 100;
                 eggBatch.SpawnDate = DateTime.Now;
                 breed.FertilizationRate = eggBatch.FertilizationRate;
+
+                var avgHealthyEggs = eggBatch.IncubationDailyRecords
+                .OrderBy(r => r.DayNumber)
+                .Take(3)
+                .Where(r => r.HealthyEggs.HasValue)
+                .Average(r => r.HealthyEggs.Value);
+                eggBatch.FertilizationRate = (avgHealthyEggs / eggBatch.Quantity.Value) * 100;
+
             }
             await _eggBatchRepo.UpdateAsync(eggBatch);
             await _unitOfWork.SaveChangesAsync();
