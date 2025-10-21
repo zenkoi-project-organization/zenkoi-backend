@@ -117,7 +117,6 @@ namespace Zenkoi.BLL.Helpers.Fillters
                 finalExpr = Expression.AndAlso(finalExpr, equalExpr);
             }
 
-            // ❤️ Health
             if (filter.Health.HasValue)
             {
                 var prop = Expression.Property(parameter, nameof(KoiFish.HealthStatus));

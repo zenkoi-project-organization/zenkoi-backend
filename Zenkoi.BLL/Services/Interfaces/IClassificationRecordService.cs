@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.ClassificationRecordDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.FryFishDTOs;
 using Zenkoi.DAL.Paging;
 
@@ -11,7 +12,7 @@ namespace Zenkoi.BLL.Services.Interfaces
 {
     public interface IClassificationRecordService 
     {
-        Task<PaginatedList<ClassificationRecordResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10);
+        Task<PaginatedList<ClassificationRecordResponseDTO>> GetAllAsync(ClassificationRecordFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<ClassificationRecordResponseDTO?> GetByIdAsync(int id);
         Task<ClassificationRecordResponseDTO> CreateAsync(ClassificationRecordRequestDTO dto);
         Task<bool> UpdateAsync(int id, ClassificationRecordUpdateRequestDTO dto);

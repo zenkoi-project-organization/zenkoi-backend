@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.ClassificationRecordDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.FryFishDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
@@ -79,15 +80,81 @@ namespace Zenkoi.BLL.Services.Implements
             return await _unitOfWork.SaveAsync();
         }
 
-        public async Task<PaginatedList<ClassificationRecordResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<ClassificationRecordResponseDTO>> GetAllAsync(ClassificationRecordFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var fryfish = await _recordRepo.GetAllAsync(new QueryOptions<ClassificationRecord>
+            var query = new QueryOptions<ClassificationRecord>
             {
                 IncludeProperties = new List<Expression<Func<ClassificationRecord, object>>>
                 {
                     p => p.ClassificationStage
                 }
-            });
+            };
+
+            System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>>? predicate = null;
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => (r.Notes != null && r.Notes.Contains(filter.Search));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.ClassificationStageId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.ClassificationStageId == filter.ClassificationStageId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinStageNumber.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.StageNumber >= filter.MinStageNumber.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxStageNumber.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.StageNumber <= filter.MaxStageNumber.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinHighQualifiedCount.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.HighQualifiedCount >= filter.MinHighQualifiedCount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxHighQualifiedCount.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.HighQualifiedCount <= filter.MaxHighQualifiedCount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinQualifiedCount.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.QualifiedCount >= filter.MinQualifiedCount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxQualifiedCount.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.QualifiedCount <= filter.MaxQualifiedCount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinUnqualifiedCount.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.UnqualifiedCount >= filter.MinUnqualifiedCount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxUnqualifiedCount.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.UnqualifiedCount <= filter.MaxUnqualifiedCount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.CreatedFrom.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.CreateAt >= filter.CreatedFrom.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.CreatedTo.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.CreateAt <= filter.CreatedTo.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            query.Predicate = predicate;
+
+            var fryfish = await _recordRepo.GetAllAsync(query);
 
             var mappedList = _mapper.Map<List<ClassificationRecordResponseDTO>>(fryfish);
 

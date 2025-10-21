@@ -492,13 +492,11 @@ namespace Zenkoi.API.Controllers
                 {
                     return Error(response.Message);
                 }
-
-                // Trả về kết quả thành công
+              
                 return Success(response, "Gửi OPT thành công");
             }
             catch (Exception ex)
-            {
-                // Xử lý ngoại lệ và trả về thông báo lỗi
+            {             
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();

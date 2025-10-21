@@ -41,20 +41,84 @@ namespace Zenkoi.BLL.Services.Implements
          KoiFishFilterRequestDTO filter,
          int pageIndex = 1,
          int pageSize = 10)
-        {
-            var queryOptions = new QueryOptions<KoiFish>
-            {
-                IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+            {     
+                var queryOptions = new QueryOptions<KoiFish>
+                {
+                    IncludeProperties = new List<Expression<Func<KoiFish, object>>>
             {
                 v => v.Variety,
-                p => p.Pond
+                p => p.Pond,
             }
                 };
+      
+           Expression<Func<KoiFish, bool>>? predicate = null;
 
-            if (filter != null)
-                queryOptions.Predicate = FilterHelper.BuildFilterExpression(filter);
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                string searchLower = filter.Search.ToLower();
+
+                Expression<Func<KoiFish, bool>> expr = k =>                 
+                    (k.Origin != null && k.Origin.ToLower().Contains(searchLower)) ||
+                    (k.BodyShape != null && k.BodyShape.ToLower().Contains(searchLower)) ||
+                    (k.RFID != null && k.RFID.ToLower().Contains(searchLower)) ||
+                    (k.Description != null && k.Description.ToLower().Contains(searchLower)) ||
+             
+                    (k.Pond != null && k.Pond.PondName != null && k.Pond.PondName.ToLower().Contains(searchLower)) || 
+                    (k.Variety != null && k.Variety.VarietyName != null && k.Variety.VarietyName.ToLower().Contains(searchLower));
+
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.Gender.HasValue)
+            {
+                Expression<Func<KoiFish, bool>> expr = k => k.Gender == filter.Gender.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+     
+            if (filter.Health.HasValue)
+            {      
+                Expression<Func<KoiFish, bool>> expr = k => k.HealthStatus == filter.Health.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+       
+            if (filter.VarietyId.HasValue)
+            {
+                Expression<Func<KoiFish, bool>> expr = k => k.VarietyId == filter.VarietyId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.FishSize.HasValue)
+            {
+                Expression<Func<KoiFish, bool>> expr = k => k.Size == filter.FishSize.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+        
+            if (filter.PondId.HasValue)
+            {
+                Expression<Func<KoiFish, bool>> expr = k => k.PondId == filter.PondId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+      
+            if (!string.IsNullOrEmpty(filter.Origin))
+            {
+                Expression<Func<KoiFish, bool>> expr = k => k.Origin == filter.Origin;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }          
+            if (filter.MinPrice.HasValue)
+            {         
+                Expression<Func<KoiFish, bool>> expr = k => k.SellingPrice >= filter.MinPrice.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+       
+            if (filter.MaxPrice.HasValue)
+            {             
+                Expression<Func<KoiFish, bool>> expr = k => k.SellingPrice <= filter.MaxPrice.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            queryOptions.Predicate = predicate;
 
             var koiList = await _koiFishRepo.GetAllAsync(queryOptions);
+
             var mapped = _mapper.Map<List<KoiFishResponseDTO>>(koiList);
 
             var totalCount = mapped.Count;

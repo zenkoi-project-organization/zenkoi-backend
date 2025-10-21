@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.EggBatchDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
@@ -80,14 +81,82 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<PaginatedList<EggBatchResponseDTO>> GetAllEggBatchAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<EggBatchResponseDTO>> GetAllEggBatchAsync(EggBatchFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var eggBatch = await _eggBatchRepo.GetAllAsync(new QueryOptions<EggBatch> {
+            var query = new QueryOptions<EggBatch>
+            {
                 IncludeProperties = new List<Expression<Func<EggBatch, object>>>
                 {
                     p => p.Pond
                 }
-            });
+            };
+
+            System.Linq.Expressions.Expression<System.Func<EggBatch, bool>>? predicate = null;
+
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => (e.Pond != null && e.Pond.PondName.Contains(filter.Search));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.BreedingProcessId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.BreedingProcessId == filter.BreedingProcessId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.PondId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.PondId == filter.PondId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.Status.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.Status == filter.Status.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinQuantity.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.Quantity >= filter.MinQuantity.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxQuantity.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.Quantity <= filter.MaxQuantity.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinFertilizationRate.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.FertilizationRate >= filter.MinFertilizationRate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxFertilizationRate.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.FertilizationRate <= filter.MaxFertilizationRate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.SpawnDateFrom.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.SpawnDate >= filter.SpawnDateFrom.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.SpawnDateTo.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.SpawnDate <= filter.SpawnDateTo.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.HatchingTimeFrom.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.HatchingTime >= filter.HatchingTimeFrom.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.HatchingTimeTo.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.HatchingTime <= filter.HatchingTimeTo.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            query.Predicate = predicate;
+
+            var eggBatch = await _eggBatchRepo.GetAllAsync(query);
             Console.WriteLine(eggBatch.Count());
             var mappedList = _mapper.Map<List<EggBatchResponseDTO>>(eggBatch);
 
