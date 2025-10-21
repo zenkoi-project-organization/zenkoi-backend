@@ -203,19 +203,27 @@ namespace Zenkoi.API.ConfigExtensions
 				await context.KoiFishes.AddRangeAsync(
 					new KoiFish
 					{
-						PondId = 1,
-						VarietyId = 1,
-						RFID = "RFID-001",
-						Size = 25.5,
-						BirthDate = new DateTime(2023, 3, 15),
-						Gender = Gender.Male,
-						HealthStatus = HealthStatus.Healthy,
-						ImagesVideos = "https://res.cloudinary.com/demo/image/upload/sample.jpg",
-						SellingPrice = 3500000,
-						BodyShape = "Slim and symmetrical",
-						Description = "Kohaku koi with vibrant red markings",
-						CreatedAt = DateTime.Now
-					}
+                        PondId = 1,
+                        VarietyId = 1,
+                        RFID = "RFID-001",
+                        Size = 25.5,
+                        BirthDate = new DateTime(2023, 3, 15),
+                        Gender = Gender.Male,
+                        HealthStatus = HealthStatus.Healthy,
+                        Images = new List<string>
+    {
+        "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+        "https://res.cloudinary.com/demo/image/upload/sample2.jpg"
+    },
+                        Videos = new List<string>
+    {
+        "https://res.cloudinary.com/demo/video/upload/koi_video.mp4"
+    },
+                        SellingPrice = 3500000,
+                        BodyShape = "Slim and symmetrical",
+                        Description = "Kohaku koi with vibrant red markings",
+                        CreatedAt = DateTime.Now
+                    }
 					);
 			}
 			if (!context.BreedingProcesses.Any())

@@ -38,7 +38,10 @@ namespace Zenkoi.DAL.Configurations
               .IsRequired()
               .HasConversion<string>();
 
-            builder.Property(k => k.ImagesVideos)
+            builder.Property(k => k.Images)
+                .HasMaxLength(1000);
+
+            builder.Property(k => k.Videos)
                 .HasMaxLength(1000);
 
             builder.Property(k => k.SellingPrice)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using Zenkoi.DAL.Configurations;
 using Zenkoi.DAL.Entities;
 
@@ -147,7 +148,19 @@ namespace Zenkoi.DAL.EF
                 .WithOne(k => k.BreedingProcess)
                 .HasForeignKey(k => k.BreedingProcessId)
                 .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<KoiFish>()
+              .Property(k => k.Images)
+              .HasConversion(
+                  v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                  v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null)
+              );
 
+            modelBuilder.Entity<KoiFish>()
+                .Property(k => k.Videos)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null)
+                );
 
         }
 	}
