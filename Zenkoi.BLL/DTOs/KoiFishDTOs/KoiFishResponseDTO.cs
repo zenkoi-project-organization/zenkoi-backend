@@ -40,6 +40,8 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
     {
         public int Id { get; set; }
         public string VarietyName { get; set; }
+        public string Characteristic { get; set; }
+        public string OriginCountry { get; set; }
     }
 
     public class BreedingProcessBasicDTO
