@@ -228,21 +228,24 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<BreedingProcessResponseDTO>(breeding);
         }
 
-        public async Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(BreedingProcessFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(
+      BreedingProcessFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
             var queryOptions = new QueryOptions<BreedingProcess>
             {
                 IncludeProperties = new List<System.Linq.Expressions.Expression<Func<BreedingProcess, object>>>
         {
-                b => b.MaleKoi,
-                b => b.FemaleKoi,
-                b => b.Pond,
-                b => b.MaleKoi.Variety,
-                b => b.FemaleKoi.Variety
+            b => b.MaleKoi,
+            b => b.FemaleKoi,
+            b => b.Pond,
+            b => b.MaleKoi.Variety,
+            b => b.FemaleKoi.Variety
         }
             };
 
             System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>>? predicate = null;
+
+            // SEARCH chung (Id / Code / VarietyName / OriginCountry)
             if (!string.IsNullOrEmpty(filter.Search))
             {
                 var search = filter.Search.Trim();
@@ -270,7 +273,16 @@ namespace Zenkoi.BLL.Services.Implements
 
                     predicate = predicate == null ? expr : predicate.AndAlso(expr);
                 }
-            }       
+            }
+
+            // Lọc theo Code (explicit)
+            if (!string.IsNullOrEmpty(filter.Code))
+            {
+                var code = filter.Code.Trim();
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.Code != null && b.Code.Contains(code);
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            // Các filter id cơ bản
             if (filter.MaleKoiId.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.MaleKoiId == filter.MaleKoiId.Value;
@@ -286,6 +298,8 @@ namespace Zenkoi.BLL.Services.Implements
                 System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.PondId == filter.PondId.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+
+            // Status, Result
             if (filter.Status.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.Status == filter.Status.Value;
@@ -296,6 +310,8 @@ namespace Zenkoi.BLL.Services.Implements
                 System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.Result == filter.Result.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+
+            // Tổng cá đạt chuẩn / gói
             if (filter.MinTotalFishQualified.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.TotalFishQualified >= filter.MinTotalFishQualified.Value;
@@ -316,6 +332,44 @@ namespace Zenkoi.BLL.Services.Implements
                 System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.TotalPackage <= filter.MaxTotalPackage.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+
+            // TotalEggs
+            if (filter.MinTotalEggs.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.TotalEggs >= filter.MinTotalEggs.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxTotalEggs.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.TotalEggs <= filter.MaxTotalEggs.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            // FertilizationRate (double?)
+            if (filter.MinFertilizationRate.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.FertilizationRate >= filter.MinFertilizationRate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxFertilizationRate.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.FertilizationRate <= filter.MaxFertilizationRate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            // CurrentSurvivalRate (double?)
+            if (filter.MinCurrentSurvivalRate.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.CurrentSurvivalRate >= filter.MinCurrentSurvivalRate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxCurrentSurvivalRate.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.CurrentSurvivalRate <= filter.MaxCurrentSurvivalRate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            // Date ranges
             if (filter.StartDateFrom.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.StartDate >= filter.StartDateFrom.Value;
@@ -342,7 +396,6 @@ namespace Zenkoi.BLL.Services.Implements
             var allBreeds = await _breedRepo.GetAllAsync(queryOptions);
             Console.WriteLine($"Số lượng BreedingProcess: {allBreeds.Count()}");
 
-
             var mappedList = allBreeds.Select(bp => _mapper.Map<BreedingProcessResponseDTO>(bp)).ToList();
 
             var count = mappedList.Count;
@@ -350,6 +403,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             return new PaginatedList<BreedingProcessResponseDTO>(items, count, pageIndex, pageSize);
         }
+
 
         private async Task<string> GenerateBreedingProcessCodeAsync()
         {      
