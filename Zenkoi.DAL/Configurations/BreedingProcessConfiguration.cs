@@ -10,6 +10,10 @@ public class BreedingProcessConfiguration : IEntityTypeConfiguration<BreedingPro
         builder.HasKey(bp => bp.Id);
         builder.Property(bp => bp.Id).UseIdentityColumn();
 
+        builder.Property(bp => bp.Code)
+            .IsRequired()
+            .HasMaxLength(50);
+
         builder.Property(bp => bp.MaleKoiId)
             .IsRequired();
 

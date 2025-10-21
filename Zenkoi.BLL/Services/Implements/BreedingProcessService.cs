@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using System;
 using System.Collections.Concurrent;
@@ -197,6 +198,9 @@ namespace Zenkoi.BLL.Services.Implements
             entity.StartDate = DateTime.UtcNow;
             entity.Status = BreedingStatus.Spawned;
             entity.Result = BreedingResult.Unknown;
+                     
+            entity.Code = await GenerateBreedingProcessCodeAsync();
+            
             await _breedRepo.CreateAsync(entity);
             await _pondRepo.UpdateAsync(pond);
             await _unitOfWork.SaveChangesAsync();
@@ -232,16 +236,41 @@ namespace Zenkoi.BLL.Services.Implements
         {
                 b => b.MaleKoi,
                 b => b.FemaleKoi,
-                b => b.Pond
+                b => b.Pond,
+                b => b.MaleKoi.Variety,
+                b => b.FemaleKoi.Variety
         }
             };
 
             System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>>? predicate = null;
             if (!string.IsNullOrEmpty(filter.Search))
             {
-                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => (b.Note != null && b.Note.Contains(filter.Search));
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
+                var search = filter.Search.Trim();
+
+                if (int.TryParse(search, out var koiId))
+                {
+                    System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr =
+                        b => b.MaleKoiId == koiId || b.FemaleKoiId == koiId || b.Id == koiId;
+
+                    predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                }
+                else
+                {
+                    System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr =
+                        b =>
+                            (b.Code != null && b.Code.Contains(search)) ||
+                            (b.MaleKoi != null && b.MaleKoi.Variety != null &&
+                             b.MaleKoi.Variety.VarietyName != null && b.MaleKoi.Variety.VarietyName.Contains(search)) ||
+                            (b.FemaleKoi != null && b.FemaleKoi.Variety != null &&
+                             b.FemaleKoi.Variety.VarietyName != null && b.FemaleKoi.Variety.VarietyName.Contains(search)) ||
+                            (b.MaleKoi != null && b.MaleKoi.Variety != null &&
+                             b.MaleKoi.Variety.OriginCountry != null && b.MaleKoi.Variety.OriginCountry.Contains(search)) ||
+                            (b.FemaleKoi != null && b.FemaleKoi.Variety != null &&
+                             b.FemaleKoi.Variety.OriginCountry != null && b.FemaleKoi.Variety.OriginCountry.Contains(search));
+
+                    predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                }
+            }       
             if (filter.MaleKoiId.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.MaleKoiId == filter.MaleKoiId.Value;
@@ -320,6 +349,14 @@ namespace Zenkoi.BLL.Services.Implements
             var items = mappedList.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
 
             return new PaginatedList<BreedingProcessResponseDTO>(items, count, pageIndex, pageSize);
+        }
+
+        private async Task<string> GenerateBreedingProcessCodeAsync()
+        {      
+            var allBreeds = await _breedRepo.GetAll();
+            var count = allBreeds.Count();
+            var nextNumber = count + 1;
+            return $"BP-{nextNumber}";
         }
     }
 }

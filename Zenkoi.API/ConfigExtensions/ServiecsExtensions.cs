@@ -436,7 +436,9 @@ namespace Zenkoi.API.ConfigExtensions
                     Note = "Quá trình sinh sản thành công, nhiều trứng nở khỏe mạnh.",
                     Result = BreedingResult.Success,
                     TotalFishQualified = 120,
-                    TotalPackage = 3
+                    TotalPackage = 3,
+                    Code = "BP-1"
+
                 }
                 );
                 await context.SaveChangesAsync();
