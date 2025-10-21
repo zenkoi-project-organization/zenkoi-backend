@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.PondDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Paging;
+using Zenkoi.DAL.Queries;
+using System.Linq.Expressions;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 
@@ -25,10 +28,27 @@ namespace Zenkoi.BLL.Services.Implements
             _mapper = mapper;
             _varietyRepo = _unitOfWork.GetRepo<Variety>();
         }
-        public async Task<PaginatedList<VarietyResponseDTO>> GetAllVarietiesAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<VarietyResponseDTO>> GetAllVarietiesAsync(VarietyFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var varieties = await _varietyRepo.GetAll();
+            var queryOptions = new QueryOptions<Variety>();
 
+            Expression<Func<Variety, bool>>? predicate = null;
+
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                Expression<Func<Variety, bool>> expr = v => v.VarietyName.Contains(filter.Search) || v.Characteristic.Contains(filter.Search) || v.OriginCountry.Contains(filter.Search);
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (!string.IsNullOrEmpty(filter.OriginCountry))
+            {
+                Expression<Func<Variety, bool>> expr = v => v.OriginCountry.Contains(filter.OriginCountry);
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            queryOptions.Predicate = predicate;
+
+            var varieties = await _varietyRepo.GetAllAsync(queryOptions);
             var mappedList = _mapper.Map<List<VarietyResponseDTO>>(varieties);
 
             var totalCount = mappedList.Count;

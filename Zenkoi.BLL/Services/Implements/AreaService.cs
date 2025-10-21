@@ -5,9 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AreaDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Paging;
+using Zenkoi.DAL.Queries;
+using System.Linq.Expressions;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 
@@ -24,10 +27,33 @@ namespace Zenkoi.BLL.Services.Implements
             _mapper = mapper;
             _areaRepo = _unitOfWork.GetRepo<Area>();
         }
-        public async Task<PaginatedList<AreaResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<AreaResponseDTO>> GetAllAsync(AreaFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var areas = await _areaRepo.GetAll();
+            var queryOptions = new QueryOptions<Area>();
 
+            Expression<Func<Area, bool>>? predicate = null;
+
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                Expression<Func<Area, bool>> expr = a => a.AreaName.Contains(filter.Search) || (a.Description != null && a.Description.Contains(filter.Search));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MinTotalAreaSQM.HasValue)
+            {
+                Expression<Func<Area, bool>> expr = a => a.TotalAreaSQM >= filter.MinTotalAreaSQM.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxTotalAreaSQM.HasValue)
+            {
+                Expression<Func<Area, bool>> expr = a => a.TotalAreaSQM <= filter.MaxTotalAreaSQM.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            queryOptions.Predicate = predicate;
+
+            var areas = await _areaRepo.GetAllAsync(queryOptions);
             var mappedList = _mapper.Map<List<AreaResponseDTO>>(areas);
 
             var totalCount = mappedList.Count;

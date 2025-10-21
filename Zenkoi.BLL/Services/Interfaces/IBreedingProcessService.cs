@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.BreedingDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.DAL.Paging;
 
 namespace Zenkoi.BLL.Services.Interfaces
@@ -14,6 +15,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         public Task<BreedingProcessResponseDTO> GetBreedingById(int id);
         public Task<double> GetOffspringInbreedingAsync(int maleId, int femaleId );
         Task<double> GetIndividualInbreedingAsync(int koiId );
-        public Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(int pageIndex = 1, int pageSize = 10); 
+        public Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(BreedingProcessFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10); 
     }
 }

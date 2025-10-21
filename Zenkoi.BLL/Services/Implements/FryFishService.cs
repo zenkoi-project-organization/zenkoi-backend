@@ -11,6 +11,7 @@ using Zenkoi.DAL.UnitOfWork;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Enums;
 using Zenkoi.BLL.DTOs.EggBatchDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.DAL.Paging;
 using Zenkoi.BLL.Services.Interfaces;
 namespace Zenkoi.BLL.Services.Implements
@@ -98,15 +99,81 @@ namespace Zenkoi.BLL.Services.Implements
             return await _unitOfWork.SaveAsync();
         }
 
-        public async Task<PaginatedList<FryFishResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<FryFishResponseDTO>> GetAllAsync(FryFishFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var fryfish = await _fryFishRepo.GetAllAsync(new QueryOptions<FryFish>
+            var query = new QueryOptions<FryFish>
             {
                 IncludeProperties = new List<Expression<Func<FryFish, object>>>
                 {
                     p => p.Pond
                 }
-            });
+            };
+
+            System.Linq.Expressions.Expression<System.Func<FryFish, bool>>? predicate = null;
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => (e.Pond != null && e.Pond.PondName.Contains(filter.Search));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.BreedingProcessId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.BreedingProcessId == filter.BreedingProcessId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.PondId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.PondId == filter.PondId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.Status.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.Status == filter.Status.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinInitialCount.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.InitialCount >= filter.MinInitialCount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxInitialCount.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.InitialCount <= filter.MaxInitialCount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinCurrentSurvivalRate.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.CurrentSurvivalRate >= filter.MinCurrentSurvivalRate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxCurrentSurvivalRate.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.CurrentSurvivalRate <= filter.MaxCurrentSurvivalRate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.StartDateFrom.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.StartDate >= filter.StartDateFrom.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.StartDateTo.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.StartDate <= filter.StartDateTo.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.EndDateFrom.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.EndDate >= filter.EndDateFrom.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.EndDateTo.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.EndDate <= filter.EndDateTo.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            query.Predicate = predicate;
+
+            var fryfish = await _fryFishRepo.GetAllAsync(query);
 
             var mappedList = _mapper.Map<List<FryFishResponseDTO>>(fryfish);
 

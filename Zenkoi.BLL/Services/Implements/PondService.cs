@@ -6,11 +6,13 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AreaDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.PondDTOs;
 using Zenkoi.BLL.DTOs.PondTypeDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
@@ -29,19 +31,83 @@ namespace Zenkoi.BLL.Services.Implements
             _mapper = mapper;
             _pondRepo = _unitOfWork.GetRepo<Pond>();
         }
-        public async Task<PaginatedList<PondResponseDTO>> GetAllPondsAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<PondResponseDTO>> GetAllPondsAsync(PondFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
             var queryOptions = new QueryOptions<Pond>
             {
                 IncludeProperties = new List<Expression<Func<Pond, object>>>
-        {
-            a => a.Area,
-            b => b.PondType
-        }
+                {
+                    a => a.Area,
+                    b => b.PondType
+                }
             };
 
-            var ponds = await _pondRepo.GetAllAsync(queryOptions);
+            // Apply filters using PredicateBuilder
+            System.Linq.Expressions.Expression<System.Func<Pond, bool>>? predicate = null;
 
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.PondName.Contains(filter.Search) || p.Location.Contains(filter.Search);
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.Status.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.PondStatus == filter.Status.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.AreaId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.AreaId == filter.AreaId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.PondTypeId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.PondTypeId == filter.PondTypeId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MinCapacityLiters.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.CapacityLiters >= filter.MinCapacityLiters.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxCapacityLiters.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.CapacityLiters <= filter.MaxCapacityLiters.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MinDepthMeters.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.DepthMeters >= filter.MinDepthMeters.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxDepthMeters.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.DepthMeters <= filter.MaxDepthMeters.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.CreatedFrom.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.CreatedAt >= filter.CreatedFrom.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.CreatedTo.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.CreatedAt <= filter.CreatedTo.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            queryOptions.Predicate = predicate;
+
+            var ponds = await _pondRepo.GetAllAsync(queryOptions);
             var mappedList = _mapper.Map<List<PondResponseDTO>>(ponds);
 
             var totalCount = mappedList.Count;

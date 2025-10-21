@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.BreedingDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
 namespace Zenkoi.API.Controllers
@@ -16,9 +17,12 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllBreedingProcesses([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllBreedingProcesses(
+            [FromQuery] BreedingProcessFilterRequestDTO? filter,
+            [FromQuery] int pageIndex = 1, 
+            [FromQuery] int pageSize = 10)
         {
-            var data = await _service.GetAllBreedingProcess(pageIndex, pageSize);
+            var data = await _service.GetAllBreedingProcess(filter ?? new BreedingProcessFilterRequestDTO(), pageIndex, pageSize);
             return GetPagedSuccess(data);
         }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.AreaDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -17,10 +18,12 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet]
-        [HttpGet]
-        public async Task<IActionResult> GetAllAreas([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllAreas(
+            [FromQuery] AreaFilterRequestDTO? filter,
+            [FromQuery] int pageIndex = 1, 
+            [FromQuery] int pageSize = 10)
         {
-            var data = await _areaService.GetAllAsync(pageIndex, pageSize);
+            var data = await _areaService.GetAllAsync(filter ?? new AreaFilterRequestDTO(), pageIndex, pageSize);
             return GetPagedSuccess(data);
         }
 

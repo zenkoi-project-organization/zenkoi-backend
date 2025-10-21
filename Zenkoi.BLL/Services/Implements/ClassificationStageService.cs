@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.ClassificationStageDTOs;
 using Zenkoi.BLL.Services.Interfaces;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Repositories;
@@ -90,15 +91,52 @@ namespace Zenkoi.BLL.Services.Implements
             return await _unitOfWork.SaveAsync();
         }
 
-        public async  Task<PaginatedList<ClassificationStageResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
+        public async  Task<PaginatedList<ClassificationStageResponseDTO>> GetAllAsync(ClassificationStageFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var classifications = await _classRepo.GetAllAsync(new QueryOptions<ClassificationStage>
+            var query = new QueryOptions<ClassificationStage>
             {
                 IncludeProperties = new List<Expression<Func<ClassificationStage, object>>>
                 {
                     p => p.Pond
                 }
-            });
+            };
+
+            System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>>? predicate = null;
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>> expr = r => (r.Notes != null && r.Notes.Contains(filter.Search));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.BreedingProcessId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>> expr = r => r.BreedingProcessId == filter.BreedingProcessId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.PondId.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>> expr = r => r.PondId == filter.PondId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.Status.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>> expr = r => r.Status == filter.Status.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MinTotalCount.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>> expr = r => r.TotalCount >= filter.MinTotalCount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.MaxTotalCount.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>> expr = r => r.TotalCount <= filter.MaxTotalCount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            // other count filters if needed...
+
+            query.Predicate = predicate;
+
+            var classifications = await _classRepo.GetAllAsync(query);
 
             var mappedList = _mapper.Map<List<ClassificationStageResponseDTO>>(classifications);
 
