@@ -10,6 +10,5 @@ namespace Zenkoi.BLL.DTOs.FryFishDTOs
     {
         public int BreedingProcessId { get; set; }
         public int PondId { get; set; }
-        public int? InitialCount { get; set; }
     }
 }
