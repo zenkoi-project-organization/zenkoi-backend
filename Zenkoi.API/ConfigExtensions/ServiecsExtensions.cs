@@ -346,6 +346,7 @@ namespace Zenkoi.API.ConfigExtensions
                        Size = (FishSize)7, 
                        Type = KoiType.High, 
                        VarietyId = 1,
+                       Origin = "Japan",
                        CreatedAt = DateTime.UtcNow,
                        Videos = new List<string>() 
                    },
