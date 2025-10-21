@@ -15,10 +15,10 @@ namespace Zenkoi.DAL.Entities
         public int? Quantity { get; set; }
         public int? TotalHatchedEggs { get; set; } = 0;
         public double? FertilizationRate { get; set; }
+
         public EggBatchStatus Status { get; set; }
         public DateTime? HatchingTime { get; set; }
         public DateTime? SpawnDate { get; set; }
-
         // Navigation
         public BreedingProcess BreedingProcess { get; set; }
         public Pond? Pond { get; set; }

@@ -14,7 +14,6 @@ namespace Zenkoi.DAL.Entities
         public int PondId { get; set; }
         public int? BreedingProcessId { get; set; }
         public int VarietyId { get; set; }
-
         public string RFID { get; set; }
         public FishSize Size { get; set; }
         public KoiType Type {  get; set; }

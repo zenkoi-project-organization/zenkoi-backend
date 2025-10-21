@@ -31,6 +31,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<IncubationDailyRecordResponseDTO> CreateAsync(IncubationDailyRecordRequestDTO dto)
         {
             var _eggBatchRepo = _unitOfWork.GetRepo<EggBatch>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
             var eggBatch = await _eggBatchRepo.GetByIdAsync(dto.EggBatchId);
             if(eggBatch == null)
             {
@@ -41,6 +42,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                 throw new KeyNotFoundException($"Lô trứng đã {eggBatch.Status}");
             }
+            var breed = await _breedRepo.GetByIdAsync(eggBatch.BreedingProcessId);
             // validate nhập liệu
             var lastRecord = await GetLatestRecordByEggBatchIdAsync(dto.EggBatchId);
             if (lastRecord != null)
@@ -78,6 +80,7 @@ namespace Zenkoi.BLL.Services.Implements
                 eggBatch.Status = EggBatchStatus.Success;
                 eggBatch.FertilizationRate = ((double)eggBatch.TotalHatchedEggs / eggBatch.Quantity) * 100;
                 eggBatch.SpawnDate = DateTime.Now;
+                breed.FertilizationRate = eggBatch.FertilizationRate;
             }
             await _eggBatchRepo.UpdateAsync(eggBatch);
             await _unitOfWork.SaveChangesAsync();
