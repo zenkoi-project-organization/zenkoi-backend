@@ -234,13 +234,13 @@ namespace Zenkoi.BLL.Services.Implements
             var queryOptions = new QueryOptions<BreedingProcess>
             {
                 IncludeProperties = new List<System.Linq.Expressions.Expression<Func<BreedingProcess, object>>>
-        {
-            b => b.MaleKoi,
-            b => b.FemaleKoi,
-            b => b.Pond,
-            b => b.MaleKoi.Variety,
-            b => b.FemaleKoi.Variety
-        }
+            {
+                b => b.MaleKoi,
+                b => b.FemaleKoi,
+                b => b.Pond,
+                b => b.MaleKoi.Variety,
+                b => b.FemaleKoi.Variety
+            }
             };
 
             System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>>? predicate = null;
@@ -411,6 +411,22 @@ namespace Zenkoi.BLL.Services.Implements
             var count = allBreeds.Count();
             var nextNumber = count + 1;
             return $"BP-{nextNumber}";
+        }
+
+        public async Task<bool> UpdateStatus(int id)
+        {
+            var breed = await _breedRepo.GetByIdAsync(id);
+            if (breed == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy quy trình sinh sản ");
+            }
+            if (!breed.Status.Equals(BreedingStatus.Pairing))
+            {
+                throw new Exception($"vui lòng cập nhật với breeding với status {BreedingStatus.Pairing}");
+            }
+            breed.Status = BreedingStatus.Spawned;
+            await _breedRepo.UpdateAsync(breed);
+            return await _unitOfWork.SaveAsync();
         }
     }
 }

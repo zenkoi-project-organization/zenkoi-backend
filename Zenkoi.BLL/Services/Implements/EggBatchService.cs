@@ -59,6 +59,8 @@ namespace Zenkoi.BLL.Services.Implements
             breedPond.PondStatus = PondStatus.Empty;
             breeding.PondId = null ;
             breeding.TotalEggs = dto.Quantity;
+            breeding.Status = BreedingStatus.EggBatch;
+
 
             await _breedRepo.UpdateAsync(breeding);
             await _pondRepo.UpdateAsync(pond);

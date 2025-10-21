@@ -15,6 +15,12 @@ namespace Zenkoi.API.Controllers
         {
             _service = service;
         }
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateSpawnedById(int id)
+        {
+            var breeding = await _service.UpdateStatus(id);
+            return Success(breeding,"cập nhật thành công");
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAllBreedingProcesses(

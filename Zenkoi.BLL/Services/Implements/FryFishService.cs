@@ -69,7 +69,6 @@ namespace Zenkoi.BLL.Services.Implements
             var eggBatch = await _eggRepo.GetByIdAsync(breeding.Batch.Id);
             var eggPond = await _pondRepo.GetByIdAsync(breeding.Batch.PondId);
             
-            
             // chuyển hồ
             eggBatch.PondId = null;
             pond.PondStatus = PondStatus.Active;
