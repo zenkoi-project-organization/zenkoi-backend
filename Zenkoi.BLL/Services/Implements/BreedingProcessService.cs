@@ -38,12 +38,34 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<double> GetOffspringInbreedingAsync(int maleId, int femaleId)
         {
             // F_offspring = kinship(male, female)
+            var _koirepo = _unitOfWork.GetRepo<KoiFish>();
+            // check exsit 
+            var male = await _koirepo.CheckExistAsync(maleId);
+            if (!male)
+            {
+                throw new KeyNotFoundException($"không tìm thấy cá trống với id : {maleId}");
+            }
+            var female = await _koirepo.CheckExistAsync(femaleId);
+            if (!female)
+            {
+                throw new KeyNotFoundException($"không tìm thấy cá mái với id :{maleId}");
+            }
+
+
             return await GetKinshipAsync(maleId, femaleId, depth: 0);
         }
 
         public async Task<double> GetIndividualInbreedingAsync(int koiId)
         {
             if (_memoF.TryGetValue(koiId, out var cached)) return cached;
+
+            var _koirepo = _unitOfWork.GetRepo<KoiFish>();
+            // check exsit 
+            var male = await _koirepo.CheckExistAsync(koiId);
+            if (!male)
+            {
+                throw new KeyNotFoundException($"không tìm thấy với id : {koiId}");
+            }
 
             var parents = await GetParentsAsync(koiId);
             double result = 0.0;

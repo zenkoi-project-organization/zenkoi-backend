@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
@@ -16,73 +15,52 @@ namespace Zenkoi.API.Controllers
             _varietyService = varietyService;
         }
 
-
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllVarieties([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
-            try
-            {
-                var result = await _varietyService.GetAllVarietiesAsync(pageIndex, pageSize);
-
-                var response = new
-                {
-                    result.PageIndex,
-                    result.TotalPages,
-                    result.TotalItems,
-                    result.HasNextPage,
-                    result.HasPreviousPage,
-                    Data = result
-                };
-
-                return GetSuccess(response);
-            }
-            catch (Exception ex)
-            {
-                return GetError($"Get varieties failed: {ex.Message}");
-            }
+            var data = await _varietyService.GetAllVarietiesAsync(pageIndex, pageSize);
+            return GetPagedSuccess(data);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetVarietyById(int id)
         {
-            var variety = await _varietyService.GetByIdAsync(id);
-            if (variety == null)
-                return NotFound(new { message = "Variety not found." });
+            var data = await _varietyService.GetByIdAsync(id);
+            if (data == null)
+                return NotFound(new { message = "Không tìm thấy giống cá." });
 
-            return Ok(variety);
+            return GetSuccess(data);
         }
 
+       
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] VarietyRequestDTO dto)
+        public async Task<IActionResult> CreateVariety([FromBody] VarietyRequestDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ModelInvalid();
 
             var created = await _varietyService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            return SaveSuccess(created, "Tạo giống cá thành công.");
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] VarietyRequestDTO dto)
+        public async Task<IActionResult> UpdateVariety(int id, [FromBody] VarietyRequestDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ModelInvalid();
 
-            var success = await _varietyService.UpdateAsync(id, dto);
-            if (!success)
-                return NotFound(new { message = "Variety not found or update failed." });
-
-            return Ok(new { message = "Variety updated successfully." });
+            var updated = await _varietyService.UpdateAsync(id, dto);
+            
+            return Success(updated, "cập nhật giống cá thành công");
         }
 
+      
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> DeleteVariety(int id)
         {
-            var success = await _varietyService.DeleteAsync(id);
-            if (!success)
-                return NotFound(new { message = "Variety not found or delete failed." });
-
-            return Ok(new { message = "Variety deleted successfully." });
+            var deleted = await _varietyService.DeleteAsync(id);
+     
+            return Success(deleted, "Xóa giống cá thành công.");
         }
     }
 }

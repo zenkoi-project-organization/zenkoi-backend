@@ -15,123 +15,57 @@ namespace Zenkoi.API.Controllers
             _pondService = pondService;
         }
 
+
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllPonds([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
-            try
-            {
-                var result = await _pondService.GetAllPondsAsync(pageIndex, pageSize);
-
-                var response = new
-                {
-                    result.PageIndex,
-                    result.TotalPages,
-                    result.TotalItems,
-                    result.HasNextPage,
-                    result.HasPreviousPage,
-                    Data = result
-                };
-
-                return GetSuccess(response);
-            }
-            catch (Exception ex)
-            {
-                return GetError($"Get ponds failed: {ex.Message}");
-            }
+            var data = await _pondService.GetAllPondsAsync(pageIndex, pageSize);
+            return GetPagedSuccess(data);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPondById(int id)
         {
-            try
-            {
-              
-                var data = await _pondService.GetByIdAsync(id);
-                if (data == null)
-                    return GetError("Không tìm thấy ao.");
+       
+            var data = await _pondService.GetByIdAsync(id);
+            if (data == null)
+                return GetError("Không tìm thấy ao.");
 
-                return GetSuccess(data);
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình lấy thông tin ao.");
-            }
+            return GetSuccess(data);
         }
 
         [HttpPost]
         public async Task<IActionResult> CreatePond([FromBody] PondRequestDTO dto)
         {
-            try
-            {
-                if (dto == null)
-                    return GetError("Dữ liệu không hợp lệ.");
+            if (!ModelState.IsValid)
+                return ModelInvalid();
 
-                if (string.IsNullOrWhiteSpace(dto.PondName))
-                    return GetError("Tên ao không được để trống.");
-
-         
-                var created = await _pondService.CreateAsync(dto);
-                
-               
-                if (created == null)
-                    return GetError("Không thể tạo ao mới.");
-
-                return GetSuccess(new { message = "Tạo ao thành công.", data = created });
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error(ex.Message);
-            }
+            var created = await _pondService.CreateAsync(dto);
+            return SaveSuccess(created, "Tạo ao thành công.");
         }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePond(int id, [FromBody] PondRequestDTO dto)
         {
-            try
-            {
-                if (dto == null)
-                    return GetError("Dữ liệu không hợp lệ.");
+            if (!ModelState.IsValid)
+                return ModelInvalid();
 
-                var success = await _pondService.UpdateAsync(id, dto);
-                if (!success)
-                    return GetError("Không tìm thấy ao cần cập nhật.");
+            var updated = await _pondService.UpdateAsync(id, dto);
+            if (updated == null)
+                return GetError("Không tìm thấy ao để cập nhật.");
 
-                return GetSuccess("Cập nhật ao thành công.");
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình cập nhật ao.");
-            }
+            return Success(updated, "Cập nhật ao thành công.");
         }
 
-    
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePond(int id)
         {
-            try
-            {
-                var success = await _pondService.DeleteAsync(id);
-                if (!success)
-                    return GetError("Không tìm thấy ao cần xóa.");
+            var deleted = await _pondService.DeleteAsync(id);
+            if (!deleted)
+                return GetError("Không tìm thấy ao để xóa.");
 
-                return GetSuccess("Xóa ao thành công.");
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
-                Console.ResetColor();
-                return Error("Đã xảy ra lỗi trong quá trình xóa ao.");
-            }
+            return Success(deleted, "Xóa ao thành công.");
         }
     }
 }

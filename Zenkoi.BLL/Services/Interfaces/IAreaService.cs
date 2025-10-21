@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AreaDTOs;
+using Zenkoi.DAL.Paging;
 
 namespace Zenkoi.BLL.Services.Interfaces
 {
     public interface IAreaService
     {
-        Task<IEnumerable<AreaResponseDTO>> GetAllAsync();
+        Task<PaginatedList<AreaResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10);
         Task<AreaResponseDTO?> GetByIdAsync(int id);
         Task<AreaResponseDTO> CreateAsync(AreaRequestDTO dto);
         Task<bool> UpdateAsync(int id, AreaRequestDTO dto);

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.Response;
 using System.Linq;
+using Zenkoi.DAL.Paging;
 
 namespace Zenkoi.API
 {
@@ -85,20 +86,43 @@ namespace Zenkoi.API
 			return new OkObjectResult(new ResponseApiDTO
 			{
 				Result = data,
+				StatusCode = 200,
+				Message = message,
+				IsSuccess = true
+			});
+		}
+		protected ActionResult SaveSuccess(object data, string message)
+		{
+			return new OkObjectResult(new ResponseApiDTO
+			{
+				Result = data,
 				StatusCode = 201,
 				Message = message,
 				IsSuccess = true
 			});
 		}
 
-		protected ActionResult GetSuccess(object data)
+        protected ActionResult GetPagedSuccess<T>(PaginatedList<T> paginated)
+        {
+            return Success(new
+            {
+                paginated.PageIndex,
+                paginated.TotalPages,
+                paginated.TotalItems,
+                paginated.HasPreviousPage,
+                paginated.HasNextPage,
+                Items = paginated
+            }, "Get data success");
+        }
+
+        protected ActionResult GetSuccess(object data)
 		{
 			return Success(data, "Get data success");
 		}
 
 		protected ActionResult SaveSuccess(object data)
 		{
-			return Success(data, "Save data success");
+			return SaveSuccess(data, "Save data success");
 		}
 
 		protected string UserName => User.FindFirst("Name")?.Value;
