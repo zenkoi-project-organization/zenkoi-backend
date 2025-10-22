@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.FryFishDTOs;
+using Zenkoi.BLL.Services.Implements;
 using Zenkoi.BLL.Services.Interfaces;
 
 namespace Zenkoi.API.Controllers
@@ -36,6 +37,17 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(fryFish);
         }
+        [HttpGet("by-breeding/{breedId}")]
+        public async Task<IActionResult> GetByBreedId(int breedId)
+        {
+
+            var result = await _fryFishService.GetEggBatchByBreedId(breedId);
+            if (result == null)
+                return GetError("Không tìm thấy lô cá bột.");
+
+            return GetSuccess(result);
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] FryFishRequestDTO dto)

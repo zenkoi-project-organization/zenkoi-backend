@@ -189,6 +189,19 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<EggBatchResponseDTO?>(eggBatch);
         }
 
+        public async Task<EggBatchResponseDTO> GetEggBatchByBreedId(int breedId)
+        {
+            var eggBatch = await _eggBatchRepo.GetSingleAsync(new QueryOptions<EggBatch> {
+                
+                Predicate = b => b.BreedingProcessId == breedId,
+                });
+            if (eggBatch == null)
+            {
+                throw new KeyNotFoundException($"không tìm thấy lô trứng với id sinh sản {breedId}");
+            }
+            return _mapper.Map<EggBatchResponseDTO>(eggBatch);
+        }
+
         public async Task<bool> UpdateAsync(int id, EggBatchUpdateRequestDTO dto)
         {
             var eggBacth = await _eggBatchRepo.GetByIdAsync(id);

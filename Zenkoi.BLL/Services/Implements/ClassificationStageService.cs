@@ -14,6 +14,7 @@ using Zenkoi.DAL.UnitOfWork;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Enums;
 using CloudinaryDotNet.Core;
+using Zenkoi.BLL.DTOs.EggBatchDTOs;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -167,6 +168,20 @@ namespace Zenkoi.BLL.Services.Implements
            
 
             return _mapper.Map<ClassificationStageResponseDTO>(classifications);
+        }
+
+        public  async Task<ClassificationStageResponseDTO> GetEggBatchByBreedId(int breedId)
+        {
+            var classìication = await _classRepo.GetSingleAsync(new QueryOptions<ClassificationStage>
+            {
+
+                Predicate = b => b.BreedingProcessId == breedId,
+            });
+            if (classìication == null)
+            {
+                throw new KeyNotFoundException($"không tìm thấy lô cá phân loại với id sinh sản {breedId}");
+            }
+            return _mapper.Map<ClassificationStageResponseDTO>(classìication);
         }
 
         public async Task<bool> UpdateAsync(int id, ClassificationStageUpdateRequestDTO dto)

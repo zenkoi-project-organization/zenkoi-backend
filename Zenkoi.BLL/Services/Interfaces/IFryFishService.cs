@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AreaDTOs;
+using Zenkoi.BLL.DTOs.EggBatchDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.FryFishDTOs;
 using Zenkoi.DAL.Paging;
@@ -14,6 +15,7 @@ namespace Zenkoi.BLL.Services.Interfaces
     {
         Task<PaginatedList<FryFishResponseDTO>> GetAllAsync(FryFishFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<FryFishResponseDTO?> GetByIdAsync(int id);
+        Task<FryFishResponseDTO> GetEggBatchByBreedId(int breedId);
         Task<FryFishResponseDTO> CreateAsync(FryFishRequestDTO dto);
         Task<bool> UpdateAsync(int id, FryFishUpdateRequestDTO dto);
         Task<bool> DeleteAsync(int id);
