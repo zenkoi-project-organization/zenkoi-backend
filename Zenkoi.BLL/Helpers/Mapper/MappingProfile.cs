@@ -59,12 +59,14 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<Pond, PondBasicDTO>();
             CreateMap<Variety, VarietyBasicDTO>();
             CreateMap<BreedingProcess, BreedingProcessResponseDTO>()
-            .ForMember(dest => dest.MaleKoiName,
+            .ForMember(dest => dest.MaleKoiRFID,
                 opt => opt.MapFrom(src => src.MaleKoi != null ? src.MaleKoi.RFID : null))
-            .ForMember(dest => dest.FemaleKoiName,
+            .ForMember(dest => dest.FemaleKoiRFID,
                 opt => opt.MapFrom(src => src.FemaleKoi != null ? src.FemaleKoi.RFID : null))
             .ForMember(dest => dest.PondName,
                 opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : null))
+            .ForMember(dest => dest.MaleKoiVariety, otp => otp.MapFrom(src => src.MaleKoi.Variety.VarietyName))
+            .ForMember(dest => dest.FemaleKoiVariety, otp => otp.MapFrom(src => src.FemaleKoi.Variety.VarietyName))
             .ForMember(dest => dest.KoiFishes,
                 opt => opt.MapFrom(src => src.KoiFishes != null
             ? src.KoiFishes.Select(k => new KoiFishResponseDTO
@@ -74,6 +76,9 @@ namespace Zenkoi.BLL.Helpers.Mapper
                 Gender = k.Gender,      
             }).ToList()
             : new List<KoiFishResponseDTO>()));
+
+
+
             CreateMap<BreedingProcessRequestDTO, BreedingProcess>();
             CreateMap<EggBatch, EggBatchResponseDTO>()
             .ForMember(dest => dest.PondName,

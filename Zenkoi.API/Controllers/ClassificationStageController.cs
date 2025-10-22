@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.ClassificationStageDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
+using Zenkoi.BLL.Services.Implements;
 using Zenkoi.BLL.Services.Interfaces;
 
 namespace Zenkoi.API.Controllers
@@ -34,6 +35,18 @@ namespace Zenkoi.API.Controllers
             
             return GetSuccess(classification);
         }
+
+        [HttpGet("by-breeding/{breedId}")]
+        public async Task<IActionResult> GetByBreedId(int breedId)
+        {
+
+            var result = await _classificationService.GetEggBatchByBreedId(breedId);
+            if (result == null)
+                return GetError("Không tìm thấy lô cá tuyển chọn.");
+
+            return GetSuccess(result);
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ClassificationStageCreateRequestDTO dto)

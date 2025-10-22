@@ -202,6 +202,20 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<FryFishResponseDTO?>(fryFish);
     }
 
+        public async Task<FryFishResponseDTO> GetEggBatchByBreedId(int breedId)
+        {
+            var fryFish = await _fryFishRepo.GetSingleAsync(new QueryOptions<FryFish>
+            {
+
+                Predicate = b => b.BreedingProcessId == breedId,
+            });
+            if (fryFish == null)
+            {
+                throw new KeyNotFoundException($"không tìm thấy lô cá bột với id sinh sản {breedId}");
+            }
+            return _mapper.Map<FryFishResponseDTO>(fryFish);
+        }
+
         public async  Task<bool> UpdateAsync(int id, FryFishUpdateRequestDTO dto)
         {
             var _pondRepo = _unitOfWork.GetRepo<Pond>();

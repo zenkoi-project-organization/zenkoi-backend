@@ -35,6 +35,17 @@ namespace Zenkoi.API.Controllers
                 return GetError("Không tìm thấy lô trứng.");
 
             return GetSuccess(result);
+
+        }
+        [HttpGet("by-breeding/{breedId}")]
+        public async Task<IActionResult> GetByBreedId(int breedId)
+        {
+
+            var result = await _eggBatchService.GetEggBatchByBreedId(breedId);
+            if (result == null)
+                return GetError("Không tìm thấy lô trứng.");
+
+            return GetSuccess(result);
         }
 
         [HttpPost]

@@ -14,10 +14,13 @@ namespace Zenkoi.BLL.DTOs.BreedingDTOs
         public string Code { get; set; } = string.Empty;
 
         public int MaleKoiId { get; set; }
-        public string? MaleKoiName { get; set; }
+        public string? MaleKoiRFID { get; set; }
+        public string? MaleKoiVariety { get; set; }
 
         public int FemaleKoiId { get; set; }
-        public string? FemaleKoiName { get; set; }
+        
+        public string? FemaleKoiRFID { get; set; }
+        public string? FemaleKoiVariety { get; set; }
 
         public int? PondId { get; set; }
         public string? PondName { get; set; }

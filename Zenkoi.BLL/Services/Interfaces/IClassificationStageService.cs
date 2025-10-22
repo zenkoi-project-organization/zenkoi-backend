@@ -14,6 +14,7 @@ namespace Zenkoi.BLL.Services.Interfaces
     {
         Task<PaginatedList<ClassificationStageResponseDTO>> GetAllAsync(ClassificationStageFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<ClassificationStageResponseDTO?> GetByIdAsync(int id);
+        Task<ClassificationStageResponseDTO> GetEggBatchByBreedId(int breedId);
         Task<ClassificationStageResponseDTO> CreateAsync(ClassificationStageCreateRequestDTO dto);
         Task<bool> UpdateAsync(int id, ClassificationStageUpdateRequestDTO dto);
         Task<bool> DeleteAsync(int id);
