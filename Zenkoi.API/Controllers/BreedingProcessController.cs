@@ -40,6 +40,15 @@ namespace Zenkoi.API.Controllers
                 return GetError("Không tìm thấy quy trình sinh sản.");
 
             return GetSuccess(breeding);
+        } 
+        [HttpGet("detail/{id:int}")]
+        public async Task<IActionResult> GetBreedingDetailById(int id)
+        {
+            var breeding = await _service.GetDetailBreedingById(id);
+            if (breeding == null)
+                return GetError("Không tìm thấy quy trình sinh sản.");
+
+            return GetSuccess(breeding);
         }
 
         [HttpPost]

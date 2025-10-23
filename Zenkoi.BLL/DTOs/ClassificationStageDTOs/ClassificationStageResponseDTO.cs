@@ -11,8 +11,6 @@ namespace Zenkoi.BLL.DTOs.ClassificationStageDTOs
     {
             public int Id { get; set; }
             public int BreedingProcessId { get; set; }
-            public int PondId { get; set; }
-            public string PondName { get; set; }
             public int? TotalCount { get; set; }
             public string Status { get; set; }
             public int? HighQualifiedCount { get; set; }

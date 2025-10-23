@@ -48,7 +48,6 @@ namespace Zenkoi.BLL.Services.Implements
             var eggBacth = new EggBatch
             {
                 BreedingProcessId = dto.BreedingProcessId,
-                PondId = dto.PondId,
                 Status = EggBatchStatus.Collected,
                 Quantity = dto.Quantity,
                SpawnDate = DateTime.Now 
@@ -57,7 +56,7 @@ namespace Zenkoi.BLL.Services.Implements
             // chuyển hồ
             pond.PondStatus = PondStatus.Active;
             breedPond.PondStatus = PondStatus.Empty;
-            breeding.PondId = null ;
+            breeding.PondId = dto.PondId ;
             breeding.TotalEggs = dto.Quantity;
             breeding.Status = BreedingStatus.EggBatch;
 
@@ -88,17 +87,16 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var query = new QueryOptions<EggBatch>
             {
-                IncludeProperties = new List<Expression<Func<EggBatch, object>>>
-                {
-                    p => p.Pond
-                }
             };
 
             System.Linq.Expressions.Expression<System.Func<EggBatch, bool>>? predicate = null;
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
-                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => (e.Pond != null && e.Pond.PondName.Contains(filter.Search));
+                Expression<Func<EggBatch, bool>> expr = e =>
+                    e.BreedingProcess != null &&
+                    e.BreedingProcess.Pond != null &&
+                    e.BreedingProcess.Pond.PondName.Contains(filter.Search);
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
             if (filter.BreedingProcessId.HasValue)
@@ -108,9 +106,12 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (filter.PondId.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.PondId == filter.PondId.Value;
+                Expression<Func<EggBatch, bool>> expr = e =>
+                    e.BreedingProcess != null &&
+                    e.BreedingProcess.PondId == filter.PondId.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+
             if (filter.Status.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<EggBatch, bool>> expr = e => e.Status == filter.Status.Value;
@@ -177,10 +178,6 @@ namespace Zenkoi.BLL.Services.Implements
             var eggBatch = await _eggBatchRepo.GetSingleAsync(new QueryOptions<EggBatch>
             {
                 Predicate = e => e.Id == id,
-                IncludeProperties = new List<Expression<Func<EggBatch, object>>>
-                {
-                    p => p.Pond
-                }
             });
             if(eggBatch == null)
             {
@@ -201,6 +198,8 @@ namespace Zenkoi.BLL.Services.Implements
             }
             return _mapper.Map<EggBatchResponseDTO>(eggBatch);
         }
+
+       
 
         public async Task<bool> UpdateAsync(int id, EggBatchUpdateRequestDTO dto)
         {

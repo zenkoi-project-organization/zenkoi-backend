@@ -11,7 +11,7 @@ namespace Zenkoi.DAL.Entities
         public int Id { get; set; }
         public int FryFishId { get; set; }
 
-        public int DayNumber { get; set; }
+        public DateTime? DayNumber { get; set; } = DateTime.Now;
         public double? SurvivalRate { get; set; }
         public int? CountAlive { get; set; }
 

@@ -22,9 +22,6 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(e => e.BreedingProcessId)
                    .IsRequired();
 
-            builder.Property(e => e.PondId)
-                   .IsRequired();
-
             builder.Property(e => e.Quantity)
                    .IsRequired(false);
 
@@ -51,11 +48,7 @@ namespace Zenkoi.DAL.Configurations
                    .HasForeignKey<EggBatch>(e => e.BreedingProcessId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            // 1 Pond ↔ N EggBatch
-            builder.HasOne(e => e.Pond)
-                   .WithMany(p => p.EggBatches)
-                   .HasForeignKey(e => e.PondId)
-                   .OnDelete(DeleteBehavior.Restrict);
+           
 
             // 1 EggBatch ↔ N IncubationDailyRecord
             builder.HasMany(e => e.IncubationDailyRecords)

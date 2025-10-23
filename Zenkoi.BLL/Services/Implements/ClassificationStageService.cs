@@ -62,10 +62,9 @@ namespace Zenkoi.BLL.Services.Implements
             }
             var _fryRepo = _unitOfWork.GetRepo<FryFish>();
             var fryFish = await _fryRepo.GetByIdAsync(breed.FryFish.Id);
-            var fryPond = await _pondRepo.GetByIdAsync(fryFish.PondId);
+            var fryPond = await _pondRepo.GetByIdAsync(breed.PondId);
 
             // chuyen ho
-            fryFish.PondId = null;
             fryPond.PondStatus = PondStatus.Empty;
             pond.PondStatus = PondStatus.Active;
             breed.Status = BreedingStatus.Classification; 
@@ -96,10 +95,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var query = new QueryOptions<ClassificationStage>
             {
-                IncludeProperties = new List<Expression<Func<ClassificationStage, object>>>
-                {
-                    p => p.Pond
-                }
+  
             };
 
             System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>>? predicate = null;
@@ -115,7 +111,9 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (filter.PondId.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>> expr = r => r.PondId == filter.PondId.Value;
+                Expression<Func<ClassificationStage, bool>> expr = e =>
+                    e.BreedingProcess != null &&
+                    e.BreedingProcess.PondId == filter.PondId.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
             if (filter.Status.HasValue)
@@ -156,10 +154,6 @@ namespace Zenkoi.BLL.Services.Implements
             var classifications = await _classRepo.GetSingleAsync(new QueryOptions<ClassificationStage>
             {
                 Predicate = e => e.Id == id,
-                IncludeProperties = new List<Expression<Func<ClassificationStage, object>>>
-                {
-                    p => p.Pond
-                }
             });
             if (classifications == null)
             {

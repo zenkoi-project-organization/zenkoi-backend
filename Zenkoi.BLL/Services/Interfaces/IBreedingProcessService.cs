@@ -14,6 +14,7 @@ namespace Zenkoi.BLL.Services.Interfaces
     {
         public  Task<BreedingProcessResponseDTO> AddBreeding(BreedingProcessRequestDTO dto);
         public Task<BreedingProcessResponseDTO> GetBreedingById(int id);
+        public Task<BreedingResponseDTO> GetDetailBreedingById(int id);
         public Task<bool> UpdateStatus(int id);
         public Task<double> GetOffspringInbreedingAsync(int maleId, int femaleId );
         Task<double> GetIndividualInbreedingAsync(int koiId );
