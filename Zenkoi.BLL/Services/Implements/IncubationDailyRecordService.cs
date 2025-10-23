@@ -13,6 +13,8 @@ using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 using Zenkoi.DAL.Queries;
+using Zenkoi.BLL.DTOs.EggBatchDTOs;
+using Zenkoi.BLL.DTOs.VarietyDTOs;
 
 
 namespace Zenkoi.BLL.Services.Implements
@@ -43,50 +45,29 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException($"Lô trứng đã {eggBatch.Status}");
             }
             var breed = await _breedRepo.GetByIdAsync(eggBatch.BreedingProcessId);
-            // validate nhập liệu
-            var lastRecord = await GetLatestRecordByEggBatchIdAsync(dto.EggBatchId);
-            if (lastRecord != null)
-            {
-                ValidateConsistencyWithLastRecord(lastRecord, dto);
-            }
-
-            if (eggBatch.Quantity < (dto.HatchedEggs + dto.HealthyEggs + dto.RottenEggs))
+          
+            if (eggBatch.Quantity < (dto.HatchedEggs + dto.HealthyEggs ))
             {
                 throw new Exception("tổng số bạn nhập lớn hơn so với lô trứng ghi nhận");
             } 
-             
-            var records = await getAllbyEggBatchId(eggBatch.Id);
-            if (records.Any())
-            {
-                var maxDay = records.Max(r => r.DayNumber);
-
-                if (records.Any(r => r.DayNumber == dto.DayNumber))
-                    throw new InvalidOperationException($"DayNumber {dto.DayNumber} đã tồn tại trong EggBatch {dto.EggBatchId}.");
-
-                if (dto.DayNumber <= maxDay)
-                    throw new InvalidOperationException($"DayNumber {dto.DayNumber} phải lớn hơn {maxDay}.");
-            }
 
             if (eggBatch.TotalHatchedEggs ==0 && dto.HatchedEggs > 0)
             {
                 eggBatch.Status = EggBatchStatus.PartiallyHatched;
+                eggBatch.HatchingTime = DateTime.Now;
             }
 
             var record = _mapper.Map<IncubationDailyRecord>(dto);
+            record.RottenEggs = eggBatch.Quantity - (dto.HatchedEggs + dto.HealthyEggs);
             await _incubationDailyRepo.CreateAsync(record);
             eggBatch.TotalHatchedEggs += dto.HatchedEggs;
-            if(record.Success)
+            Console.WriteLine($"TONG TRUNG : {dto.HealthyEggs} SO LUONG : {eggBatch.Quantity}");
+            eggBatch.FertilizationRate = (double)dto.HealthyEggs / eggBatch.Quantity * 100;
+            breed.FertilizationRate = eggBatch.FertilizationRate;
+            if (record.Success)
             {
                 eggBatch.Status = EggBatchStatus.Success;
                 eggBatch.SpawnDate = DateTime.Now;
-                breed.FertilizationRate = eggBatch.FertilizationRate;
-
-                var avgHealthyEggs = eggBatch.IncubationDailyRecords
-                .OrderBy(r => r.DayNumber)
-                .Take(3)
-                .Where(r => r.HealthyEggs.HasValue)
-                .Average(r => r.HealthyEggs.Value);
-                eggBatch.FertilizationRate = (avgHealthyEggs / eggBatch.Quantity.Value) * 100;
 
             }
             await _eggBatchRepo.UpdateAsync(eggBatch);
@@ -94,6 +75,52 @@ namespace Zenkoi.BLL.Services.Implements
 
             return _mapper.Map<IncubationDailyRecordResponseDTO>(record);
             
+        }
+
+        public async Task<IncubationDailyRecordResponseDTO> CreateV2Async(IncubationDailyRecordRequestV2DTO dto)
+        {
+            var _eggBatchRepo = _unitOfWork.GetRepo<EggBatch>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+            var eggBatch = await _eggBatchRepo.GetByIdAsync(dto.EggBatchId);
+
+            if (eggBatch == null)
+            {
+                throw new KeyNotFoundException("Không tim thấy lô trứng ");
+            }
+
+            if (eggBatch.Status.Equals(EggBatchStatus.Success) || eggBatch.Status.Equals(EggBatchStatus.Failed))
+            {
+
+                throw new KeyNotFoundException($"Lô trứng đã {eggBatch.Status}");
+            }
+
+            var records = await getAllbyEggBatchId(eggBatch.Id);
+            var total = await GetSummaryByEggBatchIdAsync(eggBatch.Id);
+            var record = _mapper.Map<IncubationDailyRecord>(dto);
+            if (records.Any())
+            {
+                var lastRecord = records
+                .OrderByDescending(r => r.DayNumber)
+                .First();
+
+                if(dto.HatchedEggs  > lastRecord.HealthyEggs)
+                {
+                    throw new InvalidOperationException("tổng trứng nở lớn hơn số trứng khỏe ở lần nhập trước");
+                }
+              
+                record.HealthyEggs = lastRecord.HealthyEggs - dto.HatchedEggs;
+                if (record.Success)
+                {
+                    eggBatch.Status = EggBatchStatus.Success;
+                    eggBatch.SpawnDate = DateTime.Now;
+                    record.RottenEggs = eggBatch.Quantity - (total.TotalHatchedEggs + dto.HatchedEggs);
+                    eggBatch.TotalHatchedEggs = total.TotalHatchedEggs + dto.HatchedEggs;
+                }
+                await _incubationDailyRepo.CreateAsync(record);
+                await _eggBatchRepo.UpdateAsync(eggBatch);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            return _mapper.Map<IncubationDailyRecordResponseDTO>(record);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -163,6 +190,45 @@ namespace Zenkoi.BLL.Services.Implements
 
             return true;
         }
+
+        public async Task<EggBatchSummaryDTO> GetSummaryByEggBatchIdAsync(int eggBatchId)
+        {
+            var _recordRepo = _unitOfWork.GetRepo<IncubationDailyRecord>();
+            var _eggBatchRepo = _unitOfWork.GetRepo<EggBatch>();
+            var queryOptions = new QueryOptions<IncubationDailyRecord>
+            {
+                Predicate = r => r.EggBatchId == eggBatchId,
+                Tracked = false
+            };
+
+            var records = await _recordRepo.GetAllAsync(queryOptions);
+            var eggBatch = await _eggBatchRepo.GetByIdAsync(eggBatchId);
+            if (records == null || !records.Any())
+            {
+                return new EggBatchSummaryDTO
+                {
+                    EggBatchId = eggBatchId,
+                    FertilizationRate = 0,
+                    HealthyEggs = 0,
+                    TotalRottenEggs = 0,
+                    TotalHatchedEggs = 0
+                };
+            }
+
+            var totalRotten = records.Sum(r => r.RottenEggs ?? 0);
+            var totalHatched = records.Sum(r => r.HatchedEggs ?? 0);
+            var totalHealthy = records.Sum(r => r.HealthyEggs ?? 0);
+
+            return new EggBatchSummaryDTO
+            {
+                EggBatchId = eggBatchId,
+                FertilizationRate = (totalHealthy / eggBatch.Quantity) * 100,
+                TotalRottenEggs = totalRotten,
+                TotalHatchedEggs = totalHatched,
+            };
+        }
+
+
         private async Task<IEnumerable<IncubationDailyRecord>> getAllbyEggBatchId(int id)
         {
             var queryOptions = new DAL.Queries.QueryOptions<IncubationDailyRecord>
@@ -172,7 +238,7 @@ namespace Zenkoi.BLL.Services.Implements
                  {
                      r => r.EggBatch
                  },
-                OrderBy = q => q.OrderByDescending(r => r.CreatedAt),
+                OrderBy = q => q.OrderByDescending(r => r.DayNumber),
                 Tracked = false
             };
             var records = await _incubationDailyRepo.GetAllAsync(queryOptions);
@@ -193,8 +259,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             if (last.HealthyEggs < dto.HealthyEggs)
                 throw new InvalidOperationException("Số trứng khỏe không thể tăng so với ngày trước.");
-            if (last.RottenEggs > dto.RottenEggs)
-                throw new InvalidOperationException("Số trứng hỏng không thể giảm so với ngày trước.");
+  
             if (last.HatchedEggs > dto.HatchedEggs)
                 throw new InvalidOperationException("Số trứng nở không thể giảm so với ngày trước.");
         }

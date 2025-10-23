@@ -18,6 +18,7 @@ using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 using Zenkoi.DAL.Enums;
 using System.Data;
+using System.Linq.Expressions;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -427,6 +428,29 @@ namespace Zenkoi.BLL.Services.Implements
             breed.Status = BreedingStatus.Spawned;
             await _breedRepo.UpdateAsync(breed);
             return await _unitOfWork.SaveAsync();
+        }
+
+        public async Task<BreedingResponseDTO> GetDetailBreedingById(int id)
+        {
+            var options = new QueryOptions<BreedingProcess>
+            {
+                Predicate = p => p.Id == id,
+                IncludeProperties = new List<Expression<Func<BreedingProcess, object>>>
+            {
+                    p => p.MaleKoi!.Variety,
+                    p => p.FemaleKoi!.Variety,
+                    p => p.Pond,
+                    p => p.Batch,                           // load EggBatch
+                    p => p.Batch!.IncubationDailyRecords,   // nhật ký ấp
+                    p => p.FryFish,                         // load FryFish
+                    p => p.FryFish!.FrySurvivalRecords,     // nhật ký sống sót
+                    p => p.ClassificationStage,             // load phân loại
+                    p => p.ClassificationStage!.ClassificationRecords,
+                }
+              };
+            var breed = await _breedRepo.GetSingleAsync(options);
+            return _mapper.Map<BreedingResponseDTO>(breed);
+
         }
     }
 }

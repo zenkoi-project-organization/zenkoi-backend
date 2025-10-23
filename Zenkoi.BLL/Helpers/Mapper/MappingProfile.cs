@@ -77,12 +77,29 @@ namespace Zenkoi.BLL.Helpers.Mapper
             }).ToList()
             : new List<KoiFishResponseDTO>()));
 
+            CreateMap<BreedingProcess, BreedingResponseDTO>()
+            .ForMember(dest => dest.MaleKoiRFID,
+                opt => opt.MapFrom(src => src.MaleKoi != null ? src.MaleKoi.RFID : null))
+            .ForMember(dest => dest.FemaleKoiRFID,
+                opt => opt.MapFrom(src => src.FemaleKoi != null ? src.FemaleKoi.RFID : null))
+            .ForMember(dest => dest.PondName,
+                opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : null))
+            .ForMember(dest => dest.MaleKoiVariety, otp => otp.MapFrom(src => src.MaleKoi.Variety.VarietyName))
+            .ForMember(dest => dest.FemaleKoiVariety, otp => otp.MapFrom(src => src.FemaleKoi.Variety.VarietyName))
+            .ForMember(dest => dest.KoiFishes,
+                opt => opt.MapFrom(src => src.KoiFishes != null
+            ? src.KoiFishes.Select(k => new KoiFishResponseDTO
+            {
+                Id = k.Id,
+                RFID = k.RFID,
+                Gender = k.Gender,
+            }).ToList()
+            : new List<KoiFishResponseDTO>()));
+
 
 
             CreateMap<BreedingProcessRequestDTO, BreedingProcess>();
             CreateMap<EggBatch, EggBatchResponseDTO>()
-            .ForMember(dest => dest.PondName,
-                opt => opt.MapFrom(src => src.Pond.PondName))
             .ForMember(dest => dest.Status,
                 opt => opt.MapFrom(src => src.Status.ToString()));
             CreateMap<EggBatchRequestDTO, EggBatch>();
@@ -91,8 +108,7 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<FryFishRequestDTO, FryFish>();
             CreateMap<FrySurvivalRecord, FrySurvivalRecordResponseDTO>().ReverseMap();
             CreateMap<FrySurvivalRecordRequestDTO,FrySurvivalRecord>();
-            CreateMap<ClassificationStage, ClassificationStageResponseDTO>()
-            .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond.PondName)).ReverseMap();
+            CreateMap<ClassificationStage, ClassificationStageResponseDTO>();
             CreateMap<ClassificationStageCreateRequestDTO, ClassificationStage>();
             CreateMap<ClassificationStageUpdateRequestDTO, ClassificationStage>();
             CreateMap<ClassificationRecord, ClassificationRecordResponseDTO>().ReverseMap();

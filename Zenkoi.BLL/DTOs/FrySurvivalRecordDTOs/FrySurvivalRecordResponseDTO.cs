@@ -10,7 +10,7 @@ namespace Zenkoi.BLL.DTOs.FrySurvivalRecordDTOs
     {
         public int Id { get; set; }
         public int FryFishId { get; set; }
-        public int DayNumber { get; set; }
+        public DateTime DayNumber { get; set; } 
         public double? SurvivalRate { get; set; }
         public int? CountAlive { get; set; }
         public string? Note { get; set; }

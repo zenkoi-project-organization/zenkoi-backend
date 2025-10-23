@@ -13,7 +13,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public string DesiredPattern { get; set; } = "";
         public double MinHatchRate { get; set; }
         public double MinSurvivalRate { get; set; }
-        public double MinGrade1Rate { get; set; }
+        public double MinHighQualifiedRate { get; set; }
         public List<BreedingParentDTO> PotentialParents { get; set; } = new();
     }
 }
