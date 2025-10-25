@@ -55,7 +55,7 @@ namespace Zenkoi.BLL.Services.Implements
             else if(dto.Success == true) {
                 fryfish.Status = FryFishStatus.Completed;
                 fryfish.EndDate = DateTime.Now;
-                breed.CurrentSurvivalRate = ((double)dto.CountAlive / fryfish.InitialCount) * 100;
+                breed.SurvivalRate = ((double)dto.CountAlive / fryfish.InitialCount) * 100;
             }
             else
             {

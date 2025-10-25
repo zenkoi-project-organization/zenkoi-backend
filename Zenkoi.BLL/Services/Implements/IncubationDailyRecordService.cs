@@ -82,10 +82,15 @@ namespace Zenkoi.BLL.Services.Implements
             var _eggBatchRepo = _unitOfWork.GetRepo<EggBatch>();
             var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
             var eggBatch = await _eggBatchRepo.GetByIdAsync(dto.EggBatchId);
-
+           
             if (eggBatch == null)
             {
                 throw new KeyNotFoundException("Không tim thấy lô trứng ");
+            }
+            var breed = await _breedRepo.GetByIdAsync(eggBatch.BreedingProcessId);
+            if(breed == null){
+                throw new KeyNotFoundException("Không tim thấy quy trinh sinh sản ");
+
             }
 
             if (eggBatch.Status.Equals(EggBatchStatus.Success) || eggBatch.Status.Equals(EggBatchStatus.Failed))
@@ -115,6 +120,7 @@ namespace Zenkoi.BLL.Services.Implements
                     eggBatch.SpawnDate = DateTime.Now;
                     record.RottenEggs = eggBatch.Quantity - (total.TotalHatchedEggs + dto.HatchedEggs);
                     eggBatch.TotalHatchedEggs = total.TotalHatchedEggs + dto.HatchedEggs;
+                    breed.HatchingRate = (double)eggBatch.TotalHatchedEggs / eggBatch.Quantity * 100;
                 }
                 await _incubationDailyRepo.CreateAsync(record);
                 await _eggBatchRepo.UpdateAsync(eggBatch);
