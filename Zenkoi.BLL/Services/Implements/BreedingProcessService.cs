@@ -198,7 +198,7 @@ namespace Zenkoi.BLL.Services.Implements
             pond.PondStatus = PondStatus.Active;
             var entity = _mapper.Map<BreedingProcess>(dto);
             entity.StartDate = DateTime.UtcNow;
-            entity.Status = BreedingStatus.Spawned;
+            entity.Status = BreedingStatus.Pairing;
             entity.Result = BreedingResult.Unknown;
                      
             entity.Code = await GenerateBreedingProcessCodeAsync();
