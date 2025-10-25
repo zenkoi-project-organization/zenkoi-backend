@@ -10,7 +10,6 @@ namespace Zenkoi.DAL.Entities
     public class KoiFish
     {
         public int Id { get; set; }
-
         public int PondId { get; set; }
         public int? BreedingProcessId { get; set; }
         public int VarietyId { get; set; }

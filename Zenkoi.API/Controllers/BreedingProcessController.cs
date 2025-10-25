@@ -21,6 +21,12 @@ namespace Zenkoi.API.Controllers
             var breeding = await _service.UpdateStatus(id);
             return Success(breeding,"cập nhật thành công");
         }
+        [HttpGet("{koiFishId}/breeding-parent-history")]
+        public async Task<IActionResult> GetKoiFishBreedingStats(int koiFishId)
+        {
+            var stats = await _service.GetKoiFishParentStatsAsync(koiFishId);
+            return Ok(stats);
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAllBreedingProcesses(

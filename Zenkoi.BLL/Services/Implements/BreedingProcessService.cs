@@ -19,6 +19,7 @@ using Zenkoi.DAL.UnitOfWork;
 using Zenkoi.DAL.Enums;
 using System.Data;
 using System.Linq.Expressions;
+using Zenkoi.BLL.DTOs.KoiFishDTOs;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -361,12 +362,12 @@ namespace Zenkoi.BLL.Services.Implements
             // CurrentSurvivalRate (double?)
             if (filter.MinCurrentSurvivalRate.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.CurrentSurvivalRate >= filter.MinCurrentSurvivalRate.Value;
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.SurvivalRate >= filter.MinCurrentSurvivalRate.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
             if (filter.MaxCurrentSurvivalRate.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.CurrentSurvivalRate <= filter.MaxCurrentSurvivalRate.Value;
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.SurvivalRate <= filter.MaxCurrentSurvivalRate.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
@@ -440,18 +441,56 @@ namespace Zenkoi.BLL.Services.Implements
                     p => p.MaleKoi!.Variety,
                     p => p.FemaleKoi!.Variety,
                     p => p.Pond,
-                    p => p.Batch,                           // load EggBatch
-                    p => p.Batch!.IncubationDailyRecords,   // nhật ký ấp
-                    p => p.FryFish,                         // load FryFish
-                    p => p.FryFish!.FrySurvivalRecords,     // nhật ký sống sót
-                    p => p.ClassificationStage,             // load phân loại
+                    p => p.Batch,                          
+                    p => p.Batch!.IncubationDailyRecords,  
+                    p => p.FryFish,                        
+                    p => p.FryFish!.FrySurvivalRecords,    
+                    p => p.ClassificationStage,           
                     p => p.ClassificationStage!.ClassificationRecords,
                 }
               };
             var breed = await _breedRepo.GetSingleAsync(options);
             return _mapper.Map<BreedingResponseDTO>(breed);
+        }
 
+        public async Task<KoiFishParentResponseDTO> GetKoiFishParentStatsAsync(int koiFishId)
+        {
+            var options = new QueryOptions<BreedingProcess>
+            {
+                Predicate = bp => bp.MaleKoiId == koiFishId || bp.FemaleKoiId == koiFishId,
+                Tracked = false
+            };
+
+            var breedings = await _breedRepo.GetAllAsync(options);
+
+            if (!breedings.Any())
+            {
+                return new KoiFishParentResponseDTO
+                {
+                    KoiFishId = koiFishId,
+                    ParticipationCount = 0,
+                    FailCount = 0
+                };
+            }
+
+            return new KoiFishParentResponseDTO
+            {
+                KoiFishId = koiFishId,
+                ParticipationCount = breedings.Count(),
+                FailCount = breedings.Count(b => b.Status == BreedingStatus.Failed),
+                FertilizationRate = breedings.Average(b => b.FertilizationRate ?? 0),
+                HatchRate = breedings.Average(b => b.HatchingRate ?? 0),
+                SurvivalRate = breedings.Average(b => b.SurvivalRate ?? 0),
+                HighQualifiedRate = breedings
+                .Where(b => (b.SurvivalRate ?? 0) > 0 && (b.HatchingRate ?? 0) > 0 && (b.TotalEggs ?? 0) > 0)
+                .Average(b =>
+                b.TotalFishQualified /
+                ((b.SurvivalRate ?? 0) * (b.HatchingRate ?? 0) * (b.TotalEggs ?? 1.0))
+            )
+            };
         }
     }
 }
+
+
 

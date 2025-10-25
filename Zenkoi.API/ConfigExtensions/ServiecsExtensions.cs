@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-         //       await TruncateAllTablesExceptMigrationHistory(context);
+               await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -475,7 +475,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Status = BreedingStatus.FryFish,
                         Note = "Cá bột đã nở, bắt đầu cho ăn vi sinh.",
                         Result = BreedingResult.Unknown,
-                        CurrentSurvivalRate = 75.5,
+                        SurvivalRate = 75.5,
                         FertilizationRate = 88,
                         TotalEggs = 2500,
                         Code = "BP-004"
@@ -492,7 +492,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Result = BreedingResult.PartialSuccess,
                         TotalFishQualified = 500,
                         TotalPackage = 5,
-                        CurrentSurvivalRate = 68.3,
+                        SurvivalRate = 68.3,
                         FertilizationRate = 90,
                         TotalEggs = 3000,
                         Code = "BP-005"
@@ -510,7 +510,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Result = BreedingResult.Success,
                         TotalFishQualified = 1000,
                         TotalPackage = 20,
-                        CurrentSurvivalRate = 82.2,
+                        SurvivalRate = 82.2,
                         FertilizationRate = 92,
                         TotalEggs = 3500,
                         Code = "BP-006"
@@ -528,7 +528,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Result = BreedingResult.Failed,
                         TotalFishQualified = 0,
                         TotalPackage = 0,
-                        CurrentSurvivalRate = 0,
+                        SurvivalRate = 0,
                         FertilizationRate = 0,
                         TotalEggs = 500,
                         Code = "BP-007"
