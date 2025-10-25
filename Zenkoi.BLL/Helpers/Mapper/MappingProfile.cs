@@ -56,6 +56,8 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<KoiFish,KoiFishResponseDTO>().ReverseMap();
             CreateMap<KoiFishRequestDTO, KoiFish>()
             .ForMember(dest => dest.Size, opt => opt.MapFrom(src => src.Size));
+            CreateMap<KoiFish, KoiGrandParentDTO>()
+           .ForMember(dest => dest.VarietyName, opt => opt.MapFrom(src => src.Variety.VarietyName));
             CreateMap<Pond, PondBasicDTO>();
             CreateMap<Variety, VarietyBasicDTO>();
             CreateMap<BreedingProcess, BreedingProcessResponseDTO>()
