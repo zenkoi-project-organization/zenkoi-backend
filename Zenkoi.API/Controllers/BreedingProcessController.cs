@@ -25,7 +25,7 @@ namespace Zenkoi.API.Controllers
         public async Task<IActionResult> GetKoiFishBreedingStats(int koiFishId)
         {
             var stats = await _service.GetKoiFishParentStatsAsync(koiFishId);
-            return Ok(stats);
+            return GetSuccess(stats);
         }
 
         [HttpGet]
