@@ -38,7 +38,7 @@ namespace Zenkoi.BLL.Services.Implements
                 model = "qwen/qwen3-30b-a3b", // bạn có thể đổi sang "gpt-4o-mini" nếu dùng OpenAI
                 messages,
                 temperature = 0.6,
-                max_tokens = 1500,
+                max_tokens = 8000,
                 response_format = new { type = "json_object" } // ép model trả JSON hợp lệ
             };
 
@@ -98,7 +98,7 @@ namespace Zenkoi.BLL.Services.Implements
         private string BuildPrompt(BreedingRequestDTO request)
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"🎯 Mục tiêu phối giống:");
+            sb.AppendLine("🎯 Mục tiêu phối giống:");
             sb.AppendLine($"- Giống mục tiêu: {request.TargetVariety}");
             sb.AppendLine($"- Mẫu màu mong muốn: {request.DesiredPattern}");
             sb.AppendLine($"- Hình dáng cơ thể mong muốn: {request.DesiredBodyShape}");
@@ -106,37 +106,61 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine($"- Yêu cầu tối thiểu: HatchRate ≥ {request.MinHatchRate}, SurvivalRate ≥ {request.MinSurvivalRate}, HighQualifiedRate ≥ {request.MinHighQualifiedRate}");
             sb.AppendLine();
 
-            if (request.PotentialParents == null || request.PotentialParents.Count < 2)
-            {
-                sb.AppendLine("⚠️ Dữ liệu chỉ có 1 hoặc 0 cá thể, không thể tạo cặp phối giống hợp lệ. Vui lòng trả về JSON sau:");
-                sb.AppendLine("{ \"RecommendedPairs\": [], \"Message\": \"Không đủ cá thể để đề xuất cặp phối giống.\" }");
-                return sb.ToString();
-            }
-
-            sb.AppendLine("🐟 Danh sách cá bố mẹ tiềm năng:");
+            sb.AppendLine("🐟 Danh sách cá bố mẹ tiềm năng (có lịch sử phối giống thực tế):");
             foreach (var p in request.PotentialParents)
             {
-                sb.AppendLine($"- ID {p.Id} ({p.Variety}, {p.Gender})");
-                sb.AppendLine($"  Size: {p.Size} cm, Health: {p.Health}");
+                sb.AppendLine($"- ID {p.Id} | {p.Variety} ({p.Gender}) | {p.Size} cm | Age: {p.Age} | Health: {p.Health}");
                 sb.AppendLine($"  Body: {p.BodyShape}, Pattern: {p.ColorPattern}");
+                if (p.BreedingHistory?.Any() == true)
+                {
+                    foreach (var h in p.BreedingHistory)
+                    {
+                        sb.AppendLine($"  ↳ History: Fert={h.FertilizationRate}, Hatch={h.HatchRate}, Surv={h.SurvivalRate}, HQ={h.HighQualifiedRate}, Partner={h.PartnerVariety}");
+                    }
+                }
             }
 
             sb.AppendLine();
-            sb.AppendLine("📋 Hãy chọn 3–5 cặp ghép phù hợp nhất dựa trên các mục tiêu trên.");
-            sb.AppendLine("Nếu không đủ dữ liệu hoặc chỉ có một cá thể => chỉ trả về JSON:");
-            sb.AppendLine("{ \"RecommendedPairs\": [], \"Message\": \"Không đủ cá thể để đề xuất.\" }");
+            sb.AppendLine("📈 Nhiệm vụ của bạn:");
+            sb.AppendLine("- Phân tích các dữ liệu trên để **dự đoán hiệu quả phối giống** giữa các cặp cá đực và cái.");
+            sb.AppendLine("- Với mỗi cặp, hãy ước lượng các chỉ số dự đoán sau (0–1).");
+            sb.AppendLine("- Nếu thiếu dữ liệu để tính toán hoặc không thể xác định, hãy ghi rõ giá trị \"unknown\" thay vì tự phỏng đoán hoặc gán số 0.");
             sb.AppendLine();
-            sb.AppendLine("🚫 Luôn trả **duy nhất JSON hợp lệ**, không có giải thích hay văn bản khác.");
-            sb.AppendLine("📦 Cấu trúc JSON mong muốn:");
+            sb.AppendLine("  • PredictedFertilizationRate");
+            sb.AppendLine("  • PredictedHatchRate");
+            sb.AppendLine("  • PredictedSurvivalRate");
+            sb.AppendLine("  • PredictedHighQualifiedRate");
+            sb.AppendLine("  • PatternMatchScore");
+            sb.AppendLine("  • BodyShapeCompatibility");
+            sb.AppendLine("  • PercentInbreeding (nếu không có dữ liệu huyết thống thì đặt là \"unknown\")");
+            sb.AppendLine();
+            sb.AppendLine("📋 Trả về JSON gồm 3–5 cặp phù hợp nhất, sắp xếp theo `rank` (tốt nhất đến thấp nhất).");
+            sb.AppendLine("⚠️ Khi trả JSON, hãy chỉ dùng ký tự ASCII (không dấu, không emoji). Nếu có tiếng Việt, hãy loại bỏ dấu để đảm bảo JSON hợp lệ.");
+            sb.AppendLine();
+            sb.AppendLine("🚫 Chỉ trả JSON hợp lệ, không văn bản giải thích.");
+            sb.AppendLine("📦 Cấu trúc JSON mẫu:");
             sb.AppendLine("{");
             sb.AppendLine("  \"RecommendedPairs\": [");
-            sb.AppendLine("    { \"MaleId\": 1, \"FemaleId\": 2, \"PatternMatchScore\": 0.95, \"Note\": \"Màu và hình dáng bổ trợ tốt.\" }");
+            sb.AppendLine("    {");
+            sb.AppendLine("      \"MaleId\": 1,");
+            sb.AppendLine("      \"FemaleId\": 16,");
+            sb.AppendLine("      \"Reason\": \"Cặp này có tỉ lệ phối cao, màu phù hợp.\",");
+            sb.AppendLine("      \"PredictedFertilizationRate\": 0.92,");
+            sb.AppendLine("      \"PredictedHatchRate\": 0.86,");
+            sb.AppendLine("      \"PredictedSurvivalRate\": 0.78,");
+            sb.AppendLine("      \"PredictedHighQualifiedRate\": 0.80,");
+            sb.AppendLine("      \"PatternMatchScore\": 0.94,");
+            sb.AppendLine("      \"BodyShapeCompatibility\": 0.88,");
+            sb.AppendLine("      \"PercentInbreeding\": 0.05,");
+            sb.AppendLine("      \"Rank\": 1");
+            sb.AppendLine("    }");
             sb.AppendLine("  ],");
-            sb.AppendLine("  \"Message\": \"Tóm tắt ngắn gọn lý do chọn lựa.\"");
+      //    sb.AppendLine("  \"Message\": \"Dự đoán hoàn tất. Ưu tiên cặp Kohaku thuần với màu đỏ đều.\"");
             sb.AppendLine("}");
 
             return sb.ToString();
         }
+
         private static string ExtractJson(string input)
         {
             int start = input.IndexOf('{');

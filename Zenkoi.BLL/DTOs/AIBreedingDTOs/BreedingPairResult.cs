@@ -17,7 +17,12 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public double PredictedHighQualifiedRate { get; set; }
         public double PatternMatchScore { get; set; }     
         public double BodyShapeCompatibility { get; set; }
-        public double PercentInbreeding { get; set; }
-        public int Rank { get; set; }             
+        public string PercentInbreeding { get; set; } = "unknown";
+
+        public int Rank { get; set; }
+
+        // 👉 Thêm helper property nếu cần dùng dưới dạng số
+        public double? PercentInbreedingValue =>
+            double.TryParse(PercentInbreeding, out var value) ? value : null;
     }
 }
