@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Zenkoi.BLL.DTOs.AIBreedingDTOs;
 using Zenkoi.BLL.DTOs.BreedingDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
+using Zenkoi.BLL.Services.Implements;
 using Zenkoi.BLL.Services.Interfaces;
 
 namespace Zenkoi.API.Controllers
@@ -10,10 +13,11 @@ namespace Zenkoi.API.Controllers
     public class BreedingProcessController : BaseAPIController
     {
         private readonly IBreedingProcessService _service;
-
-        public BreedingProcessController(IBreedingProcessService service)
+        private readonly IBreedingAdvisorService _advisorService;
+        public BreedingProcessController(IBreedingProcessService service, IBreedingAdvisorService advisorService)
         {
             _service = service;
+            _advisorService = advisorService;
         }
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateSpawnedById(int id)
@@ -89,6 +93,37 @@ namespace Zenkoi.API.Controllers
                 KoiId = koiId,
                 InbreedingCoefficient = result
             });
+        }
+
+        [HttpPost("recommend")]
+        public async Task<IActionResult> Recommend([FromBody] BreedingRequestInputDTO input)
+        {
+            var allParents = await _service.GetParentsWithPerformanceAsync();
+
+            Console.WriteLine("check cá :", JsonConvert.SerializeObject(allParents, Formatting.Indented));
+
+            var filteredParents = allParents
+                .Where(p => string.Equals(p.Variety, input.TargetVariety, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            
+            Console.WriteLine( "check cá :",JsonConvert.SerializeObject(filteredParents, Formatting.Indented));
+            var request = new BreedingRequestDTO
+            {
+                TargetVariety = input.TargetVariety,
+                Priority = input.Priority,
+                DesiredPattern = input.DesiredPattern,
+                DesiredBodyShape = input.DesiredBodyShape,
+                MinHatchRate = input.MinHatchRate,
+                MinSurvivalRate = input.MinSurvivalRate,
+                MinHighQualifiedRate = input.MinHighQualifiedRate,
+                PotentialParents = filteredParents
+            };
+
+            Console.WriteLine(JsonConvert.SerializeObject(request, Formatting.Indented));
+
+
+            var result = await _advisorService.RecommendPairsAsync(request);
+            return GetSuccess(result);
         }
     }
 }

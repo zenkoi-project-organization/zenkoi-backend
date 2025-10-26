@@ -23,9 +23,9 @@ namespace Zenkoi.DAL.Entities
         public List<string>? Videos { get; set; }
         public decimal? SellingPrice { get; set; }
         public string? BodyShape { get; set; }
+        public string? ColorPattern { get; set; }
         public string? Description { get; set; }
         public string? Origin { get; set; }
-
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 

@@ -20,6 +20,7 @@ using Zenkoi.DAL.Enums;
 using System.Data;
 using System.Linq.Expressions;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
+using Zenkoi.BLL.DTOs.AIBreedingDTOs;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -139,12 +140,7 @@ namespace Zenkoi.BLL.Services.Implements
         }
         private async Task<(int? sireId, int? damId)> GetParentsAsync(int koiId)
         {
-            // Lấy BreedingProcessId của con cá
-           // var fish = await _db.Set<KoiFish>()
-           //    .AsNoTracking()
-           //     .Select(f => new { f.Id, f.BreedingProcessId })
-           //    .FirstOrDefaultAsync(f => f.Id == koiId );
-
+            
             var _koifish = _unitOfWork.GetRepo<KoiFish>();
             var koifish = await _koifish.GetSingleAsync(new QueryOptions<KoiFish>
             {
@@ -153,11 +149,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (koifish == null || koifish.BreedingProcessId == null)
                 return (null, null); // founder hoặc chưa biết
-
-            //  var bp = await _db.Set<BreedingProcess>()
-            //      .AsNoTracking()
-            //      .Select(b => new { b.Id, b.MaleKoiId, b.FemaleKoiId })
-            //     .FirstOrDefaultAsync(b => b.Id == fish.BreedingProcessId.Value );'
 
 
             var bp = await _breedRepo.GetSingleAsync(new QueryOptions<BreedingProcess> 
@@ -488,6 +479,72 @@ namespace Zenkoi.BLL.Services.Implements
                 ((b.SurvivalRate ?? 0) * (b.HatchingRate ?? 0) * (b.TotalEggs ?? 1.0))
             )
             };
+        }
+
+        public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync()
+        {
+            var today = DateTime.Now;
+
+            // ✅ Tạo QueryOptions để lọc koi trong độ tuổi sinh sản
+            var options = new QueryOptions<KoiFish>
+            {
+                Predicate = k =>
+                    k.Gender != Gender.Other &&
+                    k.HealthStatus != HealthStatus.Weak &&
+                    k.BirthDate.HasValue &&
+                    (
+                     
+                        (k.Gender == Gender.Male &&
+                         EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 2 &&
+                         EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6)
+                        ||
+                        
+                        (k.Gender == Gender.Female &&
+                         EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 3 &&
+                         EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6)
+                    ),
+                IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+                {
+                    k => k.Variety
+                },
+                Tracked = false
+            };
+
+            var koiRepo = _unitOfWork.GetRepo<KoiFish>();
+            var koiList = await koiRepo.GetAllAsync(options);
+
+            var result = new List<BreedingParentDTO>();
+            foreach (var k in koiList)
+            {
+                var perf = await GetKoiFishParentStatsAsync(k.Id);
+
+                var age = (today - k.BirthDate.Value).TotalDays / 365.25;
+
+                result.Add(new BreedingParentDTO
+                {
+                    Id = k.Id,
+                    Variety = k.Variety.VarietyName,
+                    Gender = k.Gender.ToString(),
+                    Size = k.Size.ToString(),
+                    BodyShape = k.BodyShape,
+                    ColorPattern = k.ColorPattern,
+                    Health = k.HealthStatus.ToString(),
+                    Age = Math.Round(age, 1),
+                    BreedingHistory = new List<BreedingRecordDTO>
+            {
+                new BreedingRecordDTO
+                {
+                    FertilizationRate = perf.FertilizationRate,
+                    HatchRate = perf.HatchRate,
+                    SurvivalRate = perf.SurvivalRate,
+                    HighQualifiedRate = perf.HighQualifiedRate,
+                    ResultNote = $"Participations: {perf.ParticipationCount}, Failed: {perf.FailCount}"
+                }
+            }
+                });
+            }
+
+            return result;
         }
     }
 }
