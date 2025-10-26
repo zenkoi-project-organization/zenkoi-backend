@@ -41,6 +41,8 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
 
         [MaxLength(100, ErrorMessage = "BodyShape cannot exceed 100 characters.")]
         public string? BodyShape { get; set; }
+        [MaxLength(100, ErrorMessage = "ColorPattern cannot exceed 100 characters.")]
+        public string? ColorPattern { get; set; }
 
         [MaxLength(1000, ErrorMessage = "Description cannot exceed 1000 characters.")]
         public string? Description { get; set; }

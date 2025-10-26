@@ -11,9 +11,11 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public int Id { get; set; }
         public string Variety { get; set; } = "";
         public string Gender { get; set; } = "";
-        public double Size { get; set; }
-        public double Weight { get; set; }
+        public string Size { get; set; }
+        public double Age { get; set; }
         public string Health { get; set; } = "";
+        public string? BodyShape { get; set; }
+        public string? ColorPattern { get; set; }
         public string? Note { get; set; }
         public List<BreedingRecordDTO> BreedingHistory { get; set; } = new();
     }

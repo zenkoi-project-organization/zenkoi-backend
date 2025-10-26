@@ -15,7 +15,8 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public double PredictedHatchRate { get; set; }
         public double PredictedSurvivalRate { get; set; }
         public double PredictedHighQualifiedRate { get; set; }
-        public double PatternMatchScore { get; set; } 
+        public double PatternMatchScore { get; set; }     
+        public double BodyShapeCompatibility { get; set; }
         public double PercentInbreeding { get; set; }
         public int Rank { get; set; }             
     }

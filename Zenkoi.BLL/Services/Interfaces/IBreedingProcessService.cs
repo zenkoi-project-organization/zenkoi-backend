@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Zenkoi.BLL.DTOs.BreedingDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
+using Zenkoi.BLL.DTOs.AIBreedingDTOs;
 using Zenkoi.DAL.Paging;
 
 namespace Zenkoi.BLL.Services.Interfaces
@@ -21,5 +23,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<double> GetIndividualInbreedingAsync(int koiId );
         Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(BreedingProcessFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<KoiFishParentResponseDTO> GetKoiFishParentStatsAsync(int koiFishId);
+        Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync();
     }
 }

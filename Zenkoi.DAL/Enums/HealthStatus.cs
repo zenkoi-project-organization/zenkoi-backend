@@ -10,6 +10,7 @@ namespace Zenkoi.DAL.Enums
     {
         Healthy,
         Warning,
+        Weak,
         Sick,
         Dead
     }
