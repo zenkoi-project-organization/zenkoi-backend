@@ -21,6 +21,7 @@ using System.Data;
 using System.Linq.Expressions;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.AIBreedingDTOs;
+using Newtonsoft.Json;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -492,26 +493,25 @@ namespace Zenkoi.BLL.Services.Implements
                     k.Gender != Gender.Other &&
                     k.HealthStatus != HealthStatus.Weak &&
                     k.BirthDate.HasValue &&
-                    (
-                     
-                        (k.Gender == Gender.Male &&
-                         EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 2 &&
-                         EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6)
-                        ||
-                        
-                        (k.Gender == Gender.Female &&
-                         EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 3 &&
-                         EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6)
-                    ),
+                    EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 2 &&
+                    EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6,
+
                 IncludeProperties = new List<Expression<Func<KoiFish, object>>>
-                {
-                    k => k.Variety
-                },
+    {
+        k => k.Variety
+    },
                 Tracked = false
             };
 
             var koiRepo = _unitOfWork.GetRepo<KoiFish>();
             var koiList = await koiRepo.GetAllAsync(options);
+
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(koiList,
+              new System.Text.Json.JsonSerializerOptions
+              {
+                  WriteIndented = true,
+                  ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+              }));
 
             var result = new List<BreedingParentDTO>();
             foreach (var k in koiList)

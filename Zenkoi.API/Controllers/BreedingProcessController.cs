@@ -100,13 +100,13 @@ namespace Zenkoi.API.Controllers
         {
             var allParents = await _service.GetParentsWithPerformanceAsync();
 
-            Console.WriteLine("check cá :", JsonConvert.SerializeObject(allParents, Formatting.Indented));
+         /*   Console.WriteLine("check cá :", JsonConvert.SerializeObject(allParents, Formatting.Indented));
 
             var filteredParents = allParents
                 .Where(p => string.Equals(p.Variety, input.TargetVariety, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+                .ToList();*/
             
-            Console.WriteLine( "check cá :",JsonConvert.SerializeObject(filteredParents, Formatting.Indented));
+
             var request = new BreedingRequestDTO
             {
                 TargetVariety = input.TargetVariety,
@@ -116,7 +116,7 @@ namespace Zenkoi.API.Controllers
                 MinHatchRate = input.MinHatchRate,
                 MinSurvivalRate = input.MinSurvivalRate,
                 MinHighQualifiedRate = input.MinHighQualifiedRate,
-                PotentialParents = filteredParents
+                PotentialParents = allParents
             };
 
             Console.WriteLine(JsonConvert.SerializeObject(request, Formatting.Indented));

@@ -9,5 +9,6 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
     public class AIBreedingResponseDTO
     { 
         public List<BreedingPairResult> RecommendedPairs { get; set; } = new();
+     //   public string? Message { get; set; }
     }
 }
