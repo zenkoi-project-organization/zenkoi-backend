@@ -19,10 +19,16 @@ namespace Zenkoi.API.Controllers
             _service = service;
             _advisorService = advisorService;
         }
-        [HttpPut("{id:int}")]
+        [HttpPut("spawned/{id:int}")]
         public async Task<IActionResult> UpdateSpawnedById(int id)
         {
             var breeding = await _service.UpdateStatus(id);
+            return Success(breeding,"cập nhật thành công");
+        }
+        [HttpPut("cancel/{id:int}")]
+        public async Task<IActionResult> UpdateCancelById(int id)
+        {
+            var breeding = await _service.CancelBreeding(id);
             return Success(breeding,"cập nhật thành công");
         }
         [HttpGet("{koiFishId}/breeding-parent-history")]

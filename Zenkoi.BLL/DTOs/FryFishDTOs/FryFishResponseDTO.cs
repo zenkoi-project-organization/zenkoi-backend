@@ -17,6 +17,8 @@ namespace Zenkoi.BLL.DTOs.FryFishDTOs
         public int? InitialCount { get; set; }
         public FryFishStatus Status { get; set; }
         public double? CurrentSurvivalRate { get; set; }
-       public ICollection<FrySurvivalRecordResponseDTO>? FrySurvivalRecords { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public ICollection<FrySurvivalRecordResponseDTO>? FrySurvivalRecords { get; set; }
     }
 }

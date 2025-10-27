@@ -9,8 +9,10 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
     public class BreedingParentDTO
     {
         public int Id { get; set; }
+        public string RFID { get; set; }
         public string Variety { get; set; } = "";
         public string Gender { get; set; } = "";
+        public string image { get; set; }
         public string Size { get; set; }
         public double Age { get; set; }
         public string Health { get; set; } = "";

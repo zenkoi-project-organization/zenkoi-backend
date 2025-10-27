@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-               await TruncateAllTablesExceptMigrationHistory(context);
+      //         await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles

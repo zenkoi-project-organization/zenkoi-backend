@@ -523,9 +523,11 @@ namespace Zenkoi.BLL.Services.Implements
                 result.Add(new BreedingParentDTO
                 {
                     Id = k.Id,
+                    RFID = k.RFID,
                     Variety = k.Variety.VarietyName,
                     Gender = k.Gender.ToString(),
                     Size = k.Size.ToString(),
+                     image = k.Images[0],
                     BodyShape = k.BodyShape,
                     ColorPattern = k.ColorPattern,
                     Health = k.HealthStatus.ToString(),
@@ -545,6 +547,22 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             return result;
+        }
+
+        public async Task<bool> CancelBreeding(int id)
+        {
+            var breed = await _breedRepo.GetByIdAsync(id);
+            if (breed == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy quy trình sinh sản ");
+            }
+            if (breed.Status.Equals(BreedingStatus.Complete))
+            {
+                throw new Exception($"hiện tại quá trình sinh sản này đã hoàn thành nên không thể hủy được");
+            }
+            breed.Status = BreedingStatus.Failed;
+            await _breedRepo.UpdateAsync(breed);
+            return await _unitOfWork.SaveAsync();
         }
     }
 }
