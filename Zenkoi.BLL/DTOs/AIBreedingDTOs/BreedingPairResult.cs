@@ -17,7 +17,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public double PredictedHighQualifiedRate { get; set; }
         public double PatternMatchScore { get; set; }     
         public double BodyShapeCompatibility { get; set; }
-        public string PercentInbreeding { get; set; } = "unknown";
+        public string? PercentInbreeding { get; set; } = "unknown";
 
         public int Rank { get; set; }
 
