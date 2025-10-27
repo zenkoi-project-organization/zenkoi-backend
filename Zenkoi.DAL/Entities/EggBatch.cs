@@ -18,6 +18,7 @@ namespace Zenkoi.DAL.Entities
         public EggBatchStatus Status { get; set; }
         public DateTime? HatchingTime { get; set; }
         public DateTime? SpawnDate { get; set; }
+        public DateTime? EndDate { get; set; }
         // Navigation
         public BreedingProcess BreedingProcess { get; set; }
         public ICollection<IncubationDailyRecord> IncubationDailyRecords { get; set; }

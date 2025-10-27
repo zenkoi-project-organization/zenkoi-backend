@@ -17,6 +17,7 @@ namespace Zenkoi.BLL.DTOs.EggBatchDTOs
         public string Status { get; set; }
         public DateTime? HatchingTime { get; set; }
         public DateTime? SpawnDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         // Có thể thêm danh sách bản ghi theo dõi nếu cần
         public List<IncubationDailyRecordResponseDTO>? IncubationDailyRecords { get; set; }

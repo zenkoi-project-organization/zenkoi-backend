@@ -17,6 +17,8 @@ namespace Zenkoi.BLL.DTOs.ClassificationStageDTOs
             public int? QualifiedCount { get; set; }
             public int? UnqualifiedCount { get; set; }
             public string Notes { get; set; }
+            public DateTime StartDate { get; set; }
+            public DateTime EndDate { get; set; }
 
             // Nếu cần trả về danh sách các record chi tiết
             public List<ClassificationRecordResponseDTO> ClassificationRecords { get; set; }

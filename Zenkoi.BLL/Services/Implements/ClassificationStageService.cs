@@ -56,7 +56,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new KeyNotFoundException("không tìm thấy quy trình sinh sản");
             }
-            if (breed.FryFish ==null ||!breed.FryFish.Status.Equals(FryFishStatus.Completed))
+            if (breed.FryFish ==null ||!breed.FryFish.Status.Equals(FryFishStatus.Completed) ||!breed.FryFish.Status.Equals(FryFishStatus.Growing) )
             {
                 throw new Exception("Quá trình nuôi cá bột chưa hoàn thành không thể tạo phân loại");
             }
@@ -67,6 +67,7 @@ namespace Zenkoi.BLL.Services.Implements
             // chuyen ho
             fryPond.PondStatus = PondStatus.Empty;
             pond.PondStatus = PondStatus.Active;
+            fryFish.Status = FryFishStatus.Completed;
             breed.Status = BreedingStatus.Classification; 
 
             var classification = _mapper.Map<ClassificationStage>(dto);

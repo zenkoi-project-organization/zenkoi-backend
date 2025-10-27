@@ -68,6 +68,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 eggBatch.Status = EggBatchStatus.Success;
                 eggBatch.SpawnDate = DateTime.Now;
+                eggBatch.EndDate = DateTime.Now;
 
             }
             await _eggBatchRepo.UpdateAsync(eggBatch);
@@ -118,6 +119,7 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     eggBatch.Status = EggBatchStatus.Success;
                     eggBatch.SpawnDate = DateTime.Now;
+                    eggBatch.EndDate = DateTime.Now;
                     record.RottenEggs = eggBatch.Quantity - (total.TotalHatchedEggs + dto.HatchedEggs);
                     eggBatch.TotalHatchedEggs = total.TotalHatchedEggs + dto.HatchedEggs;
                     breed.HatchingRate = (double)eggBatch.TotalHatchedEggs / eggBatch.Quantity * 100;

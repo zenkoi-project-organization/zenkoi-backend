@@ -9,7 +9,12 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
     public class BreedingPairResult
     {
         public int MaleId { get; set; }
+        public string MaleRFID { get; set; }
+        public string MaleImage { get; set; }
+
         public int FemaleId { get; set; }
+        public string FemaleRFID { get; set; }
+        public string FemaleImage { get; set; }
         public string Reason { get; set; } = "";
         public double PredictedFertilizationRate { get; set; }
         public double PredictedHatchRate { get; set; }
