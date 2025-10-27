@@ -77,5 +77,11 @@ namespace Zenkoi.API.Controllers
        
             return Success(deleted, "Xóa lô cá bột thành công.");
         }
+        [HttpGet("{id}/summary")]
+        public async Task<IActionResult> GetSurvivalSummary(int id)
+        {
+            var summary = await _fryFishService.GetFrySurvivalSummaryAsync(id);
+            return GetSuccess(summary);
+        }
     }
 }

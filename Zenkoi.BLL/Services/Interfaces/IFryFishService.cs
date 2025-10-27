@@ -19,5 +19,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<FryFishResponseDTO> CreateAsync(FryFishRequestDTO dto);
         Task<bool> UpdateAsync(int id, FryFishUpdateRequestDTO dto);
         Task<bool> DeleteAsync(int id);
+        Task<FrySurvivalSummaryDTO> GetFrySurvivalSummaryAsync(int fryFishId);
     }
 }

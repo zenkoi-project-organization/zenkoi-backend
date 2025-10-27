@@ -74,12 +74,12 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (previousRecord != null)
             {
-                Console.WriteLine($"Ngày trước ({previousRecord.DayNumber:dd/MM/yyyy}): CountAlive = {previousRecord.CountAlive}");
+
 
                 if (dto.CountAlive > previousRecord.CountAlive)
                 {
                     throw new InvalidOperationException(
-                        $"CountAlive ({dto.CountAlive}) không được lớn hơn ngày trước ({previousRecord.CountAlive})."
+                        $"số cá sống ({dto.CountAlive}) không được lớn hơn lần trước ({previousRecord.CountAlive})."
                     );
                 }
             }

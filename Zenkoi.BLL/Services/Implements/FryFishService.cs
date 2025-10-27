@@ -193,6 +193,10 @@ namespace Zenkoi.BLL.Services.Implements
             var fryFish = await _fryFishRepo.GetSingleAsync(new QueryOptions<FryFish>
             {
                 Predicate = e => e.Id == id,
+                IncludeProperties = new List<Expression<Func<FryFish, object>>>
+                {
+                    r => r.FrySurvivalRecords 
+                }
             });
             if (fryFish == null)
             {
@@ -215,7 +219,60 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<FryFishResponseDTO>(fryFish);
         }
 
-        public async  Task<bool> UpdateAsync(int id, FryFishUpdateRequestDTO dto)
+        public async Task<FrySurvivalSummaryDTO> GetFrySurvivalSummaryAsync(int fryFishId)
+        {
+            var fryfishRepo = _unitOfWork.GetRepo<FryFish>();
+            var fryfish = await fryfishRepo.GetSingleAsync(new QueryOptions<FryFish>
+            {
+                Predicate = f => f.Id == fryFishId,
+                IncludeProperties = new List<Expression<Func<FryFish, object>>> { f => f.FrySurvivalRecords, f => f.BreedingProcess }
+            });
+
+            if (fryfish == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy cá");
+
+            var records = fryfish.FrySurvivalRecords.OrderBy(r => r.DayNumber).ToList();
+            if (!records.Any())
+                throw new InvalidOperationException("Chưa có ghi nhận cá bột");
+
+            DateTime start = fryfish.StartDate != default(DateTime)
+             ? fryfish.StartDate.Date
+             : records.First().DayNumber.Value.Date;
+
+            double? GetRateAtDay(int days)
+            {
+                var targetDate = start.AddDays(days);
+
+                if (targetDate > DateTime.Now)
+                    return null;
+
+                var record = records
+                    .Where(r => r.DayNumber <= targetDate)
+                    .OrderByDescending(r => r.DayNumber)
+                    .FirstOrDefault();
+
+                return record?.SurvivalRate;
+            }
+
+            var summary = new FrySurvivalSummaryDTO
+            {
+                BreedingProcessCode = fryfish.BreedingProcess.Code,
+                MaleKoi = fryfish.BreedingProcess.MaleKoiId,
+                FemaleKoi = fryfish.BreedingProcess.FemaleKoiId,
+                PondName = fryfish.BreedingProcess.Pond?.PondName,
+                StartDate = fryfish.StartDate,
+                InitialCount = fryfish.InitialCount ?? 0,
+                SurvivalRate7Days = GetRateAtDay(7),
+                SurvivalRate14Days = GetRateAtDay(14),
+                SurvivalRate30Days = GetRateAtDay(30),
+                CurrentRate = records.Last().SurvivalRate
+            };
+
+            return summary;
+        }
+    
+
+    public async  Task<bool> UpdateAsync(int id, FryFishUpdateRequestDTO dto)
         {
             var _pondRepo = _unitOfWork.GetRepo<Pond>();
             var pond = await _pondRepo.CheckExistAsync(dto.PondId);
