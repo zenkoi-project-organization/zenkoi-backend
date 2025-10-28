@@ -14,15 +14,11 @@ namespace Zenkoi.BLL.DTOs.CartDTOs
     }
 
     public class ConvertCartToOrderDTO
-    {
-        [Required]
-        public int CustomerId { get; set; }
-        
+    {    
         public decimal ShippingFee { get; set; } = 0;
         
         public int? PromotionId { get; set; }
         
-        public decimal DiscountAmount { get; set; } = 0;
     }
 }
 

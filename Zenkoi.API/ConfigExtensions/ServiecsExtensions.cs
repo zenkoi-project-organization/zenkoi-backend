@@ -884,7 +884,7 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.Orders.AddRangeAsync(
                     new Order
                     {
-                        CustomerId = 1,
+                        CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddDays(-5),
                         Status = OrderStatus.Delivered,
                         Subtotal = 8000000,
@@ -894,7 +894,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Order
                     {
-                        CustomerId = 1,
+                        CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddDays(-10),
                         Status = OrderStatus.Completed,
                         Subtotal = 7000000,
@@ -904,7 +904,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Order
                     {
-                        CustomerId = 2,
+                        CustomerId = 3,
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = OrderStatus.Shipped,
                         Subtotal = 12000000,
@@ -914,7 +914,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Order
                     {
-                        CustomerId = 1,
+                        CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddHours(-5),
                         Status = OrderStatus.Confirmed,
                         Subtotal = 5000000,
@@ -924,7 +924,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Order
                     {
-                        CustomerId = 2,
+                        CustomerId = 3,
                         CreatedAt = DateTime.UtcNow.AddHours(-1),
                         Status = OrderStatus.Created,
                         Subtotal = 3000000,
@@ -934,7 +934,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Order
                     {
-                        CustomerId = 1,
+                        CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddDays(-7),
                         Status = OrderStatus.Cancelled,
                         Subtotal = 8000000,
@@ -982,19 +982,19 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.Carts.AddRangeAsync(
                     new Cart
                     {
-                        CustomerId = 1,
+                        CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         UpdatedAt = DateTime.UtcNow.AddDays(-1)
                     },
                     new Cart
                     {
-                        CustomerId = 2,
+                        CustomerId = 3,
                         CreatedAt = DateTime.UtcNow.AddHours(-5),
                         UpdatedAt = DateTime.UtcNow.AddHours(-2)
                     },
                     new Cart
                     {
-                        CustomerId = 3,
+                        CustomerId = 4,
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         UpdatedAt = DateTime.UtcNow.AddHours(-6)
                     }

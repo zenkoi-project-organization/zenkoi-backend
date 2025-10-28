@@ -34,9 +34,9 @@ namespace Zenkoi.BLL.Services.Implements
             _promotionRepo = _unitOfWork.GetRepo<Promotion>();
         }
 
-        public async Task<OrderResponseDTO> CreateOrderAsync(CreateOrderDTO createOrderDTO)
+        public async Task<OrderResponseDTO> CreateOrderAsync(CreateOrderDTO createOrderDTO, int customerId)
         {
-            var customer = await _customerRepo.GetByIdAsync(createOrderDTO.CustomerId);
+            var customer = await _customerRepo.GetByIdAsync(customerId);
             if (customer == null)
             {
                 throw new ArgumentException("Customer not found");
@@ -100,7 +100,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var order = new Order
             {
-                CustomerId = createOrderDTO.CustomerId,
+                CustomerId = customerId,
                 Status = OrderStatus.Created,
                 Subtotal = subtotal,
                 ShippingFee = createOrderDTO.ShippingFee,

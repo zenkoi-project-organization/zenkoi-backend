@@ -26,31 +26,24 @@ namespace Zenkoi.BLL.Services.Implements
             _orderRepo = _unitOfWork.GetRepo<Order>();
         }
 
-        public async Task<CustomerResponseDTO> CreateCustomerAsync(CustomerRequestDTO customerRequestDTO)
+        public async Task CreateCustomerProfileAsync(int userId)
         {
           
-            var user = await _userRepo.GetByIdAsync(customerRequestDTO.ApplicationUserId);
-            if (user == null)
-            {
-                throw new ArgumentException("User not found");
-            }
-
-            var existingCustomer = await _customerRepo.GetSingleAsync(new QueryBuilder<Customer>()
-                .WithPredicate(c => c.Id == customerRequestDTO.ApplicationUserId)
-                .Build());
-
+            var existingCustomer = await _customerRepo.GetByIdAsync(userId);
             if (existingCustomer != null)
+                return; 
+      
+            var customer = new Customer
             {
-                throw new ArgumentException("Customer already exists for this user");
-            }
-
-            var customer = _mapper.Map<Customer>(customerRequestDTO);
-            customer.CreatedAt = DateTime.UtcNow;
+                Id = userId,
+                IsActive = true,
+                TotalOrders = 0,
+                TotalSpent = 0,
+                CreatedAt = DateTime.UtcNow
+            };
 
             await _customerRepo.CreateAsync(customer);
             await _unitOfWork.SaveChangesAsync();
-
-            return await GetCustomerByIdAsync(customer.Id);
         }
 
         public async Task<CustomerResponseDTO> GetCustomerByIdAsync(int id)
@@ -158,7 +151,7 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<IEnumerable<CustomerResponseDTO>>(customers);
         }
 
-        public async Task<CustomerResponseDTO> UpdateCustomerStatsAsync(int customerId)
+        public async Task<CustomerResponseDTO> UpdateCustomerStatusAsync(int customerId)
         {
             var customer = await _customerRepo.GetByIdAsync(customerId);
             if (customer == null)

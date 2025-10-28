@@ -16,78 +16,7 @@ namespace Zenkoi.API.Controllers
         {
             _customerService = customerService;
         }
-
-        /// <summary>
-        /// Create a new customer
-        /// </summary>
-        /// <param name="customerRequestDTO">Customer data</param>
-        /// <returns>Created customer</returns>
-        [HttpPost]
-        public async Task<ActionResult<ResponseApiDTO>> CreateCustomer([FromBody] CustomerRequestDTO customerRequestDTO)
-        {
-            try
-            {
-                var result = await _customerService.CreateCustomerAsync(customerRequestDTO);
-                return Ok(new ResponseApiDTO
-                {
-                    IsSuccess = true,
-                    Message = "Customer created successfully",
-                    Result = result
-                });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new ResponseApiDTO
-                {
-                    IsSuccess = false,
-                    Message = ex.Message
-                });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new ResponseApiDTO
-                {
-                    IsSuccess = false,
-                    Message = "An error occurred while creating customer"
-                });
-            }
-        }
-
-        /// <summary>
-        /// Get customer by ID
-        /// </summary>
-        /// <param name="id">Customer ID</param>
-        /// <returns>Customer details</returns>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ResponseApiDTO>> GetCustomerById(int id)
-        {
-            try
-            {
-                var result = await _customerService.GetCustomerByIdAsync(id);
-                return Ok(new ResponseApiDTO
-                {
-                    IsSuccess = true,
-                    Message = "Customer retrieved successfully",
-                    Result = result
-                });
-            }
-            catch (ArgumentException ex)
-            {
-                return NotFound(new ResponseApiDTO
-                {
-                    IsSuccess = false,
-                    Message = ex.Message
-                });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new ResponseApiDTO
-                {
-                    IsSuccess = false,
-                    Message = "An error occurred while retrieving customer"
-                });
-            }
-        }
+     
 
         /// <summary>
         /// Get customer by user ID
@@ -289,11 +218,11 @@ namespace Zenkoi.API.Controllers
         /// <param name="customerId">Customer ID</param>
         /// <returns>Updated customer</returns>
         [HttpPut("{customerId}/update-stats")]
-        public async Task<ActionResult<ResponseApiDTO>> UpdateCustomerStats(int customerId)
+        public async Task<ActionResult<ResponseApiDTO>> UpdateCustomerStatus(int customerId)
         {
             try
             {
-                var result = await _customerService.UpdateCustomerStatsAsync(customerId);
+                var result = await _customerService.UpdateCustomerStatusAsync(customerId);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,

@@ -77,7 +77,7 @@ namespace Zenkoi.API.Controllers
                 if (!ModelState.IsValid)
                     return ModelInvalid();
 
-                var result = await _cartService.AddCartItemAsync(addCartItemDTO);
+                var result = await _cartService.AddCartItemAsync(addCartItemDTO, UserId);
                 return SaveSuccess(result, "Thêm sản phẩm vào giỏ hàng thành công");
             }
             catch (ArgumentException ex)
@@ -184,7 +184,7 @@ namespace Zenkoi.API.Controllers
                 if (!ModelState.IsValid)
                     return ModelInvalid();
 
-                var result = await _cartService.ConvertCartToOrderAsync(convertCartToOrderDTO);
+                var result = await _cartService.ConvertCartToOrderAsync(convertCartToOrderDTO, UserId);
                 return SaveSuccess(result, "Chuyển đổi giỏ hàng thành đơn hàng thành công");
             }
             catch (ArgumentException ex)

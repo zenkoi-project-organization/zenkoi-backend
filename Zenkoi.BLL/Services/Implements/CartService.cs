@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Zenkoi.BLL.DTOs.CartDTOs;
 using Zenkoi.BLL.DTOs.OrderDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -148,10 +148,10 @@ namespace Zenkoi.BLL.Services.Implements
             return cartResponse;
         }
 
-        public async Task<CartItemResponseDTO> AddCartItemAsync(AddCartItemDTO addCartItemDTO)
+        public async Task<CartItemResponseDTO> AddCartItemAsync(AddCartItemDTO addCartItemDTO, int customerId)
         {
 
-            var customer = await _customerRepo.GetByIdAsync(addCartItemDTO.CustomerId);
+            var customer = await _customerRepo.GetByIdAsync(customerId);
             if (customer == null)
             {
                 throw new ArgumentException("Customer not found");
@@ -168,7 +168,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var cart = await _cartRepo.GetSingleAsync(new QueryBuilder<Cart>()
-                .WithPredicate(c => c.CustomerId == addCartItemDTO.CustomerId)
+                .WithPredicate(c => c.CustomerId == customerId)
                 .WithInclude(c => c.CartItems)
                 .Build());
 
@@ -176,7 +176,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 cart = new Cart
                 {
-                    CustomerId = addCartItemDTO.CustomerId,
+                    CustomerId = customerId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -328,10 +328,10 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<OrderResponseDTO> ConvertCartToOrderAsync(ConvertCartToOrderDTO convertCartToOrderDTO)
+        public async Task<OrderResponseDTO> ConvertCartToOrderAsync(ConvertCartToOrderDTO convertCartToOrderDTO, int customerId)
         {
             var cart = await _cartRepo.GetSingleAsync(new QueryBuilder<Cart>()
-                .WithPredicate(c => c.CustomerId == convertCartToOrderDTO.CustomerId)
+                .WithPredicate(c => c.CustomerId == customerId)
                 .WithInclude(c => c.Customer)
                 .WithInclude(c => c.CartItems)
                 .Build());
@@ -406,22 +406,33 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new ArgumentException("Promotion not found");
                 }
             }
+            decimal discountAmount = await CalculateDiscountAsync(convertCartToOrderDTO.PromotionId, subtotal);
 
-            var totalAmount = subtotal + convertCartToOrderDTO.ShippingFee - convertCartToOrderDTO.DiscountAmount;
+            var totalAmount = subtotal + convertCartToOrderDTO.ShippingFee - discountAmount;
 
             var order = new Order
             {
-                CustomerId = convertCartToOrderDTO.CustomerId,
+                CustomerId = customerId,
                 Status = OrderStatus.Created,
                 Subtotal = subtotal,
                 ShippingFee = convertCartToOrderDTO.ShippingFee,
-                DiscountAmount = convertCartToOrderDTO.DiscountAmount,
+                DiscountAmount = discountAmount,
                 TotalAmount = totalAmount,
                 PromotionId = convertCartToOrderDTO.PromotionId,
                 OrderDetails = orderDetails
             };
 
             await _unitOfWork.GetRepo<Order>().CreateAsync(order);
+
+            if (convertCartToOrderDTO.PromotionId.HasValue)
+            {
+                var promotion = await _promotionRepo.GetByIdAsync(convertCartToOrderDTO.PromotionId.Value);
+                if (promotion != null)
+                {
+                    promotion.UsageCount++;
+                    await _promotionRepo.UpdateAsync(promotion);
+                }
+            }
 
             foreach (var item in cart.CartItems.ToList())
             {
@@ -457,6 +468,47 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             return _mapper.Map<OrderResponseDTO>(createdOrder);
+        }
+        private async Task<decimal> CalculateDiscountAsync(int? promotionId, decimal subtotal)
+        {
+            if (!promotionId.HasValue)
+                return 0;
+
+            var promotion = await _promotionRepo.GetByIdAsync(promotionId.Value);
+
+            if (promotion == null)
+                throw new ArgumentException("Không tìm thấy khuyến mãi");
+
+            if (!promotion.IsActive)
+                throw new ArgumentException($"Khuyến mãi '{promotion.Code}' không còn hoạt động");
+
+            var now = DateTime.UtcNow;
+            if (now < promotion.ValidFrom || now > promotion.ValidTo)
+                throw new ArgumentException($"Khuyến mãi '{promotion.Code}' không trong thời gian áp dụng");
+
+            if (subtotal < promotion.MinimumOrderAmount)
+                throw new ArgumentException($"Đơn hàng phải đạt tối thiểu {promotion.MinimumOrderAmount:C}");
+
+            if (promotion.UsageLimit.HasValue && promotion.UsageCount >= promotion.UsageLimit.Value)
+                throw new ArgumentException($"Khuyến mãi '{promotion.Code}' đã hết lượt sử dụng");
+
+            decimal discountAmount = 0;
+
+            if (promotion.DiscountType == DiscountType.Percentage)
+            {
+                discountAmount = subtotal * (promotion.DiscountValue / 100m);
+
+                if (promotion.MaxDiscountAmount.HasValue)
+                {
+                    discountAmount = Math.Min(discountAmount, promotion.MaxDiscountAmount.Value);
+                }
+            }
+            else if (promotion.DiscountType == DiscountType.FixedAmount)
+            {
+                discountAmount = promotion.DiscountValue;
+            }
+
+            return Math.Min(discountAmount, subtotal);
         }
     }
 }
