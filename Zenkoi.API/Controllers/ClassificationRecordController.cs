@@ -16,10 +16,13 @@ namespace Zenkoi.API.Controllers
             _recordService = recordService;
         }
 
+        /// <summary>
+        /// 🔹 Lấy danh sách tất cả ghi nhận phân loại (phân trang + filter)
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] ClassificationRecordFilterRequestDTO? filter,
-            [FromQuery] int pageIndex = 1, 
+            [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10)
         {
             var data = await _recordService.GetAllAsync(filter ?? new ClassificationRecordFilterRequestDTO(), pageIndex, pageSize);
@@ -29,7 +32,6 @@ namespace Zenkoi.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-         
             var record = await _recordService.GetByIdAsync(id);
             if (record == null)
                 return GetError("Không tìm thấy ghi nhận phân loại.");
@@ -37,7 +39,8 @@ namespace Zenkoi.API.Controllers
             return GetSuccess(record);
         }
 
-        [HttpPost]
+
+        [HttpPost("create-v1")]
         public async Task<IActionResult> Create([FromBody] ClassificationRecordRequestDTO dto)
         {
             if (!ModelState.IsValid)
@@ -47,6 +50,26 @@ namespace Zenkoi.API.Controllers
             return SaveSuccess(created, "Tạo ghi nhận phân loại thành công.");
         }
 
+        [HttpPost("create-v2")]
+        public async Task<IActionResult> CreateV2([FromBody] ClassificationRecordV2RequestDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return ModelInvalid();
+
+            var created = await _recordService.CreateV2Async(dto);
+            return SaveSuccess(created, "Tạo ghi nhận phân loại thành công.");
+        }
+
+        [HttpPost("create-v3")]
+        public async Task<IActionResult> CreateV3([FromBody] ClassificationRecordV3RequestDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return ModelInvalid();
+
+            var created = await _recordService.CreateV3Async(dto);
+            return SaveSuccess(created, "Tạo ghi nhận phân loại lần cuối thành công.");
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] ClassificationRecordUpdateRequestDTO dto)
         {
@@ -54,7 +77,6 @@ namespace Zenkoi.API.Controllers
                 return ModelInvalid();
 
             var updated = await _recordService.UpdateAsync(id, dto);
-
             return Success(updated, "Cập nhật ghi nhận phân loại thành công.");
         }
 
@@ -62,7 +84,6 @@ namespace Zenkoi.API.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _recordService.DeleteAsync(id);
-
             return Success(deleted, "Xóa ghi nhận phân loại thành công.");
         }
     }

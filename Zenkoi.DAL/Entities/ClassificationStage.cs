@@ -12,11 +12,10 @@ namespace Zenkoi.DAL.Entities
         public int Id { get; set; }
         public int BreedingProcessId { get; set; }
         public int? TotalCount { get; set; }
-
         public ClassificationStatus Status { get; set; }
         public int? HighQualifiedCount { get; set; }
-        public int? QualifiedCount { get; set; }
-        public int? UnqualifiedCount { get; set; }
+        public int? ShowQualifiedCount { get; set; }
+        public int? PondQualifiedCount { get; set; }
         public string Notes { get; set; }
         public DateTime StartDate { get; set; } = DateTime.Now;
         public DateTime EndDate { get; set; } 

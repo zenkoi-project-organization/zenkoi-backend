@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-            //    await TruncateAllTablesExceptMigrationHistory(context);
+            //  await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -404,18 +404,17 @@ namespace Zenkoi.API.ConfigExtensions
                        BodyShape = "Thân dày, Đầu to",
                        Description = "Kohaku chất lượng cao, có Hi rõ nét, triển vọng thi đấu.",
                        Gender = Gender.Male,
-                       HealthStatus = HealthStatus.Healthy,
-                       SaleStatus = SaleStatus.Available,
+                       HealthStatus = HealthStatus.Healthy, 
                        Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                        PondId = 2,
                        RFID = "123",
                        SellingPrice = 50000000m,
-                       Size = (FishSize)7, 
-                       Type = KoiType.High, 
+                       Size = (FishSize)7,
+                       Type = KoiType.High,
                        VarietyId = 1,
                        Origin = "Japan",
                        CreatedAt = DateTime.UtcNow,
-                       Videos = new List<string>() 
+                       Videos = new List<string>()
                    },
                     new KoiFish
                     {
@@ -423,14 +422,13 @@ namespace Zenkoi.API.ConfigExtensions
                         BodyShape = "Thân thon, Lưng cong đẹp",
                         Description = "Sanke cái đang phát triển, Sumi đẹp và cân đối.",
                         Gender = Gender.Female,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
+                        HealthStatus = HealthStatus.Healthy, 
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 3,
                         RFID = "132",
                         SellingPrice = 35000000m,
                         Size = (FishSize)6,
-                        Type = KoiType.Show, 
+                        Type = KoiType.Show,
                         VarietyId = 2,
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>()
@@ -446,9 +444,9 @@ namespace Zenkoi.API.ConfigExtensions
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 4,
                         RFID = "213",
-                        SellingPrice = null, 
+                        SellingPrice = null,
                         Size = (FishSize)4,
-                        Type = KoiType.High, 
+                        Type = KoiType.High,
                         VarietyId = 3,
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>()
@@ -459,13 +457,12 @@ namespace Zenkoi.API.ConfigExtensions
                         BodyShape = "Thân dài, Dáng chuẩn",
                         Description = "Ogon ánh kim rực rỡ, kích thước lớn, cá bố mẹ tiềm năng.",
                         Gender = Gender.Male,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
+                        HealthStatus = HealthStatus.Healthy, 
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 5,
                         RFID = "321",
                         SellingPrice = 85000000m,
-                        Size = (FishSize)7, 
+                        Size = (FishSize)7,
                         Type = KoiType.Show,
                         VarietyId = 4,
                         CreatedAt = DateTime.UtcNow,
@@ -477,13 +474,12 @@ namespace Zenkoi.API.ConfigExtensions
                         BodyShape = "Thân nhỏ, Vảy đều",
                         Description = "Asagi Tosai (cá non) có màu xanh sáng đẹp, đang nuôi dưỡng.",
                         Gender = Gender.Male,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
+                        HealthStatus = HealthStatus.Healthy, 
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 1,
                         RFID = "231",
                         SellingPrice = 12000000m,
-                        Size = (FishSize)3, 
+                        Size = (FishSize)3,
                         Type = KoiType.High,
                         VarietyId = 5,
                         CreatedAt = DateTime.UtcNow,
@@ -508,7 +504,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Result = BreedingResult.Success,
                         Code = "BP-001"
                     },
-         
+
                     new BreedingProcess
                     {
                         MaleKoiId = 1,
@@ -604,7 +600,7 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalEggs = 500,
                         Code = "BP-007"
                     },
-                
+
                     new BreedingProcess
                     {
                         MaleKoiId = 1,
@@ -693,7 +689,7 @@ namespace Zenkoi.API.ConfigExtensions
                     new IncubationDailyRecord
                     {
                         EggBatchId = 1,
-                        DayNumber = DateTime.Now ,
+                        DayNumber = DateTime.Now,
                         HealthyEggs = 4700,
                         RottenEggs = 300,
                         HatchedEggs = 0
@@ -748,28 +744,27 @@ namespace Zenkoi.API.ConfigExtensions
                     {
                         BreedingProcessId = 1,
                         TotalCount = 4200,
-                        HighQualifiedCount = 800,
-                        QualifiedCount = 2500,
-                        UnqualifiedCount = 900,
-                        Notes = "Phân loại lần đầu — nhóm cá khoẻ mạnh, màu sắc rõ nét chiếm khoảng 20%."
-                    }
-                    );
-                await context.SaveChangesAsync();
-            }
-            if (!context.ClassificationRecords.Any())
-            {
-                await context.ClassificationRecords.AddRangeAsync(
-                    new ClassificationRecord
+                        HighQualifiedCount = 0,      // cá chất lượng cao
+                        ShowQualifiedCount = 0,      // cá triển lãm
+                        PondQualifiedCount = 0,     // cá nuôi ao
+                        Notes = "Phân loại lần đầu — nhóm cá khỏe mạnh, màu sắc rõ nét chiếm khoảng 20%.",
+                        StartDate = DateTime.Now.AddDays(-10),
+                        EndDate = DateTime.Now,
+                        Status = Zenkoi.DAL.Enums.ClassificationStatus.Preparing
+                    },
+                    new ClassificationStage
                     {
-                        ClassificationStageId = 1,
-                        StageNumber = 1,
-                        CreateAt = DateTime.Now,
-                        HighQualifiedCount = 300,
-                        QualifiedCount = 500,
-                        UnqualifiedCount = 200,
-                        Notes = "Đánh giá ban đầu, cá khỏe mạnh đạt 30%."
+                        BreedingProcessId = 2,
+                        TotalCount = 3000,
+                        HighQualifiedCount = 700,
+                        ShowQualifiedCount = 400,
+                        PondQualifiedCount = 1900,
+                        Notes = "Phân loại lần hai — chọn lọc kỹ hơn, giữ lại 35% cá có tiềm năng.",
+                        StartDate = DateTime.Now.AddDays(-5),
+                        EndDate = DateTime.Now,
+                        Status = Zenkoi.DAL.Enums.ClassificationStatus.Success
                     }
-                    );
+                );
                 await context.SaveChangesAsync();
             }
 
@@ -1063,9 +1058,9 @@ namespace Zenkoi.API.ConfigExtensions
             }
 
         }
-        #endregion
+            #endregion
 
-        private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
+            private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
         {
             await context.Database.ExecuteSqlRawAsync(@"
             -- Set QUOTED_IDENTIFIER ON cho toàn bộ batch

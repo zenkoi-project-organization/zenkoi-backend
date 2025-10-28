@@ -154,10 +154,10 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("    {");
             sb.AppendLine("      \"MaleId\": 1,");
             sb.AppendLine("      \"MaleRFID\": \"RF1234\",");
-            sb.AppendLine("      \"MaleImage\": \"(sử dụng image từ cá đực ID=1)\",");
+            sb.AppendLine("      \"MaleImage\": \"(sử dụng image từ cá đực)\",");
             sb.AppendLine("      \"FemaleId\": 16,");
             sb.AppendLine("      \"FemaleRFID\": \"RF5678\",");
-            sb.AppendLine("      \"FemaleImage\": \"(sử dụng image từ cá cái ID=16)\",");
+            sb.AppendLine("      \"FemaleImage\": \"(sử dụng image từ cá cái)\",");
             sb.AppendLine("      \"Reason\": \"Cặp này có màu và dáng phù hợp.\",");
             sb.AppendLine("      \"PredictedFertilizationRate\": 92.5,");
             sb.AppendLine("      \"PredictedHatchRate\": 88.1,");
