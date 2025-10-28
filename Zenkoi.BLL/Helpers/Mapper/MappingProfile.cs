@@ -123,7 +123,7 @@ namespace Zenkoi.BLL.Helpers.Mapper
 
             // Order mappings
             CreateMap<Order, OrderResponseDTO>()
-                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null && src.Customer.User != null ? src.Customer.User.FullName : string.Empty))
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null && src.Customer.ApplicationUser != null ? src.Customer.ApplicationUser.FullName : string.Empty))
                 .ForMember(dest => dest.PromotionName, opt => opt.MapFrom(src => src.Promotion != null ? src.Promotion.Code : null));
             CreateMap<OrderDetail, OrderDetailResponseDTO>()
                 .ForMember(dest => dest.KoiFishName, opt => opt.MapFrom(src => src.KoiFish != null ? $"KoiFish {src.KoiFish.RFID}" : null))
@@ -139,10 +139,10 @@ namespace Zenkoi.BLL.Helpers.Mapper
 
             // Customer mappings
             CreateMap<Customer, CustomerResponseDTO>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? src.User.UserName : string.Empty))
-                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User != null ? src.User.FullName : string.Empty))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User != null ? src.User.Email : string.Empty))
-                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.User != null ? src.User.PhoneNumber : null))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.ApplicationUser != null ? src.ApplicationUser.UserName : string.Empty))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.ApplicationUser != null ? src.ApplicationUser.FullName : string.Empty))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.ApplicationUser != null ? src.ApplicationUser.Email : string.Empty))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.ApplicationUser != null ? src.ApplicationUser.PhoneNumber : null))
                 .ForMember(dest => dest.RecentOrders, opt => opt.MapFrom(src => src.Orders != null
                     ? src.Orders.OrderByDescending(o => o.CreatedAt).Take(5).Select(o => new CustomerOrderSummaryDTO
                     {
@@ -158,7 +158,7 @@ namespace Zenkoi.BLL.Helpers.Mapper
 
             // Cart mappings
             CreateMap<Cart, CartResponseDTO>()
-                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null && src.Customer.User != null ? src.Customer.User.FullName : string.Empty))
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null && src.Customer.ApplicationUser != null ? src.Customer.ApplicationUser.FullName : string.Empty))
                 .ForMember(dest => dest.TotalPrice, opt => opt.Ignore());
             CreateMap<CartItem, CartItemResponseDTO>()
                 .ForMember(dest => dest.KoiFishName, opt => opt.MapFrom(src => src.KoiFish != null ? $"KoiFish {src.KoiFish.RFID}" : null))

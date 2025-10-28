@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-            //  await TruncateAllTablesExceptMigrationHistory(context);
+              await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -202,6 +202,45 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
+
+            if (!context.Customers.Any())
+            {          
+
+                await context.Customers.AddRangeAsync(
+                    new Customer
+                    {
+                        Id = 2,
+                        ShippingAddress = "123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
+                        ContactNumber = "0987654321",
+                        TotalOrders = 2,
+                        TotalSpent = 15000000,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Customer
+                    {
+                        Id = 3,
+                        ShippingAddress = "456 Đường Nguyễn Huệ, Phường Đa Kao, Quận 1, TP.HCM",
+                        ContactNumber = "0912345678",
+                        TotalOrders = 1,
+                        TotalSpent = 12000000,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Customer
+                    {
+                        Id = 4,
+                        ShippingAddress = "789 Đường Hai Bà Trưng, Phường Đa Kao, Quận 1, TP.HCM",
+                        ContactNumber = "0901234567",
+                        TotalOrders = 0,
+                        TotalSpent = 0,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+
             if (!context.Areas.Any())
             {
                 await context.Areas.AddRangeAsync(
@@ -766,44 +805,7 @@ namespace Zenkoi.API.ConfigExtensions
                     }
                 );
                 await context.SaveChangesAsync();
-            }
-
-            if (!context.Customers.Any())
-            {
-                await context.Customers.AddRangeAsync(
-                    new Customer
-                    {
-                        ApplicationUserId = 2, // customer1
-                        ShippingAddress = "123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
-                        ContactNumber = "0987654321",
-                        TotalOrders = 2,
-                        TotalSpent = 15000000,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new Customer
-                    {
-                        ApplicationUserId = 3, // customer2
-                        ShippingAddress = "456 Đường Nguyễn Huệ, Phường Đa Kao, Quận 1, TP.HCM",
-                        ContactNumber = "0912345678",
-                        TotalOrders = 1,
-                        TotalSpent = 12000000,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new Customer
-                    {
-                        ApplicationUserId = 4, // customer3
-                        ShippingAddress = "789 Đường Hai Bà Trưng, Phường Đa Kao, Quận 1, TP.HCM",
-                        ContactNumber = "0901234567",
-                        TotalOrders = 0,
-                        TotalSpent = 0,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    }
-                );
-                await context.SaveChangesAsync();
-            }
+            }         
 
             if (!context.PacketFishes.Any())
             {
@@ -882,7 +884,7 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.Orders.AddRangeAsync(
                     new Order
                     {
-                        CustomerId = 1,
+                        CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddDays(-5),
                         Status = OrderStatus.Delivered,
                         Subtotal = 8000000,
@@ -892,7 +894,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Order
                     {
-                        CustomerId = 1,
+                        CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddDays(-10),
                         Status = OrderStatus.Completed,
                         Subtotal = 7000000,
@@ -902,7 +904,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Order
                     {
-                        CustomerId = 2,
+                        CustomerId = 3,
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         Status = OrderStatus.Shipped,
                         Subtotal = 12000000,
@@ -912,7 +914,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Order
                     {
-                        CustomerId = 1,
+                        CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddHours(-5),
                         Status = OrderStatus.Confirmed,
                         Subtotal = 5000000,
@@ -922,7 +924,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Order
                     {
-                        CustomerId = 2,
+                        CustomerId = 3,
                         CreatedAt = DateTime.UtcNow.AddHours(-1),
                         Status = OrderStatus.Created,
                         Subtotal = 3000000,
@@ -932,7 +934,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Order
                     {
-                        CustomerId = 1,
+                        CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddDays(-7),
                         Status = OrderStatus.Cancelled,
                         Subtotal = 8000000,
@@ -980,19 +982,19 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.Carts.AddRangeAsync(
                     new Cart
                     {
-                        CustomerId = 1,
+                        CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddDays(-2),
                         UpdatedAt = DateTime.UtcNow.AddDays(-1)
                     },
                     new Cart
                     {
-                        CustomerId = 2,
+                        CustomerId = 3,
                         CreatedAt = DateTime.UtcNow.AddHours(-5),
                         UpdatedAt = DateTime.UtcNow.AddHours(-2)
                     },
                     new Cart
                     {
-                        CustomerId = 3,
+                        CustomerId = 4,
                         CreatedAt = DateTime.UtcNow.AddDays(-1),
                         UpdatedAt = DateTime.UtcNow.AddHours(-6)
                     }
@@ -1054,6 +1056,56 @@ namespace Zenkoi.API.ConfigExtensions
                     }
                 );
 
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.Promotions.Any())
+            {
+                await context.Promotions.AddRangeAsync(
+                    new Promotion
+                    {
+                        Code = "WELCOME20",
+                        Description = "Giảm giá 20% cho khách hàng mới đăng ký.",
+                        ValidFrom = DateTime.UtcNow,
+                        ValidTo = DateTime.UtcNow.AddMonths(6),
+                        DiscountType = DiscountType.Percentage,
+                        DiscountValue = 20,
+                        MaxDiscountAmount = 100000,
+                        UsageLimit = 1000,
+                        IsActive = true
+                    },
+                    new Promotion
+                    {
+                        Code = "FREESHIP",
+                        Description = "Miễn phí vận chuyển cho đơn hàng từ 500.000đ.",
+                        ValidFrom = DateTime.UtcNow,
+                        ValidTo = DateTime.UtcNow.AddYears(1),
+                        DiscountType = DiscountType.FixedAmount,
+                        DiscountValue = 30000,
+                        MinimumOrderAmount = 500000,
+                        IsActive = true
+                    },
+                    new Promotion
+                    {
+                        Code = "SALE1010",
+                        Description = "Siêu sale ngày 10/10, giảm 50.000đ cho mọi đơn hàng.",
+                        ValidFrom = new DateTime(2025, 10, 10),
+                        ValidTo = new DateTime(2025, 10, 11).AddTicks(-1), 
+                        DiscountType = DiscountType.FixedAmount,
+                        DiscountValue = 50000,
+                        IsActive = true
+                    },
+                    new Promotion
+                    {
+                        Code = "OLDPROMO",
+                        Description = "Khuyến mãi cũ đã hết hạn.",
+                        ValidFrom = DateTime.UtcNow.AddMonths(-2),
+                        ValidTo = DateTime.UtcNow.AddMonths(-1),
+                        DiscountType = DiscountType.Percentage,
+                        DiscountValue = 15,
+                        IsActive = false 
+                    }
+                );
                 await context.SaveChangesAsync();
             }
 

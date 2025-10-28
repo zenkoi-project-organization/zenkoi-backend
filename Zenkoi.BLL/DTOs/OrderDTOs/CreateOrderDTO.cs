@@ -3,18 +3,13 @@ using System.ComponentModel.DataAnnotations;
 namespace Zenkoi.BLL.DTOs.OrderDTOs
 {
     public class CreateOrderDTO
-    {
-        [Required]
-        public int CustomerId { get; set; }
-
+    {    
         [Required]
         public List<OrderItemDTO> Items { get; set; } = new List<OrderItemDTO>();
 
         public decimal ShippingFee { get; set; } = 0;
 
         public int? PromotionId { get; set; }
-
-        public decimal DiscountAmount { get; set; } = 0;
     }
 
     public class OrderItemDTO

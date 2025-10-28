@@ -33,7 +33,7 @@ namespace Zenkoi.API.Controllers
                 if (!ModelState.IsValid)
                     return ModelInvalid();
 
-                var result = await _orderService.CreateOrderAsync(createOrderDTO);
+                var result = await _orderService.CreateOrderAsync(createOrderDTO, UserId);
                 return SaveSuccess(result, "Tạo đơn hàng thành công");
             }
             catch (ArgumentException ex)

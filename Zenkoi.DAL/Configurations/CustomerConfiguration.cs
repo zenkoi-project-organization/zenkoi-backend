@@ -10,10 +10,15 @@ namespace Zenkoi.DAL.Configurations
         {
             builder.ToTable("Customers");
             builder.HasKey(c => c.Id);
-            builder.Property(c => c.Id).UseIdentityColumn();
 
-            builder.Property(c => c.ApplicationUserId)
-                .IsRequired();
+            builder.Property(c => c.Id)
+               .ValueGeneratedNever();
+
+            builder.HasOne(c => c.ApplicationUser)
+                .WithOne()
+                .HasForeignKey<Customer>(c => c.Id)
+                .HasPrincipalKey<ApplicationUser>(u => u.Id)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Property(c => c.ShippingAddress)
                 .HasMaxLength(500);
@@ -40,17 +45,10 @@ namespace Zenkoi.DAL.Configurations
 
             builder.Property(c => c.UpdatedAt);
 
-            builder.HasOne(c => c.User)
-                .WithMany()
-                .HasForeignKey(c => c.ApplicationUserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             builder.HasMany(c => c.Orders)
                 .WithOne(o => o.Customer)
                 .HasForeignKey(o => o.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasIndex(c => c.ApplicationUserId).IsUnique();
         }
     }
 }
