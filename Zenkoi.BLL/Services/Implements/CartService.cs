@@ -38,7 +38,7 @@ namespace Zenkoi.BLL.Services.Implements
             var cart = await _cartRepo.GetSingleAsync(new QueryBuilder<Cart>()
                 .WithPredicate(c => c.CustomerId == customerId)
                 .WithInclude(c => c.Customer)
-                .WithInclude(c => c.Customer.User)
+                .WithInclude(c => c.Customer.ApplicationUser)
                 .WithInclude(c => c.CartItems)
                 .Build());
 
@@ -95,7 +95,7 @@ namespace Zenkoi.BLL.Services.Implements
             var cart = await _cartRepo.GetSingleAsync(new QueryBuilder<Cart>()
                 .WithPredicate(c => c.CustomerId == customerId)
                 .WithInclude(c => c.Customer)
-                .WithInclude(c => c.Customer.User)
+                .WithInclude(c => c.Customer.ApplicationUser)
                 .WithInclude(c => c.CartItems)
                 .Build());
 
@@ -436,7 +436,7 @@ namespace Zenkoi.BLL.Services.Implements
             var createdOrder = await _unitOfWork.GetRepo<Order>().GetSingleAsync(new QueryBuilder<Order>()
                 .WithPredicate(o => o.Id == order.Id)
                 .WithInclude(o => o.Customer)
-                .WithInclude(o => o.Customer.User)
+                .WithInclude(o => o.Customer.ApplicationUser)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
                 .Build());

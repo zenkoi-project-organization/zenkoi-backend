@@ -1,10 +1,13 @@
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Zenkoi.DAL.Enums;
 
-namespace Zenkoi.DAL.Entities
+namespace Zenkoi.BLL.DTOs.PromotionDTOs
 {
-    public class Promotion
+    public class PromotionResponseDTO
     {
         public int Id { get; set; }
         public string Code { get; set; }
@@ -13,11 +16,10 @@ namespace Zenkoi.DAL.Entities
         public DateTime ValidTo { get; set; }
         public DiscountType DiscountType { get; set; }
         public decimal DiscountValue { get; set; }
-        public decimal MinimumOrderAmount { get; set; } = 0;
+        public decimal MinimumOrderAmount { get; set; }
         public decimal? MaxDiscountAmount { get; set; }
         public int? UsageLimit { get; set; }
-        public int UsageCount { get; set; } = 0;
-        public bool IsActive { get; set; } = true;
-        public bool IsDeleted { get; set; } = false;
+        public int UsageCount { get; set; }
+        public bool IsActive { get; set; }
     }
 }

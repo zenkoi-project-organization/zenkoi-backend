@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Zenkoi.BLL.DTOs.OrderDTOs;
@@ -93,17 +93,10 @@ namespace Zenkoi.BLL.Services.Implements
                     TotalPrice = totalPrice
                 });
             }
-       
-            if (createOrderDTO.PromotionId.HasValue)
-            {
-                var promotion = await _promotionRepo.GetByIdAsync(createOrderDTO.PromotionId.Value);
-                if (promotion == null)
-                {
-                    throw new ArgumentException("Promotion not found");
-                }
-            }
 
-            var totalAmount = subtotal + createOrderDTO.ShippingFee - createOrderDTO.DiscountAmount;
+            decimal discountAmount = await CalculateDiscountAsync(createOrderDTO.PromotionId, subtotal);
+
+            var totalAmount = subtotal + createOrderDTO.ShippingFee - discountAmount;
 
             var order = new Order
             {
@@ -111,29 +104,41 @@ namespace Zenkoi.BLL.Services.Implements
                 Status = OrderStatus.Created,
                 Subtotal = subtotal,
                 ShippingFee = createOrderDTO.ShippingFee,
-                DiscountAmount = createOrderDTO.DiscountAmount,
+                DiscountAmount = discountAmount, 
                 TotalAmount = totalAmount,
                 PromotionId = createOrderDTO.PromotionId,
                 OrderDetails = orderDetails
             };
 
             await _orderRepo.CreateAsync(order);
+
+           
+            if (createOrderDTO.PromotionId.HasValue)
+            {
+                var promotion = await _promotionRepo.GetByIdAsync(createOrderDTO.PromotionId.Value);
+                if (promotion != null)
+                {
+                    promotion.UsageCount++;
+                    await _promotionRepo.UpdateAsync(promotion);
+                }
+            }
+
             await _unitOfWork.SaveChangesAsync();
-                 
+
             var createdOrder = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
                 .WithPredicate(o => o.Id == order.Id)
                 .WithInclude(o => o.Customer)
                 .WithInclude(o => o.Promotion)
                 .Build());
-            
+
             if (createdOrder != null)
             {
                 var loadedOrderDetails = await _orderDetailRepo.GetAllAsync(new QueryBuilder<OrderDetail>()
                     .WithPredicate(od => od.OrderId == createdOrder.Id)
                     .Build());
-                
+
                 createdOrder.OrderDetails = loadedOrderDetails.ToList();
-                
+
                 foreach (var detail in createdOrder.OrderDetails)
                 {
                     if (detail.KoiFishId.HasValue)
@@ -145,20 +150,20 @@ namespace Zenkoi.BLL.Services.Implements
                         detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
                     }
                 }
-                
+
                 if (createdOrder.Customer != null)
                 {
                     var customerUser = await _customerRepo.GetSingleAsync(new QueryBuilder<Customer>()
                         .WithPredicate(c => c.Id == createdOrder.Customer.Id)
-                        .WithInclude(c => c.User)
+                        .WithInclude(c => c.ApplicationUser)
                         .Build());
                     if (customerUser != null)
                     {
-                        createdOrder.Customer.User = customerUser.User;
+                        createdOrder.Customer.ApplicationUser = customerUser.ApplicationUser;
                     }
                 }
             }
-            
+
             return _mapper.Map<OrderResponseDTO>(createdOrder);
         }
 
@@ -251,6 +256,49 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
+        private async Task<decimal> CalculateDiscountAsync(int? promotionId, decimal subtotal)
+        {
+            if (!promotionId.HasValue)
+                return 0;
+
+            var promotion = await _promotionRepo.GetByIdAsync(promotionId.Value);
+
+            if (promotion == null)
+                throw new ArgumentException("Không tìm thấy khuyến mãi");
+
+      
+            if (!promotion.IsActive)
+                throw new ArgumentException($"Khuyến mãi '{promotion.Code}' không còn hoạt động");
+
+            var now = DateTime.UtcNow;
+            if (now < promotion.ValidFrom || now > promotion.ValidTo)
+                throw new ArgumentException($"Khuyến mãi '{promotion.Code}' không trong thời gian áp dụng");
+
+            if (subtotal < promotion.MinimumOrderAmount)
+                throw new ArgumentException($"Đơn hàng phải đạt tối thiểu {promotion.MinimumOrderAmount:C}");
+
+            if (promotion.UsageLimit.HasValue && promotion.UsageCount >= promotion.UsageLimit.Value)
+                throw new ArgumentException($"Khuyến mãi '{promotion.Code}' đã hết lượt sử dụng");
+
+            decimal discountAmount = 0;
+
+            if (promotion.DiscountType == DiscountType.Percentage)
+            {
+                discountAmount = subtotal * (promotion.DiscountValue / 100m);
+
+                if (promotion.MaxDiscountAmount.HasValue)
+                {
+                    discountAmount = Math.Min(discountAmount, promotion.MaxDiscountAmount.Value);
+                }
+            }
+            else if (promotion.DiscountType == DiscountType.FixedAmount)
+            {
+                discountAmount = promotion.DiscountValue;
+            }
+
+            return Math.Min(discountAmount, subtotal);
+        }
+
         public async Task<decimal> CalculateOrderTotalAsync(CreateOrderDTO createOrderDTO)
         {
             decimal subtotal = 0;
@@ -281,7 +329,9 @@ namespace Zenkoi.BLL.Services.Implements
                 subtotal += unitPrice * item.Quantity;
             }
 
-            return subtotal + createOrderDTO.ShippingFee - createOrderDTO.DiscountAmount;
+            decimal discountAmount = await CalculateDiscountAsync(createOrderDTO.PromotionId, subtotal);
+
+            return subtotal + createOrderDTO.ShippingFee - discountAmount;
         }
     }
 }

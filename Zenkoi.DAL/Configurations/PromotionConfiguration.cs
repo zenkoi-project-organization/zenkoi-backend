@@ -25,12 +25,33 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(p => p.ValidTo)
                 .IsRequired();
 
-            builder.Property(p => p.DiscountAmount)
-                .IsRequired()
-                .HasColumnType("decimal(18,2)");
+            builder.Property(p => p.DiscountType)
+                    .IsRequired();
 
-            builder.Property(p => p.DiscountPercent)
-                .HasColumnType("decimal(5,2)");
+            builder.Property(p => p.DiscountValue)
+                     .IsRequired()
+                     .HasColumnType("decimal(18,2)");
+            builder.Property(p => p.MinimumOrderAmount)
+                   .IsRequired()
+                   .HasColumnType("decimal(18,2)")
+                   .HasDefaultValue(0); 
+
+            builder.Property(p => p.MaxDiscountAmount)
+                   .HasColumnType("decimal(18,2)"); 
+
+            builder.Property(p => p.UsageCount)
+                   .IsRequired()
+                   .HasDefaultValue(0);
+
+            builder.Property(p => p.IsActive)
+                   .IsRequired()
+                   .HasDefaultValue(true);
+
+            builder.Property(p => p.IsDeleted)
+                   .IsRequired()
+                   .HasDefaultValue(false);
+
+            builder.HasQueryFilter(p => !p.IsDeleted);
 
             builder.HasIndex(p => p.Code).IsUnique();
             builder.HasIndex(p => p.ValidFrom);

@@ -36,7 +36,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var existingCustomer = await _customerRepo.GetSingleAsync(new QueryBuilder<Customer>()
-                .WithPredicate(c => c.ApplicationUserId == customerRequestDTO.ApplicationUserId)
+                .WithPredicate(c => c.Id == customerRequestDTO.ApplicationUserId)
                 .Build());
 
             if (existingCustomer != null)
@@ -57,7 +57,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var customer = await _customerRepo.GetSingleAsync(new QueryBuilder<Customer>()
                 .WithPredicate(c => c.Id == id)
-                .WithInclude(c => c.User)
+                .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(5))
                 .Build());
 
@@ -72,8 +72,8 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<CustomerResponseDTO> GetCustomerByUserIdAsync(int userId)
         {
             var customer = await _customerRepo.GetSingleAsync(new QueryBuilder<Customer>()
-                .WithPredicate(c => c.ApplicationUserId == userId)
-                .WithInclude(c => c.User)
+                .WithPredicate(c => c.Id == userId)
+                .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(5))
                 .Build());
 
@@ -90,7 +90,7 @@ namespace Zenkoi.BLL.Services.Implements
             if (queryOptions == null)
             {
                 var customers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>()
-                    .WithInclude(c => c.User)
+                    .WithInclude(c => c.ApplicationUser)
                     .WithInclude(c => c.Orders.Take(3))
                     .WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt))
                     .Build());
@@ -138,7 +138,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var customers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>()
                 .WithPredicate(c => c.IsActive == true)
-                .WithInclude(c => c.User)
+                .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(3))
                 .WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt))
                 .Build());
@@ -150,7 +150,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var customers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>()
                 .WithPredicate(c => c.TotalSpent >= minAmount && c.IsActive == true)
-                .WithInclude(c => c.User)
+                .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(3))
                 .WithOrderBy(c => c.OrderByDescending(x => x.TotalSpent))
                 .Build());
