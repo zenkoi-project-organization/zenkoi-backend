@@ -19,5 +19,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<bool> DeleteAsync(int id);
         Task<ClassificationRecordResponseDTO> CreateV2Async(ClassificationRecordV2RequestDTO dto);
         Task<ClassificationRecordResponseDTO> CreateV3Async(ClassificationRecordV3RequestDTO dto);
+        Task<ClassificationSummaryDTO> GetSummaryAsync(int classificationStageId);
     }
 }

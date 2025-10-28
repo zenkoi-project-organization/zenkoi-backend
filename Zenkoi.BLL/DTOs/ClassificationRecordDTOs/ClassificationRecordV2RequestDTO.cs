@@ -9,7 +9,7 @@ namespace Zenkoi.BLL.DTOs.ClassificationRecordDTOs
     public class ClassificationRecordV2RequestDTO
     {
         public int ClassificationStageId { get; set; }
-        public int? ShowQualifiedCount { get; set; }
+        public int? HighQualifiedCount { get; set; }
         public string Notes { get; set; }
     }
 }

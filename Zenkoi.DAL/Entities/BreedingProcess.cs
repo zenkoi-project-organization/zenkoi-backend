@@ -27,7 +27,6 @@ namespace Zenkoi.DAL.Entities
         public double? FertilizationRate { get; set; } = 0;
         public double? HatchingRate { get; set; }
         public double? SurvivalRate { get; set; } = 0;
-
         public int? TotalFishQualified { get; set; } = 0;
         public int? TotalPackage { get; set; } = 0;
 
