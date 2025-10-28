@@ -747,7 +747,6 @@ namespace Zenkoi.API.ConfigExtensions
                     new ClassificationStage
                     {
                         BreedingProcessId = 1,
-                        PondId = 1,
                         TotalCount = 4200,
                         HighQualifiedCount = 800,
                         QualifiedCount = 2500,

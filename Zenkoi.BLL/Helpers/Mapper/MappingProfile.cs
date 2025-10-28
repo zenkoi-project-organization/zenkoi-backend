@@ -114,8 +114,7 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<FryFishRequestDTO, FryFish>();
             CreateMap<FrySurvivalRecord, FrySurvivalRecordResponseDTO>().ReverseMap();
             CreateMap<FrySurvivalRecordRequestDTO, FrySurvivalRecord>();
-            CreateMap<ClassificationStage, ClassificationStageResponseDTO>()
-            .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond.PondName)).ReverseMap();
+            CreateMap<ClassificationStage, ClassificationStageResponseDTO>();          
             CreateMap<ClassificationStageCreateRequestDTO, ClassificationStage>();
             CreateMap<ClassificationStageUpdateRequestDTO, ClassificationStage>();
             CreateMap<ClassificationRecord, ClassificationRecordResponseDTO>().ReverseMap();
