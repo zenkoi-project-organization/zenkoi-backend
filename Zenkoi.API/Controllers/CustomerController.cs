@@ -1,0 +1,322 @@
+using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs.CustomerDTOs;
+using Zenkoi.BLL.DTOs.Response;
+using Zenkoi.BLL.Services.Interfaces;
+using Zenkoi.DAL.Queries;
+
+namespace Zenkoi.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class CustomerController : ControllerBase
+    {
+        private readonly ICustomerService _customerService;
+
+        public CustomerController(ICustomerService customerService)
+        {
+            _customerService = customerService;
+        }
+
+        /// <summary>
+        /// Create a new customer
+        /// </summary>
+        /// <param name="customerRequestDTO">Customer data</param>
+        /// <returns>Created customer</returns>
+        [HttpPost]
+        public async Task<ActionResult<ResponseApiDTO>> CreateCustomer([FromBody] CustomerRequestDTO customerRequestDTO)
+        {
+            try
+            {
+                var result = await _customerService.CreateCustomerAsync(customerRequestDTO);
+                return Ok(new ResponseApiDTO
+                {
+                    IsSuccess = true,
+                    Message = "Customer created successfully",
+                    Result = result
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = ex.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while creating customer"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get customer by ID
+        /// </summary>
+        /// <param name="id">Customer ID</param>
+        /// <returns>Customer details</returns>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ResponseApiDTO>> GetCustomerById(int id)
+        {
+            try
+            {
+                var result = await _customerService.GetCustomerByIdAsync(id);
+                return Ok(new ResponseApiDTO
+                {
+                    IsSuccess = true,
+                    Message = "Customer retrieved successfully",
+                    Result = result
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = ex.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while retrieving customer"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get customer by user ID
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <returns>Customer details</returns>
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<ResponseApiDTO>> GetCustomerByUserId(int userId)
+        {
+            try
+            {
+                var result = await _customerService.GetCustomerByUserIdAsync(userId);
+                return Ok(new ResponseApiDTO
+                {
+                    IsSuccess = true,
+                    Message = "Customer retrieved successfully",
+                    Result = result
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = ex.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while retrieving customer"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get all customers
+        /// </summary>
+        /// <returns>List of customers</returns>
+        [HttpGet]
+        public async Task<ActionResult<ResponseApiDTO>> GetAllCustomers()
+        {
+            try
+            {
+                var result = await _customerService.GetAllCustomersAsync();
+                return Ok(new ResponseApiDTO
+                {
+                    IsSuccess = true,
+                    Message = "Customers retrieved successfully",
+                    Result = result
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while retrieving customers"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Update customer
+        /// </summary>
+        /// <param name="id">Customer ID</param>
+        /// <param name="customerUpdateDTO">Updated customer data</param>
+        /// <returns>Updated customer</returns>
+        [HttpPut("{id}")]
+        public async Task<ActionResult<ResponseApiDTO>> UpdateCustomer(int id, [FromBody] CustomerUpdateDTO customerUpdateDTO)
+        {
+            try
+            {
+                var result = await _customerService.UpdateCustomerAsync(id, customerUpdateDTO);
+                return Ok(new ResponseApiDTO
+                {
+                    IsSuccess = true,
+                    Message = "Customer updated successfully",
+                    Result = result
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = ex.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while updating customer"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Delete customer (soft delete)
+        /// </summary>
+        /// <param name="id">Customer ID</param>
+        /// <returns>Success status</returns>
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<ResponseApiDTO>> DeleteCustomer(int id)
+        {
+            try
+            {
+                var result = await _customerService.DeleteCustomerAsync(id);
+                if (result)
+                {
+                    return Ok(new ResponseApiDTO
+                    {
+                        IsSuccess = true,
+                        Message = "Customer deleted successfully",
+                        Result = result
+                    });
+                }
+                else
+                {
+                    return NotFound(new ResponseApiDTO
+                    {
+                        IsSuccess = false,
+                        Message = "Customer not found"
+                    });
+                }
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while deleting customer"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get active customers only
+        /// </summary>
+        /// <returns>List of active customers</returns>
+        [HttpGet("active")]
+        public async Task<ActionResult<ResponseApiDTO>> GetActiveCustomers()
+        {
+            try
+            {
+                var result = await _customerService.GetActiveCustomersAsync();
+                return Ok(new ResponseApiDTO
+                {
+                    IsSuccess = true,
+                    Message = "Active customers retrieved successfully",
+                    Result = result
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while retrieving active customers"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get customers by minimum total spent amount
+        /// </summary>
+        /// <param name="minAmount">Minimum total spent amount</param>
+        /// <returns>List of customers</returns>
+        [HttpGet("by-total-spent/{minAmount}")]
+        public async Task<ActionResult<ResponseApiDTO>> GetCustomersByTotalSpent(decimal minAmount)
+        {
+            try
+            {
+                var result = await _customerService.GetCustomersByTotalSpentAsync(minAmount);
+                return Ok(new ResponseApiDTO
+                {
+                    IsSuccess = true,
+                    Message = "Customers retrieved successfully",
+                    Result = result
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while retrieving customers"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Update customer statistics (total orders and total spent)
+        /// </summary>
+        /// <param name="customerId">Customer ID</param>
+        /// <returns>Updated customer</returns>
+        [HttpPut("{customerId}/update-stats")]
+        public async Task<ActionResult<ResponseApiDTO>> UpdateCustomerStats(int customerId)
+        {
+            try
+            {
+                var result = await _customerService.UpdateCustomerStatsAsync(customerId);
+                return Ok(new ResponseApiDTO
+                {
+                    IsSuccess = true,
+                    Message = "Customer statistics updated successfully",
+                    Result = result
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = ex.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResponseApiDTO
+                {
+                    IsSuccess = false,
+                    Message = "An error occurred while updating customer statistics"
+                });
+            }
+        }
+    }
+}

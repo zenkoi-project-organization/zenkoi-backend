@@ -14,8 +14,8 @@ namespace Zenkoi.BLL.DTOs.ClassificationStageDTOs
             public int? TotalCount { get; set; }
             public string Status { get; set; }
             public int? HighQualifiedCount { get; set; }
-            public int? QualifiedCount { get; set; }
-            public int? UnqualifiedCount { get; set; }
+            public int? ShowQualifiedCount { get; set; }
+            public int? PondQualifiedCount { get; set; }
             public string Notes { get; set; }
             public DateTime StartDate { get; set; }
             public DateTime EndDate { get; set; }

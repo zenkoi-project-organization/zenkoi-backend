@@ -44,43 +44,35 @@ namespace Zenkoi.DAL.Repositories
 			return Task.CompletedTask;
 		}
 
-		public IQueryable<T> Get(QueryOptions<T> options)
-		{
-			IQueryable<T> query = _dbSet;
+        public IQueryable<T> Get(QueryOptions<T> options)
+        {
+            IQueryable<T> query = _dbSet;
 
-			if (!options.Tracked)
-			{
-				query = query.AsNoTracking();
-			}
+            if (!options.Tracked)
+            {
+                query = query.AsNoTracking();
+            }
 
-			if (options.IncludeProperties?.Any() ?? false)
-			{
-				foreach (var includeProperty in options.IncludeProperties)
-				{
-					query = query.Include(includeProperty);
-				}
-			}
+            if (options.IncludeProperties?.Any() ?? false)
+            {
+                foreach (var includeProperty in options.IncludeProperties)
+                {
+                    query = query.Include(includeProperty);
+                }
+            }
 
-			if (options.ThenIncludeProperties?.Any() ?? false)
-			{
-				foreach (var thenIncludeProperty in options.ThenIncludeProperties)
-				{
-					query = ((IIncludableQueryable<T, object>)query).ThenInclude(thenIncludeProperty);
-				}
-			}
+            if (options.Predicate != null)
+            {
+                query = query.Where(options.Predicate);
+            }
 
-			if (options.Predicate != null)
-			{
-				query = query.Where(options.Predicate);
-			}
+            if (options.OrderBy != null)
+            {
+                query = options.OrderBy(query);
+            }
 
-			if (options.OrderBy != null)
-			{
-				query = options.OrderBy(query);
-			}
-
-			return query;
-		}
+            return query;
+        }
 
 		public Task UpdateAsync(T entity)
 		{

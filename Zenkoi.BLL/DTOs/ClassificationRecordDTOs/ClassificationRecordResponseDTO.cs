@@ -11,7 +11,7 @@ namespace Zenkoi.BLL.DTOs.ClassificationRecordDTOs
         public int Id { get; set; }
         public int ClassificationStageId { get; set; }
 
-        public string StageName { get; set; }
+        public string StageNumber { get; set; }
         public int? HighQualifiedCount { get; set; }
         public int? ShowQualifiedCount { get; set; }
         public int? PondQualifiedCount { get; set; }

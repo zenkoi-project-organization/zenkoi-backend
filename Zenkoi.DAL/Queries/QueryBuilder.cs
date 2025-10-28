@@ -36,11 +36,6 @@ namespace Zenkoi.DAL.Queries
 			_options.IncludeProperties.AddRange(includeProperty);
 			return this;
 		}
-		public QueryBuilder<T> WithThenInclude(params Expression<Func<object, object>>[] thenIncludeProperty)
-		{
-			_options.ThenIncludeProperties.AddRange(thenIncludeProperty);
-			return this;
-		}
 
 		public QueryOptions<T> Build()
 		{
