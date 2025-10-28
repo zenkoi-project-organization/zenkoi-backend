@@ -198,5 +198,90 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
+
+        public async Task<KoiFishFamilyResponseDTO> GetFamilyTreeAsync(int koiId)
+        {
+            var options = new QueryOptions<KoiFish>
+            {
+                Predicate = k => k.Id == koiId,
+                Tracked = false,
+                IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+            {
+                k => k.BreedingProcess,
+                k => k.Variety,
+                k => k.BreedingProcess.MaleKoi,
+                k => k.BreedingProcess.FemaleKoi,
+                k => k.BreedingProcess.MaleKoi.Variety,
+                k => k.BreedingProcess.FemaleKoi.Variety,
+                k => k.BreedingProcess.MaleKoi.BreedingProcess,
+                k => k.BreedingProcess.FemaleKoi.BreedingProcess,
+                k => k.BreedingProcess.MaleKoi.BreedingProcess.MaleKoi,
+                k => k.BreedingProcess.MaleKoi.BreedingProcess.FemaleKoi,
+                k => k.BreedingProcess.MaleKoi.BreedingProcess.MaleKoi.Variety,
+                k => k.BreedingProcess.MaleKoi.BreedingProcess.FemaleKoi.Variety,
+                k => k.BreedingProcess.FemaleKoi.BreedingProcess.MaleKoi,
+                k => k.BreedingProcess.FemaleKoi.BreedingProcess.FemaleKoi,
+                k => k.BreedingProcess.FemaleKoi.BreedingProcess.MaleKoi.Variety,
+                k => k.BreedingProcess.FemaleKoi.BreedingProcess.FemaleKoi.Variety,
+            }
+            };
+
+            var koi = await _koiFishRepo.GetSingleAsync(options);
+
+            if (koi == null)
+                throw new Exception("Không tìm thấy cá Koi.");
+
+            if (koi.BreedingProcess == null)
+            {
+                return new KoiFishFamilyResponseDTO
+                {
+                    Id = koi.Id,
+                    RFID = koi.RFID,
+                    VarietyName = koi.Variety?.VarietyName,
+                    Gender = koi.Gender,
+                };
+
+            }
+            else {
+                var breeding = koi.BreedingProcess;
+
+
+                var response = new KoiFishFamilyResponseDTO
+                {
+                    Id = koi.Id,
+                    RFID = koi.RFID,
+                    VarietyName = koi.Variety?.VarietyName,
+                    Gender = koi.Gender,
+                    Father = breeding.MaleKoi != null ? new KoiParentDTO
+                    {
+                        Id = breeding.MaleKoi.Id,
+                        RFID = breeding.MaleKoi.RFID,
+                        VarietyName = breeding.MaleKoi.Variety?.VarietyName,
+                        Gender = breeding.MaleKoi.Gender,
+                        Father = breeding.MaleKoi.BreedingProcess?.MaleKoi != null
+                            ? _mapper.Map<KoiGrandParentDTO>(breeding.MaleKoi.BreedingProcess.MaleKoi)
+                            : null,
+                        Mother = breeding.MaleKoi.BreedingProcess?.FemaleKoi != null
+                            ? _mapper.Map<KoiGrandParentDTO>(breeding.MaleKoi.BreedingProcess.FemaleKoi)
+                            : null
+                    } : null,
+                    Mother = breeding.FemaleKoi != null ? new KoiParentDTO
+                    {
+                        Id = breeding.FemaleKoi.Id,
+                        RFID = breeding.FemaleKoi.RFID,
+                        VarietyName = breeding.FemaleKoi.Variety?.VarietyName,
+                        Gender = breeding.FemaleKoi.Gender,
+                        Father = breeding.FemaleKoi.BreedingProcess?.MaleKoi != null
+                            ? _mapper.Map<KoiGrandParentDTO>(breeding.FemaleKoi.BreedingProcess.MaleKoi)
+                            : null,
+                        Mother = breeding.FemaleKoi.BreedingProcess?.FemaleKoi != null
+                            ? _mapper.Map<KoiGrandParentDTO>(breeding.FemaleKoi.BreedingProcess.FemaleKoi)
+                            : null
+                    } : null
+                };
+
+                return response;
+            }
+        }
     }
 }

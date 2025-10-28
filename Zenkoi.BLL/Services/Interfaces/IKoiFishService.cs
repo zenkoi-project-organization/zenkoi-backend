@@ -16,5 +16,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<KoiFishResponseDTO> CreateAsync(KoiFishRequestDTO dto);
         Task<bool> UpdateAsync(int id, KoiFishRequestDTO dto);
         Task<bool> DeleteAsync(int id);
+        Task<KoiFishFamilyResponseDTO> GetFamilyTreeAsync(int koiId);
     }
 }

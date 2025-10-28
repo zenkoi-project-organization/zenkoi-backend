@@ -63,10 +63,10 @@ namespace Zenkoi.DAL.Configurations
 
             builder.Property(k => k.Description)
                 .HasMaxLength(1000);
+            builder.Property(k => k.ColorPattern)
+               .HasMaxLength(1000);
             builder.Property(k => k.Origin)
                 .HasMaxLength(1000);
-
-
 
             builder.Property(k => k.Images)
              .HasMaxLength(1000);

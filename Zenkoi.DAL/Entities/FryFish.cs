@@ -10,8 +10,7 @@ namespace Zenkoi.DAL.Entities
     public class FryFish
     {
         public int Id { get; set; }
-        public int BreedingProcessId { get; set; }
-        public int? PondId { get; set; }
+        public int BreedingProcessId { get; set; }    
 
         public int? InitialCount { get; set; }       // số lượng ban đầu 
         public FryFishStatus Status { get; set; }
@@ -21,7 +20,6 @@ namespace Zenkoi.DAL.Entities
         public DateTime? EndDate { get; set; }
         // Navigation
         public BreedingProcess BreedingProcess { get; set; }
-        public Pond? Pond { get; set; }
         public ICollection<FrySurvivalRecord> FrySurvivalRecords { get; set; }
     }
 }

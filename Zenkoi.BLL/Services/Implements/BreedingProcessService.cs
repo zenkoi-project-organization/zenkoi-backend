@@ -18,6 +18,10 @@ using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 using Zenkoi.DAL.Enums;
 using System.Data;
+using System.Linq.Expressions;
+using Zenkoi.BLL.DTOs.KoiFishDTOs;
+using Zenkoi.BLL.DTOs.AIBreedingDTOs;
+using Newtonsoft.Json;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -137,12 +141,7 @@ namespace Zenkoi.BLL.Services.Implements
         }
         private async Task<(int? sireId, int? damId)> GetParentsAsync(int koiId)
         {
-            // Lấy BreedingProcessId của con cá
-           // var fish = await _db.Set<KoiFish>()
-           //    .AsNoTracking()
-           //     .Select(f => new { f.Id, f.BreedingProcessId })
-           //    .FirstOrDefaultAsync(f => f.Id == koiId );
-
+            
             var _koifish = _unitOfWork.GetRepo<KoiFish>();
             var koifish = await _koifish.GetSingleAsync(new QueryOptions<KoiFish>
             {
@@ -151,11 +150,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (koifish == null || koifish.BreedingProcessId == null)
                 return (null, null); // founder hoặc chưa biết
-
-            //  var bp = await _db.Set<BreedingProcess>()
-            //      .AsNoTracking()
-            //      .Select(b => new { b.Id, b.MaleKoiId, b.FemaleKoiId })
-            //     .FirstOrDefaultAsync(b => b.Id == fish.BreedingProcessId.Value );'
 
 
             var bp = await _breedRepo.GetSingleAsync(new QueryOptions<BreedingProcess> 
@@ -196,7 +190,7 @@ namespace Zenkoi.BLL.Services.Implements
             pond.PondStatus = PondStatus.Active;
             var entity = _mapper.Map<BreedingProcess>(dto);
             entity.StartDate = DateTime.UtcNow;
-            entity.Status = BreedingStatus.Spawned;
+            entity.Status = BreedingStatus.Pairing;
             entity.Result = BreedingResult.Unknown;
                      
             entity.Code = await GenerateBreedingProcessCodeAsync();
@@ -360,12 +354,12 @@ namespace Zenkoi.BLL.Services.Implements
             // CurrentSurvivalRate (double?)
             if (filter.MinCurrentSurvivalRate.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.CurrentSurvivalRate >= filter.MinCurrentSurvivalRate.Value;
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.SurvivalRate >= filter.MinCurrentSurvivalRate.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
             if (filter.MaxCurrentSurvivalRate.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.CurrentSurvivalRate <= filter.MaxCurrentSurvivalRate.Value;
+                System.Linq.Expressions.Expression<System.Func<BreedingProcess, bool>> expr = b => b.SurvivalRate <= filter.MaxCurrentSurvivalRate.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
@@ -428,6 +422,150 @@ namespace Zenkoi.BLL.Services.Implements
             await _breedRepo.UpdateAsync(breed);
             return await _unitOfWork.SaveAsync();
         }
+
+        public async Task<BreedingResponseDTO> GetDetailBreedingById(int id)
+        {
+            var options = new QueryOptions<BreedingProcess>
+            {
+                Predicate = p => p.Id == id,
+                IncludeProperties = new List<Expression<Func<BreedingProcess, object>>>
+            {
+                    p => p.MaleKoi!.Variety,
+                    p => p.FemaleKoi!.Variety,
+                    p => p.Pond,
+                    p => p.Batch,                          
+                    p => p.Batch!.IncubationDailyRecords,  
+                    p => p.FryFish,                        
+                    p => p.FryFish!.FrySurvivalRecords,    
+                    p => p.ClassificationStage,           
+                    p => p.ClassificationStage!.ClassificationRecords,
+                }
+              };
+            var breed = await _breedRepo.GetSingleAsync(options);
+            return _mapper.Map<BreedingResponseDTO>(breed);
+        }
+
+        public async Task<KoiFishParentResponseDTO> GetKoiFishParentStatsAsync(int koiFishId)
+        {
+            var options = new QueryOptions<BreedingProcess>
+            {
+                Predicate = bp => bp.MaleKoiId == koiFishId || bp.FemaleKoiId == koiFishId,
+                Tracked = false
+            };
+
+            var breedings = await _breedRepo.GetAllAsync(options);
+
+            if (!breedings.Any())
+            {
+                return new KoiFishParentResponseDTO
+                {
+                    KoiFishId = koiFishId,
+                    ParticipationCount = 0,
+                    FailCount = 0
+                };
+            }
+
+            return new KoiFishParentResponseDTO
+            {
+                KoiFishId = koiFishId,
+                ParticipationCount = breedings.Count(),
+                FailCount = breedings.Count(b => b.Status == BreedingStatus.Failed),
+                FertilizationRate = breedings.Average(b => b.FertilizationRate ?? 0),
+                HatchRate = breedings.Average(b => b.HatchingRate ?? 0),
+                SurvivalRate = breedings.Average(b => b.SurvivalRate ?? 0),
+                HighQualifiedRate = breedings
+                .Where(b => (b.SurvivalRate ?? 0) > 0 && (b.HatchingRate ?? 0) > 0 && (b.TotalEggs ?? 0) > 0)
+                .Average(b =>
+                b.TotalFishQualified /
+                ((b.SurvivalRate ?? 0) * (b.HatchingRate ?? 0) * (b.TotalEggs ?? 1.0))
+            )
+            };
+        }
+
+        public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync()
+        {
+            var today = DateTime.Now;
+
+            // ✅ Tạo QueryOptions để lọc koi trong độ tuổi sinh sản
+            var options = new QueryOptions<KoiFish>
+            {
+                Predicate = k =>
+                    k.Gender != Gender.Other &&
+                    k.HealthStatus != HealthStatus.Weak &&
+                    k.BirthDate.HasValue &&
+                    EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 2 &&
+                    EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6,
+
+                IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+    {
+        k => k.Variety
+    },
+                Tracked = false
+            };
+
+            var koiRepo = _unitOfWork.GetRepo<KoiFish>();
+            var koiList = await koiRepo.GetAllAsync(options);
+
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(koiList,
+              new System.Text.Json.JsonSerializerOptions
+              {
+                  WriteIndented = true,
+                  ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+              }));
+
+            var result = new List<BreedingParentDTO>();
+            foreach (var k in koiList)
+            {
+                var perf = await GetKoiFishParentStatsAsync(k.Id);
+
+                var age = (today - k.BirthDate.Value).TotalDays / 365.25;
+
+                result.Add(new BreedingParentDTO
+                {
+                    Id = k.Id,
+                    RFID = k.RFID,
+                    Variety = k.Variety.VarietyName,
+                    Gender = k.Gender.ToString(),
+                    Size = k.Size.ToString(),
+                     image = k.Images[0],
+                    BodyShape = k.BodyShape,
+                    ColorPattern = k.ColorPattern,
+                    Health = k.HealthStatus.ToString(),
+                    Age = Math.Round(age, 1),
+                    BreedingHistory = new List<BreedingRecordDTO>
+            {
+                new BreedingRecordDTO
+                {
+                    FertilizationRate = perf.FertilizationRate,
+                    HatchRate = perf.HatchRate,
+                    SurvivalRate = perf.SurvivalRate,
+                    HighQualifiedRate = perf.HighQualifiedRate,
+                    ResultNote = $"Participations: {perf.ParticipationCount}, Failed: {perf.FailCount}"
+                }
+            }
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<bool> CancelBreeding(int id)
+        {
+            var breed = await _breedRepo.GetByIdAsync(id);
+            if (breed == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy quy trình sinh sản ");
+            }
+            if (breed.Status.Equals(BreedingStatus.Complete))
+            {
+                throw new Exception($"hiện tại quá trình sinh sản này đã hoàn thành nên không thể hủy được");
+            }
+            breed.Status = BreedingStatus.Failed;
+            await _breedRepo.UpdateAsync(breed);
+            return await _unitOfWork.SaveAsync();
+        }
     }
 }
+
+
 

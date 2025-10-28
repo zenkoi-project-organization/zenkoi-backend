@@ -4,8 +4,8 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
     {
         public string? Search { get; set; }
         public int? FryFishId { get; set; }
-        public int? MinDayNumber { get; set; }
-        public int? MaxDayNumber { get; set; }
+        public DateTime? MinDayNumber { get; set; }
+        public DateTime? MaxDayNumber { get; set; }
         public double? MinSurvivalRate { get; set; }
         public double? MaxSurvivalRate { get; set; }
         public int? MinCountAlive { get; set; }

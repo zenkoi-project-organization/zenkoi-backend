@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251023093606_UpdatePondForBreed")]
+    partial class UpdatePondForBreed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -277,6 +280,9 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<double?>("CurrentSurvivalRate")
+                        .HasColumnType("float");
+
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
@@ -284,9 +290,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<double?>("FertilizationRate")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("HatchingRate")
                         .HasColumnType("float");
 
                     b.Property<int>("MaleKoiId")
@@ -311,9 +314,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<double?>("SurvivalRate")
-                        .HasColumnType("float");
-
                     b.Property<int?>("TotalEggs")
                         .HasColumnType("int");
 
@@ -334,81 +334,6 @@ namespace Zenkoi.DAL.Migrations
                     b.HasIndex("PondId1");
 
                     b.ToTable("BreedingProcesses", "dbo");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.Cart", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("CreatedAt");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int")
-                        .HasColumnName("CustomerId");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("UpdatedAt");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId")
-                        .IsUnique();
-
-                    b.ToTable("Carts", "dbo");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.CartItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("AddedAt");
-
-                    b.Property<int>("CartId")
-                        .HasColumnType("int")
-                        .HasColumnName("CartId");
-
-                    b.Property<int?>("KoiFishId")
-                        .HasColumnType("int")
-                        .HasColumnName("KoiFishId");
-
-                    b.Property<int?>("PacketFishId")
-                        .HasColumnType("int")
-                        .HasColumnName("PacketFishId");
-
-                    b.Property<int>("Quantity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1)
-                        .HasColumnName("Quantity");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("UpdatedAt");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CartId");
-
-                    b.HasIndex("KoiFishId");
-
-                    b.HasIndex("PacketFishId");
-
-                    b.ToTable("CartItems", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.ClassificationRecord", b =>
@@ -551,9 +476,6 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<int>("BreedingProcessId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<double?>("FertilizationRate")
                         .HasColumnType("float");
@@ -811,10 +733,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int?>("BreedingProcessId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ColorPattern")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -847,12 +765,6 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("SaleStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("NotForSale");
 
                     b.Property<decimal?>("SellingPrice")
                         .HasColumnType("decimal(18,2)");
@@ -1162,9 +1074,6 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ActualOrderId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
@@ -1189,20 +1098,22 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("PaymentUrl")
-                        .HasMaxLength(2048)
-                        .HasColumnType("nvarchar(2048)");
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ResponseData")
-                        .HasColumnType("NVARCHAR(MAX)");
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Pending");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("TransactionId")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -1213,8 +1124,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ActualOrderId");
 
                     b.HasIndex("OrderId");
 
@@ -1905,42 +1814,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("Pond");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.Cart", b =>
-                {
-                    b.HasOne("Zenkoi.DAL.Entities.Customer", "Customer")
-                        .WithOne("Cart")
-                        .HasForeignKey("Zenkoi.DAL.Entities.Cart", "CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.CartItem", b =>
-                {
-                    b.HasOne("Zenkoi.DAL.Entities.Cart", "Cart")
-                        .WithMany("CartItems")
-                        .HasForeignKey("CartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Zenkoi.DAL.Entities.KoiFish", "KoiFish")
-                        .WithMany()
-                        .HasForeignKey("KoiFishId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Zenkoi.DAL.Entities.PacketFish", "PacketFish")
-                        .WithMany()
-                        .HasForeignKey("PacketFishId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Cart");
-
-                    b.Navigation("KoiFish");
-
-                    b.Navigation("PacketFish");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.ClassificationRecord", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.ClassificationStage", "ClassificationStage")
@@ -2160,18 +2033,11 @@ namespace Zenkoi.DAL.Migrations
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.PaymentTransaction", b =>
                 {
-                    b.HasOne("Zenkoi.DAL.Entities.Order", "ActualOrder")
-                        .WithMany()
-                        .HasForeignKey("ActualOrderId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ActualOrder");
 
                     b.Navigation("User");
                 });
@@ -2387,11 +2253,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("KoiFishes");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.Cart", b =>
-                {
-                    b.Navigation("CartItems");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.ClassificationStage", b =>
                 {
                     b.Navigation("ClassificationRecords");
@@ -2399,8 +2260,6 @@ namespace Zenkoi.DAL.Migrations
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.Customer", b =>
                 {
-                    b.Navigation("Cart");
-
                     b.Navigation("Orders");
                 });
 

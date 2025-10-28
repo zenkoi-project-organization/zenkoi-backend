@@ -79,5 +79,11 @@ namespace Zenkoi.API.Controllers
 
             return SaveSuccess($"Đã xóa cá koi thành công (ID = {id}).");
         }
+        [HttpGet("family/{id}")]
+        public async Task<IActionResult> GetFamilyTree(int id)
+        {
+            var result = await _koiFishService.GetFamilyTreeAsync(id);
+            return GetSuccess(result);
+        }
     }
 }

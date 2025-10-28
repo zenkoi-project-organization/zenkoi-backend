@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Zenkoi.DAL.Enums;
 
@@ -10,7 +11,6 @@ namespace Zenkoi.DAL.Entities
     public class KoiFish
     {
         public int Id { get; set; }
-
         public int PondId { get; set; }
         public int? BreedingProcessId { get; set; }
         public int VarietyId { get; set; }
@@ -25,9 +25,9 @@ namespace Zenkoi.DAL.Entities
         public List<string>? Videos { get; set; }
         public decimal? SellingPrice { get; set; }
         public string? BodyShape { get; set; }
+        public string? ColorPattern { get; set; }
         public string? Description { get; set; }
         public string? Origin { get; set; }
-
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 

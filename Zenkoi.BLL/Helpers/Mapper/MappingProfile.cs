@@ -60,9 +60,30 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<KoiFish, KoiFishResponseDTO>().ReverseMap();
             CreateMap<KoiFishRequestDTO, KoiFish>()
             .ForMember(dest => dest.Size, opt => opt.MapFrom(src => src.Size));
+            CreateMap<KoiFish, KoiGrandParentDTO>()
+           .ForMember(dest => dest.VarietyName, opt => opt.MapFrom(src => src.Variety.VarietyName));
             CreateMap<Pond, PondBasicDTO>();
             CreateMap<Variety, VarietyBasicDTO>();
             CreateMap<BreedingProcess, BreedingProcessResponseDTO>()
+            .ForMember(dest => dest.MaleKoiRFID,
+                opt => opt.MapFrom(src => src.MaleKoi != null ? src.MaleKoi.RFID : null))
+            .ForMember(dest => dest.FemaleKoiRFID,
+                opt => opt.MapFrom(src => src.FemaleKoi != null ? src.FemaleKoi.RFID : null))
+            .ForMember(dest => dest.PondName,
+                opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : null))
+            .ForMember(dest => dest.MaleKoiVariety, otp => otp.MapFrom(src => src.MaleKoi.Variety.VarietyName))
+            .ForMember(dest => dest.FemaleKoiVariety, otp => otp.MapFrom(src => src.FemaleKoi.Variety.VarietyName))
+            .ForMember(dest => dest.KoiFishes,
+                opt => opt.MapFrom(src => src.KoiFishes != null
+            ? src.KoiFishes.Select(k => new KoiFishResponseDTO
+            {
+                Id = k.Id,
+                RFID = k.RFID,
+                Gender = k.Gender,
+            }).ToList()
+            : new List<KoiFishResponseDTO>()));
+
+            CreateMap<BreedingProcess, BreedingResponseDTO>()
             .ForMember(dest => dest.MaleKoiRFID,
                 opt => opt.MapFrom(src => src.MaleKoi != null ? src.MaleKoi.RFID : null))
             .ForMember(dest => dest.FemaleKoiRFID,
@@ -85,8 +106,6 @@ namespace Zenkoi.BLL.Helpers.Mapper
 
             CreateMap<BreedingProcessRequestDTO, BreedingProcess>();
             CreateMap<EggBatch, EggBatchResponseDTO>()
-            .ForMember(dest => dest.PondName,
-                opt => opt.MapFrom(src => src.Pond.PondName))
             .ForMember(dest => dest.Status,
                 opt => opt.MapFrom(src => src.Status.ToString()));
             CreateMap<EggBatchRequestDTO, EggBatch>();

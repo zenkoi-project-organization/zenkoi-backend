@@ -56,18 +56,18 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new KeyNotFoundException("không tìm thấy quy trình sinh sản");
             }
-            if (breed.FryFish ==null ||!breed.FryFish.Status.Equals(FryFishStatus.Completed))
+            if (breed.FryFish ==null || !breed.FryFish.Status.Equals(FryFishStatus.Completed) && !breed.FryFish.Status.Equals(FryFishStatus.Growing) )
             {
                 throw new Exception("Quá trình nuôi cá bột chưa hoàn thành không thể tạo phân loại");
             }
             var _fryRepo = _unitOfWork.GetRepo<FryFish>();
             var fryFish = await _fryRepo.GetByIdAsync(breed.FryFish.Id);
-            var fryPond = await _pondRepo.GetByIdAsync(fryFish.PondId);
+            var fryPond = await _pondRepo.GetByIdAsync(breed.PondId);
 
             // chuyen ho
-            fryFish.PondId = null;
             fryPond.PondStatus = PondStatus.Empty;
             pond.PondStatus = PondStatus.Active;
+            fryFish.Status = FryFishStatus.Completed;
             breed.Status = BreedingStatus.Classification; 
 
             var classification = _mapper.Map<ClassificationStage>(dto);
@@ -96,10 +96,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var query = new QueryOptions<ClassificationStage>
             {
-                IncludeProperties = new List<Expression<Func<ClassificationStage, object>>>
-                {
-                    p => p.Pond
-                }
+  
             };
 
             System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>>? predicate = null;
@@ -115,7 +112,9 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (filter.PondId.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<ClassificationStage, bool>> expr = r => r.PondId == filter.PondId.Value;
+                Expression<Func<ClassificationStage, bool>> expr = e =>
+                    e.BreedingProcess != null &&
+                    e.BreedingProcess.PondId == filter.PondId.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
             if (filter.Status.HasValue)
@@ -156,10 +155,6 @@ namespace Zenkoi.BLL.Services.Implements
             var classifications = await _classRepo.GetSingleAsync(new QueryOptions<ClassificationStage>
             {
                 Predicate = e => e.Id == id,
-                IncludeProperties = new List<Expression<Func<ClassificationStage, object>>>
-                {
-                    p => p.Pond
-                }
             });
             if (classifications == null)
             {

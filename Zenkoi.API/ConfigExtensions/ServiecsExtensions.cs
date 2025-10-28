@@ -546,7 +546,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Status = BreedingStatus.FryFish,
                         Note = "Cá bột đã nở, bắt đầu cho ăn vi sinh.",
                         Result = BreedingResult.Unknown,
-                        CurrentSurvivalRate = 75.5,
+                        SurvivalRate = 75.5,
                         FertilizationRate = 88,
                         TotalEggs = 2500,
                         Code = "BP-004"
@@ -563,7 +563,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Result = BreedingResult.PartialSuccess,
                         TotalFishQualified = 500,
                         TotalPackage = 5,
-                        CurrentSurvivalRate = 68.3,
+                        SurvivalRate = 68.3,
                         FertilizationRate = 90,
                         TotalEggs = 3000,
                         Code = "BP-005"
@@ -581,7 +581,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Result = BreedingResult.Success,
                         TotalFishQualified = 1000,
                         TotalPackage = 20,
-                        CurrentSurvivalRate = 82.2,
+                        SurvivalRate = 82.2,
                         FertilizationRate = 92,
                         TotalEggs = 3500,
                         Code = "BP-006"
@@ -599,7 +599,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Result = BreedingResult.Failed,
                         TotalFishQualified = 0,
                         TotalPackage = 0,
-                        CurrentSurvivalRate = 0,
+                        SurvivalRate = 0,
                         FertilizationRate = 0,
                         TotalEggs = 500,
                         Code = "BP-007"
@@ -670,7 +670,6 @@ namespace Zenkoi.API.ConfigExtensions
                     new EggBatch
                     {
                         BreedingProcessId = 1,
-                        PondId = 1,
                         Quantity = 5000,
                         FertilizationRate = 0.85,
                         Status = EggBatchStatus.Success,
@@ -686,7 +685,7 @@ namespace Zenkoi.API.ConfigExtensions
                     new IncubationDailyRecord
                     {
                         EggBatchId = 1,
-                        DayNumber = 1,
+                        DayNumber = DateTime.Now,
                         HealthyEggs = 4800,
                         RottenEggs = 200,
                         HatchedEggs = 0
@@ -694,7 +693,7 @@ namespace Zenkoi.API.ConfigExtensions
                     new IncubationDailyRecord
                     {
                         EggBatchId = 1,
-                        DayNumber = 3,
+                        DayNumber = DateTime.Now ,
                         HealthyEggs = 4700,
                         RottenEggs = 300,
                         HatchedEggs = 0
@@ -708,7 +707,6 @@ namespace Zenkoi.API.ConfigExtensions
                     new FryFish
                     {
                         BreedingProcessId = 1,
-                        PondId = 1,
                         InitialCount = 4500,
                         Status = FryFishStatus.Growing,
                         CurrentSurvivalRate = 0.93
@@ -716,7 +714,6 @@ namespace Zenkoi.API.ConfigExtensions
                     new FryFish
                     {
                         BreedingProcessId = 2,
-                        PondId = 2,
                         InitialCount = 6200,
                         Status = FryFishStatus.Completed,
                         CurrentSurvivalRate = 0.89
@@ -730,14 +727,14 @@ namespace Zenkoi.API.ConfigExtensions
                     new FrySurvivalRecord
                     {
                         FryFishId = 1,
-                        DayNumber = 1,
+                        DayNumber = DateTime.Now,
                         SurvivalRate = 0.95,
                         CountAlive = 4275
                     },
                     new FrySurvivalRecord
                     {
                         FryFishId = 1,
-                        DayNumber = 3,
+                        DayNumber = DateTime.Now,
                         SurvivalRate = 0.93,
                         CountAlive = 4185
                     }

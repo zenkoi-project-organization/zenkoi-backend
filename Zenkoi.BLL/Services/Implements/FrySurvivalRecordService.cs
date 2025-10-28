@@ -55,7 +55,7 @@ namespace Zenkoi.BLL.Services.Implements
             else if(dto.Success == true) {
                 fryfish.Status = FryFishStatus.Completed;
                 fryfish.EndDate = DateTime.Now;
-                breed.CurrentSurvivalRate = ((double)dto.CountAlive / fryfish.InitialCount) * 100;
+                breed.SurvivalRate = ((double)dto.CountAlive / fryfish.InitialCount) * 100;
             }
             else
             {
@@ -64,34 +64,29 @@ namespace Zenkoi.BLL.Services.Implements
             var records = await getAllByFryfishId(dto.FryFishId);
             if (records.Any())
             {
-                var maxDay = records.Max(r => r.DayNumber);
-
-                if (records.Any(r => r.DayNumber == dto.DayNumber))
-                    throw new InvalidOperationException($"DayNumber {dto.DayNumber} đã tồn tại trong fryfish {dto.FryFishId}.");
-
-                if (dto.DayNumber <= maxDay)
-                    throw new InvalidOperationException($"DayNumber {dto.DayNumber} phải lớn hơn {maxDay}.");
+                var maxDate = records.Max(r => r.DayNumber);
             }
-                var previousRecord = records
-               .Where(r => r.DayNumber < dto.DayNumber)
-               .OrderByDescending(r => r.DayNumber)
-               .FirstOrDefault();
+
+            var previousRecord = records
+                .Where(r => r.DayNumber < DateTime.Now)
+                .OrderByDescending(r => r.DayNumber)
+                .FirstOrDefault();
 
             if (previousRecord != null)
             {
-                Console.WriteLine($"Ngày trước ({previousRecord.DayNumber}): CountAlive = {previousRecord.CountAlive}");
+
 
                 if (dto.CountAlive > previousRecord.CountAlive)
                 {
                     throw new InvalidOperationException(
-                        $"CountAlive ({dto.CountAlive}) không được lớn hơn ngày trước ({previousRecord.CountAlive})."
+                        $"số cá sống ({dto.CountAlive}) không được lớn hơn lần trước ({previousRecord.CountAlive})."
                     );
                 }
             }
 
 
 
-                var record = _mapper.Map<FrySurvivalRecord>(dto);
+            var record = _mapper.Map<FrySurvivalRecord>(dto);
             record.SurvivalRate = ((double)dto.CountAlive / fryfish.InitialCount) * 100;
             fryfish.CurrentSurvivalRate = record.SurvivalRate;
             await _fryfishRepo.UpdateAsync(fryfish);
@@ -139,12 +134,15 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (filter.MinDayNumber.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.DayNumber >= filter.MinDayNumber.Value;
+                Expression<Func<FrySurvivalRecord, bool>> expr =
+                    r => r.DayNumber >= filter.MinDayNumber.Value.Date;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+
             if (filter.MaxDayNumber.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<FrySurvivalRecord, bool>> expr = r => r.DayNumber <= filter.MaxDayNumber.Value;
+                Expression<Func<FrySurvivalRecord, bool>> expr =
+                    r => r.DayNumber <= filter.MaxDayNumber.Value.Date;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
             if (filter.MinSurvivalRate.HasValue)

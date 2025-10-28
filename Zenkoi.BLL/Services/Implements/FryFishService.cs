@@ -47,7 +47,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception("Quy trình sinh sản chưa có ấp trứng nên không thể tạo nuôi cá bột");
             }
-            if(!breeding.Batch.Status.Equals(EggBatchStatus.Success))
+            if(!breeding.Batch.Status.Equals(EggBatchStatus.Success) && !breeding.Batch.Status.Equals(EggBatchStatus.PartiallyHatched))
             {
                 throw new Exception("Ấp trứng chưa hoàn thành nên không thể tạo nuôi cá bột");
             }
@@ -67,12 +67,13 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new Exception("hiện tại hồ bạn chọn không trống");
             }
             var eggBatch = await _eggRepo.GetByIdAsync(breeding.Batch.Id);
-            var eggPond = await _pondRepo.GetByIdAsync(breeding.Batch.PondId);
-            
+            var eggPond = await _pondRepo.GetByIdAsync(breeding.PondId);
+
             // chuyển hồ
-            eggBatch.PondId = null;
-            pond.PondStatus = PondStatus.Active;
             eggPond.PondStatus = PondStatus.Empty;
+            breeding.PondId = dto.PondId;
+            breeding.Status = BreedingStatus.FryFish;
+            pond.PondStatus = PondStatus.Active;
             var fryFish = _mapper.Map<FryFish>(dto);
             fryFish.InitialCount = eggBatch.TotalHatchedEggs;
             fryFish.Status = FryFishStatus.Hatched;
@@ -102,16 +103,15 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var query = new QueryOptions<FryFish>
             {
-                IncludeProperties = new List<Expression<Func<FryFish, object>>>
-                {
-                    p => p.Pond
-                }
             };
 
             System.Linq.Expressions.Expression<System.Func<FryFish, bool>>? predicate = null;
             if (!string.IsNullOrEmpty(filter.Search))
             {
-                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => (e.Pond != null && e.Pond.PondName.Contains(filter.Search));
+                Expression<Func<FryFish, bool>> expr = e =>
+                    e.BreedingProcess != null &&
+                    e.BreedingProcess.Pond != null &&
+                    e.BreedingProcess.Pond.PondName.Contains(filter.Search);
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
             if (filter.BreedingProcessId.HasValue)
@@ -121,9 +121,12 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (filter.PondId.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.PondId == filter.PondId.Value;
+                Expression<Func<FryFish, bool>> expr = e =>
+                    e.BreedingProcess != null &&
+                    e.BreedingProcess.PondId == filter.PondId.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+
             if (filter.Status.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<FryFish, bool>> expr = e => e.Status == filter.Status.Value;
@@ -192,7 +195,7 @@ namespace Zenkoi.BLL.Services.Implements
                 Predicate = e => e.Id == id,
                 IncludeProperties = new List<Expression<Func<FryFish, object>>>
                 {
-                    p => p.Pond
+                    r => r.FrySurvivalRecords 
                 }
             });
             if (fryFish == null)
@@ -216,7 +219,60 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<FryFishResponseDTO>(fryFish);
         }
 
-        public async  Task<bool> UpdateAsync(int id, FryFishUpdateRequestDTO dto)
+        public async Task<FrySurvivalSummaryDTO> GetFrySurvivalSummaryAsync(int fryFishId)
+        {
+            var fryfishRepo = _unitOfWork.GetRepo<FryFish>();
+            var fryfish = await fryfishRepo.GetSingleAsync(new QueryOptions<FryFish>
+            {
+                Predicate = f => f.Id == fryFishId,
+                IncludeProperties = new List<Expression<Func<FryFish, object>>> { f => f.FrySurvivalRecords, f => f.BreedingProcess }
+            });
+
+            if (fryfish == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy cá");
+
+            var records = fryfish.FrySurvivalRecords.OrderBy(r => r.DayNumber).ToList();
+            if (!records.Any())
+                throw new InvalidOperationException("Chưa có ghi nhận cá bột");
+
+            DateTime start = fryfish.StartDate != default(DateTime)
+             ? fryfish.StartDate.Date
+             : records.First().DayNumber.Value.Date;
+
+            double? GetRateAtDay(int days)
+            {
+                var targetDate = start.AddDays(days);
+
+                if (targetDate > DateTime.Now)
+                    return null;
+
+                var record = records
+                    .Where(r => r.DayNumber <= targetDate)
+                    .OrderByDescending(r => r.DayNumber)
+                    .FirstOrDefault();
+
+                return record?.SurvivalRate;
+            }
+
+            var summary = new FrySurvivalSummaryDTO
+            {
+                BreedingProcessCode = fryfish.BreedingProcess.Code,
+                MaleKoi = fryfish.BreedingProcess.MaleKoiId,
+                FemaleKoi = fryfish.BreedingProcess.FemaleKoiId,
+                PondName = fryfish.BreedingProcess.Pond?.PondName,
+                StartDate = fryfish.StartDate,
+                InitialCount = fryfish.InitialCount ?? 0,
+                SurvivalRate7Days = GetRateAtDay(7),
+                SurvivalRate14Days = GetRateAtDay(14),
+                SurvivalRate30Days = GetRateAtDay(30),
+                CurrentRate = records.Last().SurvivalRate
+            };
+
+            return summary;
+        }
+    
+
+    public async  Task<bool> UpdateAsync(int id, FryFishUpdateRequestDTO dto)
         {
             var _pondRepo = _unitOfWork.GetRepo<Pond>();
             var pond = await _pondRepo.CheckExistAsync(dto.PondId);
