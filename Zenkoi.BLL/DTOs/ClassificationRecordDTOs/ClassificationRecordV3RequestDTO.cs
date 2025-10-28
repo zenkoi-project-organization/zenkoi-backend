@@ -6,16 +6,10 @@ using System.Threading.Tasks;
 
 namespace Zenkoi.BLL.DTOs.ClassificationRecordDTOs
 {
-    public class ClassificationRecordResponseDTO
+    public class ClassificationRecordV3RequestDTO
     {
-        public int Id { get; set; }
         public int ClassificationStageId { get; set; }
-
-        public string StageName { get; set; }
         public int? HighQualifiedCount { get; set; }
-        public int? ShowQualifiedCount { get; set; }
-        public int? PondQualifiedCount { get; set; }
-        public int? CullQualifiedCount { get; set; }
         public string Notes { get; set; }
     }
 }

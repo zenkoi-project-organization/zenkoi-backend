@@ -14,8 +14,10 @@ namespace Zenkoi.DAL.Entities
 
         public int StageNumber { get; set; } = 0;
         public int? HighQualifiedCount { get; set; }
-        public int? QualifiedCount { get; set; }
-        public int? UnqualifiedCount { get; set; }
+        public int? ShowQualifiedCount { get; set; }
+        public int? PondQualifiedCount { get; set; }
+        public int? CullQualifiedCount { get; set; }
+
         public string? Notes { get; set; }
         public DateTime CreateAt { get; set; } = DateTime.Now;
 
