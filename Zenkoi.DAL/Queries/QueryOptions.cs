@@ -8,7 +8,6 @@ namespace Zenkoi.DAL.Queries
 		public Func<IQueryable<T>, IOrderedQueryable<T>>? OrderBy { get; set; }
 		public bool Tracked { get; set; } = true;
 		public List<Expression<Func<T, object>>> IncludeProperties { get; set; } = new List<Expression<Func<T, object>>>();
-		public List<Expression<Func<object, object>>> ThenIncludeProperties { get; set; } = new List<Expression<Func<object, object>>>();
 
 	}
 }

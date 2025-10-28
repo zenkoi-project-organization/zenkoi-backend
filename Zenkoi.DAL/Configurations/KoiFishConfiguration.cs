@@ -48,6 +48,11 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasConversion<string>(); 
 
+            builder.Property(k => k.SaleStatus)
+                .IsRequired()
+                .HasConversion<string>()
+                .HasDefaultValue(SaleStatus.NotForSale);
+
             builder.Property(k => k.BirthDate);
 
             builder.Property(k => k.SellingPrice)

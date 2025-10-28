@@ -13,6 +13,7 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public DateTime? BirthDate { get; set; }
         public Gender Gender { get; set; }
         public HealthStatus HealthStatus { get; set; }
+        public SaleStatus SaleStatus { get; set; }
 
         public List<string>? Images { get; set; }
         public List<string>? Videos { get; set; }
