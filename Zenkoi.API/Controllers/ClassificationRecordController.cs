@@ -86,5 +86,12 @@ namespace Zenkoi.API.Controllers
             var deleted = await _recordService.DeleteAsync(id);
             return Success(deleted, "Xóa ghi nhận phân loại thành công.");
         }
+        [HttpGet("summary/{classificationStageId}")]
+        public async Task<IActionResult> GetSummary(int classificationStageId)
+        {
+
+            var summary = await _recordService.GetSummaryAsync(classificationStageId);
+            return Success(summary, "Lấy tổng kết phân loại thành công.");
+        }
     }
 }

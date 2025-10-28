@@ -23,7 +23,7 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IRepoBase<ClassificationRecord> _recordRepo;
-        public ClassificationRecordService(IUnitOfWork unitOfWork,IMapper mapper)
+        public ClassificationRecordService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -35,37 +35,49 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var _classRepo = _unitOfWork.GetRepo<ClassificationStage>();
             var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
-           
-            var classification = await _classRepo.GetByIdAsync(dto.ClassificationStageId);
-            if(classification == null)
-            {
-                throw new KeyNotFoundException("không tìm thấy bầy phân loại");
-            }
-            var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
-            if (classification.Status.Equals(ClassificationStatus.Success)){
-                throw new Exception("Phân loại đã hoàn thành không thể tạo thêm ghi nhận nữa");
-            }
 
-            var hasAnyRecord = await _recordRepo.AnyAsync(new QueryOptions<ClassificationRecord>
-            {
-                Predicate = r => r.ClassificationStageId == dto.ClassificationStageId
-            });
+            var classification = await _classRepo.GetByIdAsync(dto.ClassificationStageId);
+            if (classification == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy phân loại");
+
+            var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
+            if (classification.Status == ClassificationStatus.Success)
+                throw new Exception("Phân loại đã hoàn tất, không thể tạo thêm ghi nhận mới");
 
             var record = _mapper.Map<ClassificationRecord>(dto);
 
-            if (!hasAnyRecord)
+            var existingRecords = await _recordRepo.GetAllAsync(new QueryOptions<ClassificationRecord>
             {
-                // 🟢 Đây là lần đầu tiên
+                Predicate = r => r.ClassificationStageId == dto.ClassificationStageId,
+                OrderBy = q => q.OrderBy(r => r.StageNumber),
+                Tracked = false
+            });
+
+            // ✅ Validate cơ bản
+            if (dto.CullQualifiedCount < 0)
+                throw new Exception("Số cá loại bỏ không hợp lệ.");
+
+            if (!existingRecords.Any())
+            {
+                if (dto.CullQualifiedCount >= classification.TotalCount)
+                    throw new Exception("Số cá loại bỏ vượt quá tổng số cá ban đầu.");
+
                 record.StageNumber = 1;
                 record.PondQualifiedCount = classification.TotalCount - dto.CullQualifiedCount;
+
                 classification.Status = (ClassificationStatus)record.StageNumber;
                 classification.PondQualifiedCount = record.PondQualifiedCount;
-
             }
             else
             {
-                record.StageNumber = (int)classification.Status + 1;
-                record.PondQualifiedCount = classification.TotalCount - dto.CullQualifiedCount;
+                var lastRecord = existingRecords.Last();
+
+                if (dto.CullQualifiedCount > lastRecord.PondQualifiedCount)
+                    throw new Exception("Số cá loại bỏ vượt quá số cá hiện có trong hồ.");
+
+                record.StageNumber = lastRecord.StageNumber + 1;
+                record.PondQualifiedCount = lastRecord.PondQualifiedCount - dto.CullQualifiedCount;
+
                 classification.Status = (ClassificationStatus)record.StageNumber;
                 classification.PondQualifiedCount = record.PondQualifiedCount;
             }
@@ -76,17 +88,18 @@ namespace Zenkoi.BLL.Services.Implements
                 breed.Status = BreedingStatus.Complete;
                 breed.EndDate = DateTime.Now;
             }
-            if(record.StageNumber == 5)
-            {
-                throw new Exception("bạn đã hoàn thành quy trình phân ");
-            }
+
+            if (record.StageNumber > 4)
+                throw new Exception("Bạn đã hoàn thành quy trình phân loại.");
 
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
             await _breedRepo.UpdateAsync(breed);
             await _unitOfWork.SaveChangesAsync();
+
             return _mapper.Map<ClassificationRecordResponseDTO>(record);
         }
+
         // phân loại lần 3
         public async Task<ClassificationRecordResponseDTO> CreateV2Async(ClassificationRecordV2RequestDTO dto)
         {
@@ -95,38 +108,42 @@ namespace Zenkoi.BLL.Services.Implements
 
             var classification = await _classRepo.GetByIdAsync(dto.ClassificationStageId);
             if (classification == null)
-            {
-                throw new KeyNotFoundException("không tìm thấy bầy phân loại");
-            }
+                throw new KeyNotFoundException("Không tìm thấy bầy phân loại");
+
             var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
-            if (classification.Status.Equals(ClassificationStatus.Success))
-            {
-                throw new Exception("Phân loại đã hoàn thành không thể tạo thêm ghi nhận nữa");
-            }
+            if (classification.Status == ClassificationStatus.Success)
+                throw new Exception("Phân loại đã hoàn tất, không thể tạo thêm ghi nhận mới");
 
             var record = _mapper.Map<ClassificationRecord>(dto);
-            record.PondQualifiedCount = classification.PondQualifiedCount - dto.ShowQualifiedCount;
-            record.StageNumber += (int)classification.Status + 1;
-            classification.Status = (ClassificationStatus)record.StageNumber;
-            classification.ShowQualifiedCount = record.ShowQualifiedCount;
 
+            // ✅ Validate dữ liệu nhập
+            if (dto.HighQualifiedCount < 0)
+                throw new Exception("Số cá High không hợp lệ.");
+
+            if (dto.HighQualifiedCount > classification.PondQualifiedCount)
+                throw new Exception("Số cá High vượt quá số cá hiện có trong hồ.");
+
+            record.PondQualifiedCount = classification.PondQualifiedCount - dto.HighQualifiedCount;
+            record.StageNumber = (int)classification.Status + 1;
+
+            classification.Status = (ClassificationStatus)record.StageNumber;
+            classification.HighQualifiedCount = record.HighQualifiedCount;
+            classification.PondQualifiedCount = record.PondQualifiedCount;
+            
             if (record.StageNumber == 4)
             {
                 classification.Status = ClassificationStatus.Success;
                 breed.Status = BreedingStatus.Complete;
                 breed.EndDate = DateTime.Now;
             }
-            if (record.StageNumber == 5)
-            {
-                throw new Exception("bạn đã hoàn thành quy trình phân ");
-            }
 
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
             await _breedRepo.UpdateAsync(breed);
             await _unitOfWork.SaveChangesAsync();
+
             return _mapper.Map<ClassificationRecordResponseDTO>(record);
-        } 
+        }
         // phân loại lần cuối
         public async Task<ClassificationRecordResponseDTO> CreateV3Async(ClassificationRecordV3RequestDTO dto)
         {
@@ -135,36 +152,39 @@ namespace Zenkoi.BLL.Services.Implements
 
             var classification = await _classRepo.GetByIdAsync(dto.ClassificationStageId);
             if (classification == null)
-            {
-                throw new KeyNotFoundException("không tìm thấy bầy phân loại");
-            }
+                throw new KeyNotFoundException("Không tìm thấy bầy phân loại");
+
             var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
-            if (classification.Status.Equals(ClassificationStatus.Success))
-            {
-                throw new Exception("Phân loại đã hoàn thành không thể tạo thêm ghi nhận nữa");
-            }
+            if (classification.Status == ClassificationStatus.Success)
+                throw new Exception("Phân loại đã hoàn tất, không thể tạo thêm ghi nhận mới");
 
             var record = _mapper.Map<ClassificationRecord>(dto);
-            record.ShowQualifiedCount = classification.ShowQualifiedCount - dto.HighQualifiedCount;
-            record.StageNumber += (int)classification.Status + 1;
+
+            // ✅ Validate dữ liệu nhập
+            if (dto.ShowQualifiedCount < 0)
+                throw new Exception("Số cá Show không hợp lệ.");
+
+            if (dto.ShowQualifiedCount > classification.HighQualifiedCount)
+                throw new Exception("Số cá Show vượt quá số cá High hiện có.");
+
+            record.HighQualifiedCount = classification.HighQualifiedCount - dto.ShowQualifiedCount;
+            record.StageNumber = (int)classification.Status + 1;
+
             classification.Status = (ClassificationStatus)record.StageNumber;
-            classification.ShowQualifiedCount = record.ShowQualifiedCount;
+            classification.ShowQualifiedCount = dto.ShowQualifiedCount;
             classification.HighQualifiedCount = record.HighQualifiedCount;
+
+            // ✅ Hoàn tất quy trình
             classification.Status = ClassificationStatus.Success;
             breed.Status = BreedingStatus.Complete;
             breed.EndDate = DateTime.Now;
-            
-            if (record.StageNumber == 5)
-            {
-                throw new Exception("bạn đã hoàn thành quy trình phân ");
-            }
 
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
             await _breedRepo.UpdateAsync(breed);
             await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<ClassificationRecordResponseDTO>(record);
 
+            return _mapper.Map<ClassificationRecordResponseDTO>(record);
         }
         public async Task<bool> DeleteAsync(int id)
         {
@@ -209,36 +229,36 @@ namespace Zenkoi.BLL.Services.Implements
                 System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.StageNumber <= filter.MaxStageNumber.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
-           /* if (filter.MinHighQualifiedCount.HasValue)
-            {
-                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.HighQualifiedCount >= filter.MinHighQualifiedCount.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
-            if (filter.MaxHighQualifiedCount.HasValue)
-            {
-                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.HighQualifiedCount <= filter.MaxHighQualifiedCount.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
-            if (filter.MinQualifiedCount.HasValue)
-            {
-                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.QualifiedCount >= filter.MinQualifiedCount.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
-            if (filter.MaxQualifiedCount.HasValue)
-            {
-                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.QualifiedCount <= filter.MaxQualifiedCount.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
-            if (filter.MinUnqualifiedCount.HasValue)
-            {
-                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.UnqualifiedCount >= filter.MinUnqualifiedCount.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
-            if (filter.MaxUnqualifiedCount.HasValue)
-            {
-                System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.UnqualifiedCount <= filter.MaxUnqualifiedCount.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }*/
+            /* if (filter.MinHighQualifiedCount.HasValue)
+             {
+                 System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.HighQualifiedCount >= filter.MinHighQualifiedCount.Value;
+                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
+             }
+             if (filter.MaxHighQualifiedCount.HasValue)
+             {
+                 System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.HighQualifiedCount <= filter.MaxHighQualifiedCount.Value;
+                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
+             }
+             if (filter.MinQualifiedCount.HasValue)
+             {
+                 System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.QualifiedCount >= filter.MinQualifiedCount.Value;
+                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
+             }
+             if (filter.MaxQualifiedCount.HasValue)
+             {
+                 System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.QualifiedCount <= filter.MaxQualifiedCount.Value;
+                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
+             }
+             if (filter.MinUnqualifiedCount.HasValue)
+             {
+                 System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.UnqualifiedCount >= filter.MinUnqualifiedCount.Value;
+                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
+             }
+             if (filter.MaxUnqualifiedCount.HasValue)
+             {
+                 System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.UnqualifiedCount <= filter.MaxUnqualifiedCount.Value;
+                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
+             }*/
             if (filter.CreatedFrom.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<ClassificationRecord, bool>> expr = r => r.CreateAt >= filter.CreatedFrom.Value;
@@ -281,6 +301,79 @@ namespace Zenkoi.BLL.Services.Implements
             }
             return _mapper.Map<ClassificationRecordResponseDTO?>(record);
         }
+
+        public async Task<ClassificationSummaryDTO> GetSummaryAsync(int classificationStageId)
+        {
+            var _classRepo = _unitOfWork.GetRepo<ClassificationStage>();
+            var _recordRepo = _unitOfWork.GetRepo<ClassificationRecord>();
+
+
+            var classification = await _classRepo.GetByIdAsync(classificationStageId);
+            if (classification == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy phân loại");
+
+            var records = await _recordRepo.GetAllAsync(new QueryOptions<ClassificationRecord>
+            {
+                Predicate = r => r.ClassificationStageId == classificationStageId,
+                OrderBy = q => q.OrderBy(r => r.StageNumber),
+                Tracked = false
+            });
+
+            if (!records.Any())
+                throw new InvalidOperationException("Chưa có ghi nhận phân loại nào");
+
+            var stage1 = records.FirstOrDefault(r => r.StageNumber == 1);
+            var stage2 = records.FirstOrDefault(r => r.StageNumber == 2);
+            var stage3 = records.FirstOrDefault(r => r.StageNumber == 3);
+            var stage4 = records.FirstOrDefault(r => r.StageNumber == 4);
+
+            int cull = 0, pond = classification.TotalCount, high = 0, show = 0;
+
+            if (stage1 != null)
+            {
+                int cull1 = stage1.CullQualifiedCount ?? 0;
+                cull += cull1;
+                pond -= cull1;
+            }
+
+
+            if (stage2 != null)
+            {
+                int cull2 = stage2.CullQualifiedCount ?? 0;
+                cull += cull2;
+                pond -= cull2;
+
+
+                if (stage3 != null)
+                {
+                    int high3 = stage3.HighQualifiedCount ?? 0;
+                    high = high3;
+                    pond -= high3;
+                }
+
+                if (stage4 != null)
+                {
+                    int show4 = stage4.ShowQualifiedCount ?? 0;
+                    show = show4;
+
+
+                    high = (stage3?.HighQualifiedCount ?? high) - show4;
+                }
+
+                var currentStage = records.Max(r => r.StageNumber);
+                bool isCompleted = currentStage >= 4;
+            }
+            return new ClassificationSummaryDTO
+            {
+                ClassificationStageId = classificationStageId,
+                TotalCullQualified = cull,
+                TotalPondQualified = pond,
+                TotalHighQualified = high,
+                TotalShowQualified = show,
+                CurrentFish = pond + high + show,
+            };
+        }
+    
 
         public async Task<bool> UpdateAsync(int id, ClassificationRecordUpdateRequestDTO dto)
         {

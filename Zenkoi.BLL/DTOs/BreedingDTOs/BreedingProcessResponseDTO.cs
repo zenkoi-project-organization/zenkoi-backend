@@ -29,7 +29,7 @@ namespace Zenkoi.BLL.DTOs.BreedingDTOs
         public DateTime? EndDate { get; set; }
         public int? TotalEggs { get; set; }
         public double? FertilizationRate { get; set; }
-        public double? CurrentSurvivalRate { get; set; }
+        public double? SurvivalRate { get; set; }
 
         public BreedingStatus Status { get; set; }
         public BreedingResult Result { get; set; }

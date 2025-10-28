@@ -11,7 +11,7 @@ namespace Zenkoi.DAL.Entities
     {
         public int Id { get; set; }
         public int BreedingProcessId { get; set; }
-        public int? TotalCount { get; set; }
+        public int TotalCount { get; set; }
         public ClassificationStatus Status { get; set; }
         public int? HighQualifiedCount { get; set; }
         public int? ShowQualifiedCount { get; set; }
