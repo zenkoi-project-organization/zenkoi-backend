@@ -52,6 +52,8 @@ namespace Zenkoi.DAL.EF
         public DbSet<WorkSchedule> WorkSchedules { get; set; }
  
 		public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
 		#endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -87,6 +89,9 @@ namespace Zenkoi.DAL.EF
             modelBuilder.ApplyConfiguration(new WaterParameterRecordConfiguration());
             modelBuilder.ApplyConfiguration(new WaterParameterThresholdConfiguration());
             modelBuilder.ApplyConfiguration(new WorkScheduleConfiguration());
+            modelBuilder.ApplyConfiguration(new CartConfiguration());
+            modelBuilder.ApplyConfiguration(new CartItemConfiguration());
+            modelBuilder.ApplyConfiguration(new PaymentConfiguration());
             modelBuilder.Entity<IdentityUserLogin<int>>(entity =>
 			{
 				entity.ToTable("UserLogin");

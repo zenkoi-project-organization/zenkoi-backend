@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-          //   await TruncateAllTablesExceptMigrationHistory(context);
+            //    await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -111,6 +111,60 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.SaveChangesAsync();
             }
             #endregion
+
+            #region Seeding Customer Users
+            if (!context.Users.Any(x => x.Role == Role.Customer))
+            {
+                // Pass: Customer@123
+                var customer1 = new ApplicationUser 
+                { 
+                    FullName = "Nguyễn Văn An", 
+                    Role = Role.Customer, 
+                    UserName = "customer1", 
+                    NormalizedUserName = "CUSTOMER1", 
+                    Email = "customer1@email.com", 
+                    NormalizedEmail = "CUSTOMER1@EMAIL.COM", 
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==", 
+                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP", 
+                    ConcurrencyStamp = Guid.NewGuid().ToString(), 
+                    PhoneNumber = "0987654321", 
+                    LockoutEnabled = true 
+                };
+                
+                var customer2 = new ApplicationUser 
+                { 
+                    FullName = "Trần Thị Bình", 
+                    Role = Role.Customer, 
+                    UserName = "customer2", 
+                    NormalizedUserName = "CUSTOMER2", 
+                    Email = "customer2@email.com", 
+                    NormalizedEmail = "CUSTOMER2@EMAIL.COM", 
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==", 
+                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP", 
+                    ConcurrencyStamp = Guid.NewGuid().ToString(), 
+                    PhoneNumber = "0912345678", 
+                    LockoutEnabled = true 
+                };
+
+                var customer3 = new ApplicationUser 
+                { 
+                    FullName = "Lê Văn Cường", 
+                    Role = Role.Customer, 
+                    UserName = "customer3", 
+                    NormalizedUserName = "CUSTOMER3", 
+                    Email = "customer3@email.com", 
+                    NormalizedEmail = "CUSTOMER3@EMAIL.COM", 
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==", 
+                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP", 
+                    ConcurrencyStamp = Guid.NewGuid().ToString(), 
+                    PhoneNumber = "0901234567", 
+                    LockoutEnabled = true 
+                };
+
+                await context.Users.AddRangeAsync(customer1, customer2, customer3);
+                await context.SaveChangesAsync();
+            }
+            #endregion
             #region Seeding Data
             if (!context.UserDetail.Any())
             {
@@ -133,6 +187,18 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.UserRoles.AddAsync(
                     // Manager
                     new IdentityUserRole<int> { UserId = 1, RoleId = 1 }
+                );
+                await context.SaveChangesAsync();
+            }
+
+            // Add Customer role to customer users
+            if (!context.UserRoles.Any(x => x.UserId >= 2 && x.UserId <= 4 && x.RoleId == 4))
+            {
+                await context.UserRoles.AddRangeAsync(
+                    // Customer role (RoleId = 4 for "Customer")
+                    new IdentityUserRole<int> { UserId = 2, RoleId = 4 },
+                    new IdentityUserRole<int> { UserId = 3, RoleId = 4 },
+                    new IdentityUserRole<int> { UserId = 4, RoleId = 4 }
                 );
                 await context.SaveChangesAsync();
             }
@@ -338,7 +404,8 @@ namespace Zenkoi.API.ConfigExtensions
                        BodyShape = "Thân dày, Đầu to",
                        Description = "Kohaku chất lượng cao, có Hi rõ nét, triển vọng thi đấu.",
                        Gender = Gender.Male,
-                       HealthStatus = HealthStatus.Healthy, 
+                       HealthStatus = HealthStatus.Healthy,
+                       SaleStatus = SaleStatus.Available,
                        Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                        PondId = 2,
                        RFID = "123",
@@ -356,7 +423,8 @@ namespace Zenkoi.API.ConfigExtensions
                         BodyShape = "Thân thon, Lưng cong đẹp",
                         Description = "Sanke cái đang phát triển, Sumi đẹp và cân đối.",
                         Gender = Gender.Female,
-                        HealthStatus = HealthStatus.Healthy, 
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 3,
                         RFID = "132",
@@ -374,6 +442,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Description = "Cá mới nhập khẩu, đang theo dõi vì vết xước nhỏ ở vây.",
                         Gender = Gender.Female,
                         HealthStatus = HealthStatus.Warning,
+                        SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 4,
                         RFID = "213",
@@ -390,7 +459,8 @@ namespace Zenkoi.API.ConfigExtensions
                         BodyShape = "Thân dài, Dáng chuẩn",
                         Description = "Ogon ánh kim rực rỡ, kích thước lớn, cá bố mẹ tiềm năng.",
                         Gender = Gender.Male,
-                        HealthStatus = HealthStatus.Healthy, 
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 5,
                         RFID = "321",
@@ -407,7 +477,8 @@ namespace Zenkoi.API.ConfigExtensions
                         BodyShape = "Thân nhỏ, Vảy đều",
                         Description = "Asagi Tosai (cá non) có màu xanh sáng đẹp, đang nuôi dưỡng.",
                         Gender = Gender.Male,
-                        HealthStatus = HealthStatus.Healthy, 
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 1,
                         RFID = "231",
@@ -701,6 +772,296 @@ namespace Zenkoi.API.ConfigExtensions
                     );
                 await context.SaveChangesAsync();
             }
+
+            if (!context.Customers.Any())
+            {
+                await context.Customers.AddRangeAsync(
+                    new Customer
+                    {
+                        ApplicationUserId = 2, // customer1
+                        ShippingAddress = "123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
+                        ContactNumber = "0987654321",
+                        TotalOrders = 2,
+                        TotalSpent = 15000000,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Customer
+                    {
+                        ApplicationUserId = 3, // customer2
+                        ShippingAddress = "456 Đường Nguyễn Huệ, Phường Đa Kao, Quận 1, TP.HCM",
+                        ContactNumber = "0912345678",
+                        TotalOrders = 1,
+                        TotalSpent = 12000000,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Customer
+                    {
+                        ApplicationUserId = 4, // customer3
+                        ShippingAddress = "789 Đường Hai Bà Trưng, Phường Đa Kao, Quận 1, TP.HCM",
+                        ContactNumber = "0901234567",
+                        TotalOrders = 0,
+                        TotalSpent = 0,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.PacketFishes.Any())
+            {
+                await context.PacketFishes.AddRangeAsync(
+                    new PacketFish
+                    {
+                        Name = "Gói Kohaku Premium",
+                        Description = "Bộ sưu tập cá Kohaku chất lượng cao, kích thước từ 21-25cm",
+                        Quantity = 50,
+                        TotalPrice = 5000000,
+                        Size = FishSize.From21To25cm,
+                        AgeMonths = 6,
+                        Images = "[\"https://example.com/koi1.jpg\", \"https://example.com/koi2.jpg\"]",
+                        Video = "https://example.com/koi-video.mp4",
+                        IsAvailable = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new PacketFish
+                    {
+                        Name = "Gói Sanke Show Grade",
+                        Description = "Cá Sanke show grade, màu sắc rực rỡ, kích thước từ 26-30cm",
+                        Quantity = 30,
+                        TotalPrice = 8000000,
+                        Size = FishSize.From26To30cm,
+                        AgeMonths = 8,
+                        Images = "[\"https://example.com/sanke1.jpg\"]",
+                        Video = "https://example.com/sanke-video.mp4",
+                        IsAvailable = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new PacketFish
+                    {
+                        Name = "Gói Showa Bán Thương Phẩm",
+                        Description = "Cá Showa dạng bán thương phẩm, kích thước từ 31-40cm",
+                        Quantity = 20,
+                        TotalPrice = 12000000,
+                        Size = FishSize.From31To40cm,
+                        AgeMonths = 12,
+                        Images = "[\"https://example.com/showa1.jpg\"]",
+                        Video = null,
+                        IsAvailable = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new PacketFish
+                    {
+                        Name = "Gói Ogon Tosai",
+                        Description = "Cá Ogon còn nhỏ (tosai), kích thước từ 10-20cm",
+                        Quantity = 100,
+                        TotalPrice = 3000000,
+                        Size = FishSize.From10To20cm,
+                        AgeMonths = 3,
+                        Images = "[\"https://example.com/ogon1.jpg\"]",
+                        Video = null,
+                        IsAvailable = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new PacketFish
+                    {
+                        Name = "Gói Asagi Jumbo",
+                        Description = "Cá Asagi kích thước lớn, từ 41-45cm",
+                        Quantity = 15,
+                        TotalPrice = 10000000,
+                        Size = FishSize.From41To45cm,
+                        AgeMonths = 18,
+                        Images = "[\"https://example.com/asagi1.jpg\"]",
+                        Video = null,
+                        IsAvailable = true,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+            // Seeding Orders
+            if (!context.Orders.Any())
+            {
+                await context.Orders.AddRangeAsync(
+                    new Order
+                    {
+                        CustomerId = 1,
+                        CreatedAt = DateTime.UtcNow.AddDays(-5),
+                        Status = OrderStatus.Delivered,
+                        Subtotal = 8000000,
+                        ShippingFee = 100000,
+                        DiscountAmount = 0,
+                        TotalAmount = 8100000
+                    },
+                    new Order
+                    {
+                        CustomerId = 1,
+                        CreatedAt = DateTime.UtcNow.AddDays(-10),
+                        Status = OrderStatus.Completed,
+                        Subtotal = 7000000,
+                        ShippingFee = 150000,
+                        DiscountAmount = 500000,
+                        TotalAmount = 6650000
+                    },
+                    new Order
+                    {
+                        CustomerId = 2,
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        Status = OrderStatus.Shipped,
+                        Subtotal = 12000000,
+                        ShippingFee = 200000,
+                        DiscountAmount = 0,
+                        TotalAmount = 12200000
+                    },
+                    new Order
+                    {
+                        CustomerId = 1,
+                        CreatedAt = DateTime.UtcNow.AddHours(-5),
+                        Status = OrderStatus.Confirmed,
+                        Subtotal = 5000000,
+                        ShippingFee = 100000,
+                        DiscountAmount = 0,
+                        TotalAmount = 5100000
+                    },
+                    new Order
+                    {
+                        CustomerId = 2,
+                        CreatedAt = DateTime.UtcNow.AddHours(-1),
+                        Status = OrderStatus.Created,
+                        Subtotal = 3000000,
+                        ShippingFee = 50000,
+                        DiscountAmount = 0,
+                        TotalAmount = 3050000
+                    },
+                    new Order
+                    {
+                        CustomerId = 1,
+                        CreatedAt = DateTime.UtcNow.AddDays(-7),
+                        Status = OrderStatus.Cancelled,
+                        Subtotal = 8000000,
+                        ShippingFee = 100000,
+                        DiscountAmount = 0,
+                        TotalAmount = 8100000
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+
+            // Seeding OrderDetails
+            if (!context.OrderDetails.Any())
+            {
+                await context.OrderDetails.AddRangeAsync(
+                    // Chi tiết cho Order 1
+                    new OrderDetail { OrderId = 1, PacketFishId = 1, Quantity = 10, UnitPrice = 5000000, TotalPrice = 5000000 },
+                    new OrderDetail { OrderId = 1, PacketFishId = 1, Quantity = 10, UnitPrice = 5000000, TotalPrice = 5000000 },
+                    new OrderDetail { OrderId = 1, PacketFishId = 2, Quantity = 5, UnitPrice = 8000000, TotalPrice = 3000000 },
+
+                    // Chi tiết cho Order 2
+                    new OrderDetail { OrderId = 2, PacketFishId = 4, Quantity = 20, UnitPrice = 3000000, TotalPrice = 6000000 },
+                    new OrderDetail { OrderId = 2, PacketFishId = 5, Quantity = 2, UnitPrice = 10000000, TotalPrice = 1000000 },
+
+                    // Chi tiết cho Order 3
+                    new OrderDetail { OrderId = 3, PacketFishId = 3, Quantity = 5, UnitPrice = 12000000, TotalPrice = 6000000 },
+                    new OrderDetail { OrderId = 3, PacketFishId = 5, Quantity = 5, UnitPrice = 10000000, TotalPrice = 6000000 },
+
+                    // Chi tiết cho Order 4
+                    new OrderDetail { OrderId = 4, PacketFishId = 1, Quantity = 10, UnitPrice = 5000000, TotalPrice = 5000000 },
+
+                    // Chi tiết cho Order 5
+                    new OrderDetail { OrderId = 5, PacketFishId = 4, Quantity = 10, UnitPrice = 3000000, TotalPrice = 3000000 },
+
+                    // Chi tiết cho Order 6
+                    new OrderDetail { OrderId = 6, PacketFishId = 2, Quantity = 5, UnitPrice = 8000000, TotalPrice = 8000000 }
+                );
+
+                await context.SaveChangesAsync();
+            }
+
+            // Seeding Carts
+            if (!context.Carts.Any())
+            {
+                await context.Carts.AddRangeAsync(
+                    new Cart
+                    {
+                        CustomerId = 1,
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-1)
+                    },
+                    new Cart
+                    {
+                        CustomerId = 2,
+                        CreatedAt = DateTime.UtcNow.AddHours(-5),
+                        UpdatedAt = DateTime.UtcNow.AddHours(-2)
+                    },
+                    new Cart
+                    {
+                        CustomerId = 3,
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        UpdatedAt = DateTime.UtcNow.AddHours(-6)
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+
+            // Seeding CartItems
+            if (!context.CartItems.Any())
+            {
+                await context.CartItems.AddRangeAsync(                
+                    new CartItem
+                    {
+                        CartId = 1,
+                        KoiFishId = 1,
+                        Quantity = 1,
+                        AddedAt = DateTime.UtcNow.AddDays(-2),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-1)
+                    },
+                    new CartItem
+                    {
+                        CartId = 1,
+                        PacketFishId = 1,
+                        Quantity = 3,
+                        AddedAt = DateTime.UtcNow.AddDays(-2),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-1)
+                    },
+                    new CartItem
+                    {
+                        CartId = 2,
+                        KoiFishId = 2,
+                        Quantity = 2,
+                        AddedAt = DateTime.UtcNow.AddHours(-5),
+                        UpdatedAt = DateTime.UtcNow.AddHours(-5)
+                    },
+                    new CartItem
+                    {
+                        CartId = 2,
+                        PacketFishId = 2,
+                        Quantity = 1,
+                        AddedAt = DateTime.UtcNow.AddHours(-5),
+                        UpdatedAt = DateTime.UtcNow.AddHours(-5)
+                    },
+                    new CartItem
+                    {
+                        CartId = 2,
+                        PacketFishId = 4,
+                        Quantity = 5,
+                        AddedAt = DateTime.UtcNow.AddHours(-5),
+                        UpdatedAt = DateTime.UtcNow.AddHours(-5)
+                    },
+                    new CartItem
+                    {
+                        CartId = 3,
+                        KoiFishId = 4,
+                        Quantity = 1,
+                        AddedAt = DateTime.UtcNow.AddDays(-1),
+                        UpdatedAt = DateTime.UtcNow.AddHours(-6)
+                    }
+                );
+
+                await context.SaveChangesAsync();
+            }
+
         }
         #endregion
 

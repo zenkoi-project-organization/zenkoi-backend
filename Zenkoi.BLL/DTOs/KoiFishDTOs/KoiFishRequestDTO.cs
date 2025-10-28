@@ -29,10 +29,12 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
 
         [Required(ErrorMessage = "HealthStatus is required.")]
         public HealthStatus HealthStatus { get; set; }
+        
+        [Required(ErrorMessage = "SaleStatus is required.")]
+        public SaleStatus SaleStatus { get; set; }
+        
         public string? Origin { get; set; }
 
-
-        // Cho phép gửi nhiều ảnh hoặc video
         public List<string>? Images { get; set; }
         public List<string>? Videos { get; set; }
 

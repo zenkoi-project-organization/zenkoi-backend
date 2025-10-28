@@ -31,13 +31,14 @@ namespace Zenkoi.DAL.Configurations
 
             builder.Property(p => p.Status)
                 .IsRequired()
-                .HasMaxLength(20);
+                .HasMaxLength(20)
+                .HasDefaultValue("Pending");
 
             builder.Property(p => p.PaymentUrl)
-                .HasMaxLength(500);
+                .HasMaxLength(2048);
 
             builder.Property(p => p.ResponseData)
-                .HasMaxLength(1000);
+                .HasColumnType("NVARCHAR(MAX)");
 
             builder.Property(p => p.CreatedAt)
                 .IsRequired()
@@ -47,10 +48,16 @@ namespace Zenkoi.DAL.Configurations
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+                
+            builder.HasOne(p => p.ActualOrder)
+                .WithMany()
+                .HasForeignKey(p => p.ActualOrderId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(p => p.OrderId);
             builder.HasIndex(p => p.TransactionId);
             builder.HasIndex(p => p.UserId);
+            builder.HasIndex(p => p.ActualOrderId);
         }
     }
 }

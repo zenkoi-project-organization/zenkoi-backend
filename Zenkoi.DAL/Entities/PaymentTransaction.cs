@@ -18,6 +18,9 @@ namespace Zenkoi.DAL.Entities
         [Required]
         [StringLength(100)]
         public string OrderId { get; set; }
+      
+        public int? ActualOrderId { get; set; }
+        public Order? ActualOrder { get; set; }
 
         [Required]
         public decimal Amount { get; set; }
@@ -26,16 +29,15 @@ namespace Zenkoi.DAL.Entities
         public string Description { get; set; }
 
         [StringLength(100)]
-        public string TransactionId { get; set; }
+        public string? TransactionId { get; set; }
 
         [StringLength(20)]
-        public string Status { get; set; } // "Pending", "Success", "Failed", "Cancelled"
+        public string Status { get; set; } = "Pending"; 
 
-        [StringLength(500)]
-        public string PaymentUrl { get; set; }
+        [StringLength(2048)]
+        public string? PaymentUrl { get; set; }
 
-        [StringLength(1000)]
-        public string ResponseData { get; set; }
+        public string? ResponseData { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
