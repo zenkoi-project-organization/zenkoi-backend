@@ -120,6 +120,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 sb.AppendLine($"- ID {p.Id} | RFID: {p.RFID} | Giống: {p.Variety} | Giới tính: {p.Gender} | Kích thước: {p.Size} cm | Tuổi: {p.Age} | Sức khỏe: {p.Health}");
                 sb.AppendLine($"  Hình dáng: {p.BodyShape} | Màu sắc: {p.ColorPattern}");
+                sb.AppendLine($"  🖼️ Hình ảnh: {p.image}");
                 if (p.BreedingHistory?.Any() == true)
                 {
                     foreach (var h in p.BreedingHistory)
@@ -134,18 +135,16 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("- Phân tích dữ liệu trên để **dự đoán hiệu quả phối giống** giữa các cặp cá đực và cá cái.");
             sb.AppendLine("- Với mỗi cặp, hãy ước lượng các chỉ số **trong khoảng 0–100 (%)**.");
             sb.AppendLine("- Nếu thiếu dữ liệu, ghi rõ giá trị \"unknown\" thay vì đoán hoặc để 0.");
+            sb.AppendLine("- ⚠️ Khi trả về kết quả, **sử dụng đúng đường dẫn ảnh (`image`) của từng cá thể từ dữ liệu đầu vào** thay vì tạo ảnh giả.");
             sb.AppendLine();
-            sb.AppendLine("  • PredictedFertilizationRate (tỉ lệ thụ tinh dự đoán %)");
-            sb.AppendLine("  • PredictedHatchRate (tỉ lệ nở dự đoán %)");
-            sb.AppendLine("  • PredictedSurvivalRate (tỉ lệ sống dự đoán %)");
-            sb.AppendLine("  • PredictedHighQualifiedRate (tỉ lệ cá chất lượng cao %)");
-            sb.AppendLine("  • PatternMatchScore (độ phù hợp màu sắc %)");
-            sb.AppendLine("  • BodyShapeCompatibility (độ tương thích hình dáng %)");
-            sb.AppendLine("  • PercentInbreeding (mức cận huyết %, hoặc \"null\" nếu không có dữ liệu)");
-            sb.AppendLine();
+
             sb.AppendLine("📋 Kết quả trả về:");
             sb.AppendLine("- Trả về danh sách `RecommendedPairs` gồm 3–5 cặp tốt nhất, sắp xếp theo `Rank` từ cao xuống thấp.");
-            sb.AppendLine("- Mỗi cặp có phần `Reason` ngắn gọn, riêng biệt, không trùng nhau.");
+            sb.AppendLine("- Mỗi cặp gồm thông tin sau:");
+            sb.AppendLine("  • MaleId, MaleRFID, MaleImage (lấy từ cá đực gốc)");
+            sb.AppendLine("  • FemaleId, FemaleRFID, FemaleImage (lấy từ cá cái gốc)");
+            sb.AppendLine("  • Reason: Giải thích ngắn gọn, không trùng lặp.");
+            sb.AppendLine("  • Các chỉ số dự đoán: PredictedFertilizationRate, PredictedHatchRate, PredictedSurvivalRate, PredictedHighQualifiedRate, PatternMatchScore, BodyShapeCompatibility, PercentInbreeding, Rank");
             sb.AppendLine("- Không viết thêm bất kỳ văn bản nào ngoài JSON.");
             sb.AppendLine();
 
@@ -155,11 +154,11 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("    {");
             sb.AppendLine("      \"MaleId\": 1,");
             sb.AppendLine("      \"MaleRFID\": \"RF1234\",");
-            sb.AppendLine("      \"MaleImage\": \"https://example.com/male1.jpg\",");
+            sb.AppendLine("      \"MaleImage\": \"(sử dụng image từ cá đực ID=1)\",");
             sb.AppendLine("      \"FemaleId\": 16,");
             sb.AppendLine("      \"FemaleRFID\": \"RF5678\",");
-            sb.AppendLine("      \"FemaleImage\": \"https://example.com/female1.jpg\",");
-            sb.AppendLine("      \"Reason\": \"Ca duc mau do dam, tuong phu hop voi ca cai nen trang.\",");
+            sb.AppendLine("      \"FemaleImage\": \"(sử dụng image từ cá cái ID=16)\",");
+            sb.AppendLine("      \"Reason\": \"Cặp này có màu và dáng phù hợp.\",");
             sb.AppendLine("      \"PredictedFertilizationRate\": 92.5,");
             sb.AppendLine("      \"PredictedHatchRate\": 88.1,");
             sb.AppendLine("      \"PredictedSurvivalRate\": 79.6,");
@@ -171,9 +170,8 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("    }");
             sb.AppendLine("  ]");
             sb.AppendLine("}");
-
             sb.AppendLine();
-            sb.AppendLine("⚠️ Ghi nhớ: Chỉ trả JSON hợp lệ, không chứa ký tự đặc biệt hoặc tiếng Việt có dấu.");
+            sb.AppendLine("⚠️ Chỉ trả JSON hợp lệ, không chứa ký tự đặc biệt, không thêm văn bản ngoài JSON.");
 
             return sb.ToString();
         }
