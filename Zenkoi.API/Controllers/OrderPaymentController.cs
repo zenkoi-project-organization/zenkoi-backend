@@ -76,7 +76,7 @@ namespace Zenkoi.API.Controllers
                         amount: (int)order.TotalAmount,
                         description: $"Thanh toán đơn hàng {order.OrderNumber}",
                         items: order.OrderDetails.Select(od => new ItemData(
-                            name: od.KoiFishName ?? od.PacketFishName ?? "Product",
+                            name: od.KoiFish.RFID ?? od.PacketFish.Name ?? "Product",
                             quantity: od.Quantity,
                             price: (int)od.UnitPrice
                         )).ToList(),

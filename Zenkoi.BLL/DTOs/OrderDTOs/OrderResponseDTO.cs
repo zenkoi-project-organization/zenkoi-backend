@@ -1,3 +1,6 @@
+using Zenkoi.BLL.DTOs.KoiFishDTOs;
+using Zenkoi.BLL.DTOs.PacketFishDTOs;
+using Zenkoi.BLL.DTOs.PromotionDTOs;
 using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.OrderDTOs
@@ -15,7 +18,7 @@ namespace Zenkoi.BLL.DTOs.OrderDTOs
         public decimal DiscountAmount { get; set; }
         public decimal TotalAmount { get; set; }
         public int? PromotionId { get; set; }
-        public string? PromotionName { get; set; }
+        public PromotionResponseDTO? Promotion { get; set; }
         public List<OrderDetailResponseDTO> OrderDetails { get; set; } = new List<OrderDetailResponseDTO>();
     }
 
@@ -24,9 +27,9 @@ namespace Zenkoi.BLL.DTOs.OrderDTOs
         public int Id { get; set; }
         public int OrderId { get; set; }
         public int? KoiFishId { get; set; }
-        public string? KoiFishName { get; set; }
-        public int? PacketFishId { get; set; }
-        public string? PacketFishName { get; set; }
+        public int? PacketFishId { get; set; }     
+        public KoiFishResponseDTO? KoiFish { get; set; }
+        public PacketFishResponseDTO? PacketFish { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal TotalPrice { get; set; }
