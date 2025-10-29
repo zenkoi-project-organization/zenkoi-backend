@@ -8,7 +8,6 @@ namespace Zenkoi.BLL.DTOs.FrySurvivalRecordDTOs
 {
     public class FrySurvivalRecordUpdateRequestDTO
     {
-        public int DayNumber { get; set; }
         public int? CountAlive { get; set; }
         public string? Note { get; set; }
     }

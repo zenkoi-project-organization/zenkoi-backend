@@ -32,9 +32,10 @@ namespace Zenkoi.BLL.Services.Implements
             var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
             var _pondRepo = _unitOfWork.GetRepo<Pond>();
             var _eggRepo = _unitOfWork.GetRepo<EggBatch>();
-            var breeding = await _breedRepo.GetSingleAsync(new QueryOptions<BreedingProcess> {
-                Predicate = b => b.Id == dto.BreedingProcessId ,
-            IncludeProperties = new List<Expression<Func<BreedingProcess, object>>> { 
+            var breeding = await _breedRepo.GetSingleAsync(new QueryOptions<BreedingProcess>
+            {
+                Predicate = b => b.Id == dto.BreedingProcessId,
+                IncludeProperties = new List<Expression<Func<BreedingProcess, object>>> {
                 e => e.Batch,
                 f => f.FryFish
             }
@@ -43,15 +44,15 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new KeyNotFoundException("không tìm thấy quy trình sinh sản");
             }
-            if(breeding.Batch == null )
+            if (breeding.Batch == null)
             {
                 throw new Exception("Quy trình sinh sản chưa có ấp trứng nên không thể tạo nuôi cá bột");
             }
-            if(!breeding.Batch.Status.Equals(EggBatchStatus.Success) && !breeding.Batch.Status.Equals(EggBatchStatus.PartiallyHatched))
+            if (!breeding.Batch.Status.Equals(EggBatchStatus.Success) && !breeding.Batch.Status.Equals(EggBatchStatus.PartiallyHatched))
             {
                 throw new Exception("Ấp trứng chưa hoàn thành nên không thể tạo nuôi cá bột");
             }
-            if(breeding.FryFish != null)
+            if (breeding.FryFish != null)
             {
                 throw new Exception("Quy trình sinh sản đã có nuôi cá bột");
             }
@@ -86,7 +87,7 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<FryFishResponseDTO>(fryFish);
         }
 
-        public async  Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             var fryfish = await _fryFishRepo.GetByIdAsync(id);
             if (fryfish == null)
@@ -195,7 +196,7 @@ namespace Zenkoi.BLL.Services.Implements
                 Predicate = e => e.Id == id,
                 IncludeProperties = new List<Expression<Func<FryFish, object>>>
                 {
-                    r => r.FrySurvivalRecords 
+                    r => r.FrySurvivalRecords
                 }
             });
             if (fryFish == null)
@@ -203,7 +204,7 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException(" không tìm thấy bầy cá");
             }
             return _mapper.Map<FryFishResponseDTO?>(fryFish);
-    }
+        }
 
         public async Task<FryFishResponseDTO> GetEggBatchByBreedId(int breedId)
         {
@@ -270,24 +271,60 @@ namespace Zenkoi.BLL.Services.Implements
 
             return summary;
         }
-    
 
-    public async  Task<bool> UpdateAsync(int id, FryFishUpdateRequestDTO dto)
+
+        public async Task<bool> UpdateAsync(int id, FryFishUpdateRequestDTO dto)
         {
             var _pondRepo = _unitOfWork.GetRepo<Pond>();
-            var pond = await _pondRepo.CheckExistAsync(dto.PondId);
-            if (!pond)
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+            var _fryFishRepo = _unitOfWork.GetRepo<FryFish>();
+
+            var fryFish = await _fryFishRepo.GetSingleAsync(new QueryOptions<FryFish>
             {
-                throw new KeyNotFoundException("không tìm thấy hồ");
-            }
-            var fryFish = await _fryFishRepo.GetByIdAsync(id);
-            if(fryFish == null)
-            {
-                throw new KeyNotFoundException(" không tìm thấy bầy cá");
-            }
+                Predicate = f => f.Id == id,
+                IncludeProperties = new List<System.Linq.Expressions.Expression<Func<FryFish, object>>>
+        {
+            f => f.FrySurvivalRecords
+        }
+            });
+
+            if (fryFish == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy cá.");
+
+            if (fryFish.FrySurvivalRecords != null && fryFish.FrySurvivalRecords.Any())
+                throw new InvalidOperationException("Không thể cập nhật bầy cá vì đã có nhật ký tỉ lệ sống.");
+
+            if (fryFish.Status == FryFishStatus.Completed || fryFish.Status == FryFishStatus.Dead)
+                throw new InvalidOperationException($"Bầy cá đã {fryFish.Status}, không thể cập nhật.");
+
+            var newPond = await _pondRepo.GetByIdAsync(dto.PondId);
+            if (newPond == null)
+                throw new KeyNotFoundException("Không tìm thấy hồ mới.");
+
+            if (newPond.PondStatus == PondStatus.Maintenance || newPond.PondStatus == PondStatus.Active)
+                throw new InvalidOperationException($"Hồ hiện tại đang {newPond.PondStatus}, không thể chuyển bầy cá vào.");
+
+            var breed = await _breedRepo.GetByIdAsync(fryFish.BreedingProcessId);
+            if (breed == null)
+                throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản.");
+
+            var oldPond = await _pondRepo.GetByIdAsync(breed.PondId);
+            if (oldPond == null)
+                throw new KeyNotFoundException("Không tìm thấy hồ cũ.");
+
+            oldPond.PondStatus = PondStatus.Empty;
+            newPond.PondStatus = PondStatus.Active;
+
             _mapper.Map(dto, fryFish);
+
+            breed.PondId = dto.PondId;
+
+            await _pondRepo.UpdateAsync(oldPond);
+            await _pondRepo.UpdateAsync(newPond);
+            await _breedRepo.UpdateAsync(breed);
             await _fryFishRepo.UpdateAsync(fryFish);
-            return  await _unitOfWork.SaveAsync();
+
+            return await _unitOfWork.SaveAsync();
         }
     }
 }

@@ -36,7 +36,7 @@ namespace Zenkoi.BLL.DTOs.BreedingDTOs
 
         public int? TotalEggs { get; set; }
         public double? FertilizationRate { get; set; }
-        public double? CurrentSurvivalRate { get; set; }
+        public double? SurvivalRate { get; set; }
         public int? TotalFishQualified { get; set; }
         public int? TotalPackage { get; set; }
         public ICollection<KoiFishResponseDTO>? KoiFishes { get; set; }

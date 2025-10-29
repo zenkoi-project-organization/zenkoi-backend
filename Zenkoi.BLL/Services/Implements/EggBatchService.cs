@@ -199,43 +199,60 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<EggBatchResponseDTO>(eggBatch);
         }
 
-       
-
         public async Task<bool> UpdateAsync(int id, EggBatchUpdateRequestDTO dto)
         {
-            var eggBacth = await _eggBatchRepo.GetByIdAsync(id);
+            // Lấy repo cần dùng
             var _pondRepo = _unitOfWork.GetRepo<Pond>();
             var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
-            var breed = await _breedRepo.GetByIdAsync(eggBacth.BreedingProcessId);
+            var _eggBatchRepo = _unitOfWork.GetRepo<EggBatch>();
+
+            var eggBatch = await _eggBatchRepo.GetSingleAsync(new QueryOptions<EggBatch>
+            {
+                Predicate = e => e.Id == id,
+                IncludeProperties = new List<System.Linq.Expressions.Expression<Func<EggBatch, object>>>
+        {
+            e => e.IncubationDailyRecords
+        }
+            });
+
+            if (eggBatch == null)
+                throw new KeyNotFoundException("Không tìm thấy lô trứng.");
+
+            if (eggBatch.IncubationDailyRecords != null && eggBatch.IncubationDailyRecords.Any())
+            {
+                throw new InvalidOperationException("Không thể cập nhật lô trứng vì đã có nhật ký ấp.");
+            }
+
+            var breed = await _breedRepo.GetByIdAsync(eggBatch.BreedingProcessId);
+            if (breed == null)
+                throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản.");
+
+            if (eggBatch.Status == EggBatchStatus.Success || eggBatch.Status == EggBatchStatus.Failed)
+                throw new InvalidOperationException($"Lô trứng đã {eggBatch.Status}, không thể cập nhật.");
 
             var newPond = await _pondRepo.GetByIdAsync(dto.PondId);
+            if (newPond == null)
+                throw new KeyNotFoundException("Không tìm thấy hồ mới.");
+
+            if (newPond.PondStatus == PondStatus.Maintenance || newPond.PondStatus == PondStatus.Active)
+                throw new InvalidOperationException($"Hồ hiện tại đang {newPond.PondStatus}, không thể chuyển lô trứng vào.");
+
             var oldPond = await _pondRepo.GetByIdAsync(breed.PondId);
-            if(newPond == null)
-            {
-                throw new KeyNotFoundException("không tìm lấy hồ");
-            }
-            if(newPond.PondStatus == PondStatus.Maintenance || newPond.PondStatus == PondStatus.Active)
-            {
-                throw new InvalidOperationException($"Hiện tại hồ đang {newPond.PondStatus}");
-            }
-            if (eggBacth == null)
-            {
-                throw new KeyNotFoundException("không tìm lấy lô trứng");
-            }
-            if (eggBacth.Status == EggBatchStatus.Success || eggBacth.Status == EggBatchStatus.Failed)
-            {
-                throw new InvalidOperationException($"hiện tại trạng thái của hồ đã {eggBacth.Status} nên không thể cập nhật");
-            }
             oldPond.PondStatus = PondStatus.Empty;
             newPond.PondStatus = PondStatus.Active;
-            _mapper.Map(dto,eggBacth);
+
+            _mapper.Map(dto, eggBatch);
+
             breed.PondId = dto.PondId;
+  
             await _pondRepo.UpdateAsync(newPond);
-            await _pondRepo.UpdateAsync(oldPond);   
+            await _pondRepo.UpdateAsync(oldPond);
             await _breedRepo.UpdateAsync(breed);
-            await _eggBatchRepo.UpdateAsync(eggBacth);
+            await _eggBatchRepo.UpdateAsync(eggBatch);
+
             return await _unitOfWork.SaveAsync();
         }
+
         public async Task<bool> CancelEggBatch(int id)
         {
             var eggBacth = await _eggBatchRepo.GetByIdAsync(id);

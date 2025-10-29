@@ -564,6 +564,38 @@ namespace Zenkoi.BLL.Services.Implements
             await _breedRepo.UpdateAsync(breed);
             return await _unitOfWork.SaveAsync();
         }
+
+        public async Task<List<KoiFishResponseDTO>> GetAllKoiFishByBreedingProcessAsync(int breedingProcessId)
+        {
+            var _koiRepo = _unitOfWork.GetRepo<KoiFish>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+
+            var breeding = await _breedRepo.GetByIdAsync(breedingProcessId);
+            if (breeding == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản.");
+            }
+
+            var koiList = await _koiRepo.GetAllAsync(new QueryOptions<KoiFish>
+            {
+                Predicate = k => k.BreedingProcessId == breedingProcessId,
+                IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+        {
+                    k => k.Variety,
+                    k => k.Pond,
+                    k => k.BreedingProcess
+        },
+                Tracked = false
+            });
+
+            if (!koiList.Any())
+            {
+                return new List<KoiFishResponseDTO>(); 
+            }
+
+            return koiList.Select(k => _mapper.Map<KoiFishResponseDTO>(k)).ToList();
+        }
+
     }
 }
 

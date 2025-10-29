@@ -12,6 +12,7 @@ namespace Zenkoi.DAL.Enums
         Stage1 = 1 ,
         Stage2 = 2 ,
         Stage3 = 3,
-        Success = 4 
+        Stage4 = 4 ,
+        Success = 5
     }
 }
