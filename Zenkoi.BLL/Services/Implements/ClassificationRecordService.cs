@@ -42,7 +42,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
             if (classification.Status == ClassificationStatus.Success)
-                throw new Exception("Phân loại đã hoàn tất, không thể tạo thêm ghi nhận mới");
+                throw new InvalidOperationException("Phân loại đã hoàn tất, không thể tạo thêm ghi nhận mới");
 
             var record = _mapper.Map<ClassificationRecord>(dto);
 
@@ -55,32 +55,34 @@ namespace Zenkoi.BLL.Services.Implements
 
             // ✅ Validate cơ bản
             if (dto.CullQualifiedCount < 0)
-                throw new Exception("Số cá loại bỏ không hợp lệ.");
+                throw new InvalidOperationException("Số cá loại bỏ không hợp lệ.");
 
             if (!existingRecords.Any())
             {
                 if (dto.CullQualifiedCount >= classification.TotalCount)
-                    throw new Exception("Số cá loại bỏ vượt quá tổng số cá ban đầu.");
+                    throw new InvalidOperationException("Số cá loại bỏ vượt quá tổng số cá ban đầu.");
 
                 record.StageNumber = 1;
                 record.PondQualifiedCount = classification.TotalCount - dto.CullQualifiedCount;
 
                 classification.Status = (ClassificationStatus)record.StageNumber;
                 classification.PondQualifiedCount = record.PondQualifiedCount;
+                classification.CullQualifiedCount = record.CullQualifiedCount;
             }
             else
             {
                 var lastRecord = existingRecords.Last();
 
                 if (dto.CullQualifiedCount > lastRecord.PondQualifiedCount)
-                    throw new Exception("Số cá loại bỏ vượt quá số cá hiện có trong hồ.");
+                    throw new InvalidOperationException("Số cá loại bỏ vượt quá số cá hiện có trong hồ.");
 
                 record.StageNumber = lastRecord.StageNumber + 1;
                 record.PondQualifiedCount = lastRecord.PondQualifiedCount - dto.CullQualifiedCount;
 
                 classification.Status = (ClassificationStatus)record.StageNumber;
                 classification.PondQualifiedCount = record.PondQualifiedCount;
-            }
+                classification.CullQualifiedCount += record.CullQualifiedCount;
+            }  
 
             if (record.StageNumber == 4)
             {
@@ -90,7 +92,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             if (record.StageNumber > 4)
-                throw new Exception("Bạn đã hoàn thành quy trình phân loại.");
+                throw new InvalidOperationException("Bạn đã hoàn thành quy trình phân loại.");
 
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
@@ -112,16 +114,16 @@ namespace Zenkoi.BLL.Services.Implements
 
             var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
             if (classification.Status == ClassificationStatus.Success)
-                throw new Exception("Phân loại đã hoàn tất, không thể tạo thêm ghi nhận mới");
+                throw new InvalidOperationException("Phân loại đã hoàn tất, không thể tạo thêm ghi nhận mới");
 
             var record = _mapper.Map<ClassificationRecord>(dto);
 
             // ✅ Validate dữ liệu nhập
             if (dto.HighQualifiedCount < 0)
-                throw new Exception("Số cá High không hợp lệ.");
+                throw new InvalidOperationException("Số cá High không hợp lệ.");
 
             if (dto.HighQualifiedCount > classification.PondQualifiedCount)
-                throw new Exception("Số cá High vượt quá số cá hiện có trong hồ.");
+                throw new InvalidOperationException("Số cá High vượt quá số cá hiện có trong hồ.");
 
             record.PondQualifiedCount = classification.PondQualifiedCount - dto.HighQualifiedCount;
             record.StageNumber = (int)classification.Status + 1;
@@ -156,16 +158,16 @@ namespace Zenkoi.BLL.Services.Implements
 
             var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
             if (classification.Status == ClassificationStatus.Success)
-                throw new Exception("Phân loại đã hoàn tất, không thể tạo thêm ghi nhận mới");
+                throw new InvalidOperationException("Phân loại đã hoàn tất, không thể tạo thêm ghi nhận mới");
 
             var record = _mapper.Map<ClassificationRecord>(dto);
 
             // ✅ Validate dữ liệu nhập
             if (dto.ShowQualifiedCount < 0)
-                throw new Exception("Số cá Show không hợp lệ.");
+                throw new InvalidOperationException("Số cá Show không hợp lệ.");
 
             if (dto.ShowQualifiedCount > classification.HighQualifiedCount)
-                throw new Exception("Số cá Show vượt quá số cá High hiện có.");
+                throw new InvalidOperationException("Số cá Show vượt quá số cá High hiện có.");
 
             record.HighQualifiedCount = classification.HighQualifiedCount - dto.ShowQualifiedCount;
             record.StageNumber = (int)classification.Status + 1;

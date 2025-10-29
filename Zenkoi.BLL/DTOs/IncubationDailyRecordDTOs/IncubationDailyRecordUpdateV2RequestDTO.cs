@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace Zenkoi.BLL.DTOs.IncubationDailyRecordDTOs
 {
-     public class IncubationDailyRecordRequestDTO
+    public class IncubationDailyRecordUpdateV2RequestDTO
     {
-        public int EggBatchId { get; set; }
-        public int? HealthyEggs { get; set; }
         public int? HatchedEggs { get; set; }
         public bool Success { get; set; }
     }

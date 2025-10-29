@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.IncubationDailyRecordDTOs;
-using Zenkoi.BLL.DTOs.EggBatchDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
 namespace Zenkoi.API.Controllers
@@ -36,6 +35,7 @@ namespace Zenkoi.API.Controllers
             return GetSuccess(record);
         }
 
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] IncubationDailyRecordRequestDTO dto)
         {
@@ -46,7 +46,6 @@ namespace Zenkoi.API.Controllers
             return SaveSuccess(created);
         }
 
-     
         [HttpPost("v2")]
         public async Task<IActionResult> CreateV2([FromBody] IncubationDailyRecordRequestV2DTO dto)
         {
@@ -58,26 +57,29 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] IncubationDailyRecordRequestDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] IncubationDailyRecordUpdateRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();
 
             var updated = await _recordService.UpdateAsync(id, dto);
-            if (!updated)
-                return GetError("Không tìm thấy bản ghi để cập nhật.");
-
             return Success(updated, "Cập nhật bản ghi nhật ký ấp thành công.");
         }
 
-      
+        [HttpPut("v2/{id}")]
+        public async Task<IActionResult> UpdateV2(int id, [FromBody] IncubationDailyRecordUpdateV2RequestDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return ModelInvalid();
+
+            var updated = await _recordService.UpdateV2Async(id, dto);
+            return Success(updated, "Cập nhật bản ghi nhật ký ấp (V2) thành công.");
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _recordService.DeleteAsync(id);
-            if (!deleted)
-                return GetError("Không tìm thấy bản ghi để xóa.");
-
             return Success(deleted, "Xóa bản ghi nhật ký ấp thành công.");
         }
 
@@ -85,9 +87,6 @@ namespace Zenkoi.API.Controllers
         public async Task<IActionResult> GetSummaryByEggBatchId(int eggBatchId)
         {
             var summary = await _recordService.GetSummaryByEggBatchIdAsync(eggBatchId);
-            if (summary == null)
-                return GetError("Không tìm thấy dữ liệu tổng hợp cho lô trứng.");
-
             return GetSuccess(summary);
         }
     }

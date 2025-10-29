@@ -204,11 +204,58 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<bool> UpdateAsync(int id, EggBatchUpdateRequestDTO dto)
         {
             var eggBacth = await _eggBatchRepo.GetByIdAsync(id);
+            var _pondRepo = _unitOfWork.GetRepo<Pond>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+            var breed = await _breedRepo.GetByIdAsync(eggBacth.BreedingProcessId);
+
+            var newPond = await _pondRepo.GetByIdAsync(dto.PondId);
+            var oldPond = await _pondRepo.GetByIdAsync(breed.PondId);
+            if(newPond == null)
+            {
+                throw new KeyNotFoundException("không tìm lấy hồ");
+            }
+            if(newPond.PondStatus == PondStatus.Maintenance || newPond.PondStatus == PondStatus.Active)
+            {
+                throw new InvalidOperationException($"Hiện tại hồ đang {newPond.PondStatus}");
+            }
             if (eggBacth == null)
             {
                 throw new KeyNotFoundException("không tìm lấy lô trứng");
             }
+            if (eggBacth.Status == EggBatchStatus.Success || eggBacth.Status == EggBatchStatus.Failed)
+            {
+                throw new InvalidOperationException($"hiện tại trạng thái của hồ đã {eggBacth.Status} nên không thể cập nhật");
+            }
+            oldPond.PondStatus = PondStatus.Empty;
+            newPond.PondStatus = PondStatus.Active;
             _mapper.Map(dto,eggBacth);
+            breed.PondId = dto.PondId;
+            await _pondRepo.UpdateAsync(newPond);
+            await _pondRepo.UpdateAsync(oldPond);   
+            await _breedRepo.UpdateAsync(breed);
+            await _eggBatchRepo.UpdateAsync(eggBacth);
+            return await _unitOfWork.SaveAsync();
+        }
+        public async Task<bool> CancelEggBatch(int id)
+        {
+            var eggBacth = await _eggBatchRepo.GetByIdAsync(id);
+            var _pondRepo = _unitOfWork.GetRepo<Pond>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+            var breed = await _breedRepo.GetByIdAsync(eggBacth.BreedingProcessId);
+            if (eggBacth == null)
+            {
+                throw new KeyNotFoundException("không tìm lấy lô trứng");
+            }
+            if (eggBacth.Status == EggBatchStatus.Success || eggBacth.Status == EggBatchStatus.Failed)
+            {
+                throw new InvalidOperationException($"hiện tại trạng thái của hồ đã {eggBacth.Status} nên không thể cập nhật");
+            }
+            var oldPond = await _pondRepo.GetByIdAsync(breed.PondId);
+            eggBacth.Status = EggBatchStatus.Failed;
+            oldPond.PondStatus = PondStatus.Maintenance;
+            breed.Status = BreedingStatus.Failed;
+            await _pondRepo.UpdateAsync(oldPond);
+            await _breedRepo.UpdateAsync(breed);
             await _eggBatchRepo.UpdateAsync(eggBacth);
             return await _unitOfWork.SaveAsync();
         }
