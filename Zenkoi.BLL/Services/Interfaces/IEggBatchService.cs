@@ -18,6 +18,7 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<EggBatchResponseDTO> GetEggBatchByBreedId(int breedId);
         Task<EggBatchResponseDTO> CreateAsync(EggBatchRequestDTO dto);
         Task<bool> UpdateAsync(int id, EggBatchUpdateRequestDTO dto);
+        Task<bool> CancelEggBatch(int id);
         Task<bool> DeleteAsync(int id);
     }
 }

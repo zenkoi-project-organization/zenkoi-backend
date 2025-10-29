@@ -173,31 +173,122 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<IncubationDailyRecordResponseDTO?>(record);
         }
 
-        public async Task<bool> UpdateAsync(int id, IncubationDailyRecordRequestDTO dto)
-        {
+       public async Task<bool> UpdateAsync(int id, IncubationDailyRecordUpdateRequestDTO dto){
             var _eggBatchRepo = _unitOfWork.GetRepo<EggBatch>();
-            var eggBatch = await _eggBatchRepo.GetByIdAsync(dto.EggBatchId);
-            if (eggBatch == null)
-            {
-                throw new KeyNotFoundException("Không tim thấy lô trứng ");
-            }
-            if (eggBatch.Status.Equals(EggBatchStatus.Success) || eggBatch.Status.Equals(EggBatchStatus.Failed))
-            {
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
 
-                throw new Exception($"Lô trứng đã {eggBatch.Status}");
-            }
-            var record = _mapper.Map<IncubationDailyRecord>(dto);
-            await _incubationDailyRepo.UpdateAsync(record);
+           
+            var record = await _incubationDailyRepo.GetByIdAsync(id);
+            if (record == null)
+                throw new KeyNotFoundException("Không tìm thấy ghi nhận cần cập nhật");
+
+            var eggBatch = await _eggBatchRepo.GetByIdAsync(record.EggBatchId);
+            if (eggBatch == null)
+                throw new KeyNotFoundException("Không tìm thấy lô trứng");
+
+       
+            if (eggBatch.Status is EggBatchStatus.Success or EggBatchStatus.Failed)
+                throw new InvalidOperationException($"Lô trứng đã {eggBatch.Status}, không thể cập nhật");
+
+            var total = (dto.HealthyEggs ?? 0) + (dto.HatchedEggs ?? 0);
+            if (total > eggBatch.Quantity)
+                throw new InvalidOperationException("Tổng trứng khỏe + trứng nở vượt quá số lượng lô");
+
+            record.HealthyEggs = dto.HealthyEggs;
+            record.HatchedEggs = dto.HatchedEggs;
+            record.Success = dto.Success;
+            record.RottenEggs = eggBatch.Quantity - total;
 
             if (record.Success)
             {
                 eggBatch.Status = EggBatchStatus.Success;
-                await _eggBatchRepo.UpdateAsync(eggBatch);
+                eggBatch.SpawnDate = DateTime.Now;
+                eggBatch.EndDate = DateTime.Now;
             }
+
+            eggBatch.FertilizationRate = (double)(dto.HealthyEggs ?? 0) / eggBatch.Quantity * 100;
+
+            var breed = await _breedRepo.GetByIdAsync(eggBatch.BreedingProcessId);
+            if (breed != null)
+            {
+                breed.FertilizationRate = eggBatch.FertilizationRate;
+                await _breedRepo.UpdateAsync(breed);
+            }
+
+            await _incubationDailyRepo.UpdateAsync(record);
+            await _eggBatchRepo.UpdateAsync(eggBatch);
             await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
+
+        public async Task<bool> UpdateV2Async(int id, IncubationDailyRecordUpdateV2RequestDTO dto)
+        {
+            var _eggBatchRepo = _unitOfWork.GetRepo<EggBatch>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+
+            var record = await _incubationDailyRepo.GetByIdAsync(id);
+            if (record == null)
+                throw new KeyNotFoundException("Không tìm thấy ghi nhận cần cập nhật");
+
+            var eggBatch = await _eggBatchRepo.GetByIdAsync(record.EggBatchId);
+            if (eggBatch == null)
+                throw new KeyNotFoundException("Không tìm thấy lô trứng");
+
+            var breed = await _breedRepo.GetByIdAsync(eggBatch.BreedingProcessId);
+            if (breed == null)
+                throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản");
+
+            if (eggBatch.Status == EggBatchStatus.Success || eggBatch.Status == EggBatchStatus.Failed)
+                throw new InvalidOperationException($"Lô trứng đã {eggBatch.Status}, không thể cập nhật");
+
+            var allRecords = await getAllbyEggBatchId(eggBatch.Id);
+            var totalBefore = await GetSummaryByEggBatchIdAsync(eggBatch.Id);
+
+            var latestRecord = allRecords
+                .Where(r => r.Id != id)
+                .OrderByDescending(r => r.DayNumber)
+                .FirstOrDefault();
+
+            if (latestRecord != null && dto.HatchedEggs > latestRecord.HealthyEggs)
+                throw new InvalidOperationException("Số trứng nở mới vượt quá số trứng khỏe còn lại của lần nhập trước");
+
+            record.HatchedEggs = dto.HatchedEggs;
+            record.Success = dto.Success;
+
+            if (latestRecord != null)
+            {
+                record.HealthyEggs = latestRecord.HealthyEggs - dto.HatchedEggs;
+                if (record.HealthyEggs < 0)
+                    throw new InvalidOperationException("Số trứng khỏe còn lại không thể âm");
+            }
+            else
+            {
+                record.HealthyEggs = eggBatch.Quantity - dto.HatchedEggs;
+            }
+
+            record.RottenEggs = eggBatch.Quantity - (totalBefore.TotalHatchedEggs + dto.HatchedEggs + record.HealthyEggs);
+            if (record.RottenEggs < 0)
+                record.RottenEggs = 0;
+
+            if (record.Success)
+            {
+                eggBatch.Status = EggBatchStatus.Success;
+                eggBatch.SpawnDate = DateTime.Now;
+                eggBatch.EndDate = DateTime.Now;
+
+                eggBatch.TotalHatchedEggs = totalBefore.TotalHatchedEggs + dto.HatchedEggs;
+                breed.HatchingRate = (double)eggBatch.TotalHatchedEggs / eggBatch.Quantity * 100;
+            }
+
+            await _incubationDailyRepo.UpdateAsync(record);
+            await _eggBatchRepo.UpdateAsync(eggBatch);
+            await _breedRepo.UpdateAsync(breed);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
+
 
         public async Task<EggBatchSummaryDTO> GetSummaryByEggBatchIdAsync(int eggBatchId)
         {
