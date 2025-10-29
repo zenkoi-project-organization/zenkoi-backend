@@ -84,19 +84,12 @@ namespace Zenkoi.BLL.Services.Implements
                 classification.CullQualifiedCount += record.CullQualifiedCount;
             }  
 
-            if (record.StageNumber == 4)
-            {
-                classification.Status = ClassificationStatus.Success;
-                breed.Status = BreedingStatus.Complete;
-                breed.EndDate = DateTime.Now;
-            }
 
             if (record.StageNumber > 4)
                 throw new InvalidOperationException("Bạn đã hoàn thành quy trình phân loại.");
 
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
-            await _breedRepo.UpdateAsync(breed);
             await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<ClassificationRecordResponseDTO>(record);
@@ -132,16 +125,9 @@ namespace Zenkoi.BLL.Services.Implements
             classification.HighQualifiedCount = record.HighQualifiedCount;
             classification.PondQualifiedCount = record.PondQualifiedCount;
             
-            if (record.StageNumber == 4)
-            {
-                classification.Status = ClassificationStatus.Success;
-                breed.Status = BreedingStatus.Complete;
-                breed.EndDate = DateTime.Now;
-            }
 
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
-            await _breedRepo.UpdateAsync(breed);
             await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<ClassificationRecordResponseDTO>(record);
@@ -375,19 +361,103 @@ namespace Zenkoi.BLL.Services.Implements
                 CurrentFish = pond + high + show,
             };
         }
-    
 
-        public async Task<bool> UpdateAsync(int id, ClassificationRecordUpdateRequestDTO dto)
+        public async Task<ClassificationRecordResponseDTO> UpdateAsync(int id, ClassificationRecordUpdateRequestDTO dto)
         {
-           
+            var _classRepo = _unitOfWork.GetRepo<ClassificationStage>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+
             var record = await _recordRepo.GetByIdAsync(id);
             if (record == null)
+                throw new KeyNotFoundException("Không tìm thấy ghi nhận cần cập nhật");
+
+            var classification = await _classRepo.GetByIdAsync(record.ClassificationStageId);
+            if (classification == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy phân loại");
+
+            var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
+
+            if (classification.Status == ClassificationStatus.Success)
+                throw new InvalidOperationException("Phân loại đã hoàn tất, không thể chỉnh sửa.");
+
+            var allRecords = await _recordRepo.GetAllAsync(new QueryOptions<ClassificationRecord>
             {
-                throw new KeyNotFoundException(" không tìm thấy ghi nhận");
-            }
+                Predicate = r => r.ClassificationStageId == record.ClassificationStageId,
+                OrderBy = q => q.OrderBy(r => r.StageNumber),
+                Tracked = false
+            });
+
+            var latestRecord = allRecords.LastOrDefault();
+            if (latestRecord == null || latestRecord.Id != record.Id)
+                throw new InvalidOperationException("Chỉ được phép chỉnh sửa bản ghi phân loại mới nhất.");
+
             _mapper.Map(dto, record);
+
+
+            switch (record.StageNumber)
+            {
+                case 1:
+                case 2:
+                    if (record.CullQualifiedCount < 0)
+                        throw new InvalidOperationException("Số cá loại bỏ không hợp lệ.");
+
+                 int availableFish = record.StageNumber == 1
+                 ? classification.TotalCount
+                 : allRecords.FirstOrDefault(r => r.StageNumber == record.StageNumber - 1)?.PondQualifiedCount ?? 0;
+
+                    if (record.CullQualifiedCount > availableFish)
+                        throw new InvalidOperationException("Số cá loại bỏ vượt quá số cá hiện có.");
+
+                    record.PondQualifiedCount = availableFish - record.CullQualifiedCount;
+
+                    classification.PondQualifiedCount = record.PondQualifiedCount;
+                    classification.CullQualifiedCount = allRecords
+                        .Where(r => r.Id != record.Id)
+                        .Sum(r => r.CullQualifiedCount ?? 0) + record.CullQualifiedCount;
+
+                    classification.Status = (ClassificationStatus)record.StageNumber;
+                    break;
+
+                case 3:
+                    if (record.HighQualifiedCount < 0)
+                        throw new InvalidOperationException("Số cá High không hợp lệ.");
+
+                    if (record.HighQualifiedCount > classification.PondQualifiedCount)
+                        throw new InvalidOperationException("Số cá High vượt quá số cá hiện có trong hồ.");
+
+                    record.PondQualifiedCount = classification.PondQualifiedCount - record.HighQualifiedCount;
+
+                    classification.HighQualifiedCount = record.HighQualifiedCount;
+                    classification.PondQualifiedCount = record.PondQualifiedCount;
+                    classification.Status = ClassificationStatus.Stage3;
+                    break;
+
+                case 4:
+                    if (record.ShowQualifiedCount < 0)
+                        throw new InvalidOperationException("Số cá Show không hợp lệ.");
+
+                    if (record.ShowQualifiedCount > classification.HighQualifiedCount)
+                        throw new InvalidOperationException("Số cá Show vượt quá số cá High hiện có.");
+
+                    record.HighQualifiedCount = classification.HighQualifiedCount - record.ShowQualifiedCount;
+
+                    classification.HighQualifiedCount = record.HighQualifiedCount;
+                    classification.ShowQualifiedCount = record.ShowQualifiedCount;
+                    classification.Status = ClassificationStatus.Stage4;
+
+                 
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Giai đoạn phân loại không hợp lệ.");
+            }
+
             await _recordRepo.UpdateAsync(record);
-            return await _unitOfWork.SaveAsync();
+            await _classRepo.UpdateAsync(classification);
+            await _breedRepo.UpdateAsync(breed);
+            await _unitOfWork.SaveChangesAsync();
+
+            return _mapper.Map<ClassificationRecordResponseDTO>(record);
         }
     }
 }

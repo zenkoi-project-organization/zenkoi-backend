@@ -35,6 +35,14 @@ namespace Zenkoi.API.Controllers
             
             return GetSuccess(classification);
         }
+        [HttpPut("complete/{id}")]
+        public async Task<IActionResult> CompleteClasification(int id)
+        {
+
+            var classification = await _classificationService.CompleteClassification(id);
+
+            return Success(classification,"cập nhật phân loại thành công");
+        }
 
         [HttpGet("by-breeding/{breedId}")]
         public async Task<IActionResult> GetByBreedId(int breedId)

@@ -173,11 +173,11 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<IncubationDailyRecordResponseDTO?>(record);
         }
 
-       public async Task<bool> UpdateAsync(int id, IncubationDailyRecordUpdateRequestDTO dto){
+        public async Task<bool> UpdateAsync(int id, IncubationDailyRecordUpdateRequestDTO dto)
+        {
             var _eggBatchRepo = _unitOfWork.GetRepo<EggBatch>();
             var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
 
-           
             var record = await _incubationDailyRepo.GetByIdAsync(id);
             if (record == null)
                 throw new KeyNotFoundException("Không tìm thấy ghi nhận cần cập nhật");
@@ -187,6 +187,16 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("Không tìm thấy lô trứng");
 
        
+            var latestRecord = await _incubationDailyRepo.GetSingleAsync(new QueryOptions<IncubationDailyRecord>
+            {
+                Predicate = r => r.EggBatchId == eggBatch.Id,
+                OrderBy = q => q.OrderByDescending(r => r.DayNumber),
+                Tracked = false
+            });
+
+            if (latestRecord == null || latestRecord.Id != id)
+                throw new InvalidOperationException("Chỉ có thể cập nhật bản ghi mới nhất.");
+
             if (eggBatch.Status is EggBatchStatus.Success or EggBatchStatus.Failed)
                 throw new InvalidOperationException($"Lô trứng đã {eggBatch.Status}, không thể cập nhật");
 
@@ -239,26 +249,37 @@ namespace Zenkoi.BLL.Services.Implements
             if (breed == null)
                 throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản");
 
+          
+            var latestRecord = await _incubationDailyRepo.GetSingleAsync(new QueryOptions<IncubationDailyRecord>
+            {
+                Predicate = r => r.EggBatchId == eggBatch.Id,
+                OrderBy = q => q.OrderByDescending(r => r.DayNumber),
+                Tracked = false
+            });
+
+            if (latestRecord == null || latestRecord.Id != id)
+                throw new InvalidOperationException("Chỉ có thể cập nhật bản ghi mới nhất.");
+
             if (eggBatch.Status == EggBatchStatus.Success || eggBatch.Status == EggBatchStatus.Failed)
                 throw new InvalidOperationException($"Lô trứng đã {eggBatch.Status}, không thể cập nhật");
 
             var allRecords = await getAllbyEggBatchId(eggBatch.Id);
             var totalBefore = await GetSummaryByEggBatchIdAsync(eggBatch.Id);
 
-            var latestRecord = allRecords
+            var previousRecord = allRecords
                 .Where(r => r.Id != id)
                 .OrderByDescending(r => r.DayNumber)
                 .FirstOrDefault();
 
-            if (latestRecord != null && dto.HatchedEggs > latestRecord.HealthyEggs)
+            if (previousRecord != null && dto.HatchedEggs > previousRecord.HealthyEggs)
                 throw new InvalidOperationException("Số trứng nở mới vượt quá số trứng khỏe còn lại của lần nhập trước");
 
             record.HatchedEggs = dto.HatchedEggs;
             record.Success = dto.Success;
 
-            if (latestRecord != null)
+            if (previousRecord != null)
             {
-                record.HealthyEggs = latestRecord.HealthyEggs - dto.HatchedEggs;
+                record.HealthyEggs = previousRecord.HealthyEggs - dto.HatchedEggs;
                 if (record.HealthyEggs < 0)
                     throw new InvalidOperationException("Số trứng khỏe còn lại không thể âm");
             }
@@ -288,6 +309,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             return true;
         }
+
 
 
         public async Task<EggBatchSummaryDTO> GetSummaryByEggBatchIdAsync(int eggBatchId)

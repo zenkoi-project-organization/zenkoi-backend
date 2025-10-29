@@ -30,6 +30,29 @@ namespace Zenkoi.BLL.Services.Implements
             _classRepo = _unitOfWork.GetRepo<ClassificationStage>();
         }
 
+        public async Task<bool> CompleteClassification(int id)
+        {
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+           var classìication = await _classRepo.GetByIdAsync(id);
+            if(classìication == null)
+            {
+                throw new InvalidOperationException("không tìm thấy phân loại");
+            }
+            if(classìication.Status is ClassificationStatus.Success)
+            {
+                throw new InvalidOperationException("phân loại đã hoàn thành không thể chỉnh");
+            }
+            var breed = await _breedRepo.GetByIdAsync(classìication.BreedingProcessId);
+            if(breed.Status is BreedingStatus.Failed)
+            {
+                throw new InvalidOperationException("quá trình sinh sản đã thất bại hoặc hủy nên không thể update");
+            }
+            await _breedRepo.UpdateAsync(breed);
+            await _classRepo.UpdateAsync(classìication);
+            await _unitOfWork.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<ClassificationStageResponseDTO> CreateAsync(ClassificationStageCreateRequestDTO dto)
         {
             var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
@@ -182,18 +205,56 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<bool> UpdateAsync(int id, ClassificationStageUpdateRequestDTO dto)
         {
             var _pondRepo = _unitOfWork.GetRepo<Pond>();
-            var pond = await _pondRepo.CheckExistAsync(dto.PondId);
-            if (!pond)
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+            var _classRepo = _unitOfWork.GetRepo<ClassificationStage>();
+
+            // Lấy stage kèm theo record
+            var classification = await _classRepo.GetSingleAsync(new QueryOptions<ClassificationStage>
             {
-                throw new KeyNotFoundException("không tìm thấy hồ");
-            }
-            var classifications = await _classRepo.GetByIdAsync(id);
-            if (classifications == null)
-            {
-                throw new KeyNotFoundException(" không tìm thấy bầy cá");
-            }
-            _mapper.Map(dto, classifications);
-            await _classRepo.UpdateAsync(classifications);
+                Predicate = c => c.Id == id,
+                IncludeProperties = new List<Expression<Func<ClassificationStage, object>>>
+        {
+            c => c.ClassificationRecords
+        }
+            });
+
+            if (classification == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy phân loại.");
+
+            if (classification.ClassificationRecords != null && classification.ClassificationRecords.Any())
+                throw new InvalidOperationException("Không thể cập nhật vì bầy đã có ghi nhận phân loại.");
+
+            if (classification.Status == ClassificationStatus.Success)
+                throw new InvalidOperationException($"Bầy phân loại đã ở trạng thái {classification.Status}, không thể cập nhật.");
+
+            var newPond = await _pondRepo.GetByIdAsync(dto.PondId);
+            if (newPond == null)
+                throw new KeyNotFoundException("Không tìm thấy hồ mới.");
+
+            if (newPond.PondStatus == PondStatus.Maintenance || newPond.PondStatus == PondStatus.Active)
+                throw new InvalidOperationException($"Hồ hiện đang {newPond.PondStatus}, không thể chuyển bầy vào.");
+
+            var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
+            if (breed == null)
+                throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản.");
+
+            var oldPond = await _pondRepo.GetByIdAsync(breed.PondId);
+            if (oldPond == null)
+                throw new KeyNotFoundException("Không tìm thấy hồ cũ.");
+
+            oldPond.PondStatus = PondStatus.Empty;
+            newPond.PondStatus = PondStatus.Active;
+
+            _mapper.Map(dto, classification);
+
+            breed.PondId = dto.PondId;
+
+          
+            await _pondRepo.UpdateAsync(oldPond);
+            await _pondRepo.UpdateAsync(newPond);
+            await _breedRepo.UpdateAsync(breed);
+            await _classRepo.UpdateAsync(classification);
+
             return await _unitOfWork.SaveAsync();
         }
     }

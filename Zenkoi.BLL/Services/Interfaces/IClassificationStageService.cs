@@ -17,6 +17,7 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<ClassificationStageResponseDTO> GetEggBatchByBreedId(int breedId);
         Task<ClassificationStageResponseDTO> CreateAsync(ClassificationStageCreateRequestDTO dto);
         Task<bool> UpdateAsync(int id, ClassificationStageUpdateRequestDTO dto);
+        Task<bool> CompleteClassification(int id);
         Task<bool> DeleteAsync(int id);
     }
 }

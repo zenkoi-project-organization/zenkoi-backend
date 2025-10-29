@@ -8,9 +8,10 @@ namespace Zenkoi.BLL.DTOs.ClassificationRecordDTOs
 {
     public class ClassificationRecordUpdateRequestDTO
     {
-        public int? HighQualifiedCount { get; set; }
-        public int? QualifiedCount { get; set; }
-        public int? UnqualifiedCount { get; set; }
+        public int? HighQualifiedCount { get; set; }  
+        public int? ShowQualifiedCount { get; set; }  
+        public int? PondQualifiedCount { get; set; }  
+        public int? CullQualifiedCount { get; set; }  
         public string Notes { get; set; }
     }
 }

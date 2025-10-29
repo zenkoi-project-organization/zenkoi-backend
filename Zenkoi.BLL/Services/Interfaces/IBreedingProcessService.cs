@@ -25,5 +25,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(BreedingProcessFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<KoiFishParentResponseDTO> GetKoiFishParentStatsAsync(int koiFishId);
         Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync();
+        Task<List<KoiFishResponseDTO>> GetAllKoiFishByBreedingProcessAsync(int breedingProcessId);
     }
 }

@@ -64,6 +64,8 @@ namespace Zenkoi.BLL.Helpers.Mapper
            .ForMember(dest => dest.VarietyName, opt => opt.MapFrom(src => src.Variety.VarietyName));
             CreateMap<Pond, PondBasicDTO>();
             CreateMap<Variety, VarietyBasicDTO>();
+            CreateMap<BreedingProcess, BreedingProcessBasicDTO>();
+
             CreateMap<BreedingProcess, BreedingProcessResponseDTO>()
             .ForMember(dest => dest.MaleKoiRFID,
                 opt => opt.MapFrom(src => src.MaleKoi != null ? src.MaleKoi.RFID : null))

@@ -218,13 +218,78 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<bool> UpdateAsync(int id, FrySurvivalRecordUpdateRequestDTO dto)
         {
             var record = await _frysurvivalRepo.GetByIdAsync(id);
+            var _fryfishRepo = _unitOfWork.GetRepo<FryFish>();
+            var fryFish = await _fryfishRepo.GetByIdAsync(record.FryFishId);
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+
+
+            if (fryFish.InitialCount.HasValue && dto.CountAlive > fryFish.InitialCount)
+                throw new ArgumentException("Số lượng cá sống không thể lớn hơn số lượng ban đầu");
+
+
+
             if (record == null)
             {
                 throw new KeyNotFoundException("không tìm thấy bản ghi nhận");
             }
-            _mapper.Map(dto, record);
+
+            var latestRecord = await _frysurvivalRepo.GetSingleAsync(new QueryOptions<FrySurvivalRecord>
+            {
+                Predicate = r => r.FryFishId == record.FryFishId,
+                OrderBy = q => q.OrderByDescending(r => r.DayNumber),
+                Tracked = false
+            });
+            if (latestRecord == null || latestRecord.Id != id)
+                throw new InvalidOperationException("Chỉ có thể cập nhật bản ghi mới nhất.");
+
+            if (fryFish.Status is FryFishStatus.Completed or FryFishStatus.Dead)
+            {
+                throw new InvalidOperationException($"Lô trứng đã {fryFish.Status}, không thể cập nhật");
+            }
+
+
+            var previousRecord = await _frysurvivalRepo.GetSingleAsync(new QueryOptions<FrySurvivalRecord>
+            {
+                Predicate = r => r.FryFishId == record.FryFishId && r.DayNumber < record.DayNumber,
+                OrderBy = q => q.OrderByDescending(r => r.DayNumber),
+                Tracked = false
+            });
+            if (previousRecord != null && dto.CountAlive > previousRecord.CountAlive)
+            {
+                throw new InvalidOperationException(
+                    $"Số lượng cá sống ({dto.CountAlive}) không thể lớn hơn ghi nhận trước đó ({previousRecord.CountAlive}).");
+            }
+
+            record.CountAlive = dto.CountAlive;
+            record.Note = dto.Note;
+
+            if (fryFish.InitialCount.HasValue && fryFish.InitialCount > 0)
+            {
+                fryFish.CurrentSurvivalRate = Math.Round(
+                    ((double)(dto.CountAlive ?? 0) / fryFish.InitialCount.Value) * 100, 2);
+            }
+            else
+            {
+                fryFish.CurrentSurvivalRate = 0;
+            }
+
+            if (dto.CountAlive == 0)
+            {
+                fryFish.Status = FryFishStatus.Dead;
+                fryFish.EndDate = DateTime.Now;
+            }
+
+            var breed = await _breedRepo.GetByIdAsync(fryFish.BreedingProcessId);
+            if (breed != null)
+            {
+                breed.SurvivalRate = fryFish.CurrentSurvivalRate;
+                await _breedRepo.UpdateAsync(breed);
+            }
             await _frysurvivalRepo.UpdateAsync(record);
-            return await _unitOfWork.SaveAsync();
+            await _fryfishRepo.UpdateAsync(fryFish);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
         }
         private async Task<IEnumerable<FrySurvivalRecord>> getAllByFryfishId(int id)
         {
