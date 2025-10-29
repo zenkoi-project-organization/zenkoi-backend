@@ -122,12 +122,21 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<ClassificationRecordUpdateRequestDTO, ClassificationRecord>();
 
             // Order mappings
-            CreateMap<Order, OrderResponseDTO>()
-                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null && src.Customer.ApplicationUser != null ? src.Customer.ApplicationUser.FullName : string.Empty))
-                .ForMember(dest => dest.PromotionName, opt => opt.MapFrom(src => src.Promotion != null ? src.Promotion.Code : null));
             CreateMap<OrderDetail, OrderDetailResponseDTO>()
-                .ForMember(dest => dest.KoiFishName, opt => opt.MapFrom(src => src.KoiFish != null ? $"KoiFish {src.KoiFish.RFID}" : null))
-                .ForMember(dest => dest.PacketFishName, opt => opt.MapFrom(src => src.PacketFish != null ? src.PacketFish.Name : null));
+              .ForMember(dest => dest.KoiFish, opt => opt.MapFrom(src => src.KoiFish))
+              .ForMember(dest => dest.PacketFish, opt => opt.MapFrom(src => src.PacketFish));
+
+            CreateMap<OrderDetail, OrderDetailResponseDTO>()
+            .ForMember(dest => dest.KoiFish, opt => opt.MapFrom(src => src.KoiFish))
+            .ForMember(dest => dest.PacketFish, opt => opt.MapFrom(src => src.PacketFish));
+
+            CreateMap<Order, OrderResponseDTO>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
+                    src.Customer != null && src.Customer.ApplicationUser != null
+                        ? src.Customer.ApplicationUser.FullName
+                        : string.Empty))
+                .ForMember(dest => dest.Promotion, opt => opt.MapFrom(src => src.Promotion))
+                .ForMember(dest => dest.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails));
 
             // PacketFish mappings
             CreateMap<PacketFish, PacketFishResponseDTO>();
