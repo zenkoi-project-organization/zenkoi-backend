@@ -14,6 +14,7 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
         public HealthStatus? Health { get; set; }
         public int? VarietyId { get; set; }
         public FishSize? FishSize { get; set; }
+        public SaleStatus? SaleStatus { get; set; }
         public int? PondId { get; set; }
         public string? Origin { get; set; }
         public decimal? MinPrice { get; set; }
