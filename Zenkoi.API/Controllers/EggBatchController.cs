@@ -76,5 +76,11 @@ namespace Zenkoi.API.Controllers
          
             return Success(deleted, "Xóa lô trứng thành công.");
         }
+        [HttpPut("{id}/cancel")]
+        public async Task<IActionResult> CancelEggBatch(int id)
+        {
+            var canceled = await _eggBatchService.CancelEggBatch(id);
+            return Success(canceled, "Đã hủy lô trứng và cập nhật trạng thái hồ.");
+        }
     }
 }

@@ -17,7 +17,8 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<EggBatchSummaryDTO> GetSummaryByEggBatchIdAsync(int eggBatchId);
         Task<IncubationDailyRecordResponseDTO> CreateAsync(IncubationDailyRecordRequestDTO dto);
         Task<IncubationDailyRecordResponseDTO> CreateV2Async(IncubationDailyRecordRequestV2DTO dto);
-        Task<bool> UpdateAsync(int id, IncubationDailyRecordRequestDTO dto);
+        Task<bool> UpdateV2Async(int id, IncubationDailyRecordUpdateV2RequestDTO dto);
+        Task<bool> UpdateAsync(int id, IncubationDailyRecordUpdateRequestDTO dto);
         Task<bool> DeleteAsync(int id);
     }
 }
