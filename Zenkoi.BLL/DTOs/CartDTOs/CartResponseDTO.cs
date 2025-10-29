@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using Zenkoi.BLL.DTOs.KoiFishDTOs;
+using Zenkoi.BLL.DTOs.PacketFishDTOs;
 
 namespace Zenkoi.BLL.DTOs.CartDTOs
 {
@@ -27,13 +29,10 @@ namespace Zenkoi.BLL.DTOs.CartDTOs
         public int Id { get; set; }
         public int CartId { get; set; }
         public int? KoiFishId { get; set; }
-        public string? KoiFishName { get; set; }
-        public decimal? KoiFishPrice { get; set; }
-        public string? KoiFishImage { get; set; }
         public int? PacketFishId { get; set; }
-        public string? PacketFishName { get; set; }
-        public decimal? PacketFishPrice { get; set; }
-        public string? PacketFishImage { get; set; }
+
+        public KoiFishResponseDTO KoiFish { get; set; }
+        public PacketFishResponseDTO PacketFish { get; set; }
         public int Quantity { get; set; }
         public decimal ItemTotalPrice { get; set; }
         public DateTime AddedAt { get; set; }

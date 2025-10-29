@@ -156,19 +156,19 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<CustomerRequestDTO, Customer>();
             CreateMap<CustomerUpdateDTO, Customer>();
 
-            // Cart mappings
-            CreateMap<Cart, CartResponseDTO>()
-                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null && src.Customer.ApplicationUser != null ? src.Customer.ApplicationUser.FullName : string.Empty))
-                .ForMember(dest => dest.TotalPrice, opt => opt.Ignore());
+          
             CreateMap<CartItem, CartItemResponseDTO>()
-                .ForMember(dest => dest.KoiFishName, opt => opt.MapFrom(src => src.KoiFish != null ? $"KoiFish {src.KoiFish.RFID}" : null))
-                .ForMember(dest => dest.KoiFishPrice, opt => opt.MapFrom(src => src.KoiFish != null ? src.KoiFish.SellingPrice : null))
-                .ForMember(dest => dest.KoiFishImage, opt => opt.MapFrom(src => src.KoiFish != null && src.KoiFish.Images != null && src.KoiFish.Images.Any() ? src.KoiFish.Images.First() : null))
-                .ForMember(dest => dest.PacketFishName, opt => opt.MapFrom(src => src.PacketFish != null ? src.PacketFish.Name : null))
-                .ForMember(dest => dest.PacketFishPrice, opt => opt.MapFrom(src => src.PacketFish != null ? src.PacketFish.TotalPrice : (decimal?)null))
-                .ForMember(dest => dest.PacketFishImage, opt => opt.MapFrom(src => src.PacketFish != null && !string.IsNullOrEmpty(src.PacketFish.Images)
-                                                                                   ? src.PacketFish.Images.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(): null))
-                .ForMember(dest => dest.ItemTotalPrice, opt => opt.Ignore());
+                .ForMember(dest => dest.KoiFish, opt => opt.MapFrom(src => src.KoiFish))
+                .ForMember(dest => dest.PacketFish, opt => opt.MapFrom(src => src.PacketFish))
+                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity));
+
+            CreateMap<Cart, CartResponseDTO>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
+                    src.Customer != null && src.Customer.ApplicationUser != null
+                        ? src.Customer.ApplicationUser.FullName
+                        : string.Empty))
+                .ForMember(dest => dest.CartItems, opt => opt.MapFrom(src => src.CartItems));
+
         }
     }
 }
