@@ -37,7 +37,7 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(pf => pf.Images)
                 .HasMaxLength(1000);
             
-            builder.Property(pf => pf.Video)
+            builder.Property(pf => pf.Videos)
                 .HasMaxLength(1000);
 
             builder.Property(pf => pf.IsAvailable)

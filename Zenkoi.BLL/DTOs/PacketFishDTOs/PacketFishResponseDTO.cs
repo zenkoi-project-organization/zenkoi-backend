@@ -11,8 +11,8 @@ namespace Zenkoi.BLL.DTOs.PacketFishDTOs
         public decimal TotalPrice { get; set; }
         public FishSize Size { get; set; }
         public decimal AgeMonths { get; set; }
-        public string? Images { get; set; }
-        public string? Video { get; set; }
+        public List<string>? Images { get; set; }
+        public List<string>? Videos { get; set; }
         public bool IsAvailable { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

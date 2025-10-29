@@ -818,8 +818,7 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalPrice = 5000000,
                         Size = FishSize.From21To25cm,
                         AgeMonths = 6,
-                        Images = "[\"https://example.com/koi1.jpg\", \"https://example.com/koi2.jpg\"]",
-                        Video = "https://example.com/koi-video.mp4",
+                        Images = new List<string> { "https://res.cloudinary.com/detykxgzs/image/upload/v1761745730/Screenshot_2025-10-29_204746_mrp212.png" },
                         IsAvailable = true,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -831,8 +830,7 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalPrice = 8000000,
                         Size = FishSize.From26To30cm,
                         AgeMonths = 8,
-                        Images = "[\"https://example.com/sanke1.jpg\"]",
-                        Video = "https://example.com/sanke-video.mp4",
+                        Images = new List<string> { "https://res.cloudinary.com/detykxgzs/image/upload/v1761745730/Screenshot_2025-10-29_204746_mrp212.png" },
                         IsAvailable = true,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -844,8 +842,7 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalPrice = 12000000,
                         Size = FishSize.From31To40cm,
                         AgeMonths = 12,
-                        Images = "[\"https://example.com/showa1.jpg\"]",
-                        Video = null,
+                        Images = new List<string> { "https://res.cloudinary.com/detykxgzs/image/upload/v1761745730/Screenshot_2025-10-29_204746_mrp212.png" },
                         IsAvailable = true,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -857,8 +854,7 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalPrice = 3000000,
                         Size = FishSize.From10To20cm,
                         AgeMonths = 3,
-                        Images = "[\"https://example.com/ogon1.jpg\"]",
-                        Video = null,
+                        Images = new List<string> { "https://res.cloudinary.com/detykxgzs/image/upload/v1761745730/Screenshot_2025-10-29_204746_mrp212.png" },
                         IsAvailable = true,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -870,8 +866,7 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalPrice = 10000000,
                         Size = FishSize.From41To45cm,
                         AgeMonths = 18,
-                        Images = "[\"https://example.com/asagi1.jpg\"]",
-                        Video = null,
+                        Images = new List<string> { "https://res.cloudinary.com/detykxgzs/image/upload/v1761745730/Screenshot_2025-10-29_204746_mrp212.png" },
                         IsAvailable = true,
                         CreatedAt = DateTime.UtcNow
                     }

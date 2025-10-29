@@ -14,13 +14,13 @@ namespace Zenkoi.DAL.Entities
         public decimal TotalPrice { get; set; }
         public FishSize Size { get; set; }
         public decimal AgeMonths { get; set; }
-        public string? Images { get; set; }
-        public string? Video { get; set; }
+        public List<string>? Images { get; set; }
+        public List<string>? Videos { get; set; }
         public bool IsAvailable { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
-        public ICollection<VarietyPacketFish> VarietyPacketFishes { get; set; }
-        public ICollection<PondPacketFish> PondPacketFishes { get; set; }
-        public ICollection<OrderDetail> OrderDetails { get; set; }
+        public ICollection<VarietyPacketFish> VarietyPacketFishes { get; set; } = new List<VarietyPacketFish>();
+        public ICollection<PondPacketFish> PondPacketFishes { get; set; } = new List<PondPacketFish>();
+        public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
     }
 }
