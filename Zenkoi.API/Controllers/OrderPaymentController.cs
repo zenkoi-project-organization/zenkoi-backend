@@ -62,7 +62,7 @@ namespace Zenkoi.API.Controllers
                 var customer = await _unitOfWork.GetRepo<Customer>().GetSingleAsync(
                     new QueryBuilder<Customer>()
                     .WithPredicate(c => c.Id == order.CustomerId)
-                    .WithInclude(c => c.User)
+                    .WithInclude(c => c.ApplicationUser)
                     .Build());
 
                 if (method.ToLower() == "payos")
@@ -89,7 +89,7 @@ namespace Zenkoi.API.Controllers
                     // Create PaymentTransaction
                     var paymentTransaction = new PaymentTransaction
                     {
-                        UserId = customer?.User?.Id ?? 0,
+                        UserId = customer?.ApplicationUser?.Id ?? 0,
                         PaymentMethod = "PayOS",
                         OrderId = orderCode.ToString(),
                         ActualOrderId = orderId,
@@ -111,14 +111,14 @@ namespace Zenkoi.API.Controllers
                 {
                     // VnPay
                     var paymentUrl = await _vnPayService.CreatePaymentUrlAsync(
-                        customer?.User?.Id ?? 0,
+                        customer?.ApplicationUser?.Id ?? 0,
                         HttpContext,
                         new VnPayRequestDTO
                         {
                             OrderId = orderId,
                             Amount = (double)order.TotalAmount,
                             Description = $"Thanh toán đơn hàng {order.OrderNumber}",
-                            FullName = customer?.User?.FullName ?? "Customer",
+                            FullName = customer?.ApplicationUser?.FullName ?? "Customer",
                             CreatedDate = DateTime.Now
                         }
                     );
@@ -126,7 +126,7 @@ namespace Zenkoi.API.Controllers
                     // Create PaymentTransaction
                     var paymentTransaction = new PaymentTransaction
                     {
-                        UserId = customer?.User?.Id ?? 0,
+                        UserId = customer?.ApplicationUser?.Id ?? 0,
                         PaymentMethod = "VnPay",
                         OrderId = order.OrderNumber,
                         ActualOrderId = orderId,

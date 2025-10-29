@@ -21,14 +21,13 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Lấy giỏ hàng của khách hàng
         /// </summary>
-        /// <param name="customerId">ID khách hàng</param>
         /// <returns>Thông tin giỏ hàng</returns>
-        [HttpGet("customer/{customerId:int}")]
-        public async Task<IActionResult> GetCartByCustomerId(int customerId)
+        [HttpGet]
+        public async Task<IActionResult> GetCartByCustomerId()
         {
             try
             {
-                var result = await _cartService.GetCartByCustomerIdAsync(customerId);
+                var result = await _cartService.GetCartByCustomerIdAsync(UserId);
                 return GetSuccess(result);
             }
             catch (ArgumentException ex)
@@ -46,12 +45,12 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <param name="customerId">ID khách hàng</param>
         /// <returns>Giỏ hàng</returns>
-        [HttpPost("customer/{customerId:int}")]
-        public async Task<IActionResult> GetOrCreateCart(int customerId)
+        [HttpPost]
+        public async Task<IActionResult> GetOrCreateCart()
         {
             try
             {
-                var result = await _cartService.GetOrCreateCartForCustomerAsync(customerId);
+                var result = await _cartService.GetOrCreateCartForCustomerAsync(UserId);
                 return GetSuccess(result);
             }
             catch (ArgumentException ex)
@@ -77,7 +76,7 @@ namespace Zenkoi.API.Controllers
                 if (!ModelState.IsValid)
                     return ModelInvalid();
 
-                var result = await _cartService.AddCartItemAsync(addCartItemDTO);
+                var result = await _cartService.AddCartItemAsync(addCartItemDTO, UserId);
                 return SaveSuccess(result, "Thêm sản phẩm vào giỏ hàng thành công");
             }
             catch (ArgumentException ex)
@@ -184,7 +183,7 @@ namespace Zenkoi.API.Controllers
                 if (!ModelState.IsValid)
                     return ModelInvalid();
 
-                var result = await _cartService.ConvertCartToOrderAsync(convertCartToOrderDTO);
+                var result = await _cartService.ConvertCartToOrderAsync(convertCartToOrderDTO, UserId);
                 return SaveSuccess(result, "Chuyển đổi giỏ hàng thành đơn hàng thành công");
             }
             catch (ArgumentException ex)

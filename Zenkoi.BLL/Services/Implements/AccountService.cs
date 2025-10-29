@@ -30,17 +30,19 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;     
+		private readonly ICustomerService _customerService;
 
 		private readonly int PLAN_FREE_ID = 1;
 
         public AccountService(IIdentityService identityService, IUnitOfWork unitOfWork,
-                               IEmailService emailService, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+                               IEmailService emailService, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ICustomerService customerService)
         {
             _unitOfWork = unitOfWork;
             _identityService = identityService;
             _emailService = emailService;
             _configuration = configuration;
-            _httpContextAccessor = httpContextAccessor;        
+            _httpContextAccessor = httpContextAccessor;   
+			_customerService = customerService;
         }
         public async Task<AuthenResultDTO> GenerateTokenAsync(ApplicationUser user)
         {
@@ -382,12 +384,16 @@ namespace Zenkoi.BLL.Services.Implements
 					throw new ArgumentException("Role không hợp lệ.");
 				}
 
-				await _identityService.AddToRoleAsync(user, accRequest.Role.ToString());						
-						
+				await _identityService.AddToRoleAsync(user, accRequest.Role.ToString());
 
-				await _unitOfWork.SaveChangesAsync();
+                if (accRequest.Role == Role.Customer)
+                {
+                    await _customerService.CreateCustomerProfileAsync(user.Id);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
 				await _unitOfWork.CommitTransactionAsync();
-			
+				
 			
 				return new AccountViewDTO
 				{

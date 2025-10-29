@@ -80,6 +80,11 @@ namespace Zenkoi.BLL.Services.Implements
                 Expression<Func<KoiFish, bool>> expr = k => k.HealthStatus == filter.Health.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+            if (filter.SaleStatus.HasValue)
+            {
+                Expression<Func<KoiFish, bool>> expr = k => k.SaleStatus == filter.SaleStatus.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
        
             if (filter.VarietyId.HasValue)
             {

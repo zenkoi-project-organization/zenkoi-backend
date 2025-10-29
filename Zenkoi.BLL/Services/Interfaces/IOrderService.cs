@@ -6,7 +6,7 @@ namespace Zenkoi.BLL.Services.Interfaces
 {
     public interface IOrderService
     {
-        Task<OrderResponseDTO> CreateOrderAsync(CreateOrderDTO createOrderDTO);
+        Task<OrderResponseDTO> CreateOrderAsync(CreateOrderDTO createOrderDTO, int customerId);
         Task<OrderResponseDTO> GetOrderByIdAsync(int id);
         Task<OrderResponseDTO> GetOrderByOrderNumberAsync(string orderNumber);
         Task<IEnumerable<OrderResponseDTO>> GetOrdersByCustomerIdAsync(int customerId);

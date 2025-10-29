@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.DAL.Entities
 {
     public class Customer
     {
-        public int Id { get; set; }   
-        public int ApplicationUserId { get; set; }
-        public ApplicationUser User { get; set; }
+        [Key]
+        public int Id { get; set; }
+        [ForeignKey("Id")]
+        public ApplicationUser? ApplicationUser { get; set; }
         public string? ShippingAddress { get; set; }
         public string? ContactNumber { get; set; }   
         public int TotalOrders { get; set; }
