@@ -7,8 +7,8 @@ namespace Zenkoi.BLL.Services.Interfaces
     {
         Task<CartResponseDTO> GetCartByCustomerIdAsync(int customerId);
         Task<CartItemResponseDTO> AddCartItemAsync(AddCartItemDTO addCartItemDTO, int customerId);
-        Task<CartItemResponseDTO> UpdateCartItemAsync(int cartItemId, UpdateCartItemDTO updateCartItemDTO);
-        Task<bool> RemoveCartItemAsync(int cartItemId);
+        Task<CartItemResponseDTO> UpdateCartItemAsync(int cartItemId, UpdateCartItemDTO updateCartItemDTO, int customerId);
+        Task<bool> RemoveCartItemAsync(int cartItemId, int customerId);
         Task<bool> ClearCartAsync(int customerId);
         Task<CartResponseDTO> GetOrCreateCartForCustomerAsync(int customerId);
         Task<OrderResponseDTO> ConvertCartToOrderAsync(ConvertCartToOrderDTO convertCartToOrderDTO, int customerId);

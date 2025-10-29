@@ -42,7 +42,12 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(c => c.CartItems)
                 .Build());
 
-            if (cart != null && cart.CartItems.Any())
+            if (cart == null)
+            {
+                throw new ArgumentException("Cart not found");
+            }
+
+            if (cart.CartItems != null && cart.CartItems.Any())
             {
                 foreach (var item in cart.CartItems)
                 {
@@ -57,12 +62,8 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
 
-            if (cart == null)
-            {
-                throw new ArgumentException("Cart not found");
-            }
-
             var cartResponse = _mapper.Map<CartResponseDTO>(cart);
+
             cartResponse.TotalPrice = cart.CartItems.Sum(ci =>
             {
                 if (ci.KoiFishId.HasValue && ci.KoiFish != null)
@@ -75,10 +76,17 @@ namespace Zenkoi.BLL.Services.Implements
                 }
                 return 0;
             });
-
+      
             foreach (var item in cartResponse.CartItems)
             {
-                item.ItemTotalPrice = (item.KoiFishPrice ?? item.PacketFishPrice ?? 0) * item.Quantity;
+                if (item.KoiFish != null)
+                {
+                    item.ItemTotalPrice = (item.KoiFish.SellingPrice ?? 0) * item.Quantity;
+                }
+                else if (item.PacketFish != null)
+                {
+                    item.ItemTotalPrice = item.PacketFish.TotalPrice * item.Quantity;
+                }
             }
 
             return cartResponse;
@@ -99,7 +107,19 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(c => c.CartItems)
                 .Build());
 
-            if (cart != null && cart.CartItems.Any())
+            if (cart == null)
+            {
+                cart = new Cart
+                {
+                    CustomerId = customerId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _cartRepo.CreateAsync(cart);
+                await _unitOfWork.SaveChangesAsync();
+            }
+        
+            if (cart.CartItems != null && cart.CartItems.Any())
             {
                 foreach (var item in cart.CartItems)
                 {
@@ -114,19 +134,8 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
 
-            if (cart == null)
-            {
-                cart = new Cart
-                {
-                    CustomerId = customerId,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                await _cartRepo.CreateAsync(cart);
-                await _unitOfWork.SaveChangesAsync();
-            }
-
             var cartResponse = _mapper.Map<CartResponseDTO>(cart);
+
             cartResponse.TotalPrice = cart.CartItems.Sum(ci =>
             {
                 if (ci.KoiFishId.HasValue && ci.KoiFish != null)
@@ -142,7 +151,14 @@ namespace Zenkoi.BLL.Services.Implements
 
             foreach (var item in cartResponse.CartItems)
             {
-                item.ItemTotalPrice = (item.KoiFishPrice ?? item.PacketFishPrice ?? 0) * item.Quantity;
+                if (item.KoiFish != null)
+                {
+                    item.ItemTotalPrice = (item.KoiFish.SellingPrice ?? 0) * item.Quantity;
+                }
+                else if (item.PacketFish != null)
+                {
+                    item.ItemTotalPrice = item.PacketFish.TotalPrice * item.Quantity;
+                }
             }
 
             return cartResponse;
@@ -150,7 +166,6 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<CartItemResponseDTO> AddCartItemAsync(AddCartItemDTO addCartItemDTO, int customerId)
         {
-
             var customer = await _customerRepo.GetByIdAsync(customerId);
             if (customer == null)
             {
@@ -165,6 +180,13 @@ namespace Zenkoi.BLL.Services.Implements
             if (!addCartItemDTO.KoiFishId.HasValue && !addCartItemDTO.PacketFishId.HasValue)
             {
                 throw new ArgumentException("An item must be either KoiFish or PacketFish");
+            }
+            if (addCartItemDTO.KoiFishId.HasValue)
+            {
+                if (addCartItemDTO.Quantity != 1)
+                {
+                    throw new ArgumentException("KoiFish can only be purchased with quantity of 1");
+                }
             }
 
             var cart = await _cartRepo.GetSingleAsync(new QueryBuilder<Cart>()
@@ -188,13 +210,18 @@ namespace Zenkoi.BLL.Services.Implements
             if (addCartItemDTO.KoiFishId.HasValue)
             {
                 existingItem = cart.CartItems.FirstOrDefault(ci => ci.KoiFishId == addCartItemDTO.KoiFishId.Value);
+
+                if (existingItem != null)
+                {
+                    throw new ArgumentException($"KoiFish with ID {addCartItemDTO.KoiFishId} is already in your cart. Each Koi fish can only be purchased once.");
+                }
             }
             else if (addCartItemDTO.PacketFishId.HasValue)
             {
                 existingItem = cart.CartItems.FirstOrDefault(ci => ci.PacketFishId == addCartItemDTO.PacketFishId.Value);
             }
 
-            if (existingItem != null)
+            if (existingItem != null && addCartItemDTO.PacketFishId.HasValue)
             {
                 existingItem.Quantity += addCartItemDTO.Quantity;
                 existingItem.UpdatedAt = DateTime.UtcNow;
@@ -209,6 +236,11 @@ namespace Zenkoi.BLL.Services.Implements
                     {
                         throw new ArgumentException($"KoiFish with ID {addCartItemDTO.KoiFishId} not found");
                     }
+
+                    if (koiFish.SaleStatus != SaleStatus.Available)
+                    {
+                        throw new ArgumentException($"KoiFish with ID {addCartItemDTO.KoiFishId} is not available for sale");
+                    }
                 }
                 else if (addCartItemDTO.PacketFishId.HasValue)
                 {
@@ -216,6 +248,11 @@ namespace Zenkoi.BLL.Services.Implements
                     if (packetFish == null)
                     {
                         throw new ArgumentException($"PacketFish with ID {addCartItemDTO.PacketFishId} not found");
+                    }
+
+                    if (!packetFish.IsAvailable)
+                    {
+                        throw new ArgumentException($"PacketFish with ID {addCartItemDTO.PacketFishId} is not available");
                     }
                 }
 
@@ -243,12 +280,21 @@ namespace Zenkoi.BLL.Services.Implements
                 .Build());
 
             var response = _mapper.Map<CartItemResponseDTO>(cartItemWithData);
-            response.ItemTotalPrice = (response.KoiFishPrice ?? response.PacketFishPrice ?? 0) * response.Quantity;
+
+            if (response.KoiFish != null)
+            {
+                response.ItemTotalPrice = (response.KoiFish.SellingPrice ?? 0) * response.Quantity;
+            }
+            else if (response.PacketFish != null)
+            {
+                response.ItemTotalPrice = response.PacketFish.TotalPrice * response.Quantity;
+            }
 
             return response;
         }
 
-        public async Task<CartItemResponseDTO> UpdateCartItemAsync(int cartItemId, UpdateCartItemDTO updateCartItemDTO)
+
+        public async Task<CartItemResponseDTO> UpdateCartItemAsync(int cartItemId, UpdateCartItemDTO updateCartItemDTO, int customerId)
         {
             var cartItem = await _cartItemRepo.GetSingleAsync(new QueryBuilder<CartItem>()
                 .WithPredicate(ci => ci.Id == cartItemId)
@@ -261,6 +307,19 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new ArgumentException("Cart item not found");
             }
+            if (cartItem.Cart.CustomerId != customerId)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to update this cart item");
+            }
+
+
+            if (cartItem.KoiFishId.HasValue)
+            {
+                if (updateCartItemDTO.Quantity != 1)
+                {
+                    throw new ArgumentException("KoiFish quantity cannot be changed. Each Koi fish can only be purchased once with quantity of 1.");
+                }
+            }
 
             cartItem.Quantity = updateCartItemDTO.Quantity;
             cartItem.UpdatedAt = DateTime.UtcNow;
@@ -272,12 +331,21 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.SaveChangesAsync();
 
             var response = _mapper.Map<CartItemResponseDTO>(cartItem);
-            response.ItemTotalPrice = (response.KoiFishPrice ?? response.PacketFishPrice ?? 0) * response.Quantity;
+
+            if (response.KoiFish != null)
+            {
+                response.ItemTotalPrice = (response.KoiFish.SellingPrice ?? 0) * response.Quantity;
+            }
+            else if (response.PacketFish != null)
+            {
+                response.ItemTotalPrice = response.PacketFish.TotalPrice * response.Quantity;
+            }
 
             return response;
         }
 
-        public async Task<bool> RemoveCartItemAsync(int cartItemId)
+
+        public async Task<bool> RemoveCartItemAsync(int cartItemId, int customerId)
         {
             var cartItem = await _cartItemRepo.GetSingleAsync(new QueryBuilder<CartItem>()
                 .WithPredicate(ci => ci.Id == cartItemId)
@@ -287,6 +355,10 @@ namespace Zenkoi.BLL.Services.Implements
             if (cartItem == null)
             {
                 throw new ArgumentException("Cart item not found");
+            }
+            if (cartItem.Cart.CustomerId != customerId)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to delete this cart item");
             }
 
             var cartId = cartItem.CartId;
@@ -316,6 +388,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new ArgumentException("Cart not found");
             }
+
             foreach (var item in cart.CartItems.ToList())
             {
                 await _cartItemRepo.DeleteAsync(item);
@@ -336,21 +409,6 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(c => c.CartItems)
                 .Build());
 
-            if (cart != null && cart.CartItems.Any())
-            {
-                foreach (var item in cart.CartItems)
-                {
-                    if (item.KoiFishId.HasValue)
-                    {
-                        item.KoiFish = await _koiFishRepo.GetByIdAsync(item.KoiFishId.Value);
-                    }
-                    if (item.PacketFishId.HasValue)
-                    {
-                        item.PacketFish = await _packetFishRepo.GetByIdAsync(item.PacketFishId.Value);
-                    }
-                }
-            }
-
             if (cart == null)
             {
                 throw new ArgumentException("Cart not found");
@@ -359,6 +417,18 @@ namespace Zenkoi.BLL.Services.Implements
             if (!cart.CartItems.Any())
             {
                 throw new ArgumentException("Cart is empty. Cannot create order from empty cart.");
+            }
+
+            foreach (var item in cart.CartItems)
+            {
+                if (item.KoiFishId.HasValue)
+                {
+                    item.KoiFish = await _koiFishRepo.GetByIdAsync(item.KoiFishId.Value);
+                }
+                if (item.PacketFishId.HasValue)
+                {
+                    item.PacketFish = await _packetFishRepo.GetByIdAsync(item.PacketFishId.Value);
+                }
             }
 
             decimal subtotal = 0;
@@ -400,14 +470,14 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (convertCartToOrderDTO.PromotionId.HasValue)
             {
-                var promotion = await _unitOfWork.GetRepo<Promotion>().GetByIdAsync(convertCartToOrderDTO.PromotionId.Value);
+                var promotion = await _promotionRepo.GetByIdAsync(convertCartToOrderDTO.PromotionId.Value);
                 if (promotion == null)
                 {
                     throw new ArgumentException("Promotion not found");
                 }
             }
-            decimal discountAmount = await CalculateDiscountAsync(convertCartToOrderDTO.PromotionId, subtotal);
 
+            decimal discountAmount = await CalculateDiscountAsync(convertCartToOrderDTO.PromotionId, subtotal);
             var totalAmount = subtotal + convertCartToOrderDTO.ShippingFee - discountAmount;
 
             var order = new Order
@@ -469,6 +539,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             return _mapper.Map<OrderResponseDTO>(createdOrder);
         }
+
         private async Task<decimal> CalculateDiscountAsync(int? promotionId, decimal subtotal)
         {
             if (!promotionId.HasValue)
@@ -512,4 +583,3 @@ namespace Zenkoi.BLL.Services.Implements
         }
     }
 }
-

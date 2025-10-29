@@ -103,7 +103,7 @@ namespace Zenkoi.API.Controllers
                 if (!ModelState.IsValid)
                     return ModelInvalid();
 
-                var result = await _cartService.UpdateCartItemAsync(cartItemId, updateCartItemDTO);
+                var result = await _cartService.UpdateCartItemAsync(cartItemId, updateCartItemDTO, UserId);
                 return SaveSuccess(result, "Cập nhật giỏ hàng thành công");
             }
             catch (ArgumentException ex)
@@ -126,10 +126,10 @@ namespace Zenkoi.API.Controllers
         {
             try
             {
-                var result = await _cartService.RemoveCartItemAsync(cartItemId);
+                var result = await _cartService.RemoveCartItemAsync(cartItemId, UserId);
                 if (result)
                 {
-                    return SaveSuccess(new { message = "Xóa sản phẩm khỏi giỏ hàng thành công" }, "Xóa sản phẩm khỏi giỏ hàng thành công");
+                    return SaveSuccess("Xóa sản phẩm khỏi giỏ hàng thành công");
                 }
                 return GetError("Không thể xóa sản phẩm khỏi giỏ hàng");
             }
@@ -156,7 +156,7 @@ namespace Zenkoi.API.Controllers
                 var result = await _cartService.ClearCartAsync(customerId);
                 if (result)
                 {
-                    return SaveSuccess(new { message = "Xóa giỏ hàng thành công" }, "Xóa giỏ hàng thành công");
+                    return SaveSuccess("Xóa giỏ hàng thành công");
                 }
                 return GetError("Không thể xóa giỏ hàng");
             }
