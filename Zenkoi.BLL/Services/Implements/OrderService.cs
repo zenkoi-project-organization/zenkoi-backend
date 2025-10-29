@@ -58,7 +58,6 @@ namespace Zenkoi.BLL.Services.Implements
                 }
 
                 decimal unitPrice = 0;
-                string? productName = null;
 
                 if (item.KoiFishId.HasValue)
                 {
@@ -68,7 +67,10 @@ namespace Zenkoi.BLL.Services.Implements
                         throw new ArgumentException($"KoiFish with ID {item.KoiFishId} not found");
                     }
                     unitPrice = koiFish.SellingPrice ?? 0;
-                    productName = $"KoiFish {koiFish.RFID}";
+                    if (unitPrice == 0)
+                    {
+                        throw new ArgumentException($"KoiFish with ID {item.KoiFishId} does not have a selling price");
+                    }
                 }
                 else if (item.PacketFishId.HasValue)
                 {
@@ -78,7 +80,6 @@ namespace Zenkoi.BLL.Services.Implements
                         throw new ArgumentException($"PacketFish with ID {item.PacketFishId} not found");
                     }
                     unitPrice = packetFish.TotalPrice;
-                    productName = packetFish.Name;
                 }
 
                 var totalPrice = unitPrice * item.Quantity;
@@ -95,7 +96,6 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             decimal discountAmount = await CalculateDiscountAsync(createOrderDTO.PromotionId, subtotal);
-
             var totalAmount = subtotal + createOrderDTO.ShippingFee - discountAmount;
 
             var order = new Order
@@ -104,7 +104,7 @@ namespace Zenkoi.BLL.Services.Implements
                 Status = OrderStatus.Created,
                 Subtotal = subtotal,
                 ShippingFee = createOrderDTO.ShippingFee,
-                DiscountAmount = discountAmount, 
+                DiscountAmount = discountAmount,
                 TotalAmount = totalAmount,
                 PromotionId = createOrderDTO.PromotionId,
                 OrderDetails = orderDetails
@@ -112,7 +112,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             await _orderRepo.CreateAsync(order);
 
-           
             if (createOrderDTO.PromotionId.HasValue)
             {
                 var promotion = await _promotionRepo.GetByIdAsync(createOrderDTO.PromotionId.Value);
@@ -128,17 +127,13 @@ namespace Zenkoi.BLL.Services.Implements
             var createdOrder = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
                 .WithPredicate(o => o.Id == order.Id)
                 .WithInclude(o => o.Customer)
+                .WithInclude(o => o.Customer.ApplicationUser)
                 .WithInclude(o => o.Promotion)
+                .WithInclude(o => o.OrderDetails)
                 .Build());
 
-            if (createdOrder != null)
+            if (createdOrder != null && createdOrder.OrderDetails.Any())
             {
-                var loadedOrderDetails = await _orderDetailRepo.GetAllAsync(new QueryBuilder<OrderDetail>()
-                    .WithPredicate(od => od.OrderId == createdOrder.Id)
-                    .Build());
-
-                createdOrder.OrderDetails = loadedOrderDetails.ToList();
-
                 foreach (var detail in createdOrder.OrderDetails)
                 {
                     if (detail.KoiFishId.HasValue)
@@ -148,18 +143,6 @@ namespace Zenkoi.BLL.Services.Implements
                     if (detail.PacketFishId.HasValue)
                     {
                         detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
-                    }
-                }
-
-                if (createdOrder.Customer != null)
-                {
-                    var customerUser = await _customerRepo.GetSingleAsync(new QueryBuilder<Customer>()
-                        .WithPredicate(c => c.Id == createdOrder.Customer.Id)
-                        .WithInclude(c => c.ApplicationUser)
-                        .Build());
-                    if (customerUser != null)
-                    {
-                        createdOrder.Customer.ApplicationUser = customerUser.ApplicationUser;
                     }
                 }
             }
@@ -172,12 +155,29 @@ namespace Zenkoi.BLL.Services.Implements
             var order = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
                 .WithPredicate(o => o.Id == id)
                 .WithInclude(o => o.Customer)
+                .WithInclude(o => o.Customer.ApplicationUser)
                 .WithInclude(o => o.Promotion)
+                .WithInclude(o => o.OrderDetails)
                 .Build());
 
             if (order == null)
             {
                 throw new ArgumentException("Order not found");
+            }
+
+            if (order.OrderDetails != null && order.OrderDetails.Any())
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    if (detail.KoiFishId.HasValue)
+                    {
+                        detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
+                    }
+                    if (detail.PacketFishId.HasValue)
+                    {
+                        detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
+                    }
+                }
             }
 
             return _mapper.Map<OrderResponseDTO>(order);
@@ -188,12 +188,29 @@ namespace Zenkoi.BLL.Services.Implements
             var order = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
                 .WithPredicate(o => o.OrderNumber == orderNumber)
                 .WithInclude(o => o.Customer)
+                .WithInclude(o => o.Customer.ApplicationUser)
                 .WithInclude(o => o.Promotion)
+                .WithInclude(o => o.OrderDetails)
                 .Build());
 
             if (order == null)
             {
                 throw new ArgumentException("Order not found");
+            }
+
+            if (order.OrderDetails != null && order.OrderDetails.Any())
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    if (detail.KoiFishId.HasValue)
+                    {
+                        detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
+                    }
+                    if (detail.PacketFishId.HasValue)
+                    {
+                        detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
+                    }
+                }
             }
 
             return _mapper.Map<OrderResponseDTO>(order);
@@ -204,28 +221,71 @@ namespace Zenkoi.BLL.Services.Implements
             var orders = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
                 .WithPredicate(o => o.CustomerId == customerId)
                 .WithInclude(o => o.Customer)
+                .WithInclude(o => o.Customer.ApplicationUser)
                 .WithInclude(o => o.Promotion)
+                .WithInclude(o => o.OrderDetails)
                 .WithOrderBy(o => o.OrderByDescending(x => x.CreatedAt))
                 .Build());
+
+            foreach (var order in orders)
+            {
+                if (order.OrderDetails != null && order.OrderDetails.Any())
+                {
+                    foreach (var detail in order.OrderDetails)
+                    {
+                        if (detail.KoiFishId.HasValue)
+                        {
+                            detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
+                        }
+                        if (detail.PacketFishId.HasValue)
+                        {
+                            detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
+                        }
+                    }
+                }
+            }
 
             return _mapper.Map<IEnumerable<OrderResponseDTO>>(orders);
         }
 
         public async Task<IEnumerable<OrderResponseDTO>> GetAllOrdersAsync(QueryOptions<Order>? queryOptions = null)
         {
+            IEnumerable<Order> orders;
+
             if (queryOptions == null)
             {
-                var orders = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
+                orders = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
                     .WithInclude(o => o.Customer)
+                    .WithInclude(o => o.Customer.ApplicationUser)
                     .WithInclude(o => o.Promotion)
+                    .WithInclude(o => o.OrderDetails)
                     .WithOrderBy(o => o.OrderByDescending(x => x.CreatedAt))
                     .Build());
-
-                return _mapper.Map<IEnumerable<OrderResponseDTO>>(orders);
+            }
+            else
+            {
+                orders = await _orderRepo.GetAllAsync(queryOptions);
             }
 
-            var ordersWithCustomOptions = await _orderRepo.GetAllAsync(queryOptions);
-            return _mapper.Map<IEnumerable<OrderResponseDTO>>(ordersWithCustomOptions);
+            foreach (var order in orders)
+            {
+                if (order.OrderDetails != null && order.OrderDetails.Any())
+                {
+                    foreach (var detail in order.OrderDetails)
+                    {
+                        if (detail.KoiFishId.HasValue)
+                        {
+                            detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
+                        }
+                        if (detail.PacketFishId.HasValue)
+                        {
+                            detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
+                        }
+                    }
+                }
+            }
+
+            return _mapper.Map<IEnumerable<OrderResponseDTO>>(orders);
         }
 
         public async Task<OrderResponseDTO> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO updateOrderStatusDTO)
@@ -266,7 +326,6 @@ namespace Zenkoi.BLL.Services.Implements
             if (promotion == null)
                 throw new ArgumentException("Không tìm thấy khuyến mãi");
 
-      
             if (!promotion.IsActive)
                 throw new ArgumentException($"Khuyến mãi '{promotion.Code}' không còn hoạt động");
 
