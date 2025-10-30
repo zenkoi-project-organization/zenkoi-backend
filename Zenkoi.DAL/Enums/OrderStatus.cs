@@ -6,15 +6,17 @@ namespace Zenkoi.DAL.Enums
     {
         [EnumMember(Value = "Created")]
         Created = 0,
+        [EnumMember(Value = "Paid")]
+        Paid = 1,
         [EnumMember(Value = "Confirmed")]
-        Confirmed = 1,
+        Confirmed = 2,
         [EnumMember(Value = "Shipped")]
-        Shipped = 2,
+        Shipped = 3,
         [EnumMember(Value = "Delivered")]
-        Delivered = 3,
+        Delivered = 4,
         [EnumMember(Value = "Cancelled")]
-        Cancelled = 4,
+        Cancelled = 5,
         [EnumMember(Value = "Completed")]
-        Completed = 5
+        Completed = 6
     }
 }
