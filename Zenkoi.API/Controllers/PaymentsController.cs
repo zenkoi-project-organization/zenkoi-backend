@@ -178,7 +178,7 @@ namespace Zenkoi.API.Controllers
 
                     await _unitOfWork.SaveChangesAsync();
 
-                    return Redirect($"{feURL}/payment/failure?code={vnpayRes.VnPayResponseCode}&orderId={orderId}");
+                    return Redirect($"{feURL}/checkout/failure?code={vnpayRes.VnPayResponseCode}&orderId={orderId}");
                 }
             }
             catch (Exception ex)
@@ -189,7 +189,7 @@ namespace Zenkoi.API.Controllers
                 Console.ResetColor();
 
                 var feURL = _configuration["FrontendURL"];
-                return Redirect($"{feURL}/payment/error?message={ex.Message}");
+                return Redirect($"{feURL}/checkout/failure?message={ex.Message}");
             }
         }
 
