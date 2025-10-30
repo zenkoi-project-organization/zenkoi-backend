@@ -28,7 +28,6 @@ namespace Zenkoi.API.Controllers
         /// <param name="packetFishRequestDTO">Thông tin gói cá</param>
         /// <returns>Gói cá đã tạo</returns>
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreatePacketFish([FromBody] PacketFishRequestDTO packetFishRequestDTO)
         {
             try
@@ -110,7 +109,7 @@ namespace Zenkoi.API.Controllers
                 };
 
                 var result = await _packetFishService.GetAllPacketFishesAsync(filter, pageIndex, pageSize);
-                return GetSuccess(new PagingDTO<PacketFishResponseDTO>(result));
+                return GetPagedSuccess(result);
             }
             catch (Exception ex)
             {
