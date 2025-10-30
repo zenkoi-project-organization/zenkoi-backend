@@ -10,5 +10,6 @@ namespace Zenkoi.BLL.DTOs.FrySurvivalRecordDTOs
     {
         public int? CountAlive { get; set; }
         public string? Note { get; set; }
+        public bool Success { get; set; }
     }
 }
