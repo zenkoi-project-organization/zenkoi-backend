@@ -118,7 +118,7 @@ namespace Zenkoi.API.Controllers
         /// Lấy danh sách đơn hàng của 
         /// </summary>
         /// <returns>Danh sách đơn hàng</returns>
-        [HttpGet("customer/me/{customerId:int}")]
+        [HttpGet("customer/me")]
         public async Task<IActionResult> GetOrdersByCurrentCustomerId()
         {
             try
@@ -148,7 +148,6 @@ namespace Zenkoi.API.Controllers
         /// <param name="pageSize">Số lượng mục trên mỗi trang (mặc định: 10)</param>
         /// <returns>Danh sách đơn hàng đã phân trang</returns>
         [HttpGet("all")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllOrders(
             [FromQuery] string? search = null,
             [FromQuery] OrderStatus? status = null,
