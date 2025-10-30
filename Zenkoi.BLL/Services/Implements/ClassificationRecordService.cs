@@ -162,10 +162,7 @@ namespace Zenkoi.BLL.Services.Implements
             classification.ShowQualifiedCount = dto.ShowQualifiedCount;
             classification.HighQualifiedCount = record.HighQualifiedCount;
 
-            // ✅ Hoàn tất quy trình
-            classification.Status = ClassificationStatus.Success;
-            breed.Status = BreedingStatus.Complete;
-            breed.EndDate = DateTime.Now;
+            classification.Status = ClassificationStatus.Stage4;
 
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
@@ -176,15 +173,89 @@ namespace Zenkoi.BLL.Services.Implements
         }
         public async Task<bool> DeleteAsync(int id)
         {
+            var _classRepo = _unitOfWork.GetRepo<ClassificationStage>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+
             var record = await _recordRepo.GetByIdAsync(id);
             if (record == null)
-            {
                 throw new KeyNotFoundException("Không tìm thấy ghi nhận cần xóa");
-            }
-            await _recordRepo.DeleteAsync(record);
 
+            var classification = await _classRepo.GetByIdAsync(record.ClassificationStageId);
+            if (classification == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy phân loại");
+
+            await _recordRepo.DeleteAsync(record);
+            await _unitOfWork.SaveChangesAsync();
+
+            var records = await _recordRepo.GetAllAsync(new QueryOptions<ClassificationRecord>
+            {
+                Predicate = r => r.ClassificationStageId == classification.Id,
+                OrderBy = q => q.OrderBy(r => r.StageNumber),
+                Tracked = false
+            });
+
+            if (!records.Any())
+            {
+                classification.PondQualifiedCount = classification.TotalCount;
+                classification.CullQualifiedCount = 0;
+                classification.HighQualifiedCount = 0;
+                classification.ShowQualifiedCount = 0;
+                classification.Status = ClassificationStatus.Preparing;
+            }
+            else
+            {
+
+                int cull = 0, pond = classification.TotalCount, high = 0, show = 0;
+
+                var stage1 = records.FirstOrDefault(r => r.StageNumber == 1);
+                var stage2 = records.FirstOrDefault(r => r.StageNumber == 2);
+                var stage3 = records.FirstOrDefault(r => r.StageNumber == 3);
+                var stage4 = records.FirstOrDefault(r => r.StageNumber == 4);
+
+                if (stage1 != null)
+                {
+                    int cull1 = stage1.CullQualifiedCount ?? 0;
+                    cull += cull1;
+                    pond -= cull1;
+                }
+
+                if (stage2 != null)
+                {
+                    int cull2 = stage2.CullQualifiedCount ?? 0;
+                    cull += cull2;
+                    pond -= cull2;
+                }
+
+                if (stage3 != null)
+                {
+                    int high3 = stage3.HighQualifiedCount ?? 0;
+                    high = high3;
+                    pond -= high3;
+                }
+
+                if (stage4 != null)
+                {
+                    int show4 = stage4.ShowQualifiedCount ?? 0;
+                    show = show4;
+                    high -= show4;
+                }
+
+                classification.CullQualifiedCount = cull;
+                classification.PondQualifiedCount = pond;
+                classification.HighQualifiedCount = high;
+                classification.ShowQualifiedCount = show;
+
+                int currentStage = records.Max(r => r.StageNumber);
+                classification.Status = currentStage >= 4
+                    ? ClassificationStatus.Success
+                    : (ClassificationStatus)currentStage;
+            }
+
+            await _classRepo.UpdateAsync(classification);
+            await _breedRepo.UpdateAsync(await _breedRepo.GetByIdAsync(classification.BreedingProcessId));
             return await _unitOfWork.SaveAsync();
         }
+
 
         public async Task<PaginatedList<ClassificationRecordResponseDTO>> GetAllAsync(ClassificationRecordFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {

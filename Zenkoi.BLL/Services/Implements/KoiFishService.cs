@@ -173,27 +173,33 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<KoiFishResponseDTO>(entity);
         }
 
-        public async Task<bool> UpdateAsync(int id, KoiFishRequestDTO dto)
+        public async Task<bool> UpdateAsync(int id, KoiFishUpdateRequestDTO dto)
         {
-            var variety = await _varietyRepo.CheckExistAsync(dto.VarietyId);
-            if (!variety)
-            {
-                throw new Exception($"không tìm thấy variety với id : {dto.VarietyId}");
-            }
-            var pond = await _pondRepo.CheckExistAsync(dto.PondId);
-            if (!pond)
-            {
-                throw new Exception($"không tìm thấy pond với id {dto.PondId}");
-            }
             var koiFish = await _koiFishRepo.GetByIdAsync(id);
-            if (koiFish == null) return false;
+            if (koiFish == null)
+                throw new Exception($"Không tìm thấy cá Koi với id {id}.");
+
+            if (dto.VarietyId.HasValue)
+            {
+                var varietyExists = await _varietyRepo.CheckExistAsync(dto.VarietyId.Value);
+                if (!varietyExists)
+                    throw new Exception($"Không tìm thấy Variety với id: {dto.VarietyId}");
+            }
+
+            if (dto.PondId.HasValue)
+            {
+                var pondExists = await _pondRepo.CheckExistAsync(dto.PondId.Value);
+                if (!pondExists)
+                    throw new Exception($"Không tìm thấy Pond với id: {dto.PondId}");
+            }
 
             _mapper.Map(dto, koiFish);
+
             await _koiFishRepo.UpdateAsync(koiFish);
             await _unitOfWork.SaveChangesAsync();
+
             return true;
         }
-
         public async Task<bool> DeleteAsync(int id)
         {
             var koifish = await _koiFishRepo.GetByIdAsync(id);

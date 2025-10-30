@@ -57,7 +57,7 @@ namespace Zenkoi.API.Controllers
 
       
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateKoiFish(int id, [FromBody] KoiFishRequestDTO dto)
+        public async Task<IActionResult> UpdateKoiFish(int id, [FromBody] KoiFishUpdateRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();
