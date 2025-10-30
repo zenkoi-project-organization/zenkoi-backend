@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Net.payOS.Types;
+using Zenkoi.BLL.DTOs.OrderDTOs;
 using Zenkoi.BLL.DTOs.PayOSDTOs;
 using Zenkoi.BLL.DTOs.VnPayDTOs;
+using Zenkoi.BLL.Services.Implements;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.UnitOfWork;
 
@@ -19,59 +22,174 @@ namespace Zenkoi.API.Controllers
         private readonly IConfiguration _configuration;
         private readonly IVnPayService _vnPayService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IOrderService _orderService;
 
-        public PaymentsController(IHttpContextAccessor httpContextAccessor, IPayOSService payOSService, IConfiguration configuration, IVnPayService vnPayService, IUnitOfWork unitOfWork)
+        public PaymentsController(IHttpContextAccessor httpContextAccessor, IPayOSService payOSService, IConfiguration configuration, IVnPayService vnPayService, IUnitOfWork unitOfWork, IOrderService orderService)
         {
             _httpContextAccessor = httpContextAccessor;
             _payOSService = payOSService;
             _configuration = configuration;
             _vnPayService = vnPayService;
             _unitOfWork = unitOfWork;
+            _orderService = orderService;
         }
 
-        [HttpGet("response-payment")]
-        public async Task<IActionResult> PaymentResponse()
+        //[HttpGet("response-payment")]
+        //public async Task<IActionResult> PaymentResponse()
+        //{
+        //    try
+        //    {
+        //        var vnpayRes = _vnPayService.PaymentExcute(Request.Query);
+
+        //        if (!int.TryParse(vnpayRes.OrderId, out var transactionId))
+        //        {
+        //            throw new Exception("OrderId từ VnPay không hợp lệ.");
+        //        }
+
+        //        // Tìm và cập nhật trạng thái thanh toán
+        //        var queryOptions = new QueryOptions<PaymentTransaction>
+        //        {
+        //            Predicate = pt => pt.OrderId == vnpayRes.OrderId
+        //        };
+        //        var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(queryOptions);
+
+        //        if (paymentTransaction != null)
+        //        {
+        //            paymentTransaction.Status = vnpayRes.IsSuccess ? "Success" : "Failed";
+        //            paymentTransaction.TransactionId = vnpayRes.TransactionId.ToString();
+        //            paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
+        //            paymentTransaction.UpdatedAt = DateTime.UtcNow;
+
+        //            await _unitOfWork.SaveChangesAsync();
+        //        }
+
+        //        if (!vnpayRes.IsSuccess)
+        //        {
+        //            // Thanh toán VnPay thất bại: trả thông tin lỗi
+        //            return SaveError("Thanh toán không thành công: " + vnpayRes.VnPayResponseCode);
+        //        }
+
+        //        return SaveSuccess(vnpayRes);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.ForegroundColor = ConsoleColor.Red;
+        //        Console.WriteLine(ex.Message);
+        //        Console.ResetColor();
+        //        return Error($"Lỗi xử lý thanh toán: {ex.Message}");
+        //    }
+        //}
+
+        [HttpGet("vnpay-return")]
+        public async Task<IActionResult> VnPayReturn()
         {
             try
             {
                 var vnpayRes = _vnPayService.PaymentExcute(Request.Query);
+                var feURL = _configuration["FrontendURL"];         
 
-                if (!int.TryParse(vnpayRes.OrderId, out var transactionId))
+                if (!vnpayRes.IsSuccess)
                 {
-                    throw new Exception("OrderId từ VnPay không hợp lệ.");
+                    return Redirect($"{feURL}/checkout/failure?code=97&message=Invalid+signature");
                 }
 
-                // Tìm và cập nhật trạng thái thanh toán
-                var queryOptions = new QueryOptions<PaymentTransaction>
+                if (!int.TryParse(vnpayRes.OrderId, out var orderId))
                 {
-                    Predicate = pt => pt.OrderId == vnpayRes.OrderId
-                };
-                var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(queryOptions);
+                    return Redirect($"{feURL}/checkout/failure?code=01&message=Invalid+order");
+                }
 
-                if (paymentTransaction != null)
+                var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+                    new QueryBuilder<PaymentTransaction>()
+                    .WithPredicate(pt => pt.OrderId == vnpayRes.OrderId || pt.ActualOrderId == orderId)
+                    .Build());
+
+                if (paymentTransaction == null)
+                {               
+                    return Redirect($"{feURL}/checkout/failure?code=01&message=Transaction+not+found");
+                }
+
+                if (paymentTransaction.Status == "Success")
                 {
-                    paymentTransaction.Status = vnpayRes.IsSuccess ? "Success" : "Failed";
+
+                    return Redirect($"{feURL}/checkout/success?orderId={orderId}&amount={vnpayRes.Amount}");
+                }
+
+                if (paymentTransaction.Status == "Failed")
+                {
+                    return Redirect($"{feURL}/checkout/failure?code={vnpayRes.VnPayResponseCode}&orderId={orderId}");
+                }
+
+                var order = await _orderService.GetOrderByIdAsync(paymentTransaction.ActualOrderId ?? orderId);
+                if (order == null)
+                {
+                    return Redirect($"{feURL}/checkout/failure?code=01&message=Order+not+found");
+                }
+
+                if (Math.Abs(order.TotalAmount - (decimal)vnpayRes.Amount) > 0.01m)
+                {                 
+
+                    paymentTransaction.Status = "Failed";
+                    paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
+                    paymentTransaction.UpdatedAt = DateTime.UtcNow;
+                    await _unitOfWork.SaveChangesAsync();
+
+                    return Redirect($"{feURL}/checkout/failure?code=04&message=Invalid+amount");
+                }
+
+                if (vnpayRes.VnPayResponseCode == "00")
+                {
+                    paymentTransaction.Status = "Success";
                     paymentTransaction.TransactionId = vnpayRes.TransactionId.ToString();
                     paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
                     paymentTransaction.UpdatedAt = DateTime.UtcNow;
 
+                    await _orderService.UpdateOrderStatusAsync(
+                        paymentTransaction.ActualOrderId ?? orderId,
+                        new UpdateOrderStatusDTO { Status = OrderStatus.Paid }
+                    );
+
+                    var payment = new Payment
+                    {
+                        OrderId = paymentTransaction.ActualOrderId ?? orderId,
+                        Method = PaymentMethod.VNPAY,
+                        Amount = order.TotalAmount,
+                        PaidAt = DateTime.UtcNow,
+                        TransactionId = vnpayRes.TransactionId.ToString(),
+                        Gateway = "VnPay",
+                        UserId = paymentTransaction.UserId
+                    };
+                    await _unitOfWork.GetRepo<Payment>().CreateAsync(payment);
+
                     await _unitOfWork.SaveChangesAsync();
-                }
 
-                if (!vnpayRes.IsSuccess)
+                    return Redirect($"{feURL}/checkout/success?orderId={orderId}&amount={vnpayRes.Amount}");
+                }
+                else
                 {
-                    // Thanh toán VnPay thất bại: trả thông tin lỗi
-                    return SaveError("Thanh toán không thành công: " + vnpayRes.VnPayResponseCode);
-                }
+                    paymentTransaction.Status = "Failed";
+                    paymentTransaction.TransactionId = vnpayRes.TransactionId.ToString();
+                    paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
+                    paymentTransaction.UpdatedAt = DateTime.UtcNow;
 
-                return SaveSuccess(vnpayRes);
+                    await _orderService.UpdateOrderStatusAsync(
+                        paymentTransaction.ActualOrderId ?? orderId,
+                        new UpdateOrderStatusDTO { Status = OrderStatus.Cancelled }
+                    );
+
+                    await _unitOfWork.SaveChangesAsync();
+
+                    return Redirect($"{feURL}/payment/failure?code={vnpayRes.VnPayResponseCode}&orderId={orderId}");
+                }
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"VnPay Return Error: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 Console.ResetColor();
-                return Error($"Lỗi xử lý thanh toán: {ex.Message}");
+
+                var feURL = _configuration["FrontendURL"];
+                return Redirect($"{feURL}/payment/error?message={ex.Message}");
             }
         }
 

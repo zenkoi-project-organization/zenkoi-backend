@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.OrderDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
+using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 
 namespace Zenkoi.API.Controllers
@@ -112,65 +115,70 @@ namespace Zenkoi.API.Controllers
         }
 
         /// <summary>
-        /// Lấy tất cả đơn hàng (Admin only)
+        /// Lấy danh sách đơn hàng của 
         /// </summary>
-        /// <param name="status">Trạng thái đơn hàng (optional)</param>
-        /// <param name="customerId">ID khách hàng (optional)</param>
-        /// <param name="startDate">Ngày bắt đầu (optional)</param>
-        /// <param name="endDate">Ngày kết thúc (optional)</param>
         /// <returns>Danh sách đơn hàng</returns>
-        [HttpGet("all")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllOrders(
-            [FromQuery] string? status = null,
-            [FromQuery] int? customerId = null,
-            [FromQuery] DateTime? startDate = null,
-            [FromQuery] DateTime? endDate = null)
+        [HttpGet("customer/me/{customerId:int}")]
+        public async Task<IActionResult> GetOrdersByCurrentCustomerId()
         {
             try
             {
-                var queryOptions = new QueryOptions<Order>();
-
-                // Apply filters
-                if (!string.IsNullOrEmpty(status))
-                {
-                    if (Enum.TryParse<OrderStatus>(status, true, out var orderStatus))
-                    {
-                        queryOptions.Predicate = o => o.Status == orderStatus;
-                    }
-                }
-
-                if (customerId.HasValue)
-                {
-                    if (queryOptions.Predicate != null)
-                    {
-                        var existingPredicate = queryOptions.Predicate;
-                        queryOptions.Predicate = o => existingPredicate.Compile()(o) && o.CustomerId == customerId.Value;
-                    }
-                    else
-                    {
-                        queryOptions.Predicate = o => o.CustomerId == customerId.Value;
-                    }
-                }
-
-                if (startDate.HasValue || endDate.HasValue)
-                {
-                    var start = startDate ?? DateTime.MinValue;
-                    var end = endDate ?? DateTime.MaxValue;
-
-                    if (queryOptions.Predicate != null)
-                    {
-                        var existingPredicate = queryOptions.Predicate;
-                        queryOptions.Predicate = o => existingPredicate.Compile()(o) && o.CreatedAt >= start && o.CreatedAt <= end;
-                    }
-                    else
-                    {
-                        queryOptions.Predicate = o => o.CreatedAt >= start && o.CreatedAt <= end;
-                    }
-                }
-
-                var result = await _orderService.GetAllOrdersAsync(queryOptions);
+                var result = await _orderService.GetOrdersByCustomerIdAsync(UserId);
                 return GetSuccess(result);
+            }
+            catch (Exception ex)
+            {
+                return GetError($"Lỗi khi lấy danh sách đơn hàng: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Lấy tất cả đơn hàng với bộ lọc và phân trang (Admin only)
+        /// </summary>
+        /// <param name="search">Tìm kiếm theo mã đơn hàng hoặc tên khách hàng</param>
+        /// <param name="status">Trạng thái đơn hàng (Created = 0, Paid = 1, Confirmed = 2, Shipped = 3, Delivered = 4, Cancelled = 5, Completed = 6)</param>
+        /// <param name="customerId">ID khách hàng</param>
+        /// <param name="createdFrom">Ngày tạo từ</param>
+        /// <param name="createdTo">Ngày tạo đến</param>
+        /// <param name="minTotalAmount">Tổng tiền tối thiểu</param>
+        /// <param name="maxTotalAmount">Tổng tiền tối đa</param>
+        /// <param name="hasPromotion">Có khuyến mãi hay không</param>
+        /// <param name="orderNumber">Mã đơn hàng</param>
+        /// <param name="pageIndex">Trang hiện tại (mặc định: 1)</param>
+        /// <param name="pageSize">Số lượng mục trên mỗi trang (mặc định: 10)</param>
+        /// <returns>Danh sách đơn hàng đã phân trang</returns>
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllOrders(
+            [FromQuery] string? search = null,
+            [FromQuery] OrderStatus? status = null,
+            [FromQuery] int? customerId = null,
+            [FromQuery] DateTime? createdFrom = null,
+            [FromQuery] DateTime? createdTo = null,
+            [FromQuery] decimal? minTotalAmount = null,
+            [FromQuery] decimal? maxTotalAmount = null,
+            [FromQuery] bool? hasPromotion = null,
+            [FromQuery] string? orderNumber = null,
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var filter = new OrderFilterRequestDTO
+                {
+                    Search = search,
+                    Status = status,
+                    CustomerId = customerId,
+                    CreatedFrom = createdFrom,
+                    CreatedTo = createdTo,
+                    MinTotalAmount = minTotalAmount,
+                    MaxTotalAmount = maxTotalAmount,
+                    HasPromotion = hasPromotion,
+                    OrderNumber = orderNumber
+                };
+
+                var result = await _orderService.GetAllOrdersAsync(filter, pageIndex, pageSize);
+                return GetPagedSuccess(result);
             }
             catch (Exception ex)
             {
