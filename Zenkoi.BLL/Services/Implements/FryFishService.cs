@@ -327,7 +327,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             breed.PondId = dto.PondId;
 
-
             await _pondRepo.UpdateAsync(oldPond);
             await _pondRepo.UpdateAsync(newPond);
             await _breedRepo.UpdateAsync(breed);
