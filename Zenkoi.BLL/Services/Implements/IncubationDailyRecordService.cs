@@ -133,18 +133,70 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<bool> DeleteAsync(int id)
         {
+            var _eggBatchRepo = _unitOfWork.GetRepo<EggBatch>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+
+            // 🔹 Lấy record cần xóa
+            var record = await _incubationDailyRepo.GetByIdAsync(id);
+            if (record == null)
+                throw new KeyNotFoundException("Không tìm thấy ghi nhận cần xóa");
+
+            // 🔹 Lấy EggBatch tương ứng
+            var eggBatch = await _eggBatchRepo.GetByIdAsync(record.EggBatchId);
+            if (eggBatch == null)
+                throw new KeyNotFoundException("Không tìm thấy lô trứng");
+
+            var breed = await _breedRepo.GetByIdAsync(eggBatch.BreedingProcessId);
+            if (breed == null)
+                throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản");
+
+            // 🔹 Xóa record
+            await _incubationDailyRepo.DeleteAsync(record);
+            await _unitOfWork.SaveChangesAsync();
+
+            // 🔹 Lấy lại toàn bộ record còn lại của lô trứng
+            var records = await _incubationDailyRepo.GetAllAsync(new QueryOptions<IncubationDailyRecord>
             {
-                var record = await _incubationDailyRepo.GetByIdAsync(id);
-                if (record == null)
-                {
-                    throw new KeyNotFoundException("Không tìm thấy ghi nhận cần xóa");
-                }
+                Predicate = r => r.EggBatchId == eggBatch.Id,
+                OrderBy = q => q.OrderBy(r => r.DayNumber),
+                Tracked = false
+            });
 
-                await _incubationDailyRepo.DeleteAsync(record);
+            if (!records.Any())
+            {
+                // ✅ Nếu không còn record nào → reset về mặc định
+                eggBatch.TotalHatchedEggs = 0;
+                eggBatch.FertilizationRate = 0;
+                eggBatch.HatchingTime = null;
+                eggBatch.SpawnDate = null;
+                eggBatch.EndDate = null;
+                eggBatch.Status = EggBatchStatus.Collected;
 
-                return await _unitOfWork.SaveAsync();
+                breed.FertilizationRate = 0;
+                breed.HatchingRate = 0;
             }
+            else
+            {
+               
+                var last = records.Last();
+
+                var total = await GetSummaryByEggBatchIdAsync(eggBatch.Id);
+                eggBatch.TotalHatchedEggs = total.TotalHatchedEggs;
+                eggBatch.FertilizationRate = total.FertilizationRate;
+                eggBatch.HatchingTime = eggBatch.HatchingTime ?? last.DayNumber;
+                eggBatch.SpawnDate = last.Success ? last.DayNumber : null;
+                eggBatch.EndDate = last.Success ? last.DayNumber : null;
+                eggBatch.Status = last.Success ? EggBatchStatus.Success : EggBatchStatus.PartiallyHatched;
+
+                breed.FertilizationRate = eggBatch.FertilizationRate;
+                breed.HatchingRate = (double)eggBatch.TotalHatchedEggs / eggBatch.Quantity * 100;
+            }
+
+            await _eggBatchRepo.UpdateAsync(eggBatch);
+            await _breedRepo.UpdateAsync(breed);
+            return await _unitOfWork.SaveAsync();
         }
+
 
         public async Task<PaginatedList<IncubationDailyRecordResponseDTO>> GetAllByEggBatchIdAsync(int eggBatchId, int pageIndex = 1, int pageSize = 10)
         {

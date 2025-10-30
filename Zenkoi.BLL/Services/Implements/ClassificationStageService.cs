@@ -95,7 +95,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var classification = _mapper.Map<ClassificationStage>(dto);
             classification.Status = ClassificationStatus.Preparing;
-            classification.TotalCount = (int)fryFish.InitialCount;
+            classification.TotalCount = (int)(fryFish.InitialCount * (fryFish.CurrentSurvivalRate / 100.0));
             await _breedRepo.UpdateAsync(breed);
             await _classRepo.CreateAsync(classification);
             await _unitOfWork.SaveChangesAsync();

@@ -99,14 +99,79 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var fryrecord = await _frysurvivalRepo.GetByIdAsync(id);
-            if (fryrecord == null)
-            {
+            var _fryfishRepo = _unitOfWork.GetRepo<FryFish>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+
+            var record = await _frysurvivalRepo.GetByIdAsync(id);
+            if (record == null)
                 throw new KeyNotFoundException("Không tìm thấy ghi nhận cần xóa");
+
+            var fryFish = await _fryfishRepo.GetByIdAsync(record.FryFishId);
+            if (fryFish == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy cá");
+
+            var breed = await _breedRepo.GetByIdAsync(fryFish.BreedingProcessId);
+            if (breed == null)
+                throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản");
+
+            await _frysurvivalRepo.DeleteAsync(record);
+            await _unitOfWork.SaveChangesAsync();
+
+            var records = await _frysurvivalRepo.GetAllAsync(new QueryOptions<FrySurvivalRecord>
+            {
+                Predicate = r => r.FryFishId == fryFish.Id,
+                OrderBy = q => q.OrderBy(r => r.DayNumber),
+                Tracked = false
+            });
+
+            if (!records.Any())
+            {
+                fryFish.Status = FryFishStatus.Growing;
+                fryFish.CurrentSurvivalRate = null;
+                fryFish.EndDate = null;
+
+                breed.SurvivalRate = null;
+                breed.Status = BreedingStatus.EggBatch;
+                breed.EndDate = null;
+            }
+            else
+            {
+                var lastRecord = records.Last();
+
+                fryFish.CurrentSurvivalRate = fryFish.InitialCount > 0
+                    ? Math.Round(((double)lastRecord.CountAlive / fryFish.InitialCount.Value) * 100, 2)
+                    : 0;
+
+      
+                fryFish.Status = lastRecord.Success
+                    ? FryFishStatus.Completed
+                    : (lastRecord.CountAlive == 0 ? FryFishStatus.Dead : FryFishStatus.Growing);
+
+        
+                fryFish.EndDate = lastRecord.Success || fryFish.Status == FryFishStatus.Dead
+                    ? lastRecord.CreatedAt
+                    : null;
+
+                // ✅ Đồng bộ lại breeding process
+                breed.SurvivalRate = fryFish.CurrentSurvivalRate;
+                if (fryFish.Status == FryFishStatus.Dead)
+                {
+                    breed.Status = BreedingStatus.Failed;
+                    breed.EndDate = lastRecord.CreatedAt;
+                }
+                else if (fryFish.Status == FryFishStatus.Completed)
+                {
+                    breed.EndDate = lastRecord.CreatedAt;
+                }
+                else
+                {
+                    breed.Status = BreedingStatus.FryFish;
+                    breed.EndDate = null;
+                }
             }
 
-            await _frysurvivalRepo.DeleteAsync(fryrecord);
-
+            await _fryfishRepo.UpdateAsync(fryFish);
+            await _breedRepo.UpdateAsync(breed);
             return await _unitOfWork.SaveAsync();
         }
 
@@ -218,36 +283,39 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<bool> UpdateAsync(int id, FrySurvivalRecordUpdateRequestDTO dto)
         {
             var record = await _frysurvivalRepo.GetByIdAsync(id);
+            if (record == null)
+                throw new KeyNotFoundException("Không tìm thấy bản ghi cần cập nhật");
+
             var _fryfishRepo = _unitOfWork.GetRepo<FryFish>();
             var fryFish = await _fryfishRepo.GetByIdAsync(record.FryFishId);
+            if (fryFish == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy cá");
+
             var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+            var breed = await _breedRepo.GetByIdAsync(fryFish.BreedingProcessId);
+            if (breed == null)
+                throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản");
 
-
+            // ✅ Kiểm tra giới hạn hợp lệ
             if (fryFish.InitialCount.HasValue && dto.CountAlive > fryFish.InitialCount)
                 throw new ArgumentException("Số lượng cá sống không thể lớn hơn số lượng ban đầu");
 
-
-
-            if (record == null)
-            {
-                throw new KeyNotFoundException("không tìm thấy bản ghi nhận");
-            }
-
+            // ✅ Chỉ cho phép chỉnh bản ghi mới nhất
             var latestRecord = await _frysurvivalRepo.GetSingleAsync(new QueryOptions<FrySurvivalRecord>
             {
                 Predicate = r => r.FryFishId == record.FryFishId,
                 OrderBy = q => q.OrderByDescending(r => r.DayNumber),
                 Tracked = false
             });
+
             if (latestRecord == null || latestRecord.Id != id)
                 throw new InvalidOperationException("Chỉ có thể cập nhật bản ghi mới nhất.");
 
+            // ✅ Không cho sửa nếu đã hoàn tất hoặc chết
             if (fryFish.Status is FryFishStatus.Completed or FryFishStatus.Dead)
-            {
-                throw new InvalidOperationException($"Lô trứng đã {fryFish.Status}, không thể cập nhật");
-            }
+                throw new InvalidOperationException($"Bầy cá đã {fryFish.Status}, không thể cập nhật");
 
-
+          
             var previousRecord = await _frysurvivalRepo.GetSingleAsync(new QueryOptions<FrySurvivalRecord>
             {
                 Predicate = r => r.FryFishId == record.FryFishId && r.DayNumber < record.DayNumber,
@@ -255,42 +323,58 @@ namespace Zenkoi.BLL.Services.Implements
                 Tracked = false
             });
             if (previousRecord != null && dto.CountAlive > previousRecord.CountAlive)
-            {
                 throw new InvalidOperationException(
-                    $"Số lượng cá sống ({dto.CountAlive}) không thể lớn hơn ghi nhận trước đó ({previousRecord.CountAlive}).");
-            }
+                    $"Số cá sống ({dto.CountAlive}) không thể lớn hơn ghi nhận trước đó ({previousRecord.CountAlive}).");
 
+            // ✅ Cập nhật record
             record.CountAlive = dto.CountAlive;
             record.Note = dto.Note;
 
+            // ✅ Tính lại survival rate cho record và bầy cá
             if (fryFish.InitialCount.HasValue && fryFish.InitialCount > 0)
             {
-                fryFish.CurrentSurvivalRate = Math.Round(
-                    ((double)(dto.CountAlive ?? 0) / fryFish.InitialCount.Value) * 100, 2);
+                record.SurvivalRate = Math.Round(((double)dto.CountAlive / fryFish.InitialCount.Value) * 100, 2);
+                fryFish.CurrentSurvivalRate = record.SurvivalRate;
             }
             else
             {
+                record.SurvivalRate = 0;
                 fryFish.CurrentSurvivalRate = 0;
             }
 
+            // ✅ Cập nhật trạng thái
             if (dto.CountAlive == 0)
             {
                 fryFish.Status = FryFishStatus.Dead;
                 fryFish.EndDate = DateTime.Now;
+                breed.Status = BreedingStatus.Failed;
+                breed.EndDate = DateTime.Now;
+            }
+            else if (dto.Success == true)
+            {
+                fryFish.Status = FryFishStatus.Completed;
+                fryFish.EndDate = DateTime.Now;
+                breed.EndDate = DateTime.Now;
+            }
+            else
+            {
+                fryFish.Status = FryFishStatus.Growing;
+                breed.Status = BreedingStatus.FryFish;
+                breed.EndDate = null;
             }
 
-            var breed = await _breedRepo.GetByIdAsync(fryFish.BreedingProcessId);
-            if (breed != null)
-            {
-                breed.SurvivalRate = fryFish.CurrentSurvivalRate;
-                await _breedRepo.UpdateAsync(breed);
-            }
+            // ✅ Đồng bộ survival rate
+            breed.SurvivalRate = fryFish.CurrentSurvivalRate;
+
+            // ✅ Lưu DB
             await _frysurvivalRepo.UpdateAsync(record);
             await _fryfishRepo.UpdateAsync(fryFish);
+            await _breedRepo.UpdateAsync(breed);
             await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
+
         private async Task<IEnumerable<FrySurvivalRecord>> getAllByFryfishId(int id)
         {
             var queryOptions = new DAL.Queries.QueryOptions<FrySurvivalRecord>
