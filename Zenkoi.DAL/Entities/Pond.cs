@@ -17,7 +17,6 @@ namespace Zenkoi.DAL.Entities
 
         public string PondName { get; set; }
         public PondStatus PondStatus { get; set; }
-
         public string Location { get; set; }
 
         public double? CapacityLiters { get; set; }

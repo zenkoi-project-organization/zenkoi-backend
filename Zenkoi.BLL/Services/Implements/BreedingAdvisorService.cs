@@ -94,15 +94,16 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new Exception("Dữ liệu AI trả về không đúng định dạng JSON mong đợi.");
             }
         }
-
         private string BuildPrompt(BreedingRequestDTO request)
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("Bạn là **Smart Koi Breeder**, chuyên gia phân tích di truyền và phối giống cá Koi.");
-            sb.AppendLine("Hãy dựa vào dữ liệu thực tế bên dưới để **chọn ra 3–5 cặp cá đực và cá cái tối ưu nhất**.");
+            sb.AppendLine("Bạn là **Smart Koi Breeder**, chuyên gia di truyền và phân tích phối giống cá Koi.");
+            sb.AppendLine("Dựa vào dữ liệu thực tế bên dưới, hãy **chọn ra 3–5 cặp cá đực và cá cái tối ưu nhất** để đạt mục tiêu phối giống.");
+            sb.AppendLine();
             sb.AppendLine("🚫 Không viết lý thuyết, không giải thích dài dòng.");
-            sb.AppendLine("📦 Chỉ trả về JSON hợp lệ, bắt đầu bằng ký tự { và kết thúc bằng } (không markdown, không ```json, không văn bản ngoài JSON).");
+            sb.AppendLine("📦 Chỉ trả về JSON hợp lệ, bắt đầu bằng ký tự { và kết thúc bằng ký tự }.");
+            sb.AppendLine("❌ Không dùng markdown, không ```json, không thêm văn bản ngoài JSON.");
             sb.AppendLine();
 
             // 🎯 Mục tiêu phối giống
@@ -133,31 +134,39 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine();
             sb.AppendLine("📈 Nhiệm vụ của bạn:");
             sb.AppendLine("- Phân tích dữ liệu trên để **dự đoán hiệu quả phối giống** giữa các cặp cá đực và cá cái.");
-            sb.AppendLine("- Với mỗi cặp, hãy ước lượng các chỉ số **trong khoảng 0–100 (%)**.");
-            sb.AppendLine("- Nếu thiếu dữ liệu, ghi rõ giá trị \"unknown\" thay vì đoán hoặc để 0.");
-            sb.AppendLine("- ⚠️ Khi trả về kết quả, **sử dụng đúng đường dẫn ảnh (`image`) của từng cá thể từ dữ liệu đầu vào** thay vì tạo ảnh giả.");
+            sb.AppendLine("- Với mỗi cặp, ước lượng các chỉ số trong khoảng 0–100 (%).");
+            sb.AppendLine("- Nếu thiếu dữ liệu, đặt giá trị 0 thay vì \"unknown\".");
+            sb.AppendLine("- ⚠️ Khi trả về kết quả, **phải dùng đúng hình ảnh (`image`) từ dữ liệu đầu vào**, không tạo ảnh mới.");
             sb.AppendLine();
 
-            sb.AppendLine("📋 Kết quả trả về:");
-            sb.AppendLine("- Trả về danh sách `RecommendedPairs` gồm 3–5 cặp tốt nhất, sắp xếp theo `Rank` từ cao xuống thấp.");
-            sb.AppendLine("- Mỗi cặp gồm thông tin sau:");
+            sb.AppendLine("📋 Kết quả cần trả về:");
+            sb.AppendLine("- Trả về danh sách `RecommendedPairs` gồm 3–5 cặp tốt nhất, sắp xếp theo `Rank` giảm dần (Rank = 1 là tốt nhất).");
+            sb.AppendLine("- Mỗi phần tử trong danh sách phải có đủ các trường sau:");
             sb.AppendLine("  • MaleId, MaleRFID, MaleImage (lấy từ cá đực gốc)");
             sb.AppendLine("  • FemaleId, FemaleRFID, FemaleImage (lấy từ cá cái gốc)");
             sb.AppendLine("  • Reason: Giải thích ngắn gọn, không trùng lặp.");
-            sb.AppendLine("  • Các chỉ số dự đoán: PredictedFertilizationRate, PredictedHatchRate, PredictedSurvivalRate, PredictedHighQualifiedRate, PatternMatchScore, BodyShapeCompatibility, PercentInbreeding, Rank");
-            sb.AppendLine("- Không viết thêm bất kỳ văn bản nào ngoài JSON.");
+            sb.AppendLine("  • PredictedFertilizationRate, PredictedHatchRate, PredictedSurvivalRate, PredictedHighQualifiedRate, PatternMatchScore, BodyShapeCompatibility, PercentInbreeding, Rank");
+            sb.AppendLine("- Tất cả các trường số phải là số thực (double) trong khoảng 0–100.");
             sb.AppendLine();
 
+            sb.AppendLine("⚠️ Lưu ý quan trọng:");
+            sb.AppendLine("- Luôn đảm bảo **MaleId / MaleRFID / MaleImage thuộc cá đực (Gender = Male)**.");
+            sb.AppendLine("- Luôn đảm bảo **FemaleId / FemaleRFID / FemaleImage thuộc cá cái (Gender = Female)**.");
+            sb.AppendLine("- Trường `PercentInbreeding` phải là **số thực (double)**. Nếu chưa có dữ liệu, đặt 0 thay vì \"unknown\".");
+            sb.AppendLine("- Không tự tạo hoặc hoán đổi giới tính cá.");
+            sb.AppendLine();
+
+            // Cấu trúc JSON mẫu
             sb.AppendLine("📦 Cấu trúc JSON mẫu:");
             sb.AppendLine("{");
             sb.AppendLine("  \"RecommendedPairs\": [");
             sb.AppendLine("    {");
             sb.AppendLine("      \"MaleId\": 1,");
             sb.AppendLine("      \"MaleRFID\": \"RF1234\",");
-            sb.AppendLine("      \"MaleImage\": \"(sử dụng image từ cá đực)\",");
+            sb.AppendLine("      \"MaleImage\": \"(image từ cá đực)\",");
             sb.AppendLine("      \"FemaleId\": 16,");
             sb.AppendLine("      \"FemaleRFID\": \"RF5678\",");
-            sb.AppendLine("      \"FemaleImage\": \"(sử dụng image từ cá cái)\",");
+            sb.AppendLine("      \"FemaleImage\": \"(image từ cá cái)\",");
             sb.AppendLine("      \"Reason\": \"Cặp này có màu và dáng phù hợp.\",");
             sb.AppendLine("      \"PredictedFertilizationRate\": 92.5,");
             sb.AppendLine("      \"PredictedHatchRate\": 88.1,");
@@ -165,13 +174,13 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("      \"PredictedHighQualifiedRate\": 82.0,");
             sb.AppendLine("      \"PatternMatchScore\": 94.2,");
             sb.AppendLine("      \"BodyShapeCompatibility\": 90.3,");
-            sb.AppendLine("      \"PercentInbreeding\": \"unknown\",");
+            sb.AppendLine("      \"PercentInbreeding\": 0.0,");
             sb.AppendLine("      \"Rank\": 1");
             sb.AppendLine("    }");
             sb.AppendLine("  ]");
             sb.AppendLine("}");
             sb.AppendLine();
-            sb.AppendLine("⚠️ Chỉ trả JSON hợp lệ, không chứa ký tự đặc biệt, không thêm văn bản ngoài JSON.");
+            sb.AppendLine("⚠️ Chỉ trả JSON hợp lệ, không chứa ký tự đặc biệt, không ghi chú, không văn bản ngoài JSON.");
 
             return sb.ToString();
         }

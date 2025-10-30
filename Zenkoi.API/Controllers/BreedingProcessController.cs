@@ -113,13 +113,6 @@ namespace Zenkoi.API.Controllers
         {
             var allParents = await _service.GetParentsWithPerformanceAsync();
 
-         /*   Console.WriteLine("check cá :", JsonConvert.SerializeObject(allParents, Formatting.Indented));
-
-            var filteredParents = allParents
-                .Where(p => string.Equals(p.Variety, input.TargetVariety, StringComparison.OrdinalIgnoreCase))
-                .ToList();*/
-            
-
             var request = new BreedingRequestDTO
             {
                 TargetVariety = input.TargetVariety,
@@ -132,11 +125,34 @@ namespace Zenkoi.API.Controllers
                 PotentialParents = allParents
             };
 
-            Console.WriteLine(JsonConvert.SerializeObject(request, Formatting.Indented));
-
-
             var result = await _advisorService.RecommendPairsAsync(request);
+
+            var updatedPairs = new List<BreedingPairResult>();
+
+            foreach (var pair in result.RecommendedPairs)
+            {
+                try
+                {
+                    double Fx = await _service.GetOffspringInbreedingAsync(pair.MaleId, pair.FemaleId);
+
+                    Fx = Math.Clamp(Fx, 0.0, 1.0);
+
+                    pair.PercentInbreeding = Math.Round(Fx * 100, 2);
+                }
+                catch (Exception ex)
+                {
+                    pair.PercentInbreeding = -1;
+                    Console.WriteLine($"❌ Lỗi tính cận huyết cho cặp {pair.MaleId}-{pair.FemaleId}: {ex.Message}");
+                }
+
+                updatedPairs.Add(pair);
+            }
+
+            // Gán lại vào kết quả gốc
+            result.RecommendedPairs = updatedPairs;
+
             return GetSuccess(result);
         }
+        }
     }
-}
+
