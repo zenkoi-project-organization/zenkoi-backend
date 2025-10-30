@@ -27,8 +27,8 @@ namespace Zenkoi.BLL.DTOs.PacketFishDTOs
         [Range(0.1, double.MaxValue, ErrorMessage = "AgeMonths must be greater than 0")]
         public decimal AgeMonths { get; set; }
 
-        public string? Images { get; set; }
-        public string? Video { get; set; }
+        public List<string>? Images { get; set; }
+        public List<string>? Videos { get; set; }
 
         [Required]
         public bool IsAvailable { get; set; }
