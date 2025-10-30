@@ -124,7 +124,6 @@ namespace Zenkoi.API.Controllers
         /// <param name="packetFishUpdateDTO">Thông tin cập nhật</param>
         /// <returns>Gói cá đã cập nhật</returns>
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdatePacketFish(int id, [FromBody] PacketFishUpdateDTO packetFishUpdateDTO)
         {
             try
@@ -151,7 +150,6 @@ namespace Zenkoi.API.Controllers
         /// <param name="id">ID gói cá</param>
         /// <returns>Kết quả xóa</returns>
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeletePacketFish(int id)
         {
             try
