@@ -9,6 +9,5 @@ namespace Zenkoi.BLL.DTOs.FryFishDTOs
     public class FryFishUpdateRequestDTO
     {
         public int PondId { get; set; }
-        public int? InitialCount { get; set; }
     }
 }

@@ -9,7 +9,6 @@ namespace Zenkoi.BLL.DTOs.ClassificationStageDTOs
     public class ClassificationStageUpdateRequestDTO
     {
         public int PondId { get; set; }
-        public int TotalCount { get; set; }
         public string? Notes { get; set; }
     }
 }
