@@ -101,6 +101,13 @@ namespace Zenkoi.API.Controllers
             });
         }
 
+        [HttpGet("{id}/koi-fishes")]
+        public async Task<IActionResult> GetKoiFishesByBreeding(int id)
+        {
+            var koiList = await _service.GetAllKoiFishByBreedingProcessAsync(id);
+            return Ok(koiList);
+        }
+
         [HttpPost("recommend")]
         public async Task<IActionResult> Recommend([FromBody] BreedingRequestInputDTO input)
         {

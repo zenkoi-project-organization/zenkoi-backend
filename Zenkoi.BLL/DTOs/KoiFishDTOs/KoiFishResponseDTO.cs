@@ -49,6 +49,6 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
     public class BreedingProcessBasicDTO
     {
         public int Id { get; set; }
-        public string ProcessName { get; set; }
+        public string  Code { get; set; }
     }
 }
