@@ -1,5 +1,7 @@
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.OrderDTOs;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 
 namespace Zenkoi.BLL.Services.Interfaces
@@ -10,7 +12,7 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<OrderResponseDTO> GetOrderByIdAsync(int id);
         Task<OrderResponseDTO> GetOrderByOrderNumberAsync(string orderNumber);
         Task<IEnumerable<OrderResponseDTO>> GetOrdersByCustomerIdAsync(int customerId);
-        Task<IEnumerable<OrderResponseDTO>> GetAllOrdersAsync(QueryOptions<Order>? queryOptions = null);
+        Task<PaginatedList<OrderResponseDTO>> GetAllOrdersAsync(OrderFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<OrderResponseDTO> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO updateOrderStatusDTO);
         Task<bool> DeleteOrderAsync(int id);
         Task<decimal> CalculateOrderTotalAsync(CreateOrderDTO createOrderDTO);

@@ -1,9 +1,15 @@
 using AutoMapper;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using Zenkoi.BLL.DTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.PacketFishDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
+using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
@@ -82,38 +88,105 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<PacketFishResponseDTO>(packetFish);
         }
 
-        public async Task<IEnumerable<PacketFishResponseDTO>> GetAllPacketFishesAsync(QueryOptions<PacketFish>? queryOptions = null)
+        public async Task<PaginatedList<PacketFishResponseDTO>> GetAllPacketFishesAsync(PacketFishFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            if (queryOptions == null)
+            var queryOptions = new QueryOptions<PacketFish>
             {
-                var packetFishes = await _packetFishRepo.GetAllAsync(new QueryBuilder<PacketFish>()
-                    .WithInclude(pf => pf.VarietyPacketFishes)
-                    .WithOrderBy(pf => pf.OrderByDescending(x => x.CreatedAt))
-                    .Build());
-
-                foreach (var pf in packetFishes)
+                IncludeProperties = new List<Expression<Func<PacketFish, object>>>
                 {
-                    if (pf.VarietyPacketFishes.Any())
+                    pf => pf.VarietyPacketFishes
+                }
+            };
+
+            Expression<Func<PacketFish, bool>>? predicate = null;
+
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => 
+                    pf.Name.Contains(filter.Search) || 
+                    (pf.Description != null && pf.Description.Contains(filter.Search));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.IsAvailable.HasValue)
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => pf.IsAvailable == filter.IsAvailable.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.Size.HasValue)
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => pf.Size == filter.Size.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MinPrice.HasValue)
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => pf.TotalPrice >= filter.MinPrice.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxPrice.HasValue)
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => pf.TotalPrice <= filter.MaxPrice.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MinAgeMonths.HasValue)
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => pf.AgeMonths >= filter.MinAgeMonths.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxAgeMonths.HasValue)
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => pf.AgeMonths <= filter.MaxAgeMonths.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MinQuantity.HasValue)
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => pf.Quantity >= filter.MinQuantity.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxQuantity.HasValue)
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => pf.Quantity <= filter.MaxQuantity.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            queryOptions.Predicate = predicate;
+            queryOptions.OrderBy = pf => pf.OrderByDescending(x => x.CreatedAt);
+
+            var packetFishes = await _packetFishRepo.GetAllAsync(queryOptions);
+
+            foreach (var pf in packetFishes)
+            {
+                if (pf.VarietyPacketFishes.Any())
+                {
+                    foreach (var vpf in pf.VarietyPacketFishes)
                     {
-                        foreach (var vpf in pf.VarietyPacketFishes)
+                        if (vpf.VarietyId > 0)
                         {
-                            if (vpf.VarietyId > 0)
+                            var variety = await _varietyRepo.GetByIdAsync(vpf.VarietyId);
+                            if (variety != null)
                             {
-                                var variety = await _varietyRepo.GetByIdAsync(vpf.VarietyId);
-                                if (variety != null)
-                                {
-                                    vpf.Variety = variety;
-                                }
+                                vpf.Variety = variety;
                             }
                         }
                     }
                 }
-
-                return _mapper.Map<IEnumerable<PacketFishResponseDTO>>(packetFishes);
             }
 
-            var packetFishesWithCustomOptions = await _packetFishRepo.GetAllAsync(queryOptions);
-            return _mapper.Map<IEnumerable<PacketFishResponseDTO>>(packetFishesWithCustomOptions);
+            var mappedList = _mapper.Map<List<PacketFishResponseDTO>>(packetFishes);
+            var totalCount = mappedList.Count;
+            var pagedItems = mappedList
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PaginatedList<PacketFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
 
         public async Task<PacketFishResponseDTO> UpdatePacketFishAsync(int id, PacketFishUpdateDTO packetFishUpdateDTO)

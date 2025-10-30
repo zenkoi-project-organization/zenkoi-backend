@@ -1,16 +1,18 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.PacketFishDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
+using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 
 namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class PacketFishController : BaseAPIController
     {
         private readonly IPacketFishService _packetFishService;
@@ -80,52 +82,35 @@ namespace Zenkoi.API.Controllers
         /// <returns>Danh sách gói cá</returns>
         [HttpGet]
         public async Task<IActionResult> GetAllPacketFishes(
+            [FromQuery] string? search = null,
             [FromQuery] bool? isAvailable = null,
             [FromQuery] FishSize? size = null,
             [FromQuery] decimal? minPrice = null,
-            [FromQuery] decimal? maxPrice = null)
+            [FromQuery] decimal? maxPrice = null,
+            [FromQuery] decimal? minAgeMonths = null,
+            [FromQuery] decimal? maxAgeMonths = null,
+            [FromQuery] int? minQuantity = null,
+            [FromQuery] int? maxQuantity = null,
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
-                var queryOptions = new QueryOptions<PacketFish>();
-
-                // Apply filters
-                if (isAvailable.HasValue)
+                var filter = new PacketFishFilterRequestDTO
                 {
-                    queryOptions.Predicate = pf => pf.IsAvailable == isAvailable.Value;
-                }
+                    Search = search,
+                    IsAvailable = isAvailable,
+                    Size = size,
+                    MinPrice = minPrice,
+                    MaxPrice = maxPrice,
+                    MinAgeMonths = minAgeMonths,
+                    MaxAgeMonths = maxAgeMonths,
+                    MinQuantity = minQuantity,
+                    MaxQuantity = maxQuantity
+                };
 
-                if (size.HasValue)
-                {
-                    if (queryOptions.Predicate != null)
-                    {
-                        var existingPredicate = queryOptions.Predicate;
-                        queryOptions.Predicate = pf => existingPredicate.Compile()(pf) && pf.Size == size.Value;
-                    }
-                    else
-                    {
-                        queryOptions.Predicate = pf => pf.Size == size.Value;
-                    }
-                }
-
-                if (minPrice.HasValue || maxPrice.HasValue)
-                {
-                    var min = minPrice ?? 0;
-                    var max = maxPrice ?? decimal.MaxValue;
-
-                    if (queryOptions.Predicate != null)
-                    {
-                        var existingPredicate = queryOptions.Predicate;
-                        queryOptions.Predicate = pf => existingPredicate.Compile()(pf) && pf.TotalPrice >= min && pf.TotalPrice <= max;
-                    }
-                    else
-                    {
-                        queryOptions.Predicate = pf => pf.TotalPrice >= min && pf.TotalPrice <= max;
-                    }
-                }
-
-                var result = await _packetFishService.GetAllPacketFishesAsync(queryOptions);
-                return GetSuccess(result);
+                var result = await _packetFishService.GetAllPacketFishesAsync(filter, pageIndex, pageSize);
+                return GetSuccess(new PagingDTO<PacketFishResponseDTO>(result));
             }
             catch (Exception ex)
             {
