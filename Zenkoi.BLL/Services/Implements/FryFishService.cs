@@ -315,9 +315,18 @@ namespace Zenkoi.BLL.Services.Implements
             oldPond.PondStatus = PondStatus.Empty;
             newPond.PondStatus = PondStatus.Active;
 
+            var oldInitial = fryFish.InitialCount;
+            var oldRate = fryFish.CurrentSurvivalRate;
+
+            _mapper.Map(dto, fryFish);
+
+            fryFish.InitialCount ??= oldInitial;
+            fryFish.CurrentSurvivalRate ??= oldRate;
+
             _mapper.Map(dto, fryFish);
 
             breed.PondId = dto.PondId;
+
 
             await _pondRepo.UpdateAsync(oldPond);
             await _pondRepo.UpdateAsync(newPond);

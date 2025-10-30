@@ -15,7 +15,6 @@ namespace Zenkoi.DAL.Entities
         public int? InitialCount { get; set; }       // số lượng ban đầu 
         public FryFishStatus Status { get; set; }
         public double? CurrentSurvivalRate { get; set; }
-
         public DateTime StartDate { get; set; }      
         public DateTime? EndDate { get; set; }
         // Navigation
