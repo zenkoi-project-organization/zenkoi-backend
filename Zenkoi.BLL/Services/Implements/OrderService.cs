@@ -1,10 +1,15 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.OrderDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
+using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
@@ -248,24 +253,83 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<IEnumerable<OrderResponseDTO>>(orders);
         }
 
-        public async Task<IEnumerable<OrderResponseDTO>> GetAllOrdersAsync(QueryOptions<Order>? queryOptions = null)
+        public async Task<PaginatedList<OrderResponseDTO>> GetAllOrdersAsync(OrderFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            IEnumerable<Order> orders;
+            var queryOptions = new QueryOptions<Order>
+            {
+                IncludeProperties = new List<Expression<Func<Order, object>>>
+                {
+                    o => o.Customer!,
+                    o => o.Customer!.ApplicationUser!,
+                    o => o.Promotion!,
+                    o => o.OrderDetails!
+                }
+            };
 
-            if (queryOptions == null)
+            Expression<Func<Order, bool>>? predicate = null;
+
+            if (!string.IsNullOrEmpty(filter.Search))
             {
-                orders = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
-                    .WithInclude(o => o.Customer)
-                    .WithInclude(o => o.Customer.ApplicationUser)
-                    .WithInclude(o => o.Promotion)
-                    .WithInclude(o => o.OrderDetails)
-                    .WithOrderBy(o => o.OrderByDescending(x => x.CreatedAt))
-                    .Build());
+                Expression<Func<Order, bool>> expr = o => 
+                    o.OrderNumber.Contains(filter.Search) || 
+                    (o.Customer != null && 
+                     o.Customer.ApplicationUser != null && 
+                     o.Customer.ApplicationUser.FullName.Contains(filter.Search));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
-            else
+
+            if (filter.Status.HasValue)
             {
-                orders = await _orderRepo.GetAllAsync(queryOptions);
+                Expression<Func<Order, bool>> expr = o => o.Status == filter.Status.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+
+            if (filter.CustomerId.HasValue)
+            {
+                Expression<Func<Order, bool>> expr = o => o.CustomerId == filter.CustomerId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.CreatedFrom.HasValue)
+            {
+                Expression<Func<Order, bool>> expr = o => o.CreatedAt >= filter.CreatedFrom.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.CreatedTo.HasValue)
+            {
+                Expression<Func<Order, bool>> expr = o => o.CreatedAt <= filter.CreatedTo.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MinTotalAmount.HasValue)
+            {
+                Expression<Func<Order, bool>> expr = o => o.TotalAmount >= filter.MinTotalAmount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxTotalAmount.HasValue)
+            {
+                Expression<Func<Order, bool>> expr = o => o.TotalAmount <= filter.MaxTotalAmount.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.HasPromotion.HasValue)
+            {
+                Expression<Func<Order, bool>> expr = o => filter.HasPromotion.Value ? o.PromotionId != null : o.PromotionId == null;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (!string.IsNullOrEmpty(filter.OrderNumber))
+            {
+                Expression<Func<Order, bool>> expr = o => o.OrderNumber.Contains(filter.OrderNumber);
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            queryOptions.Predicate = predicate;
+            queryOptions.OrderBy = o => o.OrderByDescending(x => x.CreatedAt);
+
+            var orders = await _orderRepo.GetAllAsync(queryOptions);
 
             foreach (var order in orders)
             {
@@ -285,7 +349,14 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
 
-            return _mapper.Map<IEnumerable<OrderResponseDTO>>(orders);
+            var mappedList = _mapper.Map<List<OrderResponseDTO>>(orders);
+            var totalCount = mappedList.Count;
+            var pagedItems = mappedList
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PaginatedList<OrderResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
 
         public async Task<OrderResponseDTO> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO updateOrderStatusDTO)

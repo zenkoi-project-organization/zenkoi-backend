@@ -1,0 +1,17 @@
+using Zenkoi.DAL.Enums;
+
+namespace Zenkoi.BLL.DTOs.FilterDTOs
+{
+    public class PacketFishFilterRequestDTO
+    {
+        public string? Search { get; set; }
+        public bool? IsAvailable { get; set; }
+        public FishSize? Size { get; set; }
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
+        public decimal? MinAgeMonths { get; set; }
+        public decimal? MaxAgeMonths { get; set; }
+        public int? MinQuantity { get; set; }
+        public int? MaxQuantity { get; set; }
+    }
+}
