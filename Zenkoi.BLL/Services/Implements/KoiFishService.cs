@@ -138,7 +138,16 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<KoiFishResponseDTO?> GetByIdAsync(int id)
         {
-            var koifish = await _koiFishRepo.GetByIdAsync(id);
+            var koifish = await _koiFishRepo.GetSingleAsync(new QueryOptions<KoiFish> { 
+                Predicate = p =>p.Id == id, 
+                IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+                {
+                    p => p.BreedingProcess,
+                    p => p.Pond,
+                    p => p.Variety
+                }                
+                });
+
             return _mapper.Map<KoiFishResponseDTO>(koifish);
         }
 
