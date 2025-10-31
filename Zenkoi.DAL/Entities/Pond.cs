@@ -23,7 +23,8 @@ namespace Zenkoi.DAL.Entities
         public double? DepthMeters { get; set; }
         public double? LengthMeters { get; set; }
         public double? WidthMeters { get; set; }
-
+        public int? MaxFishCount { get; set; }
+        public int? CurrentCount { get; set; }
         public DateTime CreatedAt { get; set; }
 
         // Navigation

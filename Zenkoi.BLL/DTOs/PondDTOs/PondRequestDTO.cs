@@ -17,7 +17,6 @@ namespace Zenkoi.BLL.DTOs.PondDTOs
         public string PondName { get; set; }
         public string? Location { get; set; }
         public PondStatus PondStatus { get; set; } = PondStatus.Empty;
-        public double? CapacityLiters { get; set; }
         public double? DepthMeters { get; set; }
         public double? LengthMeters { get; set; }
         public double? WidthMeters { get; set; }

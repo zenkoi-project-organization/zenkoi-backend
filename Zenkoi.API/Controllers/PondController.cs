@@ -71,5 +71,14 @@ namespace Zenkoi.API.Controllers
 
             return Success(deleted, "Xóa ao thành công.");
         }
+        [HttpGet("{pondId}/koifish")]
+        public async Task<IActionResult> GetKoiFishByPond(int pondId)
+        {
+            var koiList = await _pondService.GetAllKoiFishInPond(pondId);
+            if (koiList == null || !koiList.Any())
+                return GetError("Không tìm thấy cá trong hồ này.");
+
+            return GetSuccess(koiList);
+        }
     }
 }

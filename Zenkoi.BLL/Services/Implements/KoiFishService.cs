@@ -158,9 +158,25 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception($"không tìm thấy variety với id : {dto.VarietyId}");
             }
-            var pond = await _pondRepo.CheckExistAsync(dto.PondId);
-            if (!pond){
+            var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == dto.PondId,
+                IncludeProperties = new List<Expression<Func<Pond, object>>> {
+                p => p.KoiFishes
+                }
+            });
+
+            if (pond == null){
                 throw new Exception($"không tìm thấy pond với id {dto.PondId}");
+            }
+            if(pond.PondStatus == PondStatus.Maintenance)
+            {
+                throw new InvalidOperationException("hồ hiện tại đang bảo trì vui lòng chọn hồ khác");
+            }
+            pond.CurrentCount  = pond?.KoiFishes.Count(); 
+            if (pond.MaxFishCount < pond.CurrentCount + 1)
+            {
+                throw new InvalidOperationException("hồ đã đầy vui lòng chuyển cá sang hồ khác");
             }
             if (dto.BreedingProcessId.HasValue)
             {
@@ -302,6 +318,50 @@ namespace Zenkoi.BLL.Services.Implements
 
                 return response;
             }
+        }
+        public async Task<bool> TransferFish(int id, int PondId)
+        {
+            var Koifish = await _koiFishRepo.GetByIdAsync(id);
+            if(Koifish == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy cá");
+            }
+            if(Koifish.HealthStatus == HealthStatus.Dead)
+            {
+                throw new InvalidOperationException("cá đã chết nên không thể chuyển hồ ");
+            }
+            var oldPond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == Koifish.PondId , IncludeProperties = new List<Expression<Func<Pond, object>>>
+                {
+                    p => p.KoiFishes
+                }
+            });
+            var newPond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == PondId,
+                IncludeProperties = new List<Expression<Func<Pond, object>>>
+                {
+                    p => p.KoiFishes
+                }
+            });
+            if (newPond == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy hồ");
+            }
+            if(newPond.PondStatus == PondStatus.Maintenance)
+            {
+                throw new InvalidOperationException("hồ đang bảo trì không thể chuyển ");
+            }
+            Koifish.PondId = PondId;    
+            oldPond.CurrentCount = oldPond.KoiFishes.Count;
+            newPond.CurrentCount = newPond.KoiFishes.Count;
+
+            await _koiFishRepo.UpdateAsync(Koifish);
+            await _pondRepo.UpdateAsync(newPond);
+            await _pondRepo.UpdateAsync(oldPond);
+            return await _unitOfWork.SaveAsync();
+
         }
     }
 }
