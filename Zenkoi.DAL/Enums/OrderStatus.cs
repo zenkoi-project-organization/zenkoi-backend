@@ -14,11 +14,9 @@ namespace Zenkoi.DAL.Enums
         Confirmed = 3,
         [EnumMember(Value = "Shipped")]
         Shipped = 4,
-        [EnumMember(Value = "Delivered")]
-        Delivered = 5,
         [EnumMember(Value = "Cancelled")]
-        Cancelled = 6,
+        Cancelled = 5,
         [EnumMember(Value = "Completed")]
-        Completed = 7
+        Completed = 6
     }
 }

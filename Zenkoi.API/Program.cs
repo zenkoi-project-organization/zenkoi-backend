@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Net.payOS;
 using System.Text;
 using System.Text.Json.Serialization;
+using Zenkoi.API.BackgroundServices;
 using Zenkoi.API.ConfigExtensions;
 using Zenkoi.API.Middlewares;
 using Zenkoi.BLL.Helpers.Config;
@@ -74,7 +75,9 @@ namespace Zenkoi.API
 
             builder.Services.AddHttpContextAccessor();
 
-            builder.Services.AddBLLServices();        
+            builder.Services.AddBLLServices();
+
+            builder.Services.AddHostedService<OrderCompletionBackgroundService>();
 
             builder.Services.AddAuthentication(options =>
             {

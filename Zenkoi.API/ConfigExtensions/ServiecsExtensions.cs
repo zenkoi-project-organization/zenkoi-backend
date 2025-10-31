@@ -881,7 +881,7 @@ namespace Zenkoi.API.ConfigExtensions
                     {
                         CustomerId = 2,
                         CreatedAt = DateTime.UtcNow.AddDays(-5),
-                        Status = OrderStatus.Delivered,
+                        Status = OrderStatus.Created,
                         Subtotal = 8000000,
                         ShippingFee = 100000,
                         DiscountAmount = 0,
