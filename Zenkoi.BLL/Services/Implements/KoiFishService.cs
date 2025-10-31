@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Zenkoi.BLL.DTOs.AIBreedingDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
@@ -27,8 +28,9 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<KoiFish> _koiFishRepo;
         private readonly IRepoBase<Variety> _varietyRepo;
         private readonly IRepoBase<Pond>  _pondRepo;
+        private readonly IBreedingProcessService _breedingProcessService;
         private readonly IRepoBase<BreedingProcess> _breedRepo;
-        public KoiFishService(IUnitOfWork unitOfWork, IMapper mapper)
+        public KoiFishService(IUnitOfWork unitOfWork, IMapper mapper, IBreedingProcessService breedingProcessService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -36,6 +38,7 @@ namespace Zenkoi.BLL.Services.Implements
             _varietyRepo = _unitOfWork.GetRepo<Variety>();
             _pondRepo = _unitOfWork.GetRepo<Pond>();
             _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+            _breedingProcessService = breedingProcessService;
         }
         public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(
          KoiFishFilterRequestDTO filter,
@@ -367,5 +370,51 @@ namespace Zenkoi.BLL.Services.Implements
             return await _unitOfWork.SaveAsync();
         }
 
+        public async  Task<BreedingParentDTO> GetAnalysisAsync(int id)
+        {
+            var koifish = await _koiFishRepo.GetSingleAsync(new QueryOptions<KoiFish> { 
+            Predicate = p => p.Id == id , IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+            {
+                p => p.Variety
+            } 
+            });
+
+            var today = DateTime.Now;
+            if (koifish == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy cá koi");
+            }
+            if(koifish.HealthStatus == HealthStatus.Dead)
+            {
+                throw new InvalidOperationException("cá đã chết");
+            }
+            var historyBreed = await _breedingProcessService.GetKoiFishParentStatsAsync(id);
+
+            var age = (today - koifish.BirthDate.Value).TotalDays / 365.25;
+
+            return new BreedingParentDTO {
+                Id = koifish.Id,
+                RFID = koifish.RFID,
+                Variety = koifish.Variety.VarietyName,
+                Gender = koifish.Gender.ToString(),
+                Size = koifish.Size.ToString(),
+                image = koifish.Images[0],
+                BodyShape = koifish.BodyShape,
+                ColorPattern = koifish.ColorPattern,
+                Health = koifish.HealthStatus.ToString(),
+                Age = Math.Round(age, 1),
+                BreedingHistory = new List<BreedingRecordDTO>
+                {
+                    new BreedingRecordDTO{
+                    FertilizationRate = historyBreed.FertilizationRate,
+                    HatchRate = historyBreed.HatchRate,
+                    SurvivalRate = historyBreed.SurvivalRate,
+                    HighQualifiedRate = historyBreed.HighQualifiedRate,
+                    ResultNote = $"Participations: {historyBreed.ParticipationCount}, Failed: {historyBreed.FailCount}",  
+                 }
+                }
+            };
+
+        }
     }
 }
