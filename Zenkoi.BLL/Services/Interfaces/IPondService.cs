@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AreaDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
+using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.PondDTOs;
 using Zenkoi.BLL.DTOs.PondTypeDTOs;
 using Zenkoi.DAL.Paging;
@@ -18,5 +19,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<PondResponseDTO> CreateAsync(PondRequestDTO dto);
         Task<bool> UpdateAsync(int id, PondRequestDTO dto);
         Task<bool> DeleteAsync(int id);
+        Task<List<KoiFishResponseDTO>> GetAllKoiFishInPond(int id);
     }
 }

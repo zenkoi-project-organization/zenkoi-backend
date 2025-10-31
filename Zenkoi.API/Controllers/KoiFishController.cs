@@ -25,11 +25,8 @@ namespace Zenkoi.API.Controllers
         {
             var result = await _koiFishService.GetAllKoiFishAsync(filter ?? new KoiFishFilterRequestDTO(), pageIndex, pageSize);
 
-            
-
             return GetPagedSuccess(result);
         }
-
         
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetKoiFishById(int id)
@@ -41,7 +38,6 @@ namespace Zenkoi.API.Controllers
             return GetSuccess(koi);
         }
 
-      
         [HttpPost]
         public async Task<IActionResult> CreateKoiFish([FromBody] KoiFishRequestDTO dto)
         {
@@ -84,6 +80,16 @@ namespace Zenkoi.API.Controllers
         {
             var result = await _koiFishService.GetFamilyTreeAsync(id);
             return GetSuccess(result);
+        }
+
+        [HttpPut("{id:int}/transfer/{pondId:int}")]
+        public async Task<IActionResult> TransferKoiFish(int id, int pondId)
+        {
+            var result = await _koiFishService.TransferFish(id, pondId);
+            if (!result)
+                return SaveError();
+
+            return SaveSuccess($"Chuyển cá koi (ID = {id}) sang hồ (ID = {pondId}) thành công.");
         }
     }
 }
