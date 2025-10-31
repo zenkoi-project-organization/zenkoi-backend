@@ -98,9 +98,13 @@ namespace Zenkoi.API.Controllers
                     return Redirect($"{feURL}/checkout/failure?code=01&message=Invalid+order");
                 }
 
+                // Get the most recent PaymentTransaction for this order (in case of retries)
                 var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
                     new QueryBuilder<PaymentTransaction>()
-                    .WithPredicate(pt => pt.OrderId == vnpayRes.OrderId || pt.ActualOrderId == orderId)
+                    .WithPredicate(pt => (pt.OrderId == vnpayRes.OrderId || pt.ActualOrderId == orderId) &&
+                                        pt.PaymentMethod == "VnPay")
+                    .WithOrderBy(q => q.OrderByDescending(pt => pt.CreatedAt))
+                    .WithTracking(true)
                     .Build());
 
                 if (paymentTransaction == null)
