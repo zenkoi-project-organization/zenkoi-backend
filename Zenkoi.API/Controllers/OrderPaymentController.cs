@@ -54,9 +54,19 @@ namespace Zenkoi.API.Controllers
                     return GetNotFound("Order not found");
                 }
 
-                if (order.Status != OrderStatus.Created)
+                // Allow Created or PendingPayment (for retry)
+                if (order.Status != OrderStatus.Created && order.Status != OrderStatus.PendingPayment)
                 {
-                    return GetError("Order status is not valid for payment");
+                    return GetError("Order status is not valid for payment. Order must be in Created or PendingPayment status.");
+                }
+
+                // Set order to PendingPayment when starting payment
+                if (order.Status == OrderStatus.Created)
+                {
+                    await _orderService.UpdateOrderStatusAsync(orderId, new Zenkoi.BLL.DTOs.OrderDTOs.UpdateOrderStatusDTO
+                    {
+                        Status = OrderStatus.PendingPayment
+                    });
                 }
 
                 var customer = await _unitOfWork.GetRepo<Customer>().GetSingleAsync(

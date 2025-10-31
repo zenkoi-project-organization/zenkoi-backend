@@ -661,6 +661,12 @@ namespace Zenkoi.BLL.Services.Implements
 						Console.WriteLine($"ERROR: Failed to add role to user. Errors: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
 						return null;
 					}
+
+					if (user.Role == DAL.Enums.Role.Customer)
+					{
+						await _customerService.CreateCustomerProfileAsync(user.Id);
+					}
+
 					Console.WriteLine("User created successfully");
 				}
 				else

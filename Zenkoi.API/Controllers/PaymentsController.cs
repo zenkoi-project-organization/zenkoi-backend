@@ -173,7 +173,7 @@ namespace Zenkoi.API.Controllers
 
                     await _orderService.UpdateOrderStatusAsync(
                         paymentTransaction.ActualOrderId ?? orderId,
-                        new UpdateOrderStatusDTO { Status = OrderStatus.Cancelled }
+                        new UpdateOrderStatusDTO { Status = OrderStatus.Created }
                     );
 
                     await _unitOfWork.SaveChangesAsync();
@@ -214,7 +214,6 @@ namespace Zenkoi.API.Controllers
 
                 CreatePaymentResult createPayment = await _payOSService.CreatePaymentLinkAsync(paymentData);
 
-                // Lưu thông tin thanh toán vào database
                 var paymentTransaction = new PaymentTransaction
                 {
                     UserId = UserId,
@@ -263,7 +262,6 @@ namespace Zenkoi.API.Controllers
                     return Ok(new PayOSWebhookResponse(-1, "fail", null));
                 }
 
-                // Tìm và cập nhật trạng thái thanh toán
                 var webhookQueryOptions = new QueryOptions<PaymentTransaction>
                 {
                     Predicate = pt => pt.OrderId == webhookData.orderCode.ToString()
@@ -295,12 +293,10 @@ namespace Zenkoi.API.Controllers
 
             try
             {
-                // Lấy userId từ token
                 var userId = UserId;
                 
                 var paymentUrl = await _vnPayService.CreatePaymentUrlAsync(userId, HttpContext, request);
 
-                // Lưu thông tin thanh toán vào database
                 var paymentTransaction = new PaymentTransaction
                 {
                     UserId = userId,

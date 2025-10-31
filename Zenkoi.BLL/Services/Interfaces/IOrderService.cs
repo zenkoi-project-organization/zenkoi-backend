@@ -11,7 +11,7 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<OrderResponseDTO> CreateOrderAsync(CreateOrderDTO createOrderDTO, int customerId);
         Task<OrderResponseDTO> GetOrderByIdAsync(int id);
         Task<OrderResponseDTO> GetOrderByOrderNumberAsync(string orderNumber);
-        Task<IEnumerable<OrderResponseDTO>> GetOrdersByCustomerIdAsync(int customerId);
+        Task<PaginatedList<OrderResponseDTO>> GetOrdersByCustomerIdAsync(int customerId, OrderFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<PaginatedList<OrderResponseDTO>> GetAllOrdersAsync(OrderFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<OrderResponseDTO> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO updateOrderStatusDTO);
         Task<bool> DeleteOrderAsync(int id);
