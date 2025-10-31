@@ -470,15 +470,15 @@ namespace Zenkoi.BLL.Services.Implements
                 ParticipationCount = breedings.Count(),
                 FailCount = breedings.Count(b => b.Status == BreedingStatus.Failed),
                 
-                FertilizationRate = breedings.Average(b => (b.FertilizationRate ?? 0) * 100),
-                HatchRate = breedings.Average(b => (b.HatchingRate ?? 0) * 100),
-                SurvivalRate = breedings.Average(b => (b.SurvivalRate ?? 0) * 100),
+                FertilizationRate = breedings.Average(b => (b.FertilizationRate ?? 0) ),
+                HatchRate = breedings.Average(b => (b.HatchingRate ?? 0) ),
+                SurvivalRate = breedings.Average(b => (b.SurvivalRate ?? 0) ),
 
                 HighQualifiedRate = breedings
                     .Where(b => (b.SurvivalRate ?? 0) > 0 && (b.HatchingRate ?? 0) > 0 && (b.TotalEggs ?? 0) > 0)
                     .Average(b =>
                         (b.TotalFishQualified /
-                        ((b.SurvivalRate ?? 0) * (b.HatchingRate ?? 0) * (b.TotalEggs ?? 1.0))) * 100
+                        ((b.SurvivalRate ?? 0) * (b.HatchingRate ?? 0) * (b.TotalEggs ?? 1.0))) 
                     )
             };
         }
