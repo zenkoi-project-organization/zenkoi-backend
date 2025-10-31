@@ -23,6 +23,9 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasDefaultValueSql("GETUTCDATE()");
 
+            builder.Property(o => o.UpdatedAt)
+                .IsRequired(false);
+
             builder.Property(o => o.Status)
                 .IsRequired()
                 .HasConversion<string>();
@@ -68,6 +71,8 @@ namespace Zenkoi.DAL.Configurations
             builder.HasIndex(o => o.OrderNumber).IsUnique();
             builder.HasIndex(o => o.CustomerId);
             builder.HasIndex(o => o.CreatedAt);
+            builder.HasIndex(o => o.UpdatedAt);
+            builder.HasIndex(o => new { o.Status, o.UpdatedAt }); 
         }
     }
 }

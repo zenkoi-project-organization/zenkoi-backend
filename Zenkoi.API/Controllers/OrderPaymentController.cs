@@ -54,9 +54,19 @@ namespace Zenkoi.API.Controllers
                     return GetNotFound("Order not found");
                 }
 
-                if (order.Status != OrderStatus.Created)
+                // Allow Created or PendingPayment (for retry)
+                if (order.Status != OrderStatus.Created && order.Status != OrderStatus.PendingPayment)
                 {
-                    return GetError("Order status is not valid for payment");
+                    return GetError("Order status is not valid for payment. Order must be in Created or PendingPayment status.");
+                }
+
+                // Set order to PendingPayment when starting payment
+                if (order.Status == OrderStatus.Created)
+                {
+                    await _orderService.UpdateOrderStatusAsync(orderId, new Zenkoi.BLL.DTOs.OrderDTOs.UpdateOrderStatusDTO
+                    {
+                        Status = OrderStatus.PendingPayment
+                    });
                 }
 
                 var customer = await _unitOfWork.GetRepo<Customer>().GetSingleAsync(
@@ -86,26 +96,55 @@ namespace Zenkoi.API.Controllers
 
                     var createPayment = await _payOSService.CreatePaymentLinkAsync(paymentData);
 
-                    // Create PaymentTransaction
-                    var paymentTransaction = new PaymentTransaction
+                    // Check for existing PaymentTransaction (Pending or Failed) to reuse
+                    var existingTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+                        new QueryBuilder<PaymentTransaction>()
+                        .WithPredicate(pt => pt.ActualOrderId == orderId &&
+                                            pt.PaymentMethod == "PayOS" &&
+                                            (pt.Status == "Pending" || pt.Status == "Failed"))
+                        .WithTracking(true)
+                        .Build());
+
+                    if (existingTransaction != null)
                     {
-                        UserId = customer?.ApplicationUser?.Id ?? 0,
-                        PaymentMethod = "PayOS",
-                        OrderId = orderCode.ToString(),
-                        ActualOrderId = orderId,
-                        Amount = order.TotalAmount,
-                        Description = $"Thanh toán đơn hàng {order.OrderNumber}",
-                        Status = "Pending",
-                        PaymentUrl = createPayment.checkoutUrl,
-                        ResponseData = null,
-                        TransactionId = null,
-                        CreatedAt = DateTime.UtcNow
-                    };
+                        // Reuse existing transaction for retry
+                        existingTransaction.PaymentUrl = createPayment.checkoutUrl;
+                        existingTransaction.Status = "Pending";
+                        existingTransaction.UpdatedAt = DateTime.UtcNow;
+                        existingTransaction.Amount = order.TotalAmount;
+                        existingTransaction.Description = $"Thanh toán đơn hàng {order.OrderNumber}";
+                        existingTransaction.OrderId = orderCode.ToString();
+                        existingTransaction.ResponseData = null;
+                        existingTransaction.TransactionId = null;
 
-                    await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
-                    await _unitOfWork.SaveChangesAsync();
+                        await _unitOfWork.PaymentTransactions.UpdateAsync(existingTransaction);
+                        await _unitOfWork.SaveChangesAsync();
 
-                    return GetSuccess(new { paymentUrl = createPayment.checkoutUrl, orderId });
+                        return GetSuccess(new { paymentUrl = createPayment.checkoutUrl, orderId, isRetry = true });
+                    }
+                    else
+                    {
+                        // Create new PaymentTransaction
+                        var paymentTransaction = new PaymentTransaction
+                        {
+                            UserId = customer?.ApplicationUser?.Id ?? 0,
+                            PaymentMethod = "PayOS",
+                            OrderId = orderCode.ToString(),
+                            ActualOrderId = orderId,
+                            Amount = order.TotalAmount,
+                            Description = $"Thanh toán đơn hàng {order.OrderNumber}",
+                            Status = "Pending",
+                            PaymentUrl = createPayment.checkoutUrl,
+                            ResponseData = null,
+                            TransactionId = null,
+                            CreatedAt = DateTime.UtcNow
+                        };
+
+                        await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
+                        await _unitOfWork.SaveChangesAsync();
+
+                        return GetSuccess(new { paymentUrl = createPayment.checkoutUrl, orderId, isRetry = false });
+                    }
                 }
                 else
                 {
@@ -123,26 +162,54 @@ namespace Zenkoi.API.Controllers
                         }
                     );
 
-                    // Create PaymentTransaction
-                    var paymentTransaction = new PaymentTransaction
+                    // Check for existing PaymentTransaction (Pending or Failed) to reuse
+                    var existingTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+                        new QueryBuilder<PaymentTransaction>()
+                        .WithPredicate(pt => pt.ActualOrderId == orderId &&
+                                            pt.PaymentMethod == "VnPay" &&
+                                            (pt.Status == "Pending" || pt.Status == "Failed"))
+                        .WithTracking(true)
+                        .Build());
+
+                    if (existingTransaction != null)
                     {
-                        UserId = customer?.ApplicationUser?.Id ?? 0,
-                        PaymentMethod = "VnPay",
-                        OrderId = order.OrderNumber,
-                        ActualOrderId = orderId,
-                        Amount = order.TotalAmount,
-                        Description = $"Thanh toán đơn hàng {order.OrderNumber}",
-                        Status = "Pending",
-                        PaymentUrl = paymentUrl,
-                        ResponseData = null,
-                        TransactionId = null,
-                        CreatedAt = DateTime.UtcNow
-                    };
+                        // Reuse existing transaction for retry
+                        existingTransaction.PaymentUrl = paymentUrl;
+                        existingTransaction.Status = "Pending";
+                        existingTransaction.UpdatedAt = DateTime.UtcNow;
+                        existingTransaction.Amount = order.TotalAmount;
+                        existingTransaction.Description = $"Thanh toán đơn hàng {order.OrderNumber}";
+                        existingTransaction.ResponseData = null;
+                        existingTransaction.TransactionId = null;
 
-                    await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
-                    await _unitOfWork.SaveChangesAsync();
+                        await _unitOfWork.PaymentTransactions.UpdateAsync(existingTransaction);
+                        await _unitOfWork.SaveChangesAsync();
 
-                    return GetSuccess(new { paymentUrl, orderId });
+                        return GetSuccess(new { paymentUrl, orderId, isRetry = true });
+                    }
+                    else
+                    {
+                        // Create new PaymentTransaction
+                        var paymentTransaction = new PaymentTransaction
+                        {
+                            UserId = customer?.ApplicationUser?.Id ?? 0,
+                            PaymentMethod = "VnPay",
+                            OrderId = order.OrderNumber,
+                            ActualOrderId = orderId,
+                            Amount = order.TotalAmount,
+                            Description = $"Thanh toán đơn hàng {order.OrderNumber}",
+                            Status = "Pending",
+                            PaymentUrl = paymentUrl,
+                            ResponseData = null,
+                            TransactionId = null,
+                            CreatedAt = DateTime.UtcNow
+                        };
+
+                        await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
+                        await _unitOfWork.SaveChangesAsync();
+
+                        return GetSuccess(new { paymentUrl, orderId, isRetry = false });
+                    }
                 }
             }
             catch (Exception ex)
