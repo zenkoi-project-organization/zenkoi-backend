@@ -436,6 +436,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             order.Status = updateOrderStatusDTO.Status;
+            order.UpdatedAt = DateTime.UtcNow;
             await _orderRepo.UpdateAsync(order);
             await _unitOfWork.SaveChangesAsync();
 
