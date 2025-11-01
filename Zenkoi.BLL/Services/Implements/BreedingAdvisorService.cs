@@ -256,17 +256,35 @@ namespace Zenkoi.BLL.Services.Implements
 
         private string BuildPairAnalysisPrompt(AIPairAnalysisRequestDTO request)
         {
+
+            bool maleHasData = request.Male != null &&
+                      request.Male.BreedingHistory?.Any(h =>
+                          h.FertilizationRate.HasValue ||
+                          h.HatchRate.HasValue ||
+                          h.SurvivalRate.HasValue ||
+                          h.HighQualifiedRate.HasValue) == true;
+
+            bool femaleHasData = request.Female != null &&
+                                 request.Female.BreedingHistory?.Any(h =>
+                                     h.FertilizationRate.HasValue ||
+                                     h.HatchRate.HasValue ||
+                                     h.SurvivalRate.HasValue ||
+                                     h.HighQualifiedRate.HasValue) == true;
+
+            if (!maleHasData || !femaleHasData)
+            {
+                throw new  InvalidOperationException(" Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống hoặc cá máy đã có lịch sử sinh sản .");
+            }
+
             var sb = new StringBuilder();
 
             sb.AppendLine("Bạn là **Smart Koi Breeder**, chuyên gia di truyền cá Koi.");
             sb.AppendLine("Hãy phân tích khả năng phối giống giữa **một cặp cá đực và cá cái cụ thể** dựa trên dữ liệu thật bên dưới.");
             sb.AppendLine();
             sb.AppendLine("🎯 Mục tiêu:");
-            sb.AppendLine($"- Giống mục tiêu: {request.TargetVariety}");
-            sb.AppendLine($"- Mẫu màu mong muốn: {request.DesiredPattern}");
-            sb.AppendLine($"- Hình dáng cơ thể mong muốn: {request.DesiredBodyShape}");
+            sb.AppendLine("- Dự đoán độ tương thích và tiềm năng sinh sản của cặp cá này.");
+            sb.AppendLine("- Đưa ra phân tích chi tiết và kết quả định lượng ở dạng JSON.");
             sb.AppendLine();
-
             sb.AppendLine("📊 Quy tắc đánh giá:");
             sb.AppendLine("- Dựa 100% vào dữ liệu thật, không được suy diễn ngẫu nhiên.");
             sb.AppendLine("- Tính điểm dựa trên 4 nhóm yếu tố có trọng số:");
@@ -319,7 +337,15 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("  \"PatternMatchScore\": 0.0,");
             sb.AppendLine("  \"BodyShapeCompatibility\": 0.0,");
             sb.AppendLine("  \"PercentInbreeding\": 0.0,");
-            sb.AppendLine("  \"Summary\": \"Phân tích ngắn gọn, bám sát dữ liệu thực tế (không quá 200 ký tự).\"");
+            sb.AppendLine("  \"Summary\": \"Phân tích ngắn gọn, bám sát dữ liệu thực tế (không quá 200 ký tự).\",");
+            sb.AppendLine("  \"MaleBreedingInfo\": {");
+            sb.AppendLine("    \"Summary\": \"Đánh giá tiềm năng sinh sản và phong độ của cá đực (tối đa 100 ký tự).\",");
+            sb.AppendLine("    \"BreedingSuccessRate\": 0.0");
+            sb.AppendLine("  },");
+            sb.AppendLine("  \"FemaleBreedingInfo\": {");
+            sb.AppendLine("    \"Summary\": \"Đánh giá tiềm năng sinh sản và sức khỏe của cá cái (tối đa 100 ký tự).\",");
+            sb.AppendLine("    \"BreedingSuccessRate\": 0.0");
+            sb.AppendLine("  }");
             sb.AppendLine("}");
             sb.AppendLine();
             sb.AppendLine("⚠️ Yêu cầu bắt buộc:");
@@ -327,10 +353,10 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("- Không bỏ sót hoặc đổi tên trường JSON.");
             sb.AppendLine("- Không thêm ghi chú, markdown hoặc văn bản ngoài JSON.");
             sb.AppendLine("- Mọi giá trị phải là số thực (double) trong khoảng 0–100.");
+            sb.AppendLine("- Trả về đúng định dạng JSON, không có dấu * hoặc emoji.");
 
             return sb.ToString();
         }
-
 
         private static string ExtractJson(string input)
         {

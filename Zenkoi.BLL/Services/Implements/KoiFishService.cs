@@ -388,6 +388,10 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new InvalidOperationException("cá đã chết");
             }
+            if(koifish.HealthStatus != HealthStatus.Healthy)
+            {
+                throw new InvalidOperationException("vui lòng chọn cá có thể trạng tốt để có một quá trình sinh sản tốt nhất");
+            }
             var historyBreed = await _breedingProcessService.GetKoiFishParentStatsAsync(id);
 
             var age = (today - koifish.BirthDate.Value).TotalDays / 365.25;

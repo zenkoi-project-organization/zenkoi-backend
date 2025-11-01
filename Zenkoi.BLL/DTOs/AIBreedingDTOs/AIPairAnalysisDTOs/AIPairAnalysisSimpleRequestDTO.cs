@@ -10,8 +10,5 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs
     {
         public int MaleId { get; set; }
         public int FemaleId { get; set; }
-        public string TargetVariety { get; set; }
-        public string DesiredPattern { get; set; }
-        public string DesiredBodyShape { get; set; }
     }
 }
