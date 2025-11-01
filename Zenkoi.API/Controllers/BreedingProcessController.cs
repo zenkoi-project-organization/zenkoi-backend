@@ -166,18 +166,15 @@ namespace Zenkoi.API.Controllers
             var female = await _fishService.GetAnalysisAsync(req.FemaleId);
 
             if (male == null || female == null)
-                return BadRequest("Không tìm thấy dữ liệu cá tương ứng.");
+                return Error("Không tìm thấy dữ liệu cá tương ứng.");
 
             if (male.Gender?.ToLower() != "male" || female.Gender?.ToLower() != "female")
-                return BadRequest("Dữ liệu không hợp lệ: cần 1 cá đực (Male) và 1 cá cái (Female).");
+                return Error("Dữ liệu không hợp lệ: cần 1 cá đực (Male) và 1 cá cái (Female).");
 
             var fullRequest = new AIPairAnalysisRequestDTO
             {
                 Male = male,
-                Female = female,
-                TargetVariety = req.TargetVariety,
-                DesiredPattern = req.DesiredPattern,
-                DesiredBodyShape = req.DesiredBodyShape,
+                Female = female
             };
 
             var result = await _advisorService.AnalyzePairAsync(fullRequest);

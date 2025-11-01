@@ -20,6 +20,7 @@ using Zenkoi.BLL.DTOs.CustomerDTOs;
 using Zenkoi.BLL.DTOs.CartDTOs;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
+using Zenkoi.BLL.DTOs.PondPacketFishDTOs;
 
 namespace Zenkoi.BLL.Helpers.Mapper
 {
@@ -122,6 +123,9 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<ClassificationRecord, ClassificationRecordResponseDTO>().ReverseMap();
             CreateMap<ClassificationRecordRequestDTO, ClassificationRecord>();
             CreateMap<ClassificationRecordUpdateRequestDTO, ClassificationRecord>();
+            CreateMap<PondPacketFishRequestDTO, PondPacketFish>();
+            CreateMap<PondPacketFish, PondPacketFishResponseDTO>();
+
 
             // Order mappings
             CreateMap<OrderDetail, OrderDetailResponseDTO>()

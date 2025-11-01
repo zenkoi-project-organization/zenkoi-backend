@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs
 {
@@ -18,5 +14,14 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs
         public double BodyShapeCompatibility { get; set; }
         public double PercentInbreeding { get; set; }
         public string Summary { get; set; }
+
+        public BreedingInfo MaleBreedingInfo { get; set; }
+        public BreedingInfo FemaleBreedingInfo { get; set; }
+    }
+
+    public class BreedingInfo
+    {
+        public string Summary { get; set; }
+        public double BreedingSuccessRate { get; set; }
     }
 }
