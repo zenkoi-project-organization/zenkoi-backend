@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Zenkoi.BLL.DTOs.AIBreedingDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
@@ -27,8 +28,9 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<KoiFish> _koiFishRepo;
         private readonly IRepoBase<Variety> _varietyRepo;
         private readonly IRepoBase<Pond>  _pondRepo;
+        private readonly IBreedingProcessService _breedingProcessService;
         private readonly IRepoBase<BreedingProcess> _breedRepo;
-        public KoiFishService(IUnitOfWork unitOfWork, IMapper mapper)
+        public KoiFishService(IUnitOfWork unitOfWork, IMapper mapper, IBreedingProcessService breedingProcessService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -36,6 +38,7 @@ namespace Zenkoi.BLL.Services.Implements
             _varietyRepo = _unitOfWork.GetRepo<Variety>();
             _pondRepo = _unitOfWork.GetRepo<Pond>();
             _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+            _breedingProcessService = breedingProcessService;
         }
         public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(
          KoiFishFilterRequestDTO filter,
@@ -158,9 +161,25 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception($"không tìm thấy variety với id : {dto.VarietyId}");
             }
-            var pond = await _pondRepo.CheckExistAsync(dto.PondId);
-            if (!pond){
+            var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == dto.PondId,
+                IncludeProperties = new List<Expression<Func<Pond, object>>> {
+                p => p.KoiFishes
+                }
+            });
+
+            if (pond == null){
                 throw new Exception($"không tìm thấy pond với id {dto.PondId}");
+            }
+            if(pond.PondStatus == PondStatus.Maintenance)
+            {
+                throw new InvalidOperationException("hồ hiện tại đang bảo trì vui lòng chọn hồ khác");
+            }
+            pond.CurrentCount  = pond?.KoiFishes.Count(); 
+            if (pond.MaxFishCount < pond.CurrentCount + 1)
+            {
+                throw new InvalidOperationException("hồ đã đầy vui lòng chuyển cá sang hồ khác");
             }
             if (dto.BreedingProcessId.HasValue)
             {
@@ -302,6 +321,104 @@ namespace Zenkoi.BLL.Services.Implements
 
                 return response;
             }
+        }
+        public async Task<bool> TransferFish(int id, int pondId)
+        {
+            var koiFish = await _koiFishRepo.GetByIdAsync(id);
+            if (koiFish == null)
+                throw new KeyNotFoundException("Không tìm thấy cá.");
+
+            if (koiFish.HealthStatus == HealthStatus.Dead)
+                throw new InvalidOperationException("Cá đã chết, không thể chuyển hồ.");
+
+            var oldPond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == koiFish.PondId,
+                IncludeProperties = new List<Expression<Func<Pond, object>>> { p => p.KoiFishes }
+            });
+
+            var newPond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == pondId,
+                IncludeProperties = new List<Expression<Func<Pond, object>>> { p => p.KoiFishes }
+            });
+
+            if (newPond == null)
+                throw new KeyNotFoundException("Không tìm thấy hồ mới.");
+
+            if (newPond.PondStatus == PondStatus.Maintenance)
+                throw new InvalidOperationException("Hồ đang bảo trì, không thể chuyển.");
+
+
+            var newCount = newPond.KoiFishes.Count + 1;
+            if (newPond.MaxFishCount.HasValue && newCount > newPond.MaxFishCount.Value)
+                throw new InvalidOperationException("Hồ mới đã đầy, không thể chuyển cá vào.");
+
+            koiFish.PondId = pondId;
+
+
+            if (oldPond != null && oldPond.Id != newPond.Id)
+            {
+                oldPond.CurrentCount = Math.Max(0, (oldPond.KoiFishes.Count - 1));
+            }
+            newPond.CurrentCount = newCount;
+
+            await _koiFishRepo.UpdateAsync(koiFish);
+            if (oldPond != null) await _pondRepo.UpdateAsync(oldPond);
+            await _pondRepo.UpdateAsync(newPond);
+
+            return await _unitOfWork.SaveAsync();
+        }
+
+        public async  Task<BreedingParentDTO> GetAnalysisAsync(int id)
+        {
+            var koifish = await _koiFishRepo.GetSingleAsync(new QueryOptions<KoiFish> { 
+            Predicate = p => p.Id == id , IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+            {
+                p => p.Variety
+            } 
+            });
+
+            var today = DateTime.Now;
+            if (koifish == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy cá koi");
+            }
+            if(koifish.HealthStatus == HealthStatus.Dead)
+            {
+                throw new InvalidOperationException("cá đã chết");
+            }
+            if(koifish.HealthStatus != HealthStatus.Healthy)
+            {
+                throw new InvalidOperationException("vui lòng chọn cá có thể trạng tốt để có một quá trình sinh sản tốt nhất");
+            }
+            var historyBreed = await _breedingProcessService.GetKoiFishParentStatsAsync(id);
+
+            var age = (today - koifish.BirthDate.Value).TotalDays / 365.25;
+
+            return new BreedingParentDTO {
+                Id = koifish.Id,
+                RFID = koifish.RFID,
+                Variety = koifish.Variety.VarietyName,
+                Gender = koifish.Gender.ToString(),
+                Size = koifish.Size.ToString(),
+                image = koifish.Images[0],
+                BodyShape = koifish.BodyShape,
+                ColorPattern = koifish.ColorPattern,
+                Health = koifish.HealthStatus.ToString(),
+                Age = Math.Round(age, 1),
+                BreedingHistory = new List<BreedingRecordDTO>
+                {
+                    new BreedingRecordDTO{
+                    FertilizationRate = historyBreed.FertilizationRate,
+                    HatchRate = historyBreed.HatchRate,
+                    SurvivalRate = historyBreed.SurvivalRate,
+                    HighQualifiedRate = historyBreed.HighQualifiedRate,
+                    ResultNote = $"Participations: {historyBreed.ParticipationCount}, Failed: {historyBreed.FailCount}",  
+                 }
+                }
+            };
+
         }
     }
 }

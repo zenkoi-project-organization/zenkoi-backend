@@ -18,7 +18,7 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(ppf => ppf.PacketFishId)
                 .IsRequired();
 
-            builder.Property(ppf => ppf.Quantity)
+            builder.Property(ppf => ppf.QuantityFish)
                 .IsRequired();
 
             builder.HasOne(ppf => ppf.Pond)

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251102164827_UpdatePondType")]
+    partial class UpdatePondType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1294,23 +1297,6 @@ namespace Zenkoi.DAL.Migrations
                     b.ToTable("Ponds", "dbo");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.PondAssignment", b =>
-                {
-                    b.Property<int>("WorkScheduleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PondId")
-                        .HasColumnType("int");
-
-                    b.HasKey("WorkScheduleId", "PondId");
-
-                    b.HasIndex("PondId");
-
-                    b.HasIndex("WorkScheduleId");
-
-                    b.ToTable("PondAssignments", "dbo");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.PondIncident", b =>
                 {
                     b.Property<int>("Id")
@@ -1540,30 +1526,6 @@ namespace Zenkoi.DAL.Migrations
                     b.ToTable("RefreshToken", "dbo");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.StaffAssignment", b =>
-                {
-                    b.Property<int>("WorkScheduleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StaffId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CompletionNotes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.HasKey("WorkScheduleId", "StaffId");
-
-                    b.HasIndex("StaffId");
-
-                    b.HasIndex("WorkScheduleId");
-
-                    b.ToTable("StaffAssignments", "dbo");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.TaskTemplate", b =>
                 {
                     b.Property<int>("Id")
@@ -1572,47 +1534,40 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<int>("DefaultDuration")
+                    b.Property<int>("AssignedToUserId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
                     b.Property<bool>("IsRecurring")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("RecurrenceRule")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<int?>("PondId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("TaskName")
+                    b.Property<string>("RecurrenceRule")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("ScheduledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("IsDeleted");
+                    b.HasIndex("AssignedToUserId");
 
-                    b.HasIndex("IsRecurring");
+                    b.HasIndex("PondId");
 
-                    b.HasIndex("TaskName");
+                    b.HasIndex("ScheduledAt");
 
                     b.ToTable("TaskTemplates", "dbo");
                 });
@@ -1870,50 +1825,54 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("CheckedInAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CheckedOutAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<int>("CreatedBy")
+                    b.Property<int>("CreatedByUserId")
                         .HasColumnType("int");
 
-                    b.Property<TimeOnly>("EndTime")
+                    b.Property<TimeSpan?>("EndTime")
                         .HasColumnType("time");
+
+                    b.Property<string>("ManagerNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<DateOnly>("ScheduledDate")
-                        .HasColumnType("date");
+                    b.Property<int>("StaffId")
+                        .HasColumnType("int");
 
-                    b.Property<TimeOnly>("StartTime")
-                        .HasColumnType("time");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<TimeSpan?>("StartTime")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(450)")
-                        .HasDefaultValue("Pending");
+                        .HasColumnType("time")
+                        .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0));
 
                     b.Property<int>("TaskTemplateId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTime>("WorkDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedBy");
+                    b.HasIndex("CreatedByUserId");
 
-                    b.HasIndex("ScheduledDate");
-
-                    b.HasIndex("Status");
+                    b.HasIndex("StaffId");
 
                     b.HasIndex("TaskTemplateId");
 
-                    b.HasIndex("ScheduledDate", "Status");
+                    b.HasIndex("WorkDate");
 
                     b.ToTable("WorkSchedules", "dbo");
                 });
@@ -2289,25 +2248,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("PondType");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.PondAssignment", b =>
-                {
-                    b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
-                        .WithMany()
-                        .HasForeignKey("PondId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Zenkoi.DAL.Entities.WorkSchedule", "WorkSchedule")
-                        .WithMany("PondAssignments")
-                        .HasForeignKey("WorkScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Pond");
-
-                    b.Navigation("WorkSchedule");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.PondIncident", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.Incident", "Incident")
@@ -2365,23 +2305,22 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.StaffAssignment", b =>
+            modelBuilder.Entity("Zenkoi.DAL.Entities.TaskTemplate", b =>
                 {
-                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "Staff")
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "AssignedTo")
                         .WithMany()
-                        .HasForeignKey("StaffId")
+                        .HasForeignKey("AssignedToUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Zenkoi.DAL.Entities.WorkSchedule", "WorkSchedule")
-                        .WithMany("StaffAssignments")
-                        .HasForeignKey("WorkScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
+                        .WithMany("Tasks")
+                        .HasForeignKey("PondId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Staff");
+                    b.Navigation("AssignedTo");
 
-                    b.Navigation("WorkSchedule");
+                    b.Navigation("Pond");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.UserDetail", b =>
@@ -2462,19 +2401,27 @@ namespace Zenkoi.DAL.Migrations
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.WorkSchedule", b =>
                 {
-                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "Creator")
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedBy")
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Zenkoi.DAL.Entities.TaskTemplate", "TaskTemplate")
                         .WithMany("WorkSchedules")
                         .HasForeignKey("TaskTemplateId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Creator");
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Staff");
 
                     b.Navigation("TaskTemplate");
                 });
@@ -2577,6 +2524,8 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Navigation("PondPacketFishes");
 
+                    b.Navigation("Tasks");
+
                     b.Navigation("WaterParameters");
                 });
 
@@ -2597,13 +2546,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("KoiFishes");
 
                     b.Navigation("VarietyPacketFishes");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.WorkSchedule", b =>
-                {
-                    b.Navigation("PondAssignments");
-
-                    b.Navigation("StaffAssignments");
                 });
 #pragma warning restore 612, 618
         }

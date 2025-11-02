@@ -20,10 +20,12 @@ namespace Zenkoi.DAL.Entities
         public string Location { get; set; }
 
         public double? CapacityLiters { get; set; }
+        public double? CurrentCapacity { get; set; }
         public double? DepthMeters { get; set; }
         public double? LengthMeters { get; set; }
         public double? WidthMeters { get; set; }
-
+        public int? MaxFishCount { get; set; }
+        public int? CurrentCount { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public PondType PondType { get; set; }

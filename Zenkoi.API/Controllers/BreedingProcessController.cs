@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MailKit;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Text.Json;
 using Zenkoi.BLL.DTOs.AIBreedingDTOs;
+using Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs;
 using Zenkoi.BLL.DTOs.BreedingDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.Services.Implements;
@@ -14,10 +17,12 @@ namespace Zenkoi.API.Controllers
     {
         private readonly IBreedingProcessService _service;
         private readonly IBreedingAdvisorService _advisorService;
-        public BreedingProcessController(IBreedingProcessService service, IBreedingAdvisorService advisorService)
+        private readonly IKoiFishService _fishService;
+        public BreedingProcessController(IBreedingProcessService service, IBreedingAdvisorService advisorService, IKoiFishService fishService)
         {
             _service = service;
             _advisorService = advisorService;
+            _fishService =  fishService;
         }
         [HttpPut("spawned/{id:int}")]
         public async Task<IActionResult> UpdateSpawnedById(int id)
@@ -153,6 +158,29 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(result);
         }
+
+        [HttpPost("analyze-pair")]
+        public async Task<IActionResult> AnalyzePair([FromBody] AIPairAnalysisSimpleRequestDTO req)
+        {
+            var male = await _fishService.GetAnalysisAsync(req.MaleId);
+            var female = await _fishService.GetAnalysisAsync(req.FemaleId);
+
+            if (male == null || female == null)
+                return Error("Không tìm thấy dữ liệu cá tương ứng.");
+
+            if (male.Gender?.ToLower() != "male" || female.Gender?.ToLower() != "female")
+                return Error("Dữ liệu không hợp lệ: cần 1 cá đực (Male) và 1 cá cái (Female).");
+
+            var fullRequest = new AIPairAnalysisRequestDTO
+            {
+                Male = male,
+                Female = female
+            };
+
+            var result = await _advisorService.AnalyzePairAsync(fullRequest);
+
+            return GetSuccess(result);
         }
+    }
     }
 

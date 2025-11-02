@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AreaDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
+using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.PondDTOs;
 using Zenkoi.BLL.DTOs.PondTypeDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
@@ -119,11 +120,16 @@ namespace Zenkoi.BLL.Services.Implements
             return new PaginatedList<PondResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
 
-
         public async Task<PondResponseDTO?> GetByIdAsync(int id)
         {
-            var pondtypes = await _pondRepo.GetByIdAsync(id);
-            return _mapper.Map<PondResponseDTO>(pondtypes);
+            var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond> { 
+            Predicate = p => p.Id == id, IncludeProperties = new List<Expression<Func<Pond, object>>>
+            {
+                p => p.Area,
+                p => p.PondType
+            }
+            });
+            return _mapper.Map<PondResponseDTO>(pond);
         }
 
         public async Task<PondResponseDTO> CreateAsync(PondRequestDTO dto)
@@ -132,16 +138,23 @@ namespace Zenkoi.BLL.Services.Implements
             var area = await areaRepo.CheckExistAsync(dto.AreaId);
             if (!area)
             {
-                throw new Exception($"không tìm thấy ví trí với AreaId : {dto.AreaId}");
+                throw new KeyNotFoundException($"không tìm thấy ví trí với AreaId : {dto.AreaId}");
             }
+            
             var pondRepo = _unitOfWork.GetRepo<PondType>();
-            var pondType = await pondRepo.CheckExistAsync(dto.PondTypeId);
-            if (!pondType)
+            var pondType = await pondRepo.GetByIdAsync(dto.PondTypeId);
+            if (pondType == null)
             {
-                throw new Exception($"không tìm thấy ví trí với PondTypeId : {dto.PondTypeId}");
+                throw new KeyNotFoundException($"không tìm thấy ví trí với PondTypeId : {dto.PondTypeId}");
             }
-
+            var maxCapacity = dto.DepthMeters * dto.WidthMeters * dto.LengthMeters * 1000;
+            if(dto.CurrentCapacity > maxCapacity)
+            {
+                throw new InvalidOperationException("dung tích thực đang lớn hơn dung tích tối đa của hồ");
+            }
             var entity = _mapper.Map<Pond>(dto);
+            entity.CapacityLiters = maxCapacity;
+            entity.MaxFishCount = pondType.RecommendedCapacity;
             entity.CreatedAt = DateTime.UtcNow;
             await _pondRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
@@ -164,6 +177,10 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception($"không tìm thấy ví trí với PondTypeId : {dto.PondTypeId}");
             }
+            if (dto.CurrentCapacity > pond.CapacityLiters)
+            {
+                throw new InvalidOperationException("dung tích thực đang lớn hơn dung tích tối đa của hồ");
+            }
 
             _mapper.Map(dto, pond);
             await _pondRepo.UpdateAsync(pond);
@@ -179,6 +196,30 @@ namespace Zenkoi.BLL.Services.Implements
             await _pondRepo.DeleteAsync(pond);
             await _unitOfWork.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<KoiFishResponseDTO>> GetAllKoiFishInPond(int pondId)
+        {
+            var pondExists = await _pondRepo.CheckExistAsync(pondId);
+            if (!pondExists)
+            {
+                throw new Exception($"Không tìm thấy hồ với Id = {pondId}");
+            }
+
+            var koiRepo = _unitOfWork.GetRepo<KoiFish>();
+
+            var queryOptions = new QueryOptions<KoiFish>
+            {
+                Predicate = k => k.PondId == pondId,
+                IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+        {
+            k => k.Variety,
+            k => k.BreedingProcess
+        }
+            };
+            var koiList = await koiRepo.GetAllAsync(queryOptions);
+            var result = _mapper.Map<List<KoiFishResponseDTO>>(koiList);
+            return result;
         }
     }
 }
