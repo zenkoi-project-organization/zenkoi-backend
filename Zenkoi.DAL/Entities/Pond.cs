@@ -20,6 +20,7 @@ namespace Zenkoi.DAL.Entities
         public string Location { get; set; }
 
         public double? CapacityLiters { get; set; }
+        public double? CurrentCapacity { get; set; }
         public double? DepthMeters { get; set; }
         public double? LengthMeters { get; set; }
         public double? WidthMeters { get; set; }

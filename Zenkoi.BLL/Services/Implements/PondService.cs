@@ -138,18 +138,22 @@ namespace Zenkoi.BLL.Services.Implements
             var area = await areaRepo.CheckExistAsync(dto.AreaId);
             if (!area)
             {
-                throw new Exception($"không tìm thấy ví trí với AreaId : {dto.AreaId}");
+                throw new KeyNotFoundException($"không tìm thấy ví trí với AreaId : {dto.AreaId}");
             }
             
             var pondRepo = _unitOfWork.GetRepo<PondType>();
             var pondType = await pondRepo.GetByIdAsync(dto.PondTypeId);
             if (pondType == null)
             {
-                throw new Exception($"không tìm thấy ví trí với PondTypeId : {dto.PondTypeId}");
+                throw new KeyNotFoundException($"không tìm thấy ví trí với PondTypeId : {dto.PondTypeId}");
             }
-
+            var maxCapacity = dto.DepthMeters * dto.WidthMeters * dto.LengthMeters * 1000;
+            if(dto.CurrentCapacity > maxCapacity)
+            {
+                throw new InvalidOperationException("dung tích thực đang lớn hơn dung tích tối đa của hồ");
+            }
             var entity = _mapper.Map<Pond>(dto);
-            entity.CapacityLiters = dto.DepthMeters * dto.WidthMeters * dto.LengthMeters * 1000;
+            entity.CapacityLiters = maxCapacity;
             entity.MaxFishCount = pondType.RecommendedCapacity;
             entity.CreatedAt = DateTime.UtcNow;
             await _pondRepo.CreateAsync(entity);
@@ -172,6 +176,10 @@ namespace Zenkoi.BLL.Services.Implements
             if (!pondType)
             {
                 throw new Exception($"không tìm thấy ví trí với PondTypeId : {dto.PondTypeId}");
+            }
+            if (dto.CurrentCapacity > pond.CapacityLiters)
+            {
+                throw new InvalidOperationException("dung tích thực đang lớn hơn dung tích tối đa của hồ");
             }
 
             _mapper.Map(dto, pond);
