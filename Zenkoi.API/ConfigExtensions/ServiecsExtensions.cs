@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-            //  await TruncateAllTablesExceptMigrationHistory(context);
+              await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -112,10 +112,69 @@ namespace Zenkoi.API.ConfigExtensions
             }
             #endregion
 
+            #region Seeding FarmStaff Users
+            if (!context.Users.Any(x => x.Role == Role.FarmStaff))
+            {
+                var staff1 = new ApplicationUser
+                {
+                    FullName = "Nguyễn Văn Bình",
+                    Role = Role.FarmStaff,
+                    UserName = "staff1",
+                    NormalizedUserName = "STAFF1",
+                    Email = "staff1@email.com",
+                    NormalizedEmail = "STAFF1@EMAIL.COM",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==",
+                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP",
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    PhoneNumber = "0988888881",
+                    LockoutEnabled = true
+                };
+
+                var staff2 = new ApplicationUser
+                {
+                    FullName = "Trần Thị Cẩm",
+                    Role = Role.FarmStaff,
+                    UserName = "staff2",
+                    NormalizedUserName = "STAFF2",
+                    Email = "staff2@email.com",
+                    NormalizedEmail = "STAFF2@EMAIL.COM",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==",
+                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP",
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    PhoneNumber = "0988888882",
+                    LockoutEnabled = true
+                };
+
+                var staff3 = new ApplicationUser
+                {
+                    FullName = "Lê Văn Dũng",
+                    Role = Role.FarmStaff,
+                    UserName = "staff3",
+                    NormalizedUserName = "STAFF3",
+                    Email = "staff3@email.com",
+                    NormalizedEmail = "STAFF3@EMAIL.COM",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==",
+                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP",
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    PhoneNumber = "0988888883",
+                    LockoutEnabled = true
+                };
+
+                await context.Users.AddRangeAsync(staff1, staff2, staff3);
+                await context.SaveChangesAsync();
+
+                await context.UserRoles.AddRangeAsync(
+                    new IdentityUserRole<int> { UserId = 5, RoleId = 2 },
+                    new IdentityUserRole<int> { UserId = 6, RoleId = 2 },
+                    new IdentityUserRole<int> { UserId = 7, RoleId = 2 }
+                );
+                await context.SaveChangesAsync();
+            }
+            #endregion
+
             #region Seeding Customer Users
             if (!context.Users.Any(x => x.Role == Role.Customer))
             {
-                // Pass: Customer@123
                 var customer1 = new ApplicationUser 
                 { 
                     FullName = "Nguyễn Văn An", 
@@ -1100,6 +1159,256 @@ namespace Zenkoi.API.ConfigExtensions
                         DiscountValue = 15,
                         IsActive = false 
                     }
+                );
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.TaskTemplates.Any())
+            {
+                await context.TaskTemplates.AddRangeAsync(
+                    new TaskTemplate
+                    {
+                        TaskName = "Cho cá ăn buổi sáng",
+                        Description = "Cho cá ăn thức ăn viên lúc 6h sáng, kiểm tra lượng thức ăn và chất lượng nước trước khi cho ăn",
+                        DefaultDuration = 30,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=DAILY;BYHOUR=6",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Cho cá ăn buổi chiều",
+                        Description = "Cho cá ăn thức ăn viên lúc 17h chiều",
+                        DefaultDuration = 30,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=DAILY;BYHOUR=17",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Kiểm tra chất lượng nước",
+                        Description = "Đo pH, nhiệt độ, DO, ammonia, nitrite. Ghi chép kết quả vào sổ theo dõi",
+                        DefaultDuration = 45,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=DAILY;BYHOUR=8",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Vệ sinh lưới lọc",
+                        Description = "Vệ sinh, rửa lưới lọc cơ học, kiểm tra bơm nước",
+                        DefaultDuration = 60,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=MO,TH",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Kiểm tra sức khỏe cá",
+                        Description = "Quan sát cá, kiểm tra dấu hiệu bệnh, chấn thương, hành vi bất thường",
+                        DefaultDuration = 60,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=WE,SA",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Thay nước ao",
+                        Description = "Thay 20-30% lượng nước ao, bổ sung nước sạch",
+                        DefaultDuration = 120,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=SU",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Vệ sinh đáy ao",
+                        Description = "Hút bùn, cặn bẩn dưới đáy ao",
+                        DefaultDuration = 90,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=1,15",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Bảo dưỡng máy bơm",
+                        Description = "Kiểm tra, vệ sinh, bảo dưỡng hệ thống máy bơm và lọc nước",
+                        DefaultDuration = 120,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=1",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.WorkSchedules.Any())
+            {
+                await context.WorkSchedules.AddRangeAsync(
+                    new WorkSchedule
+                    {
+                        TaskTemplateId = 1,
+                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
+                        StartTime = new TimeOnly(6, 0),
+                        EndTime = new TimeOnly(6, 30),
+                        Status = WorkTaskStatus.Pending,
+                        Notes = "Cho ăn buổi sáng hôm nay",
+                        CreatedBy = 1,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new WorkSchedule
+                    {
+                        TaskTemplateId = 2,
+                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
+                        StartTime = new TimeOnly(17, 0),
+                        EndTime = new TimeOnly(17, 30),
+                        Status = WorkTaskStatus.Pending,
+                        Notes = "Cho ăn buổi chiều hôm nay",
+                        CreatedBy = 1,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new WorkSchedule
+                    {
+                        TaskTemplateId = 3,
+                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
+                        StartTime = new TimeOnly(8, 0),
+                        EndTime = new TimeOnly(8, 45),
+                        Status = WorkTaskStatus.InProgress,
+                        Notes = "Kiểm tra chất lượng nước tất cả các ao",
+                        CreatedBy = 1,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new WorkSchedule
+                    {
+                        TaskTemplateId = 1,
+                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)),
+                        StartTime = new TimeOnly(6, 0),
+                        EndTime = new TimeOnly(6, 30),
+                        Status = WorkTaskStatus.Completed,
+                        Notes = "Đã hoàn thành cho ăn sáng ngày hôm qua",
+                        CreatedBy = 1,
+                        CreatedAt = DateTime.UtcNow.AddDays(-1),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-1).AddHours(1)
+                    },
+                    new WorkSchedule
+                    {
+                        TaskTemplateId = 5,
+                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-2)),
+                        StartTime = new TimeOnly(9, 0),
+                        EndTime = new TimeOnly(10, 0),
+                        Status = WorkTaskStatus.Completed,
+                        Notes = "Đã kiểm tra sức khỏe cá, không phát hiện bệnh",
+                        CreatedBy = 1,
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-2).AddHours(2)
+                    },
+                    new WorkSchedule
+                    {
+                        TaskTemplateId = 4,
+                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
+                        StartTime = new TimeOnly(10, 0),
+                        EndTime = new TimeOnly(11, 0),
+                        Status = WorkTaskStatus.Pending,
+                        Notes = "Vệ sinh lưới lọc ngày mai",
+                        CreatedBy = 1,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new WorkSchedule
+                    {
+                        TaskTemplateId = 6,
+                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today.AddDays(2)),
+                        StartTime = new TimeOnly(7, 0),
+                        EndTime = new TimeOnly(9, 0),
+                        Status = WorkTaskStatus.Pending,
+                        Notes = "Thay nước ao cuối tuần",
+                        CreatedBy = 1,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.StaffAssignments.Any())
+            {
+                await context.StaffAssignments.AddRangeAsync(
+                    new StaffAssignment { WorkScheduleId = 1, StaffId = 5, CompletionNotes = null, CompletedAt = null },
+                    new StaffAssignment { WorkScheduleId = 1, StaffId = 6, CompletionNotes = null, CompletedAt = null },
+
+                    new StaffAssignment { WorkScheduleId = 2, StaffId = 5, CompletionNotes = null, CompletedAt = null },
+                    new StaffAssignment { WorkScheduleId = 2, StaffId = 7, CompletionNotes = null, CompletedAt = null },
+
+                    new StaffAssignment { WorkScheduleId = 3, StaffId = 6, CompletionNotes = null, CompletedAt = null },
+
+                    new StaffAssignment
+                    {
+                        WorkScheduleId = 4,
+                        StaffId = 5,
+                        CompletionNotes = "Đã cho ăn đầy đủ, cá ăn tốt",
+                        CompletedAt = DateTime.UtcNow.AddDays(-1).AddHours(1)
+                    },
+                    new StaffAssignment
+                    {
+                        WorkScheduleId = 4,
+                        StaffId = 6,
+                        CompletionNotes = "Hỗ trợ cho ăn, không có vấn đề",
+                        CompletedAt = DateTime.UtcNow.AddDays(-1).AddHours(1)
+                    },
+
+                    new StaffAssignment
+                    {
+                        WorkScheduleId = 5,
+                        StaffId = 7,
+                        CompletionNotes = "Kiểm tra sức khỏe, tất cả cá đều khỏe mạnh",
+                        CompletedAt = DateTime.UtcNow.AddDays(-2).AddHours(2)
+                    },
+
+                    new StaffAssignment { WorkScheduleId = 6, StaffId = 5, CompletionNotes = null, CompletedAt = null },
+                    new StaffAssignment { WorkScheduleId = 6, StaffId = 7, CompletionNotes = null, CompletedAt = null },
+
+                    new StaffAssignment { WorkScheduleId = 7, StaffId = 6, CompletionNotes = null, CompletedAt = null },
+                    new StaffAssignment { WorkScheduleId = 7, StaffId = 7, CompletionNotes = null, CompletedAt = null }
+                );
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.PondAssignments.Any())
+            {
+                await context.PondAssignments.AddRangeAsync(
+                    new PondAssignment { WorkScheduleId = 1, PondId = 1 },
+                    new PondAssignment { WorkScheduleId = 1, PondId = 2 },
+                    new PondAssignment { WorkScheduleId = 1, PondId = 3 },
+
+                    new PondAssignment { WorkScheduleId = 2, PondId = 1 },
+                    new PondAssignment { WorkScheduleId = 2, PondId = 2 },
+                    new PondAssignment { WorkScheduleId = 2, PondId = 3 },
+
+                    new PondAssignment { WorkScheduleId = 3, PondId = 1 },
+                    new PondAssignment { WorkScheduleId = 3, PondId = 2 },
+                    new PondAssignment { WorkScheduleId = 3, PondId = 3 },
+                    new PondAssignment { WorkScheduleId = 3, PondId = 4 },
+                    new PondAssignment { WorkScheduleId = 3, PondId = 5 },
+
+                    new PondAssignment { WorkScheduleId = 4, PondId = 1 },
+                    new PondAssignment { WorkScheduleId = 4, PondId = 2 },
+
+                    new PondAssignment { WorkScheduleId = 5, PondId = 1 },
+                    new PondAssignment { WorkScheduleId = 5, PondId = 3 },
+                    new PondAssignment { WorkScheduleId = 5, PondId = 4 },
+
+                    new PondAssignment { WorkScheduleId = 6, PondId = 2 },
+                    new PondAssignment { WorkScheduleId = 6, PondId = 5 },
+
+                    new PondAssignment { WorkScheduleId = 7, PondId = 1 },
+                    new PondAssignment { WorkScheduleId = 7, PondId = 3 },
+                    new PondAssignment { WorkScheduleId = 7, PondId = 5 }
                 );
                 await context.SaveChangesAsync();
             }

@@ -50,7 +50,9 @@ namespace Zenkoi.DAL.EF
         public DbSet<WaterParameterRecord> WaterParameterRecords { get; set; }
         public DbSet<WaterParameterThreshold> WaterParameterThresholds { get; set; }
         public DbSet<WorkSchedule> WorkSchedules { get; set; }
- 
+        public DbSet<StaffAssignment> StaffAssignments { get; set; }
+        public DbSet<PondAssignment> PondAssignments { get; set; }
+
 		public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
@@ -89,6 +91,8 @@ namespace Zenkoi.DAL.EF
             modelBuilder.ApplyConfiguration(new WaterParameterRecordConfiguration());
             modelBuilder.ApplyConfiguration(new WaterParameterThresholdConfiguration());
             modelBuilder.ApplyConfiguration(new WorkScheduleConfiguration());
+            modelBuilder.ApplyConfiguration(new StaffAssignmentConfiguration());
+            modelBuilder.ApplyConfiguration(new PondAssignmentConfiguration());
             modelBuilder.ApplyConfiguration(new CartConfiguration());
             modelBuilder.ApplyConfiguration(new CartItemConfiguration());
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());

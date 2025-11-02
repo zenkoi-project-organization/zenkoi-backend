@@ -2,55 +2,50 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zenkoi.DAL.Entities;
 
-namespace Zenkoi.DAL.Configurations
+namespace Zenkoi.DAL.Configurations;
+
+public class TaskTemplateConfiguration : IEntityTypeConfiguration<TaskTemplate>
 {
-    public class TaskTemplateConfiguration : IEntityTypeConfiguration<TaskTemplate>
+    public void Configure(EntityTypeBuilder<TaskTemplate> builder)
     {
-        public void Configure(EntityTypeBuilder<TaskTemplate> builder)
-        {
-            builder.ToTable("TaskTemplates");
-            builder.HasKey(tt => tt.Id);
-            builder.Property(tt => tt.Id).UseIdentityColumn();
+        builder.ToTable("TaskTemplates");
+        builder.HasKey(tt => tt.Id);
+        builder.Property(tt => tt.Id).UseIdentityColumn();
 
-            builder.Property(tt => tt.Title)
-                .IsRequired()
-                .HasMaxLength(200);
+        builder.Property(tt => tt.TaskName)
+            .IsRequired()
+            .HasMaxLength(200);
 
-            builder.Property(tt => tt.Description)
-                .HasMaxLength(1000);
+        builder.Property(tt => tt.Description)
+            .HasMaxLength(1000);
 
-            builder.Property(tt => tt.PondId);
+        builder.Property(tt => tt.DefaultDuration)
+            .IsRequired();
 
-            builder.Property(tt => tt.AssignedToUserId)
-                .IsRequired();
+        builder.Property(tt => tt.IsRecurring)
+            .IsRequired()
+            .HasDefaultValue(false);
 
-            builder.Property(tt => tt.ScheduledAt)
-                .IsRequired();
+        builder.Property(tt => tt.RecurrenceRule)
+            .HasMaxLength(500);
 
-            builder.Property(tt => tt.IsRecurring)
-                .IsRequired()
-                .HasDefaultValue(false);
+        builder.Property(tt => tt.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
 
-            builder.Property(tt => tt.RecurrenceRule)
-                .HasMaxLength(200);
+        builder.Property(tt => tt.CreatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()");
 
-            builder.HasOne(tt => tt.Pond)
-                .WithMany(p => p.Tasks)
-                .HasForeignKey(tt => tt.PondId)
-                .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(tt => tt.UpdatedAt);
 
-            builder.HasOne(tt => tt.AssignedTo)
-                .WithMany()
-                .HasForeignKey(tt => tt.AssignedToUserId)
-                .OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(tt => tt.WorkSchedules)
+            .WithOne(ws => ws.TaskTemplate)
+            .HasForeignKey(ws => ws.TaskTemplateId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasMany(tt => tt.WorkSchedules)
-                .WithOne(ws => ws.TaskTemplate)
-                .HasForeignKey(ws => ws.TaskTemplateId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasIndex(tt => tt.AssignedToUserId);
-            builder.HasIndex(tt => tt.ScheduledAt);
-        }
+        builder.HasIndex(tt => tt.TaskName);
+        builder.HasIndex(tt => tt.IsDeleted);
+        builder.HasIndex(tt => tt.IsRecurring);
     }
 }

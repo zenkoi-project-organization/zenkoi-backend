@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251031165843_AddWorkScheduleManagement")]
+    partial class AddWorkScheduleManagement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1248,12 +1251,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<double?>("CurrentCapacity")
-                        .HasColumnType("float");
-
-                    b.Property<int?>("CurrentCount")
-                        .HasColumnType("int");
-
                     b.Property<decimal?>("DepthMeters")
                         .HasColumnType("decimal(8,2)");
 
@@ -1264,9 +1261,6 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<int?>("MaxFishCount")
-                        .HasColumnType("int");
 
                     b.Property<string>("PondName")
                         .IsRequired()
@@ -1375,24 +1369,16 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BreedingProcessId")
-                        .HasColumnType("int");
-
                     b.Property<int>("PacketFishId")
                         .HasColumnType("int");
 
                     b.Property<int>("PondId")
                         .HasColumnType("int");
 
-                    b.Property<int>("QuantityFish")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuantityPacket")
+                    b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BreedingProcessId");
 
                     b.HasIndex("PacketFishId");
 
@@ -1416,9 +1402,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<int?>("RecommendedCapacity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.Property<string>("TypeName")
@@ -2329,12 +2312,6 @@ namespace Zenkoi.DAL.Migrations
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.PondPacketFish", b =>
                 {
-                    b.HasOne("Zenkoi.DAL.Entities.BreedingProcess", "BreedingProcess")
-                        .WithMany()
-                        .HasForeignKey("BreedingProcessId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Zenkoi.DAL.Entities.PacketFish", "PacketFish")
                         .WithMany("PondPacketFishes")
                         .HasForeignKey("PacketFishId")
@@ -2346,8 +2323,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasForeignKey("PondId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("BreedingProcess");
 
                     b.Navigation("PacketFish");
 
