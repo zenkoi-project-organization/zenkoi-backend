@@ -1,6 +1,6 @@
-namespace Zenkoi.DAL.Entities;
+namespace Zenkoi.BLL.DTOs.TaskTemplateDTOs;
 
-public class TaskTemplate
+public class TaskTemplateResponseDTO
 {
     public int Id { get; set; }
     public string TaskName { get; set; } = string.Empty;
@@ -9,8 +9,6 @@ public class TaskTemplate
     public bool IsRecurring { get; set; }
     public string? RecurrenceRule { get; set; }
     public bool IsDeleted { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-
-    public ICollection<WorkSchedule> WorkSchedules { get; set; } = new List<WorkSchedule>();
 }

@@ -1,0 +1,180 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs.FilterDTOs;
+using Zenkoi.BLL.DTOs.WorkScheduleDTOs;
+using Zenkoi.BLL.Services.Interfaces;
+
+namespace Zenkoi.API.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class WorkScheduleController : BaseAPIController
+{
+    private readonly IWorkScheduleService _workScheduleService;
+
+    public WorkScheduleController(IWorkScheduleService workScheduleService)
+    {
+        _workScheduleService = workScheduleService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllWorkSchedules(
+        [FromQuery] WorkScheduleFilterRequestDTO? filter,
+        [FromQuery] int pageIndex = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var result = await _workScheduleService.GetAllWorkSchedulesAsync(
+                filter ?? new WorkScheduleFilterRequestDTO(),
+                pageIndex,
+                pageSize);
+            return GetPagedSuccess(result);
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error retrieving work schedules: {ex.Message}");
+        }
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetWorkScheduleById(int id)
+    {
+        try
+        {
+            var result = await _workScheduleService.GetWorkScheduleByIdAsync(id);
+            return GetSuccess(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return GetNotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error retrieving work schedule: {ex.Message}");
+        }
+    }
+
+    [HttpGet("staff/{staffId:int}")]
+    public async Task<IActionResult> GetWorkSchedulesByStaffId(
+        int staffId,
+        [FromQuery] WorkScheduleFilterRequestDTO? filter,
+        [FromQuery] int pageIndex = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var result = await _workScheduleService.GetWorkSchedulesByStaffIdAsync(
+                staffId,
+                filter ?? new WorkScheduleFilterRequestDTO(),
+                pageIndex,
+                pageSize);
+            return GetPagedSuccess(result);
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error retrieving work schedules for staff: {ex.Message}");
+        }
+    }
+
+    [HttpGet("pond/{pondId:int}")]
+    public async Task<IActionResult> GetWorkSchedulesByPondId(
+        int pondId,
+        [FromQuery] WorkScheduleFilterRequestDTO? filter,
+        [FromQuery] int pageIndex = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var result = await _workScheduleService.GetWorkSchedulesByPondIdAsync(
+                pondId,
+                filter ?? new WorkScheduleFilterRequestDTO(),
+                pageIndex,
+                pageSize);
+            return GetPagedSuccess(result);
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error retrieving work schedules for pond: {ex.Message}");
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateWorkSchedule([FromBody] WorkScheduleRequestDTO dto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return ModelInvalid();
+
+            var result = await _workScheduleService.CreateWorkScheduleAsync(dto, UserId);
+            return SaveSuccess(result, "Work schedule created successfully");
+        }
+        catch (ArgumentException ex)
+        {
+            return GetError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error creating work schedule: {ex.Message}");
+        }
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> UpdateWorkSchedule(int id, [FromBody] WorkScheduleRequestDTO dto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return ModelInvalid();
+
+            var result = await _workScheduleService.UpdateWorkScheduleAsync(id, dto);
+            return Success(result, "Work schedule updated successfully");
+        }
+        catch (ArgumentException ex)
+        {
+            return GetNotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error updating work schedule: {ex.Message}");
+        }
+    }
+
+    [HttpPut("{id:int}/status")]
+    public async Task<IActionResult> UpdateWorkScheduleStatus(int id, [FromBody] UpdateWorkScheduleStatusDTO dto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return ModelInvalid();
+
+            var result = await _workScheduleService.UpdateWorkScheduleStatusAsync(id, dto);
+            return Success(result, "Work schedule status updated successfully");
+        }
+        catch (ArgumentException ex)
+        {
+            return GetNotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error updating work schedule status: {ex.Message}");
+        }
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteWorkSchedule(int id)
+    {
+        try
+        {
+            var result = await _workScheduleService.DeleteWorkScheduleAsync(id);
+            if (result)
+                return SaveSuccess(new { message = "Work schedule deleted successfully" }, "Work schedule deleted successfully");
+            return GetNotFound("Work schedule not found");
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error deleting work schedule: {ex.Message}");
+        }
+    }
+}

@@ -3,8 +3,11 @@ using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.UnitOfWork;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Entities;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Zenkoi.API.BackgroundServices
+namespace Zenkoi.BLL.BackgroundServices
 {
     public class OrderCompletionBackgroundService : BackgroundService
     {

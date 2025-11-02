@@ -18,6 +18,8 @@ using Zenkoi.BLL.DTOs.OrderDTOs;
 using Zenkoi.BLL.DTOs.PacketFishDTOs;
 using Zenkoi.BLL.DTOs.CustomerDTOs;
 using Zenkoi.BLL.DTOs.CartDTOs;
+using Zenkoi.BLL.DTOs.TaskTemplateDTOs;
+using Zenkoi.BLL.DTOs.WorkScheduleDTOs;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
 
@@ -179,6 +181,23 @@ namespace Zenkoi.BLL.Helpers.Mapper
                         ? src.Customer.ApplicationUser.FullName
                         : string.Empty))
                 .ForMember(dest => dest.CartItems, opt => opt.MapFrom(src => src.CartItems));
+
+            CreateMap<TaskTemplate, TaskTemplateResponseDTO>().ReverseMap();
+            CreateMap<TaskTemplateRequestDTO, TaskTemplate>();
+
+            CreateMap<WorkSchedule, WorkScheduleResponseDTO>()
+                .ForMember(dest => dest.TaskTemplateName, opt => opt.MapFrom(src => src.TaskTemplate != null ? src.TaskTemplate.TaskName : string.Empty))
+                .ForMember(dest => dest.CreatedByName, opt => opt.MapFrom(src => src.Creator != null ? src.Creator.FullName : string.Empty))
+                .ForMember(dest => dest.TaskTemplate, opt => opt.MapFrom(src => src.TaskTemplate))
+                .ForMember(dest => dest.StaffAssignments, opt => opt.MapFrom(src => src.StaffAssignments))
+                .ForMember(dest => dest.PondAssignments, opt => opt.MapFrom(src => src.PondAssignments));
+            CreateMap<WorkScheduleRequestDTO, WorkSchedule>();
+
+            CreateMap<StaffAssignment, StaffAssignmentResponseDTO>()
+                .ForMember(dest => dest.StaffName, opt => opt.MapFrom(src => src.Staff != null ? src.Staff.FullName : string.Empty));
+
+            CreateMap<PondAssignment, PondAssignmentResponseDTO>()
+                .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : string.Empty));
 
         }
     }

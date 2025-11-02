@@ -66,11 +66,6 @@ namespace Zenkoi.DAL.Configurations
                 .HasForeignKey(wpr => wpr.PondId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(p => p.Tasks)
-                .WithOne(tt => tt.Pond)
-                .HasForeignKey(tt => tt.PondId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             builder.HasMany(p => p.PondPacketFishes)
                 .WithOne(ppf => ppf.Pond)
                 .HasForeignKey(ppf => ppf.PondId)

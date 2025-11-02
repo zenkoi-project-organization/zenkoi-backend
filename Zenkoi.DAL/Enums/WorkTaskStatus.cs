@@ -10,7 +10,9 @@ namespace Zenkoi.DAL.Enums
         InProgress = 1,
         [EnumMember(Value = "Completed")]
         Completed = 2,
+        [EnumMember(Value = "Incomplete")]
+        Incomplete = 4,
         [EnumMember(Value = "Cancelled")]
-        Cancelled = 3
+        Cancelled = 5
     }
 }

@@ -26,7 +26,6 @@ namespace Zenkoi.DAL.Entities
 
         public DateTime CreatedAt { get; set; }
 
-        // Navigation
         public PondType PondType { get; set; }
         public Area Area { get; set; }
         public ICollection<BreedingProcess> BreedingProcesses { get; set; } = new List<BreedingProcess>();
@@ -34,7 +33,7 @@ namespace Zenkoi.DAL.Entities
         public ICollection<FryFish> FryFishes { get; set; } = new List<FryFish>();
         public ICollection<KoiFish> KoiFishes { get; set; }
         public ICollection<WaterParameterRecord> WaterParameters { get; set; } = new List<WaterParameterRecord>();
-        public ICollection<TaskTemplate> Tasks { get; set; } = new List<TaskTemplate>();
+        public ICollection<PondAssignment> PondAssignments { get; set; } = new List<PondAssignment>();
         public ICollection<PondPacketFish> PondPacketFishes { get; set; } = new List<PondPacketFish>();
         public ICollection<PondIncident> PondIncidents { get; set; } = new List<PondIncident>();
     }
