@@ -20,7 +20,6 @@ namespace Zenkoi.DAL.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public ICollection<Order> Orders { get; set; } = new List<Order>();
-        public ICollection<CustomerAddress> Addresses { get; set; } = new List<CustomerAddress>();
         public Cart? Cart { get; set; }
     }
 }

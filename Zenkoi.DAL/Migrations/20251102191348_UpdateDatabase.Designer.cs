@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251102191348_UpdateDatabase")]
+    partial class UpdateDatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1545,171 +1548,6 @@ namespace Zenkoi.DAL.Migrations
                     b.ToTable("RefreshToken", "dbo");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.ShippingBox", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<decimal>("Fee")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<int?>("MaxKoiCount")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MaxKoiSizeInch")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("WeightCapacityLb")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("Name");
-
-                    b.ToTable("ShippingBoxes", "dbo");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.ShippingBoxRule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("ExtraInfo")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<int?>("MaxCount")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MaxLengthCm")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MaxWeightLb")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MinLengthCm")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Priority")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.Property<string>("RuleType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ShippingBoxId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("ShippingBoxId");
-
-                    b.HasIndex("ShippingBoxId", "Priority");
-
-                    b.ToTable("ShippingBoxRules", "dbo");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.ShippingDistance", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("BaseFee")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<int>("MaxDistanceKm")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MinDistanceKm")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("PricePerKm")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("Name");
-
-                    b.HasIndex("MinDistanceKm", "MaxDistanceKm");
-
-                    b.HasIndex("IsActive", "MinDistanceKm", "MaxDistanceKm");
-
-                    b.ToTable("ShippingDistances", "dbo");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.StaffAssignment", b =>
                 {
                     b.Property<int>("WorkScheduleId")
@@ -2539,17 +2377,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.ShippingBoxRule", b =>
-                {
-                    b.HasOne("Zenkoi.DAL.Entities.ShippingBox", "ShippingBox")
-                        .WithMany("Rules")
-                        .HasForeignKey("ShippingBoxId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ShippingBox");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.StaffAssignment", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "Staff")
@@ -2772,11 +2599,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("Ponds");
 
                     b.Navigation("WaterParameterThresholds");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.ShippingBox", b =>
-                {
-                    b.Navigation("Rules");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.TaskTemplate", b =>

@@ -31,8 +31,6 @@ namespace Zenkoi.DAL.EF
         public DbSet<FrySurvivalRecord> FrySurvivalRecords { get; set; }
         public DbSet<ClassificationStage> ClassificationStages { get; set; }
         public DbSet<ClassificationRecord> ClassificationRecords { get; set; }
-        
-        // New entities
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Incident> Incidents { get; set; }
         public DbSet<IncidentType> IncidentTypes { get; set; }
@@ -52,11 +50,14 @@ namespace Zenkoi.DAL.EF
         public DbSet<WorkSchedule> WorkSchedules { get; set; }
         public DbSet<StaffAssignment> StaffAssignments { get; set; }
         public DbSet<PondAssignment> PondAssignments { get; set; }
-
 		public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
-		#endregion
+        public DbSet<ShippingBox> ShippingBoxes { get; set; }
+        public DbSet<ShippingBoxRule> ShippingBoxRules { get; set; }
+        public DbSet<ShippingDistance> ShippingDistances { get; set; } 
+
+        #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -95,7 +96,10 @@ namespace Zenkoi.DAL.EF
             modelBuilder.ApplyConfiguration(new PondAssignmentConfiguration());
             modelBuilder.ApplyConfiguration(new CartConfiguration());
             modelBuilder.ApplyConfiguration(new CartItemConfiguration());
-            modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+            modelBuilder.ApplyConfiguration(new ShippingBoxConfiguration());
+            modelBuilder.ApplyConfiguration(new ShippingBoxRuleConfiguration());
+            modelBuilder.ApplyConfiguration(new ShippingDistanceConfiguration());
+
             modelBuilder.Entity<IdentityUserLogin<int>>(entity =>
 			{
 				entity.ToTable("UserLogin");

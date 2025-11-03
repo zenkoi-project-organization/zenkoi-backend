@@ -43,7 +43,6 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             };
 
-            // Apply filters using PredicateBuilder
             System.Linq.Expressions.Expression<System.Func<Pond, bool>>? predicate = null;
 
             if (!string.IsNullOrEmpty(filter.Search))
