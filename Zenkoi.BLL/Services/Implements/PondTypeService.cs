@@ -86,7 +86,7 @@ namespace Zenkoi.BLL.Services.Implements
             if (pondtype == null) return false;
 
             _mapper.Map(dto, pondtype);
-            _pondtypeRepo.UpdateAsync(pondtype);
+            await _pondtypeRepo.UpdateAsync(pondtype);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
@@ -96,7 +96,7 @@ namespace Zenkoi.BLL.Services.Implements
             var pondtype = await _pondtypeRepo.GetByIdAsync(id);
             if (pondtype == null) return false;
 
-            _pondtypeRepo.DeleteAsync(pondtype);
+            await _pondtypeRepo.DeleteAsync(pondtype);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }

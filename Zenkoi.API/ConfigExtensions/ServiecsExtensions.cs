@@ -163,12 +163,6 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.Users.AddRangeAsync(staff1, staff2, staff3);
                 await context.SaveChangesAsync();
 
-                await context.UserRoles.AddRangeAsync(
-                    new IdentityUserRole<int> { UserId = 5, RoleId = 2 },
-                    new IdentityUserRole<int> { UserId = 6, RoleId = 2 },
-                    new IdentityUserRole<int> { UserId = 7, RoleId = 2 }
-                );
-                await context.SaveChangesAsync();
             }
             #endregion
 
@@ -1413,10 +1407,216 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.SaveChangesAsync();
             }
 
-        }
+            if (!context.ShippingBoxes.Any())
+            {
+                await context.ShippingBoxes.AddRangeAsync(
+                    new ShippingBox
+                    {
+                        Name = "Mini Box",
+                        WeightCapacityLb = 15,
+                        Fee = 2500000m,
+                        MaxKoiCount = 5,
+                        MaxKoiSizeInch = 6,
+                        Notes = "Up to 5 tosai (koi under 1 year old and about 6 in. long)",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ShippingBox
+                    {
+                        Name = "Medium Box",
+                        WeightCapacityLb = 50,
+                        Fee = 4800000m,
+                        MaxKoiCount = 3,
+                        MaxKoiSizeInch = 16,
+                        Notes = "Up to three (3) koi 16 in. or less",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ShippingBox
+                    {
+                        Name = "Large Box",
+                        WeightCapacityLb = 55,
+                        Fee = 5300000m,
+                        MaxKoiCount = 4,
+                        MaxKoiSizeInch = 16,
+                        Notes = "Up to four (4) koi 16 in. or less",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ShippingBox
+                    {
+                        Name = "Large Box (Single)",
+                        WeightCapacityLb = 70,
+                        Fee = 6500000m,
+                        MaxKoiCount = 1,
+                        MaxKoiSizeInch = 25,
+                        Notes = "1 Koi (25.59 inch, 65cm or less)",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ShippingBox
+                    {
+                        Name = "Extra Large Box",
+                        WeightCapacityLb = 70,
+                        Fee = 8300000m,
+                        MaxKoiCount = null,
+                        MaxKoiSizeInch = null,
+                        Notes = "At the farm manager's discretion",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+            if (!context.ShippingBoxRules.Any())
+            {
+                // Lấy boxes đã seed
+                var miniBox = await context.ShippingBoxes.FirstOrDefaultAsync(b => b.Name == "Mini Box");
+                var mediumBox = await context.ShippingBoxes.FirstOrDefaultAsync(b => b.Name == "Medium Box");
+                var largeBox = await context.ShippingBoxes.FirstOrDefaultAsync(b => b.Name == "Large Box");
+                var largeSingleBox = await context.ShippingBoxes.FirstOrDefaultAsync(b => b.Name == "Large Box (Single)");
+
+                if (miniBox != null && mediumBox != null && largeBox != null && largeSingleBox != null)
+                {
+                    await context.ShippingBoxRules.AddRangeAsync(
+                        // Mini Box - Rule for Tosai (age-based)
+                        new ShippingBoxRule
+                        {
+                            ShippingBoxId = miniBox.Id,
+                            RuleType = ShippingRuleType.ByAge,
+                            MaxCount = 5,
+                            MaxLengthCm = 15,  // ~6 inch
+                            ExtraInfo = "Tosai only (under 1 year old)",
+                            Priority = 1,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+
+                        // Medium Box - Count-based rule
+                        new ShippingBoxRule
+                        {
+                            ShippingBoxId = mediumBox.Id,
+                            RuleType = ShippingRuleType.ByCount,
+                            MaxCount = 3,
+                            MaxLengthCm = 40,  // ~16 inch
+                            ExtraInfo = "Standard koi up to 16 inches",
+                            Priority = 1,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+
+                        // Large Box - 4 koi option
+                        new ShippingBoxRule
+                        {
+                            ShippingBoxId = largeBox.Id,
+                            RuleType = ShippingRuleType.ByCount,
+                            MaxCount = 4,
+                            MaxLengthCm = 40,  // ~16 inch
+                            ExtraInfo = "Standard koi up to 16 inches",
+                            Priority = 1,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+
+                        // Large Box (Single) - Max length rule
+                        new ShippingBoxRule
+                        {
+                            ShippingBoxId = largeSingleBox.Id,
+                            RuleType = ShippingRuleType.ByMaxLength,
+                            MaxCount = 1,
+                            MaxLengthCm = 65,  // ~25.59 inch
+                            MinLengthCm = 41,  // Lớn hơn medium/large box
+                            ExtraInfo = "Single large koi",
+                            Priority = 1,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        }
+                    );
+                    await context.SaveChangesAsync();
+                }
+            }
+
+            #region Seeding ShippingDistance
+            if (!context.ShippingDistances.Any())
+            {
+                await context.ShippingDistances.AddRangeAsync(
+                    new ShippingDistance
+                    {
+                        Name = "Nội thành",
+                        MinDistanceKm = 0,
+                        MaxDistanceKm = 10,
+                        PricePerKm = 5000m,
+                        BaseFee = 30000m,
+                        Description = "Giao hàng trong nội thành, bán kính 10km",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ShippingDistance
+                    {
+                        Name = "Ngoại thành gần",
+                        MinDistanceKm = 11,
+                        MaxDistanceKm = 30,
+                        PricePerKm = 7000m,
+                        BaseFee = 50000m,
+                        Description = "Giao hàng ngoại thành, từ 11-30km",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ShippingDistance
+                    {
+                        Name = "Ngoại thành xa",
+                        MinDistanceKm = 31,
+                        MaxDistanceKm = 60,
+                        PricePerKm = 10000m,
+                        BaseFee = 100000m,
+                        Description = "Giao hàng ngoại thành xa, từ 31-60km",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ShippingDistance
+                    {
+                        Name = "Tỉnh lân cận",
+                        MinDistanceKm = 61,
+                        MaxDistanceKm = 150,
+                        PricePerKm = 15000m,
+                        BaseFee = 200000m,
+                        Description = "Giao hàng tỉnh lân cận, từ 61-150km",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ShippingDistance
+                    {
+                        Name = "Liên tỉnh",
+                        MinDistanceKm = 151,
+                        MaxDistanceKm = 500,
+                        PricePerKm = 20000m,
+                        BaseFee = 500000m,
+                        Description = "Giao hàng liên tỉnh, từ 151-500km",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ShippingDistance
+                    {
+                        Name = "Liên tỉnh xa",
+                        MinDistanceKm = 501,
+                        MaxDistanceKm = 1500,
+                        PricePerKm = 25000m,
+                        BaseFee = 1000000m,
+                        Description = "Giao hàng liên tỉnh xa, trên 500km",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
             #endregion
 
-            private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
+        }
+
+
+        #endregion
+
+        private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
         {
             await context.Database.ExecuteSqlRawAsync(@"
             -- Set QUOTED_IDENTIFIER ON cho toàn bộ batch

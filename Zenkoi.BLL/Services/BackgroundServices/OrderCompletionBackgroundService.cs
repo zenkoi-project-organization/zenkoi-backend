@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Zenkoi.BLL.BackgroundServices
+namespace Zenkoi.BLL.Services.BackgroundServices
 {
     public class OrderCompletionBackgroundService : BackgroundService
     {

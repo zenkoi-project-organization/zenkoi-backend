@@ -92,7 +92,7 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new KeyNotFoundException("không tìm thấy ví trí");
             }
             _mapper.Map(dto, area);
-            _areaRepo.UpdateAsync(area);
+            await _areaRepo.UpdateAsync(area);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
@@ -105,7 +105,7 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("không tìm thấy ví trí");
             }
 
-            _areaRepo.DeleteAsync(area);
+            await _areaRepo.DeleteAsync(area);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }

@@ -23,6 +23,8 @@ using Zenkoi.BLL.DTOs.WorkScheduleDTOs;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
 using Zenkoi.BLL.DTOs.PondPacketFishDTOs;
+using Zenkoi.BLL.DTOs.ShippingBoxDTOs;
+using Zenkoi.BLL.DTOs.ShippingDistanceDTOs;
 
 namespace Zenkoi.BLL.Helpers.Mapper
 {
@@ -202,6 +204,14 @@ namespace Zenkoi.BLL.Helpers.Mapper
 
             CreateMap<PondAssignment, PondAssignmentResponseDTO>()
                 .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : string.Empty));
+
+            CreateMap<ShippingBox, ShippingBoxResponseDTO>().ReverseMap();
+            CreateMap<ShippingBoxRequestDTO, ShippingBox>();
+            CreateMap<ShippingBoxRule, ShippingBoxRuleResponseDTO>().ReverseMap();
+            CreateMap<ShippingBoxRuleRequestDTO, ShippingBoxRule>();
+
+            CreateMap<ShippingDistance, ShippingDistanceResponseDTO>().ReverseMap();
+            CreateMap<ShippingDistanceRequestDTO, ShippingDistance>();
 
         }
     }
