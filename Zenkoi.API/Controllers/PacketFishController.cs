@@ -88,8 +88,8 @@ namespace Zenkoi.API.Controllers
             [FromQuery] decimal? maxPrice = null,
             [FromQuery] decimal? minAgeMonths = null,
             [FromQuery] decimal? maxAgeMonths = null,
-            [FromQuery] int? minQuantity = null,
-            [FromQuery] int? maxQuantity = null,
+            [FromQuery] int? minStockQuantity = null,
+            [FromQuery] int? maxStockQuantity = null,
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10)
         {
@@ -104,8 +104,8 @@ namespace Zenkoi.API.Controllers
                     MaxPrice = maxPrice,
                     MinAgeMonths = minAgeMonths,
                     MaxAgeMonths = maxAgeMonths,
-                    MinQuantity = minQuantity,
-                    MaxQuantity = maxQuantity
+                    MinStockQuantity = minStockQuantity,
+                    MaxStockQuantity = maxStockQuantity
                 };
 
                 var result = await _packetFishService.GetAllPacketFishesAsync(filter, pageIndex, pageSize);

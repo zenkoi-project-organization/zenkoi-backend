@@ -12,8 +12,6 @@ namespace Zenkoi.BLL.Services.Implements
 {
     public class ShippingFeeCalculationService : IShippingFeeCalculationService
     {
-        private const int FISH_PER_PACKET = 10;
-
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRepoBase<CustomerAddress> _customerAddressRepo;
         private readonly IRepoBase<KoiFish> _koiFishRepo;
@@ -125,7 +123,7 @@ namespace Zenkoi.BLL.Services.Implements
                     koiInputs.Add(new KoiSizeInput
                     {
                         Size = packetFish.Size,
-                        Quantity = FISH_PER_PACKET * item.Quantity
+                        Quantity = packetFish.FishPerPacket * item.Quantity
                     });
                 }
             }

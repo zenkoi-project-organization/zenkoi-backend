@@ -19,12 +19,17 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(pf => pf.Description)
                 .HasMaxLength(1000);
 
-            builder.Property(pf => pf.Quantity)
-                .IsRequired();
+            builder.Property(pf => pf.FishPerPacket)
+                .IsRequired()
+                .HasDefaultValue(10);
 
-            builder.Property(pf => pf.TotalPrice)
+            builder.Property(pf => pf.PricePerPacket)
                 .IsRequired()
                 .HasColumnType("decimal(18,2)");
+
+            builder.Property(pf => pf.StockQuantity)
+                .IsRequired()
+                .HasDefaultValue(0);
 
             builder.Property(pf => pf.Size)
                 .IsRequired()

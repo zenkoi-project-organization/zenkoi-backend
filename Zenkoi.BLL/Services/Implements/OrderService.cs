@@ -89,7 +89,7 @@ namespace Zenkoi.BLL.Services.Implements
                     {
                         throw new ArgumentException($"PacketFish with ID {item.PacketFishId} not found");
                     }
-                    unitPrice = packetFish.TotalPrice;
+                    unitPrice = packetFish.PricePerPacket;
                 }
 
                 var totalPrice = unitPrice * item.Quantity;
@@ -539,7 +539,7 @@ namespace Zenkoi.BLL.Services.Implements
                     {
                         throw new ArgumentException($"PacketFish with ID {item.PacketFishId} not found");
                     }
-                    unitPrice = packetFish.TotalPrice;
+                    unitPrice = packetFish.PricePerPacket;
                 }
 
                 subtotal += unitPrice * item.Quantity;
