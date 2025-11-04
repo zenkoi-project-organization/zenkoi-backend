@@ -12,7 +12,7 @@ namespace Zenkoi.BLL.DTOs.PondTypeDTOs
         public string TypeName { get; set; }
         public string Description { get; set; }
         public TypeOfPond Type { get; set; }
-        public int? RecommendedCapacity { get; set; }
+        public int? RecommendedQuantity { get; set; }
 
     }
 }

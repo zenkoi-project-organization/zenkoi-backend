@@ -14,8 +14,6 @@ namespace Zenkoi.DAL.Entities
         public double? AmmoniaLevel { get; set; }
         public double? NitriteLevel { get; set; }
         public double? NitrateLevel { get; set; }
-        public double? Turbidity { get; set; }
-        public double? TotalChlorines { get; set; }
         public double? CarbonHardness { get; set; }
         public double? WaterLevelMeters { get; set; }
         public DateTime RecordedAt { get; set; } = DateTime.UtcNow;

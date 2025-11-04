@@ -13,8 +13,6 @@ namespace Zenkoi.BLL.DTOs.WaterParameterThresholdDTOs
         public string Unit { get; set; } = default!;
         public double MinValue { get; set; }
         public double MaxValue { get; set; }
-        public string? Notes { get; set; }
-
         public int? PondTypeId { get; set; }
         public string? PondTypeName { get; set; } 
     }

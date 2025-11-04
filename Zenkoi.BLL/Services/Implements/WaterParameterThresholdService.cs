@@ -26,18 +26,19 @@ namespace Zenkoi.BLL.Services.Implements
         }
 
         public async Task<PaginatedList<WaterParameterThresholdResponseDTO>> GetAllAsync(
-            WaterParameterThresholdFilterDTO? filter,
-            int pageIndex = 1,
-            int pageSize = 10)
+        WaterParameterThresholdFilterDTO? filter,
+        int pageIndex = 1,
+        int pageSize = 10)
         {
             filter ??= new WaterParameterThresholdFilterDTO();
 
             var queryOptions = new QueryOptions<WaterParameterThreshold>
             {
                 IncludeProperties = new List<Expression<Func<WaterParameterThreshold, object>>>
-                {
-                    t => t.PondType!
-                }
+        {
+            t => t.PondType
+        },
+                Tracked = false
             };
 
             Expression<Func<WaterParameterThreshold, bool>>? predicate = null;
@@ -55,33 +56,28 @@ namespace Zenkoi.BLL.Services.Implements
                     t => t.PondTypeId == filter.PondTypeId.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
-            else
-            {
-                Expression<Func<WaterParameterThreshold, bool>> expr =
-                    t => t.PondTypeId == null;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
 
             queryOptions.Predicate = predicate;
 
-            var thresholds = await _thresholdRepo.GetAllAsync(queryOptions);
-            var mappedList = _mapper.Map<List<WaterParameterThresholdResponseDTO>>(thresholds);
+            var thresholdsQuery = await _thresholdRepo.GetAllAsync(queryOptions);
 
-            // Xử lý PondTypeName
-            foreach (var item in mappedList.Where(x => x.PondTypeId.HasValue))
-            {
-                var pondType = await _pondTypeRepo.GetByIdAsync(item.PondTypeId.Value);
-                item.PondTypeName = pondType?.TypeName ?? "Không xác định";
-            }
+            var totalCount = thresholdsQuery.Count();
 
-            var totalCount = mappedList.Count;
-            var pagedItems = mappedList
+           var pagedItems = thresholdsQuery
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
-            return new PaginatedList<WaterParameterThresholdResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
+            var mappedList = _mapper.Map<List<WaterParameterThresholdResponseDTO>>(pagedItems);
+
+            return new PaginatedList<WaterParameterThresholdResponseDTO>(
+                mappedList,
+                totalCount,
+                pageIndex,
+                pageSize
+            );
         }
+
 
         public async Task<WaterParameterThresholdResponseDTO?> GetByIdAsync(int id)
         {

@@ -12,7 +12,6 @@ namespace Zenkoi.BLL.DTOs.WaterParameterThresholdDTOs
         [Required]
         public string ParameterName { get; set; } = default!;
 
-        [Required]
         public string Unit { get; set; } = default!;
 
         [Required]
@@ -20,8 +19,6 @@ namespace Zenkoi.BLL.DTOs.WaterParameterThresholdDTOs
 
         [Required]
         public double MaxValue { get; set; }
-
-        public string? Notes { get; set; }
 
         public int? PondTypeId { get; set; }
     }

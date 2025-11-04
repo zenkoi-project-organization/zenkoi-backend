@@ -33,11 +33,7 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(wpr => wpr.NitrateLevel)
                 .HasColumnType("decimal(8,4)");
 
-            builder.Property(wpr => wpr.Turbidity)
-                .HasColumnType("decimal(8,2)");
-
-            builder.Property(wpr => wpr.TotalChlorines)
-                .HasColumnType("decimal(8,4)");
+        
 
             builder.Property(wpr => wpr.CarbonHardness)
                 .HasColumnType("decimal(8,2)");
