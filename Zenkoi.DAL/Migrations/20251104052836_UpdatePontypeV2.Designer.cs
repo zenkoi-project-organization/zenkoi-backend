@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251104052836_UpdatePontypeV2")]
+    partial class UpdatePontypeV2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1939,6 +1942,9 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<decimal?>("AmmoniaLevel")
                         .HasColumnType("decimal(8,4)");
 
+                    b.Property<decimal?>("BelowMinLevel")
+                        .HasColumnType("decimal(8,2)");
+
                     b.Property<decimal?>("CarbonHardness")
                         .HasColumnType("decimal(8,2)");
 
@@ -1971,9 +1977,6 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<decimal?>("TemperatureCelsius")
                         .HasColumnType("decimal(5,2)");
-
-                    b.Property<decimal?>("WaterLevelMeters")
-                        .HasColumnType("decimal(8,2)");
 
                     b.HasKey("Id");
 

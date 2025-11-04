@@ -24,17 +24,12 @@ namespace Zenkoi.BLL.DTOs.WaterParameterRecordDTOs
 
         public double? NitrateLevel { get; set; }
 
-        public double? Turbidity { get; set; }
-
-        public double? TotalChlorines { get; set; }
-
         public double? CarbonHardness { get; set; }
 
         public double? WaterLevelMeters { get; set; }
 
         public DateTime? RecordedAt { get; set; }
 
-        public int? RecordedByUserId { get; set; }
 
         public string? Notes { get; set; }
     }

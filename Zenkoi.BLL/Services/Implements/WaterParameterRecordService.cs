@@ -119,13 +119,7 @@ namespace Zenkoi.BLL.Services.Implements
             if (!pondExists)
                 throw new KeyNotFoundException($"Không tìm thấy ao với Id = {dto.PondId}");
 
-            // Kiểm tra User nếu có
-            if (dto.RecordedByUserId.HasValue)
-            {
-                var userExists = await _userRepo.CheckExistAsync(dto.RecordedByUserId.Value);
-                if (!userExists)
-                    throw new KeyNotFoundException($"Không tìm thấy người dùng với Id = {dto.RecordedByUserId.Value}");
-            }
+           
 
             var entity = _mapper.Map<WaterParameterRecord>(dto);
             entity.RecordedAt = dto.RecordedAt ?? DateTime.UtcNow;
@@ -156,13 +150,7 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new KeyNotFoundException($"Không tìm thấy ao với Id = {dto.PondId}");
             }
 
-            // Kiểm tra User
-            if (dto.RecordedByUserId.HasValue && dto.RecordedByUserId != entity.RecordedByUserId)
-            {
-                var userExists = await _userRepo.CheckExistAsync(dto.RecordedByUserId.Value);
-                if (!userExists)
-                    throw new KeyNotFoundException($"Không tìm thấy người dùng với Id = {dto.RecordedByUserId.Value}");
-            }
+           
 
             _mapper.Map(dto, entity);
             if (dto.RecordedAt.HasValue)

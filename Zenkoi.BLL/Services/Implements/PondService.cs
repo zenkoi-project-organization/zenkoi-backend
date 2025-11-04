@@ -161,7 +161,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             var entity = _mapper.Map<Pond>(dto);
             entity.CapacityLiters = maxCapacity;
-            entity.MaxFishCount = pondType.RecommendedCapacity;
+            entity.MaxFishCount = pondType.RecommendedQuantity;
             entity.CreatedAt = DateTime.UtcNow;
             await _pondRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

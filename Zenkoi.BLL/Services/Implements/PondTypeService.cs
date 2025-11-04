@@ -38,16 +38,23 @@ namespace Zenkoi.BLL.Services.Implements
                 System.Linq.Expressions.Expression<System.Func<PondType, bool>> expr = pt => pt.TypeName.Contains(filter.Search) || (pt.Description != null && pt.Description.Contains(filter.Search));
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
-
-            if (filter.MinRecommendedCapacity.HasValue)
+            if (filter.Type.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<PondType, bool>> expr = pt => pt.RecommendedCapacity >= filter.MinRecommendedCapacity.Value;
+                System.Linq.Expressions.Expression<System.Func<PondType, bool>> expr =
+                   p => p.Type == filter.Type.Value;
+
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
-            if (filter.MaxRecommendedCapacity.HasValue)
+            if (filter.MinRecommendedQuantity.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<PondType, bool>> expr = pt => pt.RecommendedCapacity <= filter.MaxRecommendedCapacity.Value;
+                System.Linq.Expressions.Expression<System.Func<PondType, bool>> expr = pt => pt.RecommendedQuantity >= filter.MinRecommendedQuantity.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxRecommendedQuantity.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<PondType, bool>> expr = pt => pt.RecommendedQuantity <= filter.MaxRecommendedQuantity.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 

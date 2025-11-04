@@ -20,7 +20,7 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasMaxLength(500);
 
-            builder.Property(pt => pt.RecommendedCapacity);
+            builder.Property(pt => pt.RecommendedQuantity);
 
             builder.HasMany(pt => pt.Ponds)
                 .WithOne(p => p.PondType)
