@@ -1,5 +1,6 @@
 using Zenkoi.BLL.DTOs.OrderDTOs;
 using Zenkoi.BLL.DTOs.ShippingDTOs;
+using Zenkoi.BLL.Helpers;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
@@ -107,10 +108,9 @@ namespace Zenkoi.BLL.Services.Implements
                         throw new ArgumentException($"KoiFish with ID {item.KoiFishId} not found");
                     }
 
-                    int fishSizeCm = GetFishSizeInCm(koiFish.Size);
                     koiInputs.Add(new KoiSizeInput
                     {
-                        SizeCm = fishSizeCm,
+                        Size = koiFish.Size,
                         Quantity = item.Quantity
                     });
                 }
@@ -122,10 +122,9 @@ namespace Zenkoi.BLL.Services.Implements
                         throw new ArgumentException($"PacketFish with ID {item.PacketFishId} not found");
                     }
 
-                    int fishSizeCm = GetFishSizeInCm(packetFish.Size);
                     koiInputs.Add(new KoiSizeInput
                     {
-                        SizeCm = fishSizeCm,
+                        Size = packetFish.Size,
                         Quantity = FISH_PER_PACKET * item.Quantity
                     });
                 }
@@ -199,22 +198,6 @@ namespace Zenkoi.BLL.Services.Implements
             decimal totalFee = shippingDistance.BaseFee + (distanceKm * shippingDistance.PricePerKm);
 
             return (totalFee, shippingDistance.Id);
-        }
-
-        private int GetFishSizeInCm(FishSize fishSize)
-        {
-            return fishSize switch
-            {
-                FishSize.Under10cm => 10,
-                FishSize.From10To20cm => 20,
-                FishSize.From21To25cm => 25,
-                FishSize.From26To30cm => 30,
-                FishSize.From31To40cm => 40,
-                FishSize.From41To45cm => 45,
-                FishSize.From46To50cm => 50,
-                FishSize.Over50cm => 60,
-                _ => 10
-            };
         }
     }
 }
