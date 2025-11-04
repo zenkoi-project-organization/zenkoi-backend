@@ -43,6 +43,7 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             };
 
+
             System.Linq.Expressions.Expression<System.Func<Pond, bool>>? predicate = null;
 
             if (!string.IsNullOrEmpty(filter.Search))
@@ -66,6 +67,13 @@ namespace Zenkoi.BLL.Services.Implements
             if (filter.PondTypeId.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.PondTypeId == filter.PondTypeId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.PondTypeEnum.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr =
+                    p => p.PondType.Type == filter.PondTypeEnum.Value;
+
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
