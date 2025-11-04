@@ -26,11 +26,16 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<KoiFish> _koiFishRepo;
         private readonly IRepoBase<PacketFish> _packetFishRepo;
         private readonly IRepoBase<Promotion> _promotionRepo;
+        private readonly IShippingFeeCalculationService _shippingFeeCalculationService;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper)
+        public OrderService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IShippingFeeCalculationService shippingFeeCalculationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _shippingFeeCalculationService = shippingFeeCalculationService;
             _orderRepo = _unitOfWork.GetRepo<Order>();
             _orderDetailRepo = _unitOfWork.GetRepo<OrderDetail>();
             _customerRepo = _unitOfWork.GetRepo<Customer>();
@@ -100,15 +105,27 @@ namespace Zenkoi.BLL.Services.Implements
                 });
             }
 
+            decimal shippingFee = createOrderDTO.ShippingFee;
+
+            if (createOrderDTO.CustomerAddressId.HasValue && createOrderDTO.ShippingFee == 0)
+            {
+                var shippingFeeBreakdown = await _shippingFeeCalculationService.CalculateShippingFeeForOrderAsync(
+                    createOrderDTO.Items,
+                    createOrderDTO.CustomerAddressId.Value
+                );
+                shippingFee = shippingFeeBreakdown.TotalShippingFee;
+            }
+
             decimal discountAmount = await CalculateDiscountAsync(createOrderDTO.PromotionId, subtotal);
-            var totalAmount = subtotal + createOrderDTO.ShippingFee - discountAmount;
+            var totalAmount = subtotal + shippingFee - discountAmount;
 
             var order = new Order
             {
                 CustomerId = customerId,
+                CustomerAddressId = createOrderDTO.CustomerAddressId,
                 Status = OrderStatus.Created,
                 Subtotal = subtotal,
-                ShippingFee = createOrderDTO.ShippingFee,
+                ShippingFee = shippingFee,
                 DiscountAmount = discountAmount,
                 TotalAmount = totalAmount,
                 PromotionId = createOrderDTO.PromotionId,
@@ -528,9 +545,20 @@ namespace Zenkoi.BLL.Services.Implements
                 subtotal += unitPrice * item.Quantity;
             }
 
+            decimal shippingFee = createOrderDTO.ShippingFee;
+
+            if (createOrderDTO.CustomerAddressId.HasValue && createOrderDTO.ShippingFee == 0)
+            {
+                var shippingFeeBreakdown = await _shippingFeeCalculationService.CalculateShippingFeeForOrderAsync(
+                    createOrderDTO.Items,
+                    createOrderDTO.CustomerAddressId.Value
+                );
+                shippingFee = shippingFeeBreakdown.TotalShippingFee;
+            }
+
             decimal discountAmount = await CalculateDiscountAsync(createOrderDTO.PromotionId, subtotal);
 
-            return subtotal + createOrderDTO.ShippingFee - discountAmount;
+            return subtotal + shippingFee - discountAmount;
         }
     }
 }

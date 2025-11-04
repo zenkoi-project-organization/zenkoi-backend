@@ -8,7 +8,7 @@ namespace Zenkoi.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CustomerController : ControllerBase
+    public class CustomerController : BaseAPIController
     {
         private readonly ICustomerService _customerService;
 

@@ -10,7 +10,6 @@ namespace Zenkoi.BLL.DTOs.CustomerDTOs
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string? PhoneNumber { get; set; }
-        public string? ShippingAddress { get; set; }
         public string? ContactNumber { get; set; }
         public int TotalOrders { get; set; }
         public decimal TotalSpent { get; set; }

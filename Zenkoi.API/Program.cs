@@ -14,6 +14,7 @@ using Zenkoi.API.Middlewares;
 using Zenkoi.BLL.Helpers.Config;
 using Zenkoi.BLL.Services.BackgroundServices;
 using Zenkoi.BLL.Services.Interfaces;
+using Zenkoi.BLL.Services.Implements;
 using Zenkoi.DAL.EF;
 using Zenkoi.DAL.Entities;
 
@@ -44,12 +45,16 @@ namespace Zenkoi.API
             {
                 option.UseSqlServer(builder.Configuration.GetConnectionString("ZenKoiDB"));
             });
+
+            builder.Services.Configure<MapConfiguration>(builder.Configuration.GetSection("FarmLocationConfiguration"));
             var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
             builder.Services.AddSingleton(emailConfig);
 
             builder.Services.Configure<VnPayConfiguration>(builder.Configuration.GetSection("VnPayConfiguration"));
             builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<VnPayConfiguration>>().Value);
-        
+
+            builder.Services.Configure<MapConfiguration>(builder.Configuration.GetSection("MapConfiguration"));
+            builder.Services.AddHttpClient<IMapService, MapService>();
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>().AddEntityFrameworkStores<ZenKoiContext>().AddDefaultTokenProviders();
 

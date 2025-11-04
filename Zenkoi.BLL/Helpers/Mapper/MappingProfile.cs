@@ -25,6 +25,7 @@ using Zenkoi.DAL.Enums;
 using Zenkoi.BLL.DTOs.PondPacketFishDTOs;
 using Zenkoi.BLL.DTOs.ShippingBoxDTOs;
 using Zenkoi.BLL.DTOs.ShippingDistanceDTOs;
+using Zenkoi.BLL.DTOs.CustomerAddressDTOs;
 
 namespace Zenkoi.BLL.Helpers.Mapper
 {

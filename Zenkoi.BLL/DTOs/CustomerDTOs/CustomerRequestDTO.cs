@@ -6,11 +6,9 @@ namespace Zenkoi.BLL.DTOs.CustomerDTOs
     {
         [Required]
         public int ApplicationUserId { get; set; }
-        
-        public string? ShippingAddress { get; set; }
-        
+
         public string? ContactNumber { get; set; }
-        
+
         public bool IsActive { get; set; } = true;
     }
 }
