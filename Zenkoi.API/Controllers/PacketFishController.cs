@@ -177,7 +177,7 @@ namespace Zenkoi.API.Controllers
         {
             try
             {
-                var result = await _packetFishService.GetAvailablePacketFishesAsync();
+                var result = await _packetFishService.GetAvailablePacketFishesAsync(pageIndex,pageSize);
                 return GetSuccess(result);
             }
             catch (Exception ex)
@@ -192,11 +192,13 @@ namespace Zenkoi.API.Controllers
         /// <param name="size">Kích thước cá</param>
         /// <returns>Danh sách gói cá theo kích thước</returns>
         [HttpGet("by-size/{size}")]
-        public async Task<IActionResult> GetPacketFishesBySize(FishSize size)
+        public async Task<IActionResult> GetPacketFishesBySize(FishSize size,
+        [FromQuery] int pageIndex = 1,
+        [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _packetFishService.GetPacketFishesBySizeAsync(size);
+                var result = await _packetFishService.GetPacketFishesBySizeAsync(size,pageIndex,pageSize);
                 return GetSuccess(result);
             }
             catch (Exception ex)
@@ -214,7 +216,10 @@ namespace Zenkoi.API.Controllers
         [HttpGet("by-price")]
         public async Task<IActionResult> GetPacketFishesByPriceRange(
             [FromQuery] decimal minPrice,
-            [FromQuery] decimal maxPrice)
+            [FromQuery] decimal maxPrice,
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
+
         {
             try
             {
@@ -223,7 +228,7 @@ namespace Zenkoi.API.Controllers
                     return GetError("Khoảng giá không hợp lệ");
                 }
 
-                var result = await _packetFishService.GetPacketFishesByPriceRangeAsync(minPrice, maxPrice);
+                var result = await _packetFishService.GetPacketFishesByPriceRangeAsync(minPrice, maxPrice,pageIndex, pageSize);
                 return GetSuccess(result);
             }
             catch (Exception ex)
