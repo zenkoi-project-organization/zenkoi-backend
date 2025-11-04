@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-              await TruncateAllTablesExceptMigrationHistory(context);
+           await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -468,43 +468,50 @@ namespace Zenkoi.API.ConfigExtensions
                     {
                         TypeName = "Ao sinh sản",
                         Description = "Ao dành cho cá bố mẹ sinh sản",
-                        RecommendedCapacity = 8000
+                        Type = TypeOfPond.Paring,
+                        RecommendedQuantity = 8000
                     },
                     new PondType
                     {
                         TypeName = "Ao ương cá bột",
                         Description = "Ao ương cá con sau khi nở",
-                        RecommendedCapacity = 5000
+                        Type = TypeOfPond.FryFish,
+                        RecommendedQuantity = 5000
                     },
                     new PondType
                     {
                         TypeName = "Show Pond",
                         Description = "Ao trưng bày, chú trọng tính thẩm mỹ và dễ quan sát cá từ trên cao. Thường có ít thực vật.",
-                        RecommendedCapacity = 2500
+                        Type = TypeOfPond.BroodStock,
+                        RecommendedQuantity = 2500
                     },
                     new PondType
                     {
                         TypeName = "Grow-out Pond",
                         Description = "Ao nuôi dưỡng và phát triển cá non (tosai) hoặc cá cần tăng kích thước nhanh chóng. Yêu cầu hệ thống lọc mạnh.",
-                        RecommendedCapacity = 5000
+                        Type = TypeOfPond.BroodStock,
+                        RecommendedQuantity = 5000
                     },
                     new PondType
                     {
                         TypeName = "Quarantine Tank",
                         Description = "Bể/ao nhỏ dùng để cách ly cá mới hoặc cá bệnh. Cần khử trùng và kiểm soát nhiệt độ nghiêm ngặt.",
-                        RecommendedCapacity = 150
+                        Type = TypeOfPond.MarketPond,
+                        RecommendedQuantity = 150
                     },
                     new PondType
                     {
                         TypeName = "Natural Pond",
                         Description = "Ao tự nhiên, có nhiều cây thủy sinh và bùn đáy. Dùng cho mục đích thư giãn, ít can thiệp kỹ thuật.",
-                        RecommendedCapacity = 8000
+                        Type = TypeOfPond.EggBatch,
+                        RecommendedQuantity = 8000
                     },
                     new PondType
                     {
                         TypeName = "Breeding Pond",
                         Description = "Ao chuyên dùng để sinh sản, thường có đáy bằng và các giá thể đặc biệt để cá đẻ trứng.",
-                        RecommendedCapacity = 1000
+                        Type = TypeOfPond.MarketPond,
+                        RecommendedQuantity = 1000
                     }
                 );
                 await context.SaveChangesAsync();

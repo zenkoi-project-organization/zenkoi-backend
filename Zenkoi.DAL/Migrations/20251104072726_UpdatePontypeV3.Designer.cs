@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251104072726_UpdatePontypeV3")]
+    partial class UpdatePontypeV3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -516,6 +519,10 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<string>("ShippingAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("TotalOrders")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -532,79 +539,6 @@ namespace Zenkoi.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customers", "dbo");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.CustomerAddress", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("City")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DistanceCalculatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal?>("DistanceFromFarmKm")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<string>("District")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FullAddress")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<bool>("IsDefault")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<decimal?>("Latitude")
-                        .HasColumnType("decimal(9,6)");
-
-                    b.Property<decimal?>("Longitude")
-                        .HasColumnType("decimal(9,6)");
-
-                    b.Property<string>("RecipientPhone")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("StreetAddress")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Ward")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.ToTable("CustomerAddresses", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.EggBatch", b =>
@@ -1021,9 +955,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<int?>("CustomerAddressId")
-                        .HasColumnType("int");
-
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
@@ -1057,8 +988,6 @@ namespace Zenkoi.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
-
-                    b.HasIndex("CustomerAddressId");
 
                     b.HasIndex("CustomerId");
 
@@ -2302,17 +2231,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.CustomerAddress", b =>
-                {
-                    b.HasOne("Zenkoi.DAL.Entities.Customer", "Customer")
-                        .WithMany("CustomerAddresses")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.EggBatch", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.BreedingProcess", "BreedingProcess")
@@ -2438,11 +2356,6 @@ namespace Zenkoi.DAL.Migrations
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.Order", b =>
                 {
-                    b.HasOne("Zenkoi.DAL.Entities.CustomerAddress", "CustomerAddress")
-                        .WithMany("Orders")
-                        .HasForeignKey("CustomerAddressId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Zenkoi.DAL.Entities.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
@@ -2455,8 +2368,6 @@ namespace Zenkoi.DAL.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Customer");
-
-                    b.Navigation("CustomerAddress");
 
                     b.Navigation("Promotion");
                 });
@@ -2782,13 +2693,6 @@ namespace Zenkoi.DAL.Migrations
                 {
                     b.Navigation("Cart");
 
-                    b.Navigation("CustomerAddresses");
-
-                    b.Navigation("Orders");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.CustomerAddress", b =>
-                {
                     b.Navigation("Orders");
                 });
 

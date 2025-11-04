@@ -13,5 +13,6 @@ namespace Zenkoi.DAL.Enums
         FryFish,
         Classification,
         MarketPond,
+        BroodStock
     }
 }

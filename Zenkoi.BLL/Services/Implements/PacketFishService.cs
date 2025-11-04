@@ -59,12 +59,14 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<PacketFishResponseDTO> GetPacketFishByIdAsync(int id)
         {
-            var packetFish = await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
-                .WithPredicate(pf => pf.Id == id)
-                .WithInclude(pf => pf.VarietyPacketFishes)
-                .Build());
+            var packetFish = await _packetFishRepo.GetSingleAsync(new QueryOptions<PacketFish>
+            {
+                Predicate = p => p.Id == id , IncludeProperties = new List<Expression<Func<PacketFish, object>>> {
+                p => p.VarietyPacketFishes
+                }
+            }); ;
 
-     
+
             if (packetFish != null && packetFish.VarietyPacketFishes.Any())
             {
                 foreach (var vpf in packetFish.VarietyPacketFishes)
@@ -219,37 +221,8 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<IEnumerable<PacketFishResponseDTO>> GetAvailablePacketFishesAsync()
-        {
-            var packetFishes = await _packetFishRepo.GetAllAsync(new QueryBuilder<PacketFish>()
-                .WithPredicate(pf => pf.IsAvailable == true)
-                .WithInclude(pf => pf.VarietyPacketFishes)
-                .WithOrderBy(pf => pf.OrderByDescending(x => x.CreatedAt))
-                .Build());
-
-
-            foreach (var pf in packetFishes)
-            {
-                if (pf.VarietyPacketFishes.Any())
-                {
-                    foreach (var vpf in pf.VarietyPacketFishes)
-                    {
-                        if (vpf.VarietyId > 0)
-                        {
-                            var variety = await _varietyRepo.GetByIdAsync(vpf.VarietyId);
-                            if (variety != null)
-                            {
-                                vpf.Variety = variety;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return _mapper.Map<IEnumerable<PacketFishResponseDTO>>(packetFishes);
-        }
-
-        public async Task<IEnumerable<PacketFishResponseDTO>> GetPacketFishesBySizeAsync(FishSize size)
+       
+        public async Task<PaginatedList<PacketFishResponseDTO>> GetPacketFishesBySizeAsync(FishSize size ,int pageIndex = 1, int pageSize = 10)
         {
             var packetFishes = await _packetFishRepo.GetAllAsync(new QueryBuilder<PacketFish>()
                 .WithPredicate(pf => pf.Size == size && pf.IsAvailable == true)
@@ -274,11 +247,40 @@ namespace Zenkoi.BLL.Services.Implements
                     }
                 }
             }
+  
 
-            return _mapper.Map<IEnumerable<PacketFishResponseDTO>>(packetFishes);
+
+            foreach (var pf in packetFishes)
+            {
+                if (pf.VarietyPacketFishes.Any())
+                {
+                    foreach (var vpf in pf.VarietyPacketFishes)
+                    {
+                        if (vpf.VarietyId > 0)
+                        {
+                            var variety = await _varietyRepo.GetByIdAsync(vpf.VarietyId);
+                            if (variety != null)
+                            {
+                                vpf.Variety = variety;
+                            }
+                        }
+                    }
+                }
+            }
+            var mappedList = _mapper.Map<List<PacketFishResponseDTO>>(packetFishes);
+            var totalCount = mappedList.Count;
+            var pagedItems = mappedList
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+
+            return new PaginatedList<PacketFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
 
-        public async Task<IEnumerable<PacketFishResponseDTO>> GetPacketFishesByPriceRangeAsync(decimal minPrice, decimal maxPrice)
+        
+
+        public async Task<PaginatedList<PacketFishResponseDTO>> GetPacketFishesByPriceRangeAsync(decimal minPrice, decimal maxPrice, int pageIndex = 1, int pageSize = 10)
         {
             var packetFishes = await _packetFishRepo.GetAllAsync(new QueryBuilder<PacketFish>()
                 .WithPredicate(pf => pf.TotalPrice >= minPrice && pf.TotalPrice <= maxPrice && pf.IsAvailable == true)
@@ -303,10 +305,53 @@ namespace Zenkoi.BLL.Services.Implements
                     }
                 }
             }
+            var mappedList = _mapper.Map<List<PacketFishResponseDTO>>(packetFishes);
+            var totalCount = mappedList.Count;
+            var pagedItems = mappedList
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
-            return _mapper.Map<IEnumerable<PacketFishResponseDTO>>(packetFishes);
+
+            return new PaginatedList<PacketFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
+
         }
 
-       
+        public async  Task<PaginatedList<PacketFishResponseDTO>> GetAvailablePacketFishesAsync(int pageIndex = 1, int pageSize = 10)
+        {
+            var packetFishes = await _packetFishRepo.GetAllAsync(new QueryBuilder<PacketFish>()
+                 .WithPredicate(pf => pf.IsAvailable == true)
+                 .WithInclude(pf => pf.VarietyPacketFishes)
+                 .WithOrderBy(pf => pf.OrderByDescending(x => x.CreatedAt))
+                 .Build());
+
+
+            foreach (var pf in packetFishes)
+            {
+                if (pf.VarietyPacketFishes.Any())
+                {
+                    foreach (var vpf in pf.VarietyPacketFishes)
+                    {
+                        if (vpf.VarietyId > 0)
+                        {
+                            var variety = await _varietyRepo.GetByIdAsync(vpf.VarietyId);
+                            if (variety != null)
+                            {
+                                vpf.Variety = variety;
+                            }
+                        }
+                    }
+                }
+            }
+            var mappedList = _mapper.Map<List<PacketFishResponseDTO>>(packetFishes);
+            var totalCount = mappedList.Count;
+            var pagedItems = mappedList
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+
+            return new PaginatedList<PacketFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
+        }
     }
 }

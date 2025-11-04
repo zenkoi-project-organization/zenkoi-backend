@@ -13,7 +13,7 @@ namespace Zenkoi.DAL.Entities
         public string TypeName { get; set; }
         public TypeOfPond Type {  get; set; } 
         public string Description { get; set; }
-        public int? RecommendedCapacity { get; set; }
+        public int? RecommendedQuantity { get; set; }
 
         // Navigation
         public ICollection<Pond> Ponds { get; set; }

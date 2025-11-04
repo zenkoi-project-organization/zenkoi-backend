@@ -43,6 +43,7 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             };
 
+
             System.Linq.Expressions.Expression<System.Func<Pond, bool>>? predicate = null;
 
             if (!string.IsNullOrEmpty(filter.Search))
@@ -66,6 +67,13 @@ namespace Zenkoi.BLL.Services.Implements
             if (filter.PondTypeId.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.PondTypeId == filter.PondTypeId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+            if (filter.PondTypeEnum.HasValue)
+            {
+                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr =
+                    p => p.PondType.Type == filter.PondTypeEnum.Value;
+
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
@@ -153,7 +161,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             var entity = _mapper.Map<Pond>(dto);
             entity.CapacityLiters = maxCapacity;
-            entity.MaxFishCount = pondType.RecommendedCapacity;
+            entity.MaxFishCount = pondType.RecommendedQuantity;
             entity.CreatedAt = DateTime.UtcNow;
             await _pondRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

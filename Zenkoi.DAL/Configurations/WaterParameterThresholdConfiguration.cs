@@ -28,9 +28,6 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasColumnType("decimal(10,4)");
 
-            builder.Property(wpt => wpt.Notes)
-                .HasMaxLength(500);
-
             builder.Property(wpt => wpt.PondTypeId);
 
             builder.HasOne(wpt => wpt.PondType)
