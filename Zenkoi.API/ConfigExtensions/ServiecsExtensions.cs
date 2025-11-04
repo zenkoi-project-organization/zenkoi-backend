@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-           await TruncateAllTablesExceptMigrationHistory(context);
+                await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -108,7 +108,74 @@ namespace Zenkoi.API.ConfigExtensions
                 var manager = new ApplicationUser { FullName = "manager", Role = Role.Manager, UserName = "manager", NormalizedUserName = "MANAGER", Email = "manager@email.com", NormalizedEmail = "MANAGER@EMAIL.COM", PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==", SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP", ConcurrencyStamp = "4bd4dcb0-b231-4169-93c3-81f70479637a", PhoneNumber = "0999999999", LockoutEnabled = true };
                 await context.Users.AddAsync(manager);
                 await context.SaveChangesAsync();
+            }
+            #endregion
+
+            #region Seeding Customer Users            
+            ApplicationUser customer1 = null;
+            ApplicationUser customer2 = null;
+            ApplicationUser customer3 = null;
+
+            if (!context.Users.Any(x => x.Role == Role.Customer))
+            {
+                customer1 = new ApplicationUser
+                {
+                    FullName = "Nguyễn Văn An",
+                    Role = Role.Customer,
+                    UserName = "customer1",
+                    NormalizedUserName = "CUSTOMER1",
+                    Email = "customer1@email.com",
+                    NormalizedEmail = "CUSTOMER1@EMAIL.COM",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==",
+                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP",
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    PhoneNumber = "0987654321",
+                    LockoutEnabled = true
+                };
+
+                customer2 = new ApplicationUser
+                {
+                    FullName = "Trần Thị Bình",
+                    Role = Role.Customer,
+                    UserName = "customer2",
+                    NormalizedUserName = "CUSTOMER2",
+                    Email = "customer2@email.com",
+                    NormalizedEmail = "CUSTOMER2@EMAIL.COM",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==",
+                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP",
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    PhoneNumber = "0912345678",
+                    LockoutEnabled = true
+                };
+
+                customer3 = new ApplicationUser
+                {
+                    FullName = "Lê Văn Cường",
+                    Role = Role.Customer,
+                    UserName = "customer3",
+                    NormalizedUserName = "CUSTOMER3",
+                    Email = "customer3@email.com",
+                    NormalizedEmail = "CUSTOMER3@EMAIL.COM",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==",
+                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP",
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    PhoneNumber = "0901234567",
+                    LockoutEnabled = true
+                };
+
+                await context.Users.AddRangeAsync(customer1, customer2, customer3);
                 await context.SaveChangesAsync();
+
+            }
+            else
+            {         
+                var customers = await context.Users.Where(x => x.Role == Role.Customer).OrderBy(x => x.Id).Take(3).ToListAsync();
+                if (customers.Count >= 3)
+                {
+                    customer1 = customers[0];
+                    customer2 = customers[1];
+                    customer3 = customers[2];
+                }
             }
             #endregion
 
@@ -162,63 +229,10 @@ namespace Zenkoi.API.ConfigExtensions
 
                 await context.Users.AddRangeAsync(staff1, staff2, staff3);
                 await context.SaveChangesAsync();
-
             }
             #endregion
 
-            #region Seeding Customer Users
-            if (!context.Users.Any(x => x.Role == Role.Customer))
-            {
-                var customer1 = new ApplicationUser 
-                { 
-                    FullName = "Nguyễn Văn An", 
-                    Role = Role.Customer, 
-                    UserName = "customer1", 
-                    NormalizedUserName = "CUSTOMER1", 
-                    Email = "customer1@email.com", 
-                    NormalizedEmail = "CUSTOMER1@EMAIL.COM", 
-                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==", 
-                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP", 
-                    ConcurrencyStamp = Guid.NewGuid().ToString(), 
-                    PhoneNumber = "0987654321", 
-                    LockoutEnabled = true 
-                };
-                
-                var customer2 = new ApplicationUser 
-                { 
-                    FullName = "Trần Thị Bình", 
-                    Role = Role.Customer, 
-                    UserName = "customer2", 
-                    NormalizedUserName = "CUSTOMER2", 
-                    Email = "customer2@email.com", 
-                    NormalizedEmail = "CUSTOMER2@EMAIL.COM", 
-                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==", 
-                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP", 
-                    ConcurrencyStamp = Guid.NewGuid().ToString(), 
-                    PhoneNumber = "0912345678", 
-                    LockoutEnabled = true 
-                };
-
-                var customer3 = new ApplicationUser 
-                { 
-                    FullName = "Lê Văn Cường", 
-                    Role = Role.Customer, 
-                    UserName = "customer3", 
-                    NormalizedUserName = "CUSTOMER3", 
-                    Email = "customer3@email.com", 
-                    NormalizedEmail = "CUSTOMER3@EMAIL.COM", 
-                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==", 
-                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP", 
-                    ConcurrencyStamp = Guid.NewGuid().ToString(), 
-                    PhoneNumber = "0901234567", 
-                    LockoutEnabled = true 
-                };
-
-                await context.Users.AddRangeAsync(customer1, customer2, customer3);
-                await context.SaveChangesAsync();
-            }
-            #endregion
-            #region Seeding Data
+            #region Seeding UserDetail
             if (!context.UserDetail.Any())
             {
                 await context.UserDetail.AddRangeAsync(
@@ -231,10 +245,12 @@ namespace Zenkoi.API.ConfigExtensions
                         AvatarURL = "http://res.cloudinary.com/detykxgzs/image/upload/v1759744354/h5mkb2lj97m9w2q4rjnp.png",
                         Address = "123 Nguyễn Văn Cừ, Quận 5, TP.HCM"
                     }
-                    );
+                );
+                await context.SaveChangesAsync();
             }
+            #endregion
 
-
+            #region Seeding UserRoles
             if (!context.UserRoles.Any(x => x.RoleId == 1))
             {
                 await context.UserRoles.AddAsync(
@@ -244,150 +260,163 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.SaveChangesAsync();
             }
 
-            // Add Customer role to customer users
-            if (!context.UserRoles.Any(x => x.UserId >= 2 && x.UserId <= 4 && x.RoleId == 4))
+            if (customer1 != null && customer2 != null && customer3 != null)
             {
-                await context.UserRoles.AddRangeAsync(
-                    // Customer role (RoleId = 4 for "Customer")
-                    new IdentityUserRole<int> { UserId = 2, RoleId = 4 },
-                    new IdentityUserRole<int> { UserId = 3, RoleId = 4 },
-                    new IdentityUserRole<int> { UserId = 4, RoleId = 4 }
-                );
-                await context.SaveChangesAsync();
+                if (!context.UserRoles.Any(x => x.UserId == customer1.Id || x.UserId == customer2.Id || x.UserId == customer3.Id))
+                {
+                    await context.UserRoles.AddRangeAsync(
+                        new IdentityUserRole<int> { UserId = customer1.Id, RoleId = 4 },
+                        new IdentityUserRole<int> { UserId = customer2.Id, RoleId = 4 },
+                        new IdentityUserRole<int> { UserId = customer3.Id, RoleId = 4 }
+                    );
+                    await context.SaveChangesAsync();
+                }
             }
+            #endregion
 
-            if (!context.Customers.Any())
-            {          
+            #region Seeding Customers
 
-                await context.Customers.AddRangeAsync(
-                    new Customer
-                    {
-                        Id = 2,
-                        ContactNumber = "0987654321",
-                        TotalOrders = 2,
-                        TotalSpent = 15000000,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new Customer
-                    {
-                        Id = 3,
-                        ContactNumber = "0912345678",
-                        TotalOrders = 1,
-                        TotalSpent = 12000000,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new Customer
-                    {
-                        Id = 4,
-                        ContactNumber = "0901234567",
-                        TotalOrders = 0,
-                        TotalSpent = 0,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    }
-                );
-                await context.SaveChangesAsync();
-            }
-
-            if (!context.CustomerAddresses.Any())
+            if (customer1 != null && customer2 != null && customer3 != null)
             {
-                await context.CustomerAddresses.AddRangeAsync(
-                    new CustomerAddress
-                    {
-                        CustomerId = 2,
-                        FullAddress = "123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
-                        City = "Hồ Chí Minh",
-                        District = "Quận 1",
-                        Ward = "Phường Bến Nghé",
-                        StreetAddress = "123 Đường Lê Lợi",
-                        Latitude = 10.7769m,
-                        Longitude = 106.7009m,
-                        RecipientPhone = "0987654321",
-                        IsDefault = true,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new CustomerAddress
-                    {
-                        CustomerId = 2,
-                        FullAddress = "456 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM",
-                        City = "Hồ Chí Minh",
-                        District = "Quận 1",
-                        Ward = "Phường Bến Nghé",
-                        StreetAddress = "456 Đường Nguyễn Huệ",
-                        Latitude = 10.7743m,
-                        Longitude = 106.7010m,
-                        RecipientPhone = "0987654321",
-                        IsDefault = false,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new CustomerAddress
-                    {
-                        CustomerId = 3,
-                        FullAddress = "789 Đường Hai Bà Trưng, Phường Đa Kao, Quận 1, TP.HCM",
-                        City = "Hồ Chí Minh",
-                        District = "Quận 1",
-                        Ward = "Phường Đa Kao",
-                        StreetAddress = "789 Đường Hai Bà Trưng",
-                        Latitude = 10.7881m,
-                        Longitude = 106.6983m,
-                        RecipientPhone = "0912345678",
-                        IsDefault = true,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new CustomerAddress
-                    {
-                        CustomerId = 3,
-                        FullAddress = "321 Đường Võ Văn Tần, Phường 5, Quận 3, TP.HCM",
-                        City = "Hồ Chí Minh",
-                        District = "Quận 3",
-                        Ward = "Phường 5",
-                        StreetAddress = "321 Đường Võ Văn Tần",
-                        Latitude = 10.7821m,
-                        Longitude = 106.6879m,
-                        RecipientPhone = "0912345678",
-                        IsDefault = false,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new CustomerAddress
-                    {
-                        CustomerId = 4,
-                        FullAddress = "555 Đường Cách Mạng Tháng 8, Phường 11, Quận 3, TP.HCM",
-                        City = "Hồ Chí Minh",
-                        District = "Quận 3",
-                        Ward = "Phường 11",
-                        StreetAddress = "555 Đường Cách Mạng Tháng 8",
-                        Latitude = 10.7844m,
-                        Longitude = 106.6759m,
-                        RecipientPhone = "0901234567",
-                        IsDefault = true,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new CustomerAddress
-                    {
-                        CustomerId = 4,
-                        FullAddress = "888 Đường Lý Thường Kiệt, Phường 7, Quận Tân Bình, TP.HCM",
-                        City = "Hồ Chí Minh",
-                        District = "Quận Tân Bình",
-                        Ward = "Phường 7",
-                        StreetAddress = "888 Đường Lý Thường Kiệt",
-                        Latitude = 10.7991m,
-                        Longitude = 106.6532m,
-                        RecipientPhone = "0901234567",
-                        IsDefault = false,
-                        IsActive = false,
-                        CreatedAt = DateTime.UtcNow
-                    }
-                );
-                await context.SaveChangesAsync();
+                if (!context.Customers.Any())
+                {
+                    await context.Customers.AddRangeAsync(
+                        new Customer
+                        {
+                            Id = customer1.Id,  
+                            ContactNumber = "0987654321",
+                            TotalOrders = 2,
+                            TotalSpent = 15000000,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new Customer
+                        {
+                            Id = customer2.Id, 
+                            ContactNumber = "0912345678",
+                            TotalOrders = 1,
+                            TotalSpent = 12000000,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new Customer
+                        {
+                            Id = customer3.Id,
+                            ContactNumber = "0901234567",
+                            TotalOrders = 0,
+                            TotalSpent = 0,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        }
+                    );
+                    await context.SaveChangesAsync();
+                }
             }
+            #endregion
 
+            #region Seeding CustomerAddresses
+            if (customer1 != null && customer2 != null && customer3 != null)
+            {
+                if (!context.CustomerAddresses.Any())
+                {
+                    await context.CustomerAddresses.AddRangeAsync(
+                        new CustomerAddress
+                        {
+                            CustomerId = customer1.Id, 
+                            FullAddress = "123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
+                            City = "Hồ Chí Minh",
+                            District = "Quận 1",
+                            Ward = "Phường Bến Nghé",
+                            StreetAddress = "123 Đường Lê Lợi",
+                            Latitude = 10.7769m,
+                            Longitude = 106.7009m,
+                            RecipientPhone = "0987654321",
+                            IsDefault = true,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new CustomerAddress
+                        {
+                            CustomerId = customer1.Id,
+                            FullAddress = "456 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM",
+                            City = "Hồ Chí Minh",
+                            District = "Quận 1",
+                            Ward = "Phường Bến Nghé",
+                            StreetAddress = "456 Đường Nguyễn Huệ",
+                            Latitude = 10.7743m,
+                            Longitude = 106.7010m,
+                            RecipientPhone = "0987654321",
+                            IsDefault = false,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new CustomerAddress
+                        {
+                            CustomerId = customer2.Id,
+                            FullAddress = "789 Đường Hai Bà Trưng, Phường Đa Kao, Quận 1, TP.HCM",
+                            City = "Hồ Chí Minh",
+                            District = "Quận 1",
+                            Ward = "Phường Đa Kao",
+                            StreetAddress = "789 Đường Hai Bà Trưng",
+                            Latitude = 10.7881m,
+                            Longitude = 106.6983m,
+                            RecipientPhone = "0912345678",
+                            IsDefault = true,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new CustomerAddress
+                        {
+                            CustomerId = customer2.Id,
+                            FullAddress = "321 Đường Võ Văn Tần, Phường 5, Quận 3, TP.HCM",
+                            City = "Hồ Chí Minh",
+                            District = "Quận 3",
+                            Ward = "Phường 5",
+                            StreetAddress = "321 Đường Võ Văn Tần",
+                            Latitude = 10.7821m,
+                            Longitude = 106.6879m,
+                            RecipientPhone = "0912345678",
+                            IsDefault = false,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new CustomerAddress
+                        {
+                            CustomerId = customer3.Id,
+                            FullAddress = "555 Đường Cách Mạng Tháng 8, Phường 11, Quận 3, TP.HCM",
+                            City = "Hồ Chí Minh",
+                            District = "Quận 3",
+                            Ward = "Phường 11",
+                            StreetAddress = "555 Đường Cách Mạng Tháng 8",
+                            Latitude = 10.7844m,
+                            Longitude = 106.6759m,
+                            RecipientPhone = "0901234567",
+                            IsDefault = true,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new CustomerAddress
+                        {
+                            CustomerId = customer3.Id,
+                            FullAddress = "888 Đường Lý Thường Kiệt, Phường 7, Quận Tân Bình, TP.HCM",
+                            City = "Hồ Chí Minh",
+                            District = "Quận Tân Bình",
+                            Ward = "Phường 7",
+                            StreetAddress = "888 Đường Lý Thường Kiệt",
+                            Latitude = 10.7991m,
+                            Longitude = 106.6532m,
+                            RecipientPhone = "0901234567",
+                            IsDefault = false,
+                            IsActive = false,
+                            CreatedAt = DateTime.UtcNow
+                        }
+                    );
+                    await context.SaveChangesAsync();
+                }
+            }
+            #endregion
+
+            #region Seeding Areas
             if (!context.Areas.Any())
             {
                 await context.Areas.AddRangeAsync(
@@ -425,6 +454,9 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
+
+            #region Seeding Varieties
             if (!context.Varieties.Any())
             {
                 await context.Varieties.AddRangeAsync(
@@ -461,6 +493,9 @@ namespace Zenkoi.API.ConfigExtensions
                );
                 await context.SaveChangesAsync();
             }
+            #endregion
+
+            #region Seeding PondTypes
             if (!context.PondTypes.Any())
             {
                 await context.PondTypes.AddRangeAsync(
@@ -516,6 +551,9 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
+
+            #region Seeding Ponds
             if (!context.Ponds.Any())
             {
                 await context.Ponds.AddRangeAsync(
@@ -524,7 +562,7 @@ namespace Zenkoi.API.ConfigExtensions
                          AreaId = 1,
                          PondTypeId = 1,
                          PondName = "Ao Chính Fuji",
-                         PondStatus = PondStatus.Active, // 1
+                         PondStatus = PondStatus.Active,
                          Location = "Cánh Đông, Khu Vườn Zen",
                          CapacityLiters = 15000,
                          DepthMeters = 1.8,
@@ -537,7 +575,7 @@ namespace Zenkoi.API.ConfigExtensions
                         AreaId = 2,
                         PondTypeId = 3,
                         PondName = "Bể Cách Ly",
-                        PondStatus = PondStatus.Maintenance, // 2
+                        PondStatus = PondStatus.Maintenance,
                         Location = "Nhà Lọc Kỹ Thuật",
                         CapacityLiters = 500,
                         DepthMeters = 0.8,
@@ -550,7 +588,7 @@ namespace Zenkoi.API.ConfigExtensions
                         AreaId = 1,
                         PondTypeId = 2,
                         PondName = "Ao Phát Triển 1",
-                        PondStatus = PondStatus.Active, // 1
+                        PondStatus = PondStatus.Active,
                         Location = "Cánh Tây, Khu Nuôi Dưỡng",
                         CapacityLiters = 25000,
                         DepthMeters = 2.0,
@@ -563,7 +601,7 @@ namespace Zenkoi.API.ConfigExtensions
                         AreaId = 3,
                         PondTypeId = 5,
                         PondName = "Ao Sinh Sản 101",
-                        PondStatus = PondStatus.Empty, // 0
+                        PondStatus = PondStatus.Empty,
                         Location = "Khu Chuẩn Bị Cá Bố Mẹ",
                         CapacityLiters = 4000,
                         DepthMeters = 1.0,
@@ -576,7 +614,7 @@ namespace Zenkoi.API.ConfigExtensions
                         AreaId = 2,
                         PondTypeId = 4,
                         PondName = "Ao Thư Giãn",
-                        PondStatus = PondStatus.Maintenance, // 2
+                        PondStatus = PondStatus.Maintenance,
                         Location = "Góc Hồ Sen Lớn",
                         CapacityLiters = 35000,
                         DepthMeters = 2.2,
@@ -587,7 +625,9 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
 
+            #region Seeding KoiFishes
             if (!context.KoiFishes.Any())
             {
                 await context.KoiFishes.AddRangeAsync(
@@ -597,7 +637,7 @@ namespace Zenkoi.API.ConfigExtensions
                        BodyShape = "Thân dày, Đầu to",
                        Description = "Kohaku chất lượng cao, có Hi rõ nét, triển vọng thi đấu.",
                        Gender = Gender.Male,
-                       HealthStatus = HealthStatus.Healthy, 
+                       HealthStatus = HealthStatus.Healthy,
                        Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                        PondId = 2,
                        RFID = "123",
@@ -615,7 +655,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BodyShape = "Thân thon, Lưng cong đẹp",
                         Description = "Sanke cái đang phát triển, Sumi đẹp và cân đối.",
                         Gender = Gender.Female,
-                        HealthStatus = HealthStatus.Healthy, 
+                        HealthStatus = HealthStatus.Healthy,
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 3,
                         RFID = "132",
@@ -650,7 +690,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BodyShape = "Thân dài, Dáng chuẩn",
                         Description = "Ogon ánh kim rực rỡ, kích thước lớn, cá bố mẹ tiềm năng.",
                         Gender = Gender.Male,
-                        HealthStatus = HealthStatus.Healthy, 
+                        HealthStatus = HealthStatus.Healthy,
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 5,
                         RFID = "321",
@@ -667,7 +707,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BodyShape = "Thân nhỏ, Vảy đều",
                         Description = "Asagi Tosai (cá non) có màu xanh sáng đẹp, đang nuôi dưỡng.",
                         Gender = Gender.Male,
-                        HealthStatus = HealthStatus.Healthy, 
+                        HealthStatus = HealthStatus.Healthy,
                         Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
                         PondId = 1,
                         RFID = "231",
@@ -681,11 +721,12 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
 
+            #region Seeding BreedingProcesses
             if (!context.BreedingProcesses.Any())
             {
                 await context.BreedingProcesses.AddRangeAsync(
-                    // 1️⃣ Pairing
                     new BreedingProcess
                     {
                         MaleKoiId = 1,
@@ -697,7 +738,6 @@ namespace Zenkoi.API.ConfigExtensions
                         Result = BreedingResult.Success,
                         Code = "BP-001"
                     },
-
                     new BreedingProcess
                     {
                         MaleKoiId = 1,
@@ -711,7 +751,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalEggs = 1500,
                         Code = "BP-002"
                     },
-
                     new BreedingProcess
                     {
                         MaleKoiId = 1,
@@ -725,7 +764,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalEggs = 2000,
                         Code = "BP-003"
                     },
-
                     new BreedingProcess
                     {
                         MaleKoiId = 1,
@@ -740,7 +778,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalEggs = 2500,
                         Code = "BP-004"
                     },
-
                     new BreedingProcess
                     {
                         MaleKoiId = 1,
@@ -757,7 +794,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalEggs = 3000,
                         Code = "BP-005"
                     },
-
                     new BreedingProcess
                     {
                         MaleKoiId = 1,
@@ -775,7 +811,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalEggs = 3500,
                         Code = "BP-006"
                     },
-
                     new BreedingProcess
                     {
                         MaleKoiId = 1,
@@ -793,7 +828,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TotalEggs = 500,
                         Code = "BP-007"
                     },
-
                     new BreedingProcess
                     {
                         MaleKoiId = 1,
@@ -850,9 +884,11 @@ namespace Zenkoi.API.ConfigExtensions
                         Code = "BP-012"
                     }
                 );
-
                 await context.SaveChangesAsync();
             }
+            #endregion
+
+            #region Seeding EggBatches
             if (!context.EggBatches.Any())
             {
                 await context.EggBatches.AddRangeAsync(
@@ -868,6 +904,9 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
+
+            #region Seeding IncubationDailyRecords
             if (!context.IncubationDailyRecords.Any())
             {
                 await context.IncubationDailyRecords.AddRangeAsync(
@@ -887,9 +926,12 @@ namespace Zenkoi.API.ConfigExtensions
                         RottenEggs = 300,
                         HatchedEggs = 0
                     }
-                    );
+                );
                 await context.SaveChangesAsync();
             }
+            #endregion
+
+            #region Seeding FryFishes
             if (!context.FryFishes.Any())
             {
                 await context.FryFishes.AddRangeAsync(
@@ -907,9 +949,12 @@ namespace Zenkoi.API.ConfigExtensions
                         Status = FryFishStatus.Completed,
                         CurrentSurvivalRate = 0.89
                     }
-                    );
+                );
                 await context.SaveChangesAsync();
             }
+            #endregion
+
+            #region Seeding FrySurvivalRecords
             if (!context.FrySurvivalRecords.Any())
             {
                 await context.FrySurvivalRecords.AddRangeAsync(
@@ -927,9 +972,12 @@ namespace Zenkoi.API.ConfigExtensions
                         SurvivalRate = 0.93,
                         CountAlive = 4185
                     }
-                    );
+                );
                 await context.SaveChangesAsync();
             }
+            #endregion
+
+            #region Seeding ClassificationStages
             if (!context.ClassificationStages.Any())
             {
                 await context.ClassificationStages.AddRangeAsync(
@@ -937,9 +985,9 @@ namespace Zenkoi.API.ConfigExtensions
                     {
                         BreedingProcessId = 1,
                         TotalCount = 4200,
-                        HighQualifiedCount = 0,      // cá chất lượng cao
-                        ShowQualifiedCount = 0,      // cá triển lãm
-                        PondQualifiedCount = 0,     // cá nuôi ao
+                        HighQualifiedCount = 0,
+                        ShowQualifiedCount = 0,
+                        PondQualifiedCount = 0,
                         Notes = "Phân loại lần đầu — nhóm cá khỏe mạnh, màu sắc rõ nét chiếm khoảng 20%.",
                         StartDate = DateTime.Now.AddDays(-10),
                         EndDate = DateTime.Now,
@@ -959,8 +1007,10 @@ namespace Zenkoi.API.ConfigExtensions
                     }
                 );
                 await context.SaveChangesAsync();
-            }         
+            }
+            #endregion
 
+            #region Seeding PacketFishes
             if (!context.PacketFishes.Any())
             {
                 await context.PacketFishes.AddRangeAsync(
@@ -1027,134 +1077,133 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
-            // Seeding Orders
-            if (!context.Orders.Any())
-            {
-                await context.Orders.AddRangeAsync(
-                    new Order
-                    {
-                        CustomerId = 2,
-                        CreatedAt = DateTime.UtcNow.AddDays(-5),
-                        Status = OrderStatus.Created,
-                        Subtotal = 8000000,
-                        ShippingFee = 100000,
-                        DiscountAmount = 0,
-                        TotalAmount = 8100000
-                    },
-                    new Order
-                    {
-                        CustomerId = 2,
-                        CreatedAt = DateTime.UtcNow.AddDays(-10),
-                        Status = OrderStatus.Completed,
-                        Subtotal = 7000000,
-                        ShippingFee = 150000,
-                        DiscountAmount = 500000,
-                        TotalAmount = 6650000
-                    },
-                    new Order
-                    {
-                        CustomerId = 3,
-                        CreatedAt = DateTime.UtcNow.AddDays(-2),
-                        Status = OrderStatus.Shipped,
-                        Subtotal = 12000000,
-                        ShippingFee = 200000,
-                        DiscountAmount = 0,
-                        TotalAmount = 12200000
-                    },
-                    new Order
-                    {
-                        CustomerId = 2,
-                        CreatedAt = DateTime.UtcNow.AddHours(-5),
-                        Status = OrderStatus.Confirmed,
-                        Subtotal = 5000000,
-                        ShippingFee = 100000,
-                        DiscountAmount = 0,
-                        TotalAmount = 5100000
-                    },
-                    new Order
-                    {
-                        CustomerId = 3,
-                        CreatedAt = DateTime.UtcNow.AddHours(-1),
-                        Status = OrderStatus.Created,
-                        Subtotal = 3000000,
-                        ShippingFee = 50000,
-                        DiscountAmount = 0,
-                        TotalAmount = 3050000
-                    },
-                    new Order
-                    {
-                        CustomerId = 2,
-                        CreatedAt = DateTime.UtcNow.AddDays(-7),
-                        Status = OrderStatus.Cancelled,
-                        Subtotal = 8000000,
-                        ShippingFee = 100000,
-                        DiscountAmount = 0,
-                        TotalAmount = 8100000
-                    }
-                );
-                await context.SaveChangesAsync();
-            }
+            #endregion
 
-            // Seeding OrderDetails
+            #region Seeding Orders
+            if (customer1 != null && customer2 != null)
+            {
+                if (!context.Orders.Any())
+                {
+                    await context.Orders.AddRangeAsync(
+                        new Order
+                        {
+                            CustomerId = customer1.Id, 
+                            CreatedAt = DateTime.UtcNow.AddDays(-5),
+                            Status = OrderStatus.Created,
+                            Subtotal = 8000000,
+                            ShippingFee = 100000,
+                            DiscountAmount = 0,
+                            TotalAmount = 8100000
+                        },
+                        new Order
+                        {
+                            CustomerId = customer1.Id,
+                            CreatedAt = DateTime.UtcNow.AddDays(-10),
+                            Status = OrderStatus.Completed,
+                            Subtotal = 7000000,
+                            ShippingFee = 150000,
+                            DiscountAmount = 500000,
+                            TotalAmount = 6650000
+                        },
+                        new Order
+                        {
+                            CustomerId = customer2.Id,
+                            CreatedAt = DateTime.UtcNow.AddDays(-2),
+                            Status = OrderStatus.Shipped,
+                            Subtotal = 12000000,
+                            ShippingFee = 200000,
+                            DiscountAmount = 0,
+                            TotalAmount = 12200000
+                        },
+                        new Order
+                        {
+                            CustomerId = customer1.Id,
+                            CreatedAt = DateTime.UtcNow.AddHours(-5),
+                            Status = OrderStatus.Confirmed,
+                            Subtotal = 5000000,
+                            ShippingFee = 100000,
+                            DiscountAmount = 0,
+                            TotalAmount = 5100000
+                        },
+                        new Order
+                        {
+                            CustomerId = customer2.Id,
+                            CreatedAt = DateTime.UtcNow.AddHours(-1),
+                            Status = OrderStatus.Created,
+                            Subtotal = 3000000,
+                            ShippingFee = 50000,
+                            DiscountAmount = 0,
+                            TotalAmount = 3050000
+                        },
+                        new Order
+                        {
+                            CustomerId = customer1.Id,
+                            CreatedAt = DateTime.UtcNow.AddDays(-7),
+                            Status = OrderStatus.Cancelled,
+                            Subtotal = 8000000,
+                            ShippingFee = 100000,
+                            DiscountAmount = 0,
+                            TotalAmount = 8100000
+                        }
+                    );
+                    await context.SaveChangesAsync();
+                }
+            }
+            #endregion
+
+            #region Seeding OrderDetails
             if (!context.OrderDetails.Any())
             {
                 await context.OrderDetails.AddRangeAsync(
-                    // Chi tiết cho Order 1
                     new OrderDetail { OrderId = 1, PacketFishId = 1, Quantity = 10, UnitPrice = 5000000, TotalPrice = 5000000 },
                     new OrderDetail { OrderId = 1, PacketFishId = 1, Quantity = 10, UnitPrice = 5000000, TotalPrice = 5000000 },
                     new OrderDetail { OrderId = 1, PacketFishId = 2, Quantity = 5, UnitPrice = 8000000, TotalPrice = 3000000 },
-
-                    // Chi tiết cho Order 2
                     new OrderDetail { OrderId = 2, PacketFishId = 4, Quantity = 20, UnitPrice = 3000000, TotalPrice = 6000000 },
                     new OrderDetail { OrderId = 2, PacketFishId = 5, Quantity = 2, UnitPrice = 10000000, TotalPrice = 1000000 },
-
-                    // Chi tiết cho Order 3
                     new OrderDetail { OrderId = 3, PacketFishId = 3, Quantity = 5, UnitPrice = 12000000, TotalPrice = 6000000 },
                     new OrderDetail { OrderId = 3, PacketFishId = 5, Quantity = 5, UnitPrice = 10000000, TotalPrice = 6000000 },
-
-                    // Chi tiết cho Order 4
                     new OrderDetail { OrderId = 4, PacketFishId = 1, Quantity = 10, UnitPrice = 5000000, TotalPrice = 5000000 },
-
-                    // Chi tiết cho Order 5
                     new OrderDetail { OrderId = 5, PacketFishId = 4, Quantity = 10, UnitPrice = 3000000, TotalPrice = 3000000 },
-
-                    // Chi tiết cho Order 6
                     new OrderDetail { OrderId = 6, PacketFishId = 2, Quantity = 5, UnitPrice = 8000000, TotalPrice = 8000000 }
                 );
-
                 await context.SaveChangesAsync();
             }
+            #endregion
 
-            // Seeding Carts
-            if (!context.Carts.Any())
+            #region Seeding Carts        
+            if (customer1 != null && customer2 != null && customer3 != null)
             {
-                await context.Carts.AddRangeAsync(
-                    new Cart
-                    {
-                        CustomerId = 2,
-                        CreatedAt = DateTime.UtcNow.AddDays(-2),
-                        UpdatedAt = DateTime.UtcNow.AddDays(-1)
-                    },
-                    new Cart
-                    {
-                        CustomerId = 3,
-                        CreatedAt = DateTime.UtcNow.AddHours(-5),
-                        UpdatedAt = DateTime.UtcNow.AddHours(-2)
-                    },
-                    new Cart
-                    {
-                        CustomerId = 4,
-                        CreatedAt = DateTime.UtcNow.AddDays(-1),
-                        UpdatedAt = DateTime.UtcNow.AddHours(-6)
-                    }
-                );
-                await context.SaveChangesAsync();
+                if (!context.Carts.Any())
+                {
+                    await context.Carts.AddRangeAsync(
+                        new Cart
+                        {
+                            CustomerId = customer1.Id, 
+                            CreatedAt = DateTime.UtcNow.AddDays(-2),
+                            UpdatedAt = DateTime.UtcNow.AddDays(-1)
+                        },
+                        new Cart
+                        {
+                            CustomerId = customer2.Id,
+                            CreatedAt = DateTime.UtcNow.AddHours(-5),
+                            UpdatedAt = DateTime.UtcNow.AddHours(-2)
+                        },
+                        new Cart
+                        {
+                            CustomerId = customer3.Id,
+                            CreatedAt = DateTime.UtcNow.AddDays(-1),
+                            UpdatedAt = DateTime.UtcNow.AddHours(-6)
+                        }
+                    );
+                    await context.SaveChangesAsync();
+                }
             }
+            #endregion
 
-            // Seeding CartItems
+            #region Seeding CartItems
             if (!context.CartItems.Any())
             {
-                await context.CartItems.AddRangeAsync(                
+                await context.CartItems.AddRangeAsync(
                     new CartItem
                     {
                         CartId = 1,
@@ -1204,10 +1253,11 @@ namespace Zenkoi.API.ConfigExtensions
                         UpdatedAt = DateTime.UtcNow.AddHours(-6)
                     }
                 );
-
                 await context.SaveChangesAsync();
             }
+            #endregion
 
+            #region Seeding Promotions
             if (!context.Promotions.Any())
             {
                 await context.Promotions.AddRangeAsync(
@@ -1239,7 +1289,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Code = "SALE1010",
                         Description = "Siêu sale ngày 10/10, giảm 50.000đ cho mọi đơn hàng.",
                         ValidFrom = new DateTime(2025, 10, 10),
-                        ValidTo = new DateTime(2025, 10, 11).AddTicks(-1), 
+                        ValidTo = new DateTime(2025, 10, 11).AddTicks(-1),
                         DiscountType = DiscountType.FixedAmount,
                         DiscountValue = 50000,
                         IsActive = true
@@ -1252,12 +1302,14 @@ namespace Zenkoi.API.ConfigExtensions
                         ValidTo = DateTime.UtcNow.AddMonths(-1),
                         DiscountType = DiscountType.Percentage,
                         DiscountValue = 15,
-                        IsActive = false 
+                        IsActive = false
                     }
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
 
+            #region Seeding TaskTemplates
             if (!context.TaskTemplates.Any())
             {
                 await context.TaskTemplates.AddRangeAsync(
@@ -1344,7 +1396,9 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
 
+            #region Seeding WorkSchedules
             if (!context.WorkSchedules.Any())
             {
                 await context.WorkSchedules.AddRangeAsync(
@@ -1430,18 +1484,17 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
 
+            #region Seeding StaffAssignments
             if (!context.StaffAssignments.Any())
             {
                 await context.StaffAssignments.AddRangeAsync(
                     new StaffAssignment { WorkScheduleId = 1, StaffId = 5, CompletionNotes = null, CompletedAt = null },
                     new StaffAssignment { WorkScheduleId = 1, StaffId = 6, CompletionNotes = null, CompletedAt = null },
-
                     new StaffAssignment { WorkScheduleId = 2, StaffId = 5, CompletionNotes = null, CompletedAt = null },
                     new StaffAssignment { WorkScheduleId = 2, StaffId = 7, CompletionNotes = null, CompletedAt = null },
-
                     new StaffAssignment { WorkScheduleId = 3, StaffId = 6, CompletionNotes = null, CompletedAt = null },
-
                     new StaffAssignment
                     {
                         WorkScheduleId = 4,
@@ -1456,7 +1509,6 @@ namespace Zenkoi.API.ConfigExtensions
                         CompletionNotes = "Hỗ trợ cho ăn, không có vấn đề",
                         CompletedAt = DateTime.UtcNow.AddDays(-1).AddHours(1)
                     },
-
                     new StaffAssignment
                     {
                         WorkScheduleId = 5,
@@ -1464,50 +1516,46 @@ namespace Zenkoi.API.ConfigExtensions
                         CompletionNotes = "Kiểm tra sức khỏe, tất cả cá đều khỏe mạnh",
                         CompletedAt = DateTime.UtcNow.AddDays(-2).AddHours(2)
                     },
-
                     new StaffAssignment { WorkScheduleId = 6, StaffId = 5, CompletionNotes = null, CompletedAt = null },
                     new StaffAssignment { WorkScheduleId = 6, StaffId = 7, CompletionNotes = null, CompletedAt = null },
-
                     new StaffAssignment { WorkScheduleId = 7, StaffId = 6, CompletionNotes = null, CompletedAt = null },
                     new StaffAssignment { WorkScheduleId = 7, StaffId = 7, CompletionNotes = null, CompletedAt = null }
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
 
+            #region Seeding PondAssignments
             if (!context.PondAssignments.Any())
             {
                 await context.PondAssignments.AddRangeAsync(
                     new PondAssignment { WorkScheduleId = 1, PondId = 1 },
                     new PondAssignment { WorkScheduleId = 1, PondId = 2 },
                     new PondAssignment { WorkScheduleId = 1, PondId = 3 },
-
                     new PondAssignment { WorkScheduleId = 2, PondId = 1 },
                     new PondAssignment { WorkScheduleId = 2, PondId = 2 },
                     new PondAssignment { WorkScheduleId = 2, PondId = 3 },
-
                     new PondAssignment { WorkScheduleId = 3, PondId = 1 },
                     new PondAssignment { WorkScheduleId = 3, PondId = 2 },
                     new PondAssignment { WorkScheduleId = 3, PondId = 3 },
                     new PondAssignment { WorkScheduleId = 3, PondId = 4 },
                     new PondAssignment { WorkScheduleId = 3, PondId = 5 },
-
                     new PondAssignment { WorkScheduleId = 4, PondId = 1 },
                     new PondAssignment { WorkScheduleId = 4, PondId = 2 },
-
                     new PondAssignment { WorkScheduleId = 5, PondId = 1 },
                     new PondAssignment { WorkScheduleId = 5, PondId = 3 },
                     new PondAssignment { WorkScheduleId = 5, PondId = 4 },
-
                     new PondAssignment { WorkScheduleId = 6, PondId = 2 },
                     new PondAssignment { WorkScheduleId = 6, PondId = 5 },
-
                     new PondAssignment { WorkScheduleId = 7, PondId = 1 },
                     new PondAssignment { WorkScheduleId = 7, PondId = 3 },
                     new PondAssignment { WorkScheduleId = 7, PondId = 5 }
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
 
+            #region Seeding ShippingBoxes
             if (!context.ShippingBoxes.Any())
             {
                 await context.ShippingBoxes.AddRangeAsync(
@@ -1569,9 +1617,11 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
+            #endregion
+
+            #region Seeding ShippingBoxRules
             if (!context.ShippingBoxRules.Any())
             {
-                // Lấy boxes đã seed
                 var miniBox = await context.ShippingBoxes.FirstOrDefaultAsync(b => b.Name == "Mini Box");
                 var mediumBox = await context.ShippingBoxes.FirstOrDefaultAsync(b => b.Name == "Medium Box");
                 var largeBox = await context.ShippingBoxes.FirstOrDefaultAsync(b => b.Name == "Large Box");
@@ -1580,53 +1630,46 @@ namespace Zenkoi.API.ConfigExtensions
                 if (miniBox != null && mediumBox != null && largeBox != null && largeSingleBox != null)
                 {
                     await context.ShippingBoxRules.AddRangeAsync(
-                        // Mini Box - Rule for Tosai (age-based)
                         new ShippingBoxRule
                         {
                             ShippingBoxId = miniBox.Id,
                             RuleType = ShippingRuleType.ByAge,
                             MaxCount = 5,
-                            MaxLengthCm = 15,  // ~6 inch
+                            MaxLengthCm = 15,
                             ExtraInfo = "Tosai only (under 1 year old)",
                             Priority = 1,
                             IsActive = true,
                             CreatedAt = DateTime.UtcNow
                         },
-
-                        // Medium Box - Count-based rule
                         new ShippingBoxRule
                         {
                             ShippingBoxId = mediumBox.Id,
                             RuleType = ShippingRuleType.ByCount,
                             MaxCount = 3,
-                            MaxLengthCm = 40,  // ~16 inch
+                            MaxLengthCm = 40,
                             ExtraInfo = "Standard koi up to 16 inches",
                             Priority = 1,
                             IsActive = true,
                             CreatedAt = DateTime.UtcNow
                         },
-
-                        // Large Box - 4 koi option
                         new ShippingBoxRule
                         {
                             ShippingBoxId = largeBox.Id,
                             RuleType = ShippingRuleType.ByCount,
                             MaxCount = 4,
-                            MaxLengthCm = 40,  // ~16 inch
+                            MaxLengthCm = 40,
                             ExtraInfo = "Standard koi up to 16 inches",
                             Priority = 1,
                             IsActive = true,
                             CreatedAt = DateTime.UtcNow
                         },
-
-                        // Large Box (Single) - Max length rule
                         new ShippingBoxRule
                         {
                             ShippingBoxId = largeSingleBox.Id,
                             RuleType = ShippingRuleType.ByMaxLength,
                             MaxCount = 1,
-                            MaxLengthCm = 65,  // ~25.59 inch
-                            MinLengthCm = 41,  // Lớn hơn medium/large box
+                            MaxLengthCm = 65,
+                            MinLengthCm = 41,
                             ExtraInfo = "Single large koi",
                             Priority = 1,
                             IsActive = true,
@@ -1636,6 +1679,7 @@ namespace Zenkoi.API.ConfigExtensions
                     await context.SaveChangesAsync();
                 }
             }
+            #endregion
 
             #region Seeding ShippingDistance
             if (!context.ShippingDistances.Any())
@@ -1711,11 +1755,7 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.SaveChangesAsync();
             }
             #endregion
-
         }
-
-
-        #endregion
 
         private static async Task TruncateAllTablesExceptMigrationHistory(ZenKoiContext context)
         {

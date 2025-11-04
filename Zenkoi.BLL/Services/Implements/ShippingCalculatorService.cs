@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zenkoi.BLL.DTOs.ShippingDTOs;
+using Zenkoi.BLL.Helpers;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.EF;
 using Zenkoi.DAL.Entities;
@@ -169,13 +170,15 @@ namespace Zenkoi.BLL.Services.Implements
                 if (input.Quantity <= 0)
                     continue;
 
+                var sizeCm = FishSizeHelper.GetSizeInCm(input.Size);
+
                 for (int i = 0; i < input.Quantity; i++)
                 {
                     koiList.Add(new KoiItem
                     {
-                        SizeCm = input.SizeCm,
-                        SizeInch = input.SizeCm / 2.54m,
-                        IsTosai = input.SizeCm <= 15
+                        SizeCm = sizeCm,
+                        SizeInch = sizeCm / 2.54m,
+                        IsTosai = sizeCm <= 15
                     });
                 }
             }
