@@ -124,13 +124,13 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (filter.MinPrice.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.TotalPrice >= filter.MinPrice.Value;
+                Expression<Func<PacketFish, bool>> expr = pf => pf.PricePerPacket >= filter.MinPrice.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
             if (filter.MaxPrice.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.TotalPrice <= filter.MaxPrice.Value;
+                Expression<Func<PacketFish, bool>> expr = pf => pf.PricePerPacket <= filter.MaxPrice.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
@@ -146,15 +146,15 @@ namespace Zenkoi.BLL.Services.Implements
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
-            if (filter.MinQuantity.HasValue)
+            if (filter.MinStockQuantity.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.Quantity >= filter.MinQuantity.Value;
+                Expression<Func<PacketFish, bool>> expr = pf => pf.StockQuantity >= filter.MinStockQuantity.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
-            if (filter.MaxQuantity.HasValue)
+            if (filter.MaxStockQuantity.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.Quantity <= filter.MaxQuantity.Value;
+                Expression<Func<PacketFish, bool>> expr = pf => pf.StockQuantity <= filter.MaxStockQuantity.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
@@ -283,9 +283,9 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PaginatedList<PacketFishResponseDTO>> GetPacketFishesByPriceRangeAsync(decimal minPrice, decimal maxPrice, int pageIndex = 1, int pageSize = 10)
         {
             var packetFishes = await _packetFishRepo.GetAllAsync(new QueryBuilder<PacketFish>()
-                .WithPredicate(pf => pf.TotalPrice >= minPrice && pf.TotalPrice <= maxPrice && pf.IsAvailable == true)
+                .WithPredicate(pf => pf.PricePerPacket >= minPrice && pf.PricePerPacket <= maxPrice && pf.IsAvailable == true)
                 .WithInclude(pf => pf.VarietyPacketFishes)
-                .WithOrderBy(pf => pf.OrderBy(x => x.TotalPrice))
+                .WithOrderBy(pf => pf.OrderBy(x => x.PricePerPacket))
                 .Build());
 
             foreach (var pf in packetFishes)

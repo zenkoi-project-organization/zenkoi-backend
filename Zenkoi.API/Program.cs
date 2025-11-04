@@ -46,7 +46,9 @@ namespace Zenkoi.API
                 option.UseSqlServer(builder.Configuration.GetConnectionString("ZenKoiDB"));
             });
 
-            builder.Services.Configure<MapConfiguration>(builder.Configuration.GetSection("FarmLocationConfiguration"));
+            builder.Services.Configure<MapConfiguration>(builder.Configuration.GetSection("MapConfiguration"));
+            builder.Services.Configure<FarmLocationConfiguration>(builder.Configuration.GetSection("FarmLocation"));
+
             var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
             builder.Services.AddSingleton(emailConfig);
 
