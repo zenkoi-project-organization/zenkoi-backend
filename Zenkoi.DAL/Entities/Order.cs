@@ -13,6 +13,9 @@ namespace Zenkoi.DAL.Entities
         public int CustomerId { get; set; }
         public Customer Customer { get; set; }
 
+        public int? CustomerAddressId { get; set; }
+        public CustomerAddress? CustomerAddress { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Created;

@@ -20,9 +20,6 @@ namespace Zenkoi.DAL.Configurations
                 .HasPrincipalKey<ApplicationUser>(u => u.Id)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Property(c => c.ShippingAddress)
-                .HasMaxLength(500);
-
             builder.Property(c => c.ContactNumber)
                 .HasMaxLength(20);
 

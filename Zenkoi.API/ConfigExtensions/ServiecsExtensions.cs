@@ -263,7 +263,6 @@ namespace Zenkoi.API.ConfigExtensions
                     new Customer
                     {
                         Id = 2,
-                        ShippingAddress = "123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
                         ContactNumber = "0987654321",
                         TotalOrders = 2,
                         TotalSpent = 15000000,
@@ -273,7 +272,6 @@ namespace Zenkoi.API.ConfigExtensions
                     new Customer
                     {
                         Id = 3,
-                        ShippingAddress = "456 Đường Nguyễn Huệ, Phường Đa Kao, Quận 1, TP.HCM",
                         ContactNumber = "0912345678",
                         TotalOrders = 1,
                         TotalSpent = 12000000,
@@ -283,11 +281,107 @@ namespace Zenkoi.API.ConfigExtensions
                     new Customer
                     {
                         Id = 4,
-                        ShippingAddress = "789 Đường Hai Bà Trưng, Phường Đa Kao, Quận 1, TP.HCM",
                         ContactNumber = "0901234567",
                         TotalOrders = 0,
                         TotalSpent = 0,
                         IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.CustomerAddresses.Any())
+            {
+                await context.CustomerAddresses.AddRangeAsync(
+                    new CustomerAddress
+                    {
+                        CustomerId = 2,
+                        FullAddress = "123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
+                        City = "Hồ Chí Minh",
+                        District = "Quận 1",
+                        Ward = "Phường Bến Nghé",
+                        StreetAddress = "123 Đường Lê Lợi",
+                        Latitude = 10.7769m,
+                        Longitude = 106.7009m,
+                        RecipientPhone = "0987654321",
+                        IsDefault = true,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new CustomerAddress
+                    {
+                        CustomerId = 2,
+                        FullAddress = "456 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM",
+                        City = "Hồ Chí Minh",
+                        District = "Quận 1",
+                        Ward = "Phường Bến Nghé",
+                        StreetAddress = "456 Đường Nguyễn Huệ",
+                        Latitude = 10.7743m,
+                        Longitude = 106.7010m,
+                        RecipientPhone = "0987654321",
+                        IsDefault = false,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new CustomerAddress
+                    {
+                        CustomerId = 3,
+                        FullAddress = "789 Đường Hai Bà Trưng, Phường Đa Kao, Quận 1, TP.HCM",
+                        City = "Hồ Chí Minh",
+                        District = "Quận 1",
+                        Ward = "Phường Đa Kao",
+                        StreetAddress = "789 Đường Hai Bà Trưng",
+                        Latitude = 10.7881m,
+                        Longitude = 106.6983m,
+                        RecipientPhone = "0912345678",
+                        IsDefault = true,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new CustomerAddress
+                    {
+                        CustomerId = 3,
+                        FullAddress = "321 Đường Võ Văn Tần, Phường 5, Quận 3, TP.HCM",
+                        City = "Hồ Chí Minh",
+                        District = "Quận 3",
+                        Ward = "Phường 5",
+                        StreetAddress = "321 Đường Võ Văn Tần",
+                        Latitude = 10.7821m,
+                        Longitude = 106.6879m,
+                        RecipientPhone = "0912345678",
+                        IsDefault = false,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new CustomerAddress
+                    {
+                        CustomerId = 4,
+                        FullAddress = "555 Đường Cách Mạng Tháng 8, Phường 11, Quận 3, TP.HCM",
+                        City = "Hồ Chí Minh",
+                        District = "Quận 3",
+                        Ward = "Phường 11",
+                        StreetAddress = "555 Đường Cách Mạng Tháng 8",
+                        Latitude = 10.7844m,
+                        Longitude = 106.6759m,
+                        RecipientPhone = "0901234567",
+                        IsDefault = true,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new CustomerAddress
+                    {
+                        CustomerId = 4,
+                        FullAddress = "888 Đường Lý Thường Kiệt, Phường 7, Quận Tân Bình, TP.HCM",
+                        City = "Hồ Chí Minh",
+                        District = "Quận Tân Bình",
+                        Ward = "Phường 7",
+                        StreetAddress = "888 Đường Lý Thường Kiệt",
+                        Latitude = 10.7991m,
+                        Longitude = 106.6532m,
+                        RecipientPhone = "0901234567",
+                        IsDefault = false,
+                        IsActive = false,
                         CreatedAt = DateTime.UtcNow
                     }
                 );
