@@ -172,7 +172,8 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <returns>Danh sách gói cá có sẵn</returns>
         [HttpGet("available")]
-        public async Task<IActionResult> GetAvailablePacketFishes()
+        public async Task<IActionResult> GetAvailablePacketFishes([FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {

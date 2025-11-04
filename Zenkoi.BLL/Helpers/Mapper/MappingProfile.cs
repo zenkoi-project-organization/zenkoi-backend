@@ -25,6 +25,8 @@ using Zenkoi.DAL.Enums;
 using Zenkoi.BLL.DTOs.PondPacketFishDTOs;
 using Zenkoi.BLL.DTOs.ShippingBoxDTOs;
 using Zenkoi.BLL.DTOs.ShippingDistanceDTOs;
+using Zenkoi.BLL.DTOs.WaterParameterThresholdDTOs;
+using Zenkoi.BLL.DTOs.WaterParameterRecordDTOs;
 
 namespace Zenkoi.BLL.Helpers.Mapper
 {
@@ -129,7 +131,15 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<ClassificationRecordUpdateRequestDTO, ClassificationRecord>();
             CreateMap<PondPacketFishRequestDTO, PondPacketFish>();
             CreateMap<PondPacketFish, PondPacketFishResponseDTO>();
+            CreateMap<WaterParameterThreshold, WaterParameterThresholdResponseDTO>()
+           .ForMember(dest => dest.PondTypeName,
+                      opt => opt.MapFrom(src => src.PondType != null ? src.PondType.TypeName : null));
 
+            CreateMap<WaterParameterThresholdRequestDTO, WaterParameterThreshold>();
+            CreateMap<WaterParameterRecord, WaterParameterRecordResponseDTO>()
+            .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond.PondName))
+            .ForMember(dest => dest.RecordedByUserName, opt => opt.MapFrom(src => src.RecordedBy != null ? src.RecordedBy.UserName : null));
+            CreateMap<WaterParameterRecordRequestDTO, WaterParameterRecord>();
 
             // Order mappings
             CreateMap<OrderDetail, OrderDetailResponseDTO>()
