@@ -70,13 +70,19 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var packetFish = await _packetFishRepo.GetSingleAsync(new QueryOptions<PacketFish>
             {
-                Predicate = p => p.Id == id , IncludeProperties = new List<Expression<Func<PacketFish, object>>> {
-                p => p.VarietyPacketFishes
+                Predicate = p => p.Id == id,
+                IncludeProperties = new List<Expression<Func<PacketFish, object>>> {
+                    p => p.VarietyPacketFishes,
+                    p => p.PondPacketFishes
                 }
-            }); ;
+            });
 
+            if (packetFish == null)
+            {
+                throw new ArgumentException("PacketFish not found");
+            }
 
-            if (packetFish != null && packetFish.VarietyPacketFishes.Any())
+            if (packetFish.VarietyPacketFishes.Any())
             {
                 foreach (var vpf in packetFish.VarietyPacketFishes)
                 {
@@ -91,12 +97,16 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
 
-            if (packetFish == null)
+            var dto = _mapper.Map<PacketFishResponseDTO>(packetFish);
+
+            if (packetFish.PondPacketFishes != null)
             {
-                throw new ArgumentException("PacketFish not found");
+                dto.StockQuantity = packetFish.PondPacketFishes
+                    .Where(ppf => ppf.IsActive)
+                    .Sum(ppf => ppf.AvailableQuantity / packetFish.FishPerPacket);
             }
 
-            return _mapper.Map<PacketFishResponseDTO>(packetFish);
+            return dto;
         }
 
         public async Task<PaginatedList<PacketFishResponseDTO>> GetAllPacketFishesAsync(PacketFishFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
@@ -105,7 +115,8 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 IncludeProperties = new List<Expression<Func<PacketFish, object>>>
                 {
-                    pf => pf.VarietyPacketFishes
+                    pf => pf.VarietyPacketFishes,
+                    pf => pf.PondPacketFishes
                 }
             };
 
@@ -155,17 +166,6 @@ namespace Zenkoi.BLL.Services.Implements
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
-            if (filter.MinStockQuantity.HasValue)
-            {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.StockQuantity >= filter.MinStockQuantity.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
-
-            if (filter.MaxStockQuantity.HasValue)
-            {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.StockQuantity <= filter.MaxStockQuantity.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
 
             queryOptions.Predicate = predicate;
             queryOptions.OrderBy = pf => pf.OrderByDescending(x => x.CreatedAt);
@@ -191,6 +191,18 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var mappedList = _mapper.Map<List<PacketFishResponseDTO>>(packetFishes);
+
+            foreach (var dto in mappedList)
+            {
+                var packetFish = packetFishes.FirstOrDefault(pf => pf.Id == dto.Id);
+                if (packetFish != null && packetFish.PondPacketFishes != null)
+                {
+                    dto.StockQuantity = packetFish.PondPacketFishes
+                        .Where(ppf => ppf.IsActive)
+                        .Sum(ppf => ppf.AvailableQuantity / packetFish.FishPerPacket);
+                }
+            }
+
             var totalCount = mappedList.Count;
             var pagedItems = mappedList
                 .Skip((pageIndex - 1) * pageSize)

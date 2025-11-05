@@ -20,10 +20,6 @@ namespace Zenkoi.BLL.DTOs.PacketFishDTOs
         [Range(0.01, double.MaxValue, ErrorMessage = "PricePerPacket must be greater than 0")]
         public decimal PricePerPacket { get; set; }
 
-/*      [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "StockQuantity cannot be negative")]
-        public int StockQuantity { get; set; } = 0;*/
-
         [Required]
         public FishSize Size { get; set; }
 
