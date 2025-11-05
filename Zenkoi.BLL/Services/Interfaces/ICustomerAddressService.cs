@@ -8,7 +8,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<CustomerAddressResponseDTO> GetCustomerAddressByIdAsync(int id);
         Task<IEnumerable<CustomerAddressResponseDTO>> GetAllCustomerAddressesAsync();
         Task<IEnumerable<CustomerAddressResponseDTO>> GetAddressesByCustomerIdAsync(int customerId);
-        Task<IEnumerable<CustomerAddressResponseDTO>> GetActiveAddressesByCustomerIdAsync(int customerId);
         Task<CustomerAddressResponseDTO> GetDefaultAddressByCustomerIdAsync(int customerId);
         Task<CustomerAddressResponseDTO> UpdateCustomerAddressAsync(int id, CustomerAddressUpdateDTO updateDTO);
         Task<bool> DeleteCustomerAddressAsync(int id);

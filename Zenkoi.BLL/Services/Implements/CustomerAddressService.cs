@@ -101,6 +101,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<IEnumerable<CustomerAddressResponseDTO>> GetAllCustomerAddressesAsync()
         {
             var addresses = await _customerAddressRepo.GetAllAsync(new QueryBuilder<CustomerAddress>()
+                .WithPredicate(a => a.IsActive == true) 
                 .WithInclude(a => a.Customer)
                 .WithInclude(a => a.Customer.ApplicationUser)
                 .WithOrderBy(a => a.OrderByDescending(x => x.CreatedAt))
@@ -121,29 +122,6 @@ namespace Zenkoi.BLL.Services.Implements
         }
 
         public async Task<IEnumerable<CustomerAddressResponseDTO>> GetAddressesByCustomerIdAsync(int customerId)
-        {
-            var addresses = await _customerAddressRepo.GetAllAsync(new QueryBuilder<CustomerAddress>()
-                .WithPredicate(a => a.CustomerId == customerId)
-                .WithInclude(a => a.Customer)
-                .WithInclude(a => a.Customer.ApplicationUser)
-                .WithOrderBy(a => a.OrderByDescending(x => x.IsDefault).ThenByDescending(x => x.CreatedAt))
-                .Build());
-
-            var responseDTOs = _mapper.Map<IEnumerable<CustomerAddressResponseDTO>>(addresses);
-
-            foreach (var dto in responseDTOs)
-            {
-                var address = addresses.FirstOrDefault(a => a.Id == dto.Id);
-                if (address != null)
-                {
-                    dto.CustomerName = address.Customer?.ApplicationUser?.FullName ?? string.Empty;
-                }
-            }
-
-            return responseDTOs;
-        }
-
-        public async Task<IEnumerable<CustomerAddressResponseDTO>> GetActiveAddressesByCustomerIdAsync(int customerId)
         {
             var addresses = await _customerAddressRepo.GetAllAsync(new QueryBuilder<CustomerAddress>()
                 .WithPredicate(a => a.CustomerId == customerId && a.IsActive == true)
