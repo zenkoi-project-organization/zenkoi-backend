@@ -4,7 +4,7 @@ namespace Zenkoi.BLL.Services.Interfaces
 {
     public interface ICustomerAddressService
     {
-        Task<CustomerAddressResponseDTO> CreateCustomerAddressAsync(CustomerAddressRequestDTO requestDTO);
+        Task<CustomerAddressResponseDTO> CreateCustomerAddressAsync(CustomerAddressRequestDTO requestDTO, int customerId);
         Task<CustomerAddressResponseDTO> GetCustomerAddressByIdAsync(int id);
         Task<IEnumerable<CustomerAddressResponseDTO>> GetAllCustomerAddressesAsync();
         Task<IEnumerable<CustomerAddressResponseDTO>> GetAddressesByCustomerIdAsync(int customerId);

@@ -34,9 +34,9 @@ namespace Zenkoi.BLL.Services.Implements
             _farmLocation = farmLocation.Value;
         }
 
-        public async Task<CustomerAddressResponseDTO> CreateCustomerAddressAsync(CustomerAddressRequestDTO requestDTO)
+        public async Task<CustomerAddressResponseDTO> CreateCustomerAddressAsync(CustomerAddressRequestDTO requestDTO, int customerId)
         {
-            var customer = await _customerRepo.GetByIdAsync(requestDTO.CustomerId);
+            var customer = await _customerRepo.GetByIdAsync(customerId);
             if (customer == null)
             {
                 throw new ArgumentException("Customer not found");
@@ -48,7 +48,28 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (requestDTO.IsDefault)
             {
-                await UnsetAllDefaultAddressesAsync(requestDTO.CustomerId);
+                await UnsetAllDefaultAddressesAsync(customerId);
+            }
+         
+            if (requestDTO.Latitude.HasValue && requestDTO.Longitude.HasValue)
+            {
+                try
+                {
+                    var distanceKm = await _mapService.CalculateDistanceAsync(
+                        _farmLocation.Latitude,
+                        _farmLocation.Longitude,
+                        requestDTO.Latitude.Value,
+                        requestDTO.Longitude.Value
+                    );
+
+                    customerAddress.DistanceFromFarmKm = distanceKm;
+                    customerAddress.DistanceCalculatedAt = DateTime.UtcNow;
+                }
+                catch (Exception ex)
+                {            
+                    customerAddress.DistanceFromFarmKm = null;
+                    customerAddress.DistanceCalculatedAt = null;
+                }
             }
 
             await _customerAddressRepo.CreateAsync(customerAddress);
@@ -209,11 +230,27 @@ namespace Zenkoi.BLL.Services.Implements
                 address.IsActive = updateDTO.IsActive.Value;
 
             address.UpdatedAt = DateTime.UtcNow;
-
-            if (address.Latitude.HasValue && address.Longitude.HasValue)
+         
+            if ((updateDTO.Latitude.HasValue || updateDTO.Longitude.HasValue) &&
+                address.Latitude.HasValue && address.Longitude.HasValue)
             {
-                address.DistanceFromFarmKm = null;
-                address.DistanceCalculatedAt = null;
+                try
+                {
+                    var distanceKm = await _mapService.CalculateDistanceAsync(
+                        _farmLocation.Latitude,
+                        _farmLocation.Longitude,
+                        address.Latitude.Value,
+                        address.Longitude.Value
+                    );
+
+                    address.DistanceFromFarmKm = distanceKm;
+                    address.DistanceCalculatedAt = DateTime.UtcNow;
+                }
+                catch (Exception ex)
+                {              
+                    address.DistanceFromFarmKm = null;
+                    address.DistanceCalculatedAt = null;
+                }
             }
 
             await _customerAddressRepo.UpdateAsync(address);

@@ -3,10 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Zenkoi.BLL.DTOs.CustomerAddressDTOs
 {
     public class CustomerAddressRequestDTO
-    {
-        [Required(ErrorMessage = "Customer ID is required")]
-        public int CustomerId { get; set; }
-
+    {      
         [Required(ErrorMessage = "Full address is required")]
         [StringLength(500, ErrorMessage = "Full address cannot exceed 500 characters")]
         public string FullAddress { get; set; } = string.Empty;
