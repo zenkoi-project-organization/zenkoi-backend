@@ -43,6 +43,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var customerAddress = _mapper.Map<CustomerAddress>(requestDTO);
+            customerAddress.CustomerId = customerId; 
             customerAddress.CreatedAt = DateTime.UtcNow;
             customerAddress.IsActive = true;
 

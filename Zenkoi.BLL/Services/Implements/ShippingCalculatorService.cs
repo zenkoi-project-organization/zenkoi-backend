@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zenkoi.BLL.DTOs.ShippingDTOs;
 using Zenkoi.BLL.Helpers;
@@ -42,16 +42,25 @@ namespace Zenkoi.BLL.Services.Implements
             var koiList = ExpandKoiInputs(request.KoiInputs);
             result.TotalKoiCount = koiList.Count;
 
+            _logger.LogInformation("Expanded to {Count} individual koi", koiList.Count);
+            foreach (var koi in koiList)
+            {
+                _logger.LogInformation("Koi: {SizeCm}cm ({SizeInch}inch), IsTosai: {IsTosai}",
+                    koi.SizeCm, koi.SizeInch, koi.IsTosai);
+            }
+
             var boxes = await _context.ShippingBoxes
                 .Include(b => b.Rules)
                 .Where(b => b.IsActive && b.MaxKoiCount.HasValue)
-                .OrderBy(b => b.Fee)
+                .OrderBy(b => b.Fee / (b.MaxKoiCount ?? 1)) 
                 .ToListAsync();
 
             if (!boxes.Any())
             {
                 throw new InvalidOperationException("No shipping boxes available");
             }
+
+            _logger.LogInformation("Loaded {Count} boxes", boxes.Count);
 
             var remainingKoi = new List<KoiItem>(koiList);
             var packingAttempts = 0;
@@ -62,15 +71,19 @@ namespace Zenkoi.BLL.Services.Implements
                 packingAttempts++;
                 bool packed = false;
 
+                _logger.LogInformation("Packing attempt #{Attempt}, remaining koi: {Count}",
+                    packingAttempts, remainingKoi.Count);
+
+
                 foreach (var box in boxes)
                 {
-                    var packedKoi = TryPackIntoBox(
-                        remainingKoi,
-                        box
-                    );
+                    var packedKoi = TryPackIntoBox(remainingKoi, box);
 
                     if (packedKoi.Any())
                     {
+                        _logger.LogInformation("Packed {Count} koi into {BoxName} (${Fee})",
+                            packedKoi.Count, box.Name, box.Fee);
+
                         result.Boxes.Add(new BoxSelection
                         {
                             BoxId = box.Id,
@@ -85,6 +98,7 @@ namespace Zenkoi.BLL.Services.Implements
                             }).ToList()
                         });
 
+
                         foreach (var koi in packedKoi)
                         {
                             remainingKoi.Remove(koi);
@@ -94,6 +108,7 @@ namespace Zenkoi.BLL.Services.Implements
                         break;
                     }
                 }
+
 
                 if (!packed)
                 {
@@ -120,7 +135,7 @@ namespace Zenkoi.BLL.Services.Implements
                         });
 
                         result.Warnings.Add(
-                            $"{remainingKoi.Count} koi require Extra Large Box - farm manager approval needed"
+                            $"{remainingKoi.Count} koi yêu cầu Extra Large Box - cần chấp thuận từ quản lý"
                         );
 
                         remainingKoi.Clear();
@@ -128,7 +143,7 @@ namespace Zenkoi.BLL.Services.Implements
                     else
                     {
                         throw new InvalidOperationException(
-                            "Unable to pack all koi. Please contact farm manager."
+                            "Không thể đóng gói tất cả cá. Vui lòng liên hệ quản lý trang trại."
                         );
                     }
                 }
@@ -153,8 +168,9 @@ namespace Zenkoi.BLL.Services.Implements
             AddSuggestions(result);
 
             _logger.LogInformation(
-                "Calculation complete: {BoxCount} boxes, Total: ${Total}",
+                "Calculation complete: {BoxCount} boxes ({Details}), Total: ${Total}",
                 result.Boxes.Sum(b => b.Quantity),
+                string.Join(", ", result.Boxes.Select(b => $"{b.Quantity}x {b.BoxName}")),
                 result.TotalFee
             );
 
@@ -177,8 +193,8 @@ namespace Zenkoi.BLL.Services.Implements
                     koiList.Add(new KoiItem
                     {
                         SizeCm = sizeCm,
-                        SizeInch = sizeCm / 2.54m,
-                        IsTosai = sizeCm <= 15
+                        SizeInch = Math.Round(sizeCm / 2.54m, 2),
+                        IsTosai = sizeCm <= 10 
                     });
                 }
             }
@@ -197,13 +213,22 @@ namespace Zenkoi.BLL.Services.Implements
                 return packed;
             }
 
+            _logger.LogDebug("Trying to pack into {BoxName} (max {MaxCount} koi, max {MaxSize} inch)",
+                box.Name, box.MaxKoiCount, box.MaxKoiSizeInch);
+
+            decimal maxSizeInch = box.MaxKoiSizeInch.Value;
+
             var suitableKoi = availableKoi
-                .Where(k => k.SizeInch <= box.MaxKoiSizeInch.Value)
+                .Where(k => k.SizeInch <= maxSizeInch)
                 .ToList();
+
+            _logger.LogDebug("Found {Count} koi that fit size limit of {MaxSize} inch",
+                suitableKoi.Count, maxSizeInch);
 
             if (box.Name.Contains("Mini", StringComparison.OrdinalIgnoreCase))
             {
                 suitableKoi = suitableKoi.Where(k => k.IsTosai).ToList();
+                _logger.LogDebug("Mini Box: Filtered to {Count} tosai", suitableKoi.Count);
             }
 
             if (box.Rules != null && box.Rules.Any())
@@ -219,30 +244,45 @@ namespace Zenkoi.BLL.Services.Implements
                     if (!suitableKoi.Any())
                         break;
                 }
+
+                _logger.LogDebug("After applying rules: {Count} suitable koi", suitableKoi.Count);
             }
 
             packed = suitableKoi.Take(box.MaxKoiCount.Value).ToList();
+
+            if (packed.Any())
+            {
+                _logger.LogInformation("Successfully packed {Count} koi into {BoxName}",
+                    packed.Count, box.Name);
+            }
 
             return packed;
         }
 
         private List<KoiItem> ApplyRule(List<KoiItem> koi, ShippingBoxRule rule)
         {
+            _logger.LogDebug("Applying rule: {RuleType}", rule.RuleType);
+
             switch (rule.RuleType)
             {
                 case ShippingRuleType.ByMaxLength:
                     if (rule.MaxLengthCm.HasValue)
                     {
                         koi = koi.Where(k => k.SizeCm <= rule.MaxLengthCm.Value).ToList();
+                        _logger.LogDebug("Filtered by max length {Max}cm: {Count} koi remain",
+                            rule.MaxLengthCm.Value, koi.Count);
                     }
                     if (rule.MinLengthCm.HasValue)
                     {
                         koi = koi.Where(k => k.SizeCm >= rule.MinLengthCm.Value).ToList();
+                        _logger.LogDebug("Filtered by min length {Min}cm: {Count} koi remain",
+                            rule.MinLengthCm.Value, koi.Count);
                     }
                     break;
 
                 case ShippingRuleType.ByAge:
                     koi = koi.Where(k => k.IsTosai).ToList();
+                    _logger.LogDebug("Filtered by age (tosai only): {Count} koi remain", koi.Count);
                     break;
 
                 case ShippingRuleType.ByCount:
@@ -262,7 +302,7 @@ namespace Zenkoi.BLL.Services.Implements
             if (totalBoxes > 3)
             {
                 result.Suggestions.Add(
-                    "Consider consolidating shipment to reduce number of boxes and save on shipping costs"
+                    "Xem xét gộp lô hàng để giảm số lượng box và tiết kiệm chi phí vận chuyển"
                 );
             }
 
@@ -272,7 +312,7 @@ namespace Zenkoi.BLL.Services.Implements
             if (mediumBoxCount >= 2)
             {
                 result.Suggestions.Add(
-                    "Consider using Large Boxes instead of multiple Medium Boxes for better value"
+                    "Xem xét dùng Large Box thay vì nhiều Medium Box để tiết kiệm"
                 );
             }
         }
