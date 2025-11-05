@@ -65,7 +65,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var newPackage = _mapper.Map<PondPacketFish>(dto);
             newPackage.QuantityFish = breed.ClassificationStage.PondQualifiedCount.Value;
-            newPackage.QuantityPacket = newPackage.QuantityFish / packet.Quantity;
+            newPackage.QuantityPacket = newPackage.QuantityFish / packet.FishPerPacket;
 
             if (dto.PondId != breed.PondId)
             {

@@ -27,6 +27,7 @@ using Zenkoi.BLL.DTOs.ShippingBoxDTOs;
 using Zenkoi.BLL.DTOs.ShippingDistanceDTOs;
 using Zenkoi.BLL.DTOs.WaterParameterThresholdDTOs;
 using Zenkoi.BLL.DTOs.WaterParameterRecordDTOs;
+using Zenkoi.BLL.DTOs.CustomerAddressDTOs;
 
 namespace Zenkoi.BLL.Helpers.Mapper
 {

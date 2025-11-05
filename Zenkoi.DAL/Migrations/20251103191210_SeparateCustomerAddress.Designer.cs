@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251103191210_SeparateCustomerAddress")]
+    partial class SeparateCustomerAddress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1136,11 +1139,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("FishPerPacket")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(10);
-
                     b.PrimitiveCollection<string>("Images")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -1155,16 +1153,14 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<decimal>("PricePerPacket")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Size")
                         .HasColumnType("decimal(8,2)");
 
-                    b.Property<int>("StockQuantity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -1501,7 +1497,7 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int?>("RecommendedQuantity")
+                    b.Property<int?>("RecommendedCapacity")
                         .HasColumnType("int");
 
                     b.Property<int>("Type")
@@ -2053,6 +2049,12 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<decimal?>("TemperatureCelsius")
                         .HasColumnType("decimal(5,2)");
 
+                    b.Property<decimal?>("TotalChlorines")
+                        .HasColumnType("decimal(8,4)");
+
+                    b.Property<decimal?>("Turbidity")
+                        .HasColumnType("decimal(8,2)");
+
                     b.Property<decimal?>("WaterLevelMeters")
                         .HasColumnType("decimal(8,2)");
 
@@ -2080,6 +2082,10 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<decimal>("MinValue")
                         .HasColumnType("decimal(10,4)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ParameterName")
                         .IsRequired()

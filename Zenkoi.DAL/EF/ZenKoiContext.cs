@@ -55,7 +55,8 @@ namespace Zenkoi.DAL.EF
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<ShippingBox> ShippingBoxes { get; set; }
         public DbSet<ShippingBoxRule> ShippingBoxRules { get; set; }
-        public DbSet<ShippingDistance> ShippingDistances { get; set; } 
+        public DbSet<ShippingDistance> ShippingDistances { get; set; }
+        public DbSet<CustomerAddress> CustomerAddresses { get; set; }
 
         #endregion
 
@@ -99,6 +100,7 @@ namespace Zenkoi.DAL.EF
             modelBuilder.ApplyConfiguration(new ShippingBoxConfiguration());
             modelBuilder.ApplyConfiguration(new ShippingBoxRuleConfiguration());
             modelBuilder.ApplyConfiguration(new ShippingDistanceConfiguration());
+            modelBuilder.ApplyConfiguration(new CustomerAddressConfiguration());
 
             modelBuilder.Entity<IdentityUserLogin<int>>(entity =>
 			{

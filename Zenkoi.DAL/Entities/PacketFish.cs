@@ -10,8 +10,9 @@ namespace Zenkoi.DAL.Entities
         public int Id { get; set; }
         public string Name { get; set; }
         public string? Description { get; set; }
-        public int Quantity { get; set; }
-        public decimal TotalPrice { get; set; }
+        public int FishPerPacket { get; set; } = 10;
+        public decimal PricePerPacket { get; set; }
+        public int StockQuantity { get; set; } = 0;
         public FishSize Size { get; set; }
         public decimal AgeMonths { get; set; }
         public List<string>? Images { get; set; }

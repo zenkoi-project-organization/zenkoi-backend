@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.ShippingBoxDTOs;
+using Zenkoi.BLL.DTOs.ShippingDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
 namespace Zenkoi.API.Controllers
@@ -11,10 +12,14 @@ namespace Zenkoi.API.Controllers
     public class ShippingBoxController : BaseAPIController
     {
         private readonly IShippingBoxService _shippingBoxService;
+        private readonly IShippingCalculatorService _shippingCalculatorService;
 
-        public ShippingBoxController(IShippingBoxService shippingBoxService)
+        public ShippingBoxController(
+            IShippingBoxService shippingBoxService,
+            IShippingCalculatorService shippingCalculatorService)
         {
             _shippingBoxService = shippingBoxService;
+            _shippingCalculatorService = shippingCalculatorService;
         }
 
         [HttpGet]
@@ -194,6 +199,31 @@ namespace Zenkoi.API.Controllers
             catch (Exception ex)
             {
                 return GetError($"Lỗi khi lấy danh sách quy tắc vận chuyển: {ex.Message}");
+            }
+        }
+
+        [HttpPost("calculate")]
+        public async Task<IActionResult> CalculateShipping([FromBody] ShippingCalculationRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return ModelInvalid();
+
+                var result = await _shippingCalculatorService.CalculateShipping(request);
+                return GetSuccess(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return GetError(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return GetError(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return GetError($"Lỗi khi tính toán chi phí vận chuyển: {ex.Message}");
             }
         }
     }

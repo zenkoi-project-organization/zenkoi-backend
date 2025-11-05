@@ -153,7 +153,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             return _mapper.Map<KoiFishResponseDTO>(koifish);
         }
-
+        
         public async Task<KoiFishResponseDTO> CreateAsync(KoiFishRequestDTO dto)
         {
             var variety = await _varietyRepo.CheckExistAsync(dto.VarietyId);

@@ -20,11 +20,16 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<KoiFish> _koiFishRepo;
         private readonly IRepoBase<PacketFish> _packetFishRepo;
         private readonly IRepoBase<Promotion> _promotionRepo;
+        private readonly IShippingFeeCalculationService _shippingFeeCalculationService;
 
-        public CartService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CartService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IShippingFeeCalculationService shippingFeeCalculationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _shippingFeeCalculationService = shippingFeeCalculationService;
             _cartRepo = _unitOfWork.GetRepo<Cart>();
             _cartItemRepo = _unitOfWork.GetRepo<CartItem>();
             _customerRepo = _unitOfWork.GetRepo<Customer>();
@@ -72,7 +77,7 @@ namespace Zenkoi.BLL.Services.Implements
                 }
                 else if (ci.PacketFishId.HasValue && ci.PacketFish != null)
                 {
-                    return ci.PacketFish.TotalPrice * ci.Quantity;
+                    return ci.PacketFish.PricePerPacket * ci.Quantity;
                 }
                 return 0;
             });
@@ -85,7 +90,7 @@ namespace Zenkoi.BLL.Services.Implements
                 }
                 else if (item.PacketFish != null)
                 {
-                    item.ItemTotalPrice = item.PacketFish.TotalPrice * item.Quantity;
+                    item.ItemTotalPrice = item.PacketFish.PricePerPacket * item.Quantity;
                 }
             }
 
@@ -144,7 +149,7 @@ namespace Zenkoi.BLL.Services.Implements
                 }
                 else if (ci.PacketFishId.HasValue && ci.PacketFish != null)
                 {
-                    return ci.PacketFish.TotalPrice * ci.Quantity;
+                    return ci.PacketFish.PricePerPacket * ci.Quantity;
                 }
                 return 0;
             });
@@ -157,7 +162,7 @@ namespace Zenkoi.BLL.Services.Implements
                 }
                 else if (item.PacketFish != null)
                 {
-                    item.ItemTotalPrice = item.PacketFish.TotalPrice * item.Quantity;
+                    item.ItemTotalPrice = item.PacketFish.PricePerPacket * item.Quantity;
                 }
             }
 
@@ -287,7 +292,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             else if (response.PacketFish != null)
             {
-                response.ItemTotalPrice = response.PacketFish.TotalPrice * response.Quantity;
+                response.ItemTotalPrice = response.PacketFish.PricePerPacket * response.Quantity;
             }
 
             return response;
@@ -338,7 +343,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             else if (response.PacketFish != null)
             {
-                response.ItemTotalPrice = response.PacketFish.TotalPrice * response.Quantity;
+                response.ItemTotalPrice = response.PacketFish.PricePerPacket * response.Quantity;
             }
 
             return response;
@@ -448,7 +453,7 @@ namespace Zenkoi.BLL.Services.Implements
                 }
                 else if (item.PacketFishId.HasValue && item.PacketFish != null)
                 {
-                    unitPrice = item.PacketFish.TotalPrice;
+                    unitPrice = item.PacketFish.PricePerPacket;
                 }
                 else
                 {
@@ -477,15 +482,34 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
 
+            decimal shippingFee = convertCartToOrderDTO.ShippingFee;
+
+            if (convertCartToOrderDTO.CustomerAddressId.HasValue && convertCartToOrderDTO.ShippingFee == 0)
+            {
+                var orderItems = cart.CartItems.Select(ci => new Zenkoi.BLL.DTOs.OrderDTOs.OrderItemDTO
+                {
+                    KoiFishId = ci.KoiFishId,
+                    PacketFishId = ci.PacketFishId,
+                    Quantity = ci.Quantity
+                }).ToList();
+
+                var shippingFeeBreakdown = await _shippingFeeCalculationService.CalculateShippingFeeForOrderAsync(
+                    orderItems,
+                    convertCartToOrderDTO.CustomerAddressId.Value
+                );
+                shippingFee = shippingFeeBreakdown.TotalShippingFee;
+            }
+
             decimal discountAmount = await CalculateDiscountAsync(convertCartToOrderDTO.PromotionId, subtotal);
-            var totalAmount = subtotal + convertCartToOrderDTO.ShippingFee - discountAmount;
+            var totalAmount = subtotal + shippingFee - discountAmount;
 
             var order = new Order
             {
                 CustomerId = customerId,
+                CustomerAddressId = convertCartToOrderDTO.CustomerAddressId,
                 Status = OrderStatus.Created,
                 Subtotal = subtotal,
-                ShippingFee = convertCartToOrderDTO.ShippingFee,
+                ShippingFee = shippingFee,
                 DiscountAmount = discountAmount,
                 TotalAmount = totalAmount,
                 PromotionId = convertCartToOrderDTO.PromotionId,

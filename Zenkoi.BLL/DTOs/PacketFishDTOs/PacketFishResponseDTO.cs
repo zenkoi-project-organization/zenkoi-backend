@@ -7,8 +7,9 @@ namespace Zenkoi.BLL.DTOs.PacketFishDTOs
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public int Quantity { get; set; }
-        public decimal TotalPrice { get; set; }
+        public int FishPerPacket { get; set; }
+        public decimal PricePerPacket { get; set; }
+        public int StockQuantity { get; set; }
         public FishSize Size { get; set; }
         public decimal AgeMonths { get; set; }
         public List<string>? Images { get; set; }
