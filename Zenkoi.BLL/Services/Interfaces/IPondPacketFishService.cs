@@ -13,7 +13,7 @@ namespace Zenkoi.BLL.Services.Interfaces
 {
     public interface IPondPacketFishService
     {
-        Task<PaginatedList<PondPacketFishResponseDTO>> GetAllPondPacketFishAsync(int pageIndex = 1, int pageSize = 10);
+        Task<PaginatedList<PondPacketFishResponseDTO>> GetAllPondPacketFishAsync(PondPacketFishFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<PondPacketFishResponseDTO> GetByIdAsync(int id);
         Task<PondPacketFishResponseDTO> CreateAsync(PondPacketFishRequestDTO dto);
         Task<bool> TranferPacket(int id, PondPacketFishUpdateRequestDTO dto);
