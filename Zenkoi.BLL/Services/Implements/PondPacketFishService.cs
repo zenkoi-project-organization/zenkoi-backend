@@ -125,14 +125,7 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<PaginatedList<PondPacketFishResponseDTO>> GetAllPondPacketFishAsync(PondPacketFishFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var Packets = await _repo.GetAllAsync(new QueryOptions<PondPacketFish>
-            {
-                IncludeProperties = new List<System.Linq.Expressions.Expression<Func<PondPacketFish, object>>> {
-                 x => x.BreedingProcess,
-                    x => x.Pond,
-                    x => x.PacketFish
-                }
-            });
+
             Expression<Func<PondPacketFish, bool>>? predicate = null;
 
             if (filter.BreedingProcessId.HasValue)
@@ -140,6 +133,16 @@ namespace Zenkoi.BLL.Services.Implements
                 Expression<Func<PondPacketFish, bool>> expr = k => k.BreedingProcessId == filter.BreedingProcessId.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+
+            var Packets = await _repo.GetAllAsync(new QueryOptions<PondPacketFish>
+            {
+                Predicate = predicate, 
+                IncludeProperties = new List<System.Linq.Expressions.Expression<Func<PondPacketFish, object>>> {
+                    x => x.BreedingProcess,
+                    x => x.Pond,
+                    x => x.PacketFish
+                }
+            });
 
             var mappedList = _mapper.Map<List<PondPacketFishResponseDTO>>(Packets);
 
