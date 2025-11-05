@@ -43,7 +43,8 @@ namespace Zenkoi.API.Controllers
 
             try
             {
-                var created = await _service.CreateAsync(dto);
+                int userId = UserId;
+                var created = await _service.CreateAsync(userId,dto);
                 return SaveSuccess(created, "Ghi nhận thông số nước thành công.");
             }
             catch (Exception ex)

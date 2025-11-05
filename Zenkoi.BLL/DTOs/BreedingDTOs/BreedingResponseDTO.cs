@@ -27,7 +27,7 @@ namespace Zenkoi.BLL.DTOs.BreedingDTOs
 
         public int? PondId { get; set; }
         public string? PondName { get; set; }
-
+        public DateTime? HatchedTime { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public BreedingStatus Status { get; set; }

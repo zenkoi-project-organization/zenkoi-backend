@@ -47,6 +47,8 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new InvalidOperationException("quá trình sinh sản đã thất bại hoặc hủy nên không thể update");
             }
+            breed.Status = BreedingStatus.Complete;
+            classìication.Status = ClassificationStatus.Success;
             await _breedRepo.UpdateAsync(breed);
             await _classRepo.UpdateAsync(classìication);
             await _unitOfWork.SaveChangesAsync();

@@ -61,7 +61,6 @@ namespace Zenkoi.BLL.Services.Implements
             record.RottenEggs = eggBatch.Quantity - (dto.HatchedEggs + dto.HealthyEggs);
             await _incubationDailyRepo.CreateAsync(record);
             eggBatch.TotalHatchedEggs += dto.HatchedEggs;
-            Console.WriteLine($"TONG TRUNG : {dto.HealthyEggs} SO LUONG : {eggBatch.Quantity}");
             eggBatch.FertilizationRate = (double)dto.HealthyEggs / eggBatch.Quantity * 100;
             breed.FertilizationRate = eggBatch.FertilizationRate;
             if (record.Success)
@@ -100,6 +99,7 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException($"Lô trứng đã {eggBatch.Status}");
             }
 
+
             var records = await getAllbyEggBatchId(eggBatch.Id);
             var total = await GetSummaryByEggBatchIdAsync(eggBatch.Id);
             var record = _mapper.Map<IncubationDailyRecord>(dto);
@@ -113,7 +113,14 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     throw new InvalidOperationException("tổng trứng nở lớn hơn số trứng khỏe ở lần nhập trước");
                 }
-              
+
+
+                if (eggBatch.TotalHatchedEggs == 0 && dto.HatchedEggs > 0)
+                {
+                    eggBatch.Status = EggBatchStatus.PartiallyHatched;
+                    eggBatch.HatchingTime = DateTime.Now;
+                }
+
                 record.HealthyEggs = lastRecord.HealthyEggs - dto.HatchedEggs;
                 if (record.Success)
                 {

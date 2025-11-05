@@ -199,6 +199,7 @@ namespace Zenkoi.BLL.Services.Implements
             await _pondRepo.UpdateAsync(pond);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<BreedingProcessResponseDTO>(entity);
+
         }
 
         public async Task<BreedingProcessResponseDTO> GetBreedingById(int id)
@@ -210,7 +211,10 @@ namespace Zenkoi.BLL.Services.Implements
         {
                 b => b.MaleKoi,
                 b => b.FemaleKoi,
-                b => b.Pond
+                p => p.MaleKoi!.Variety,
+                p => p.FemaleKoi!.Variety,
+                b => b.Pond,
+                b => b.Batch
         }
             });
 
@@ -219,7 +223,9 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản");
             }
 
-            return _mapper.Map<BreedingProcessResponseDTO>(breeding);
+            var res = _mapper.Map<BreedingProcessResponseDTO>(breeding);
+            res.HatchedTime = breeding.Batch.HatchingTime;
+            return res;
         }
 
         public async Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(
@@ -406,7 +412,7 @@ namespace Zenkoi.BLL.Services.Implements
             var nextNumber = count + 1;
             return $"BP-{nextNumber}";
         }
-
+           
         public async Task<bool> UpdateStatus(int id)
         {
             var breed = await _breedRepo.GetByIdAsync(id);
@@ -442,7 +448,9 @@ namespace Zenkoi.BLL.Services.Implements
                 }
               };
             var breed = await _breedRepo.GetSingleAsync(options);
-            return _mapper.Map<BreedingResponseDTO>(breed);
+            var res =  _mapper.Map<BreedingResponseDTO>(breed);
+            res.HatchedTime = breed.Batch.HatchingTime;
+            return res;
         }
 
         public async Task<KoiFishParentResponseDTO> GetKoiFishParentStatsAsync(int koiFishId)

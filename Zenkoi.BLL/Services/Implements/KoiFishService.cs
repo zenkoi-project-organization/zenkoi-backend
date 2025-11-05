@@ -183,13 +183,20 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (dto.BreedingProcessId.HasValue)
             {
-                var breed = await _breedRepo.GetByIdAsync(dto.BreedingProcessId);
+                var breed = await _breedRepo.GetSingleAsync(new QueryOptions<BreedingProcess>
+                {
+                    Predicate = p => p.Id == dto.BreedingProcessId,
+                    IncludeProperties = new List<Expression<Func<BreedingProcess, object>>>
+                    {
+                        p => p.ClassificationStage
+                    }
+                });
                 if (breed == null)
                 {
                     throw new Exception("không tìm thấy quy trình sinh sản");
                 }
 
-                if (!breed.Status.Equals(BreedingStatus.Complete))
+                if (breed.Status != BreedingStatus.Complete && breed.ClassificationStage.Status != ClassificationStatus.Stage4)
                 {
                     throw new Exception("Quy trình sinh sản này chưa hoàn thành");
                 }

@@ -112,7 +112,7 @@ namespace Zenkoi.BLL.Services.Implements
             return result;
         }
 
-        public async Task<WaterParameterRecordResponseDTO> CreateAsync(WaterParameterRecordRequestDTO dto)
+        public async Task<WaterParameterRecordResponseDTO> CreateAsync(int userId, WaterParameterRecordRequestDTO dto) 
         {
             // Kiểm tra Pond tồn tại
             var pondExists = await _pondRepo.CheckExistAsync(dto.PondId);
@@ -123,6 +123,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var entity = _mapper.Map<WaterParameterRecord>(dto);
             entity.RecordedAt = dto.RecordedAt ?? DateTime.UtcNow;
+            entity.RecordedByUserId = userId;
 
             await _recordRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
