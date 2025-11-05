@@ -26,6 +26,9 @@ namespace Zenkoi.BLL.DTOs.PacketFishDTOs
         [Required]
         public DateTime BirthDate { get; set; }
 
+        [Required]
+        [MinLength(1, ErrorMessage = "At least one variety is required")]
+        public List<int> VarietyIds { get; set; } = new List<int>();
 
         public List<string>? Images { get; set; }
         public List<string>? Videos { get; set; }

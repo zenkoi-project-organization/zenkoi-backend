@@ -55,6 +55,23 @@ namespace Zenkoi.BLL.Services.Implements
                 packetFish.AgeMonths = ageMonth;
                 await packetFishRepo.CreateAsync(packetFish);
                 await _unitOfWork.SaveChangesAsync();
+
+                foreach (var varietyId in dto.VarietyIds)
+                {
+                    var variety = await _varietyRepo.GetByIdAsync(varietyId);
+                    if (variety == null)
+                    {
+                        throw new ArgumentException($"Variety with ID {varietyId} not found");
+                    }
+
+                    var varietyPacketFish = new VarietyPacketFish
+                    {
+                        VarietyId = varietyId,
+                        PacketFishId = packetFish.Id
+                    };
+                    await _varietyPacketFishRepo.CreateAsync(varietyPacketFish);
+                }
+                await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
                 return await GetPacketFishByIdAsync(packetFish.Id);
@@ -214,19 +231,57 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<PacketFishResponseDTO> UpdatePacketFishAsync(int id, PacketFishUpdateDTO packetFishUpdateDTO)
         {
-            var packetFish = await _packetFishRepo.GetByIdAsync(id);
-            if (packetFish == null)
+            try
             {
-                throw new ArgumentException("PacketFish not found");
+                await _unitOfWork.BeginTransactionAsync();
+
+                var packetFish = await _packetFishRepo.GetByIdAsync(id);
+                if (packetFish == null)
+                {
+                    throw new ArgumentException("PacketFish not found");
+                }
+
+                _mapper.Map(packetFishUpdateDTO, packetFish);
+                packetFish.UpdatedAt = DateTime.UtcNow;
+
+                await _packetFishRepo.UpdateAsync(packetFish);
+
+                var existingVarieties = await _varietyPacketFishRepo.GetAllAsync(new QueryOptions<VarietyPacketFish>
+                {
+                    Predicate = vpf => vpf.PacketFishId == id
+                });
+
+                foreach (var existingVariety in existingVarieties)
+                {
+                    await _varietyPacketFishRepo.DeleteAsync(existingVariety);
+                }
+
+                foreach (var varietyId in packetFishUpdateDTO.VarietyIds)
+                {
+                    var variety = await _varietyRepo.GetByIdAsync(varietyId);
+                    if (variety == null)
+                    {
+                        throw new ArgumentException($"Variety with ID {varietyId} not found");
+                    }
+
+                    var varietyPacketFish = new VarietyPacketFish
+                    {
+                        VarietyId = varietyId,
+                        PacketFishId = id
+                    };
+                    await _varietyPacketFishRepo.CreateAsync(varietyPacketFish);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return await GetPacketFishByIdAsync(id);
             }
-
-            _mapper.Map(packetFishUpdateDTO, packetFish);
-            packetFish.UpdatedAt = DateTime.UtcNow;
-
-            await _packetFishRepo.UpdateAsync(packetFish);
-            await _unitOfWork.SaveChangesAsync();
-
-            return await GetPacketFishByIdAsync(id);
+            catch
+            {
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> DeletePacketFishAsync(int id)
