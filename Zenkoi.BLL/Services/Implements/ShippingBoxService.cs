@@ -26,7 +26,10 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<List<ShippingBoxResponseDTO>> GetAllAsync()
         {
-            var queryOptions = new QueryOptions<ShippingBox>();
+            var queryOptions = new QueryOptions<ShippingBox>
+            {
+                Predicate = b => b.IsActive == true
+            };
             var boxes = await _shippingBoxRepo.GetAllAsync(queryOptions);
 
             var result = new List<ShippingBoxResponseDTO>();
@@ -36,7 +39,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                 var ruleQueryOptions = new QueryOptions<ShippingBoxRule>
                 {
-                    Predicate = r => r.ShippingBoxId == box.Id
+                    Predicate = r => r.ShippingBoxId == box.Id && r.IsActive == true
                 };
                 var rules = await _shippingBoxRuleRepo.GetAllAsync(ruleQueryOptions);
                 dto.Rules = _mapper.Map<List<ShippingBoxRuleResponseDTO>>(rules);
@@ -49,7 +52,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<ShippingBoxResponseDTO> GetByIdAsync(int id)
         {
             var box = await _shippingBoxRepo.GetByIdAsync(id);
-            if (box == null)
+            if (box == null || !box.IsActive)
             {
                 throw new KeyNotFoundException("Không tìm thấy hộp vận chuyển");
             }
@@ -58,7 +61,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var queryOptions = new QueryOptions<ShippingBoxRule>
             {
-                Predicate = r => r.ShippingBoxId == id
+                Predicate = r => r.ShippingBoxId == id && r.IsActive == true
             };
             var rules = await _shippingBoxRuleRepo.GetAllAsync(queryOptions);
             dto.Rules = _mapper.Map<List<ShippingBoxRuleResponseDTO>>(rules);
@@ -139,7 +142,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
         }
 
-        public async Task<bool> UpdateRuleAsync(int ruleId, ShippingBoxRuleRequestDTO dto)
+        public async Task<bool> UpdateRuleAsync(int ruleId, ShippingBoxRuleUpdateDTO dto)
         {
             var rule = await _shippingBoxRuleRepo.GetByIdAsync(ruleId);
             if (rule == null)
@@ -174,7 +177,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<ShippingBoxRuleResponseDTO> GetRuleByIdAsync(int ruleId)
         {
             var rule = await _shippingBoxRuleRepo.GetByIdAsync(ruleId);
-            if (rule == null)
+            if (rule == null || !rule.IsActive)
             {
                 throw new KeyNotFoundException("Không tìm thấy quy tắc vận chuyển");
             }
@@ -186,7 +189,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var queryOptions = new QueryOptions<ShippingBoxRule>
             {
-                Predicate = r => r.ShippingBoxId == boxId
+                Predicate = r => r.ShippingBoxId == boxId && r.IsActive == true
             };
             var rules = await _shippingBoxRuleRepo.GetAllAsync(queryOptions);
             return _mapper.Map<List<ShippingBoxRuleResponseDTO>>(rules);

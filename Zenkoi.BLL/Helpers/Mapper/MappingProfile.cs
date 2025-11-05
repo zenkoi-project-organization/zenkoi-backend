@@ -220,6 +220,7 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<ShippingBoxRequestDTO, ShippingBox>();
             CreateMap<ShippingBoxRule, ShippingBoxRuleResponseDTO>().ReverseMap();
             CreateMap<ShippingBoxRuleRequestDTO, ShippingBoxRule>();
+            CreateMap<ShippingBoxRuleUpdateDTO, ShippingBoxRule>();
 
             CreateMap<ShippingDistance, ShippingDistanceResponseDTO>().ReverseMap();
             CreateMap<ShippingDistanceRequestDTO, ShippingDistance>();
