@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.PondPacketFishDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Paging;
@@ -17,9 +18,9 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllPondPacketFish([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllPondPacketFish([FromQuery] PondPacketFishFilterRequestDTO? filter, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
-            var data = await _pondPacketFishService.GetAllPondPacketFishAsync(pageIndex, pageSize);
+            var data = await _pondPacketFishService.GetAllPondPacketFishAsync(filter ?? new PondPacketFishFilterRequestDTO(), pageIndex, pageSize);
             return GetPagedSuccess(data);
         }
 

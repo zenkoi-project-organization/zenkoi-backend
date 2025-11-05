@@ -15,6 +15,7 @@ using Zenkoi.DAL.UnitOfWork;
 using Zenkoi.DAL.Queries;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using System.Linq.Expressions;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -121,7 +122,7 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<PaginatedList<PondPacketFishResponseDTO>> GetAllPondPacketFishAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<PondPacketFishResponseDTO>> GetAllPondPacketFishAsync(PondPacketFishFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
             var Packets = await _repo.GetAllAsync(new QueryOptions<PondPacketFish>
             {
@@ -131,6 +132,14 @@ namespace Zenkoi.BLL.Services.Implements
                     x => x.PacketFish
                 }
             });
+            Expression<Func<PondPacketFish, bool>>? predicate = null;
+
+            if (filter.BreedingProcessId.HasValue)
+            {
+                Expression<Func<PondPacketFish, bool>> expr = k => k.BreedingProcessId == filter.BreedingProcessId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
             var mappedList = _mapper.Map<List<PondPacketFishResponseDTO>>(Packets);
 
             var totalCount = mappedList.Count;
