@@ -41,7 +41,7 @@ namespace Zenkoi.BLL.Services.Implements
                 var packetFishRepo = _unitOfWork.GetRepo<PacketFish>();
 
                 var packetFish = _mapper.Map<PacketFish>(dto);
-
+               
                 packetFish.CreatedAt = DateTime.UtcNow;
 
                 await packetFishRepo.CreateAsync(packetFish);

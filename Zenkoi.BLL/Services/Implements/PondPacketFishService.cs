@@ -66,7 +66,7 @@ namespace Zenkoi.BLL.Services.Implements
             var newPackage = _mapper.Map<PondPacketFish>(dto);
             newPackage.QuantityFish = breed.ClassificationStage.PondQualifiedCount.Value;
             newPackage.QuantityPacket = newPackage.QuantityFish / packet.FishPerPacket;
-
+            packet.StockQuantity = newPackage.QuantityPacket;
             if (dto.PondId != breed.PondId)
             {
                 var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
@@ -92,6 +92,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             await _repo.CreateAsync(newPackage);
+            await _packetRepo.UpdateAsync(packet);
             await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<PondPacketFishResponseDTO>(newPackage);
