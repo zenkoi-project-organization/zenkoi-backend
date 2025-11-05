@@ -44,6 +44,15 @@ namespace Zenkoi.BLL.Services.Implements
                
                 packetFish.CreatedAt = DateTime.UtcNow;
 
+                var today = DateTime.UtcNow;
+                int months = (today.Year - dto.BirthDate.Year) * 12 + (today.Month - dto.BirthDate.Month);
+
+        
+                if (today.Day < dto.BirthDate.Day)
+                    months--;
+
+                var ageMonth =  Math.Max(months, 0);
+                packetFish.AgeMonths = ageMonth;
                 await packetFishRepo.CreateAsync(packetFish);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
