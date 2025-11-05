@@ -21,7 +21,7 @@ namespace Zenkoi.API.Controllers
         {
             try
             {
-                var result = await _customerAddressService.CreateCustomerAddressAsync(requestDTO);
+                var result = await _customerAddressService.CreateCustomerAddressAsync(requestDTO, UserId);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,
@@ -243,12 +243,12 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        [HttpPut("customer/{customerId}/set-default/{addressId}")]
-        public async Task<ActionResult<ResponseApiDTO>> SetDefaultAddress(int customerId, int addressId)
+        [HttpPut("customer/me/set-default/{addressId}")]
+        public async Task<ActionResult<ResponseApiDTO>> SetDefaultAddress(int addressId)
         {
             try
             {
-                var result = await _customerAddressService.SetDefaultAddressAsync(customerId, addressId);
+                var result = await _customerAddressService.SetDefaultAddressAsync(UserId, addressId);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,
