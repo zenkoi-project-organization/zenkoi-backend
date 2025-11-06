@@ -64,9 +64,10 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new InvalidOperationException("Không tìm thấy loại lô cá");
 
             var newPackage = _mapper.Map<PondPacketFish>(dto);
-            newPackage.QuantityFish = breed.ClassificationStage.PondQualifiedCount.Value;
-            newPackage.QuantityPacket = newPackage.QuantityFish / packet.FishPerPacket;
-            packet.StockQuantity = newPackage.QuantityPacket;
+            newPackage.AvailableQuantity = breed.ClassificationStage.PondQualifiedCount.Value;
+            newPackage.SoldQuantity = 0;
+            newPackage.CreatedAt = DateTime.UtcNow;
+            newPackage.IsActive = true;
             if (dto.PondId != breed.PondId)
             {
                 var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
@@ -199,7 +200,7 @@ namespace Zenkoi.BLL.Services.Implements
             if (newPond == null)
                 throw new KeyNotFoundException("Không tìm thấy hồ đích");
 
-            if (newPond.MaxFishCount < packet.QuantityFish)
+            if (newPond.MaxFishCount < packet.AvailableQuantity)
                 throw new InvalidOperationException("Số lượng cá vượt sức chứa của hồ đích");
 
             if (newPond.PondStatus == PondStatus.Maintenance || newPond.PondStatus == PondStatus.Active)

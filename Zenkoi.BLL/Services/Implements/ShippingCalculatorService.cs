@@ -50,9 +50,9 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var boxes = await _context.ShippingBoxes
-                .Include(b => b.Rules)
-                .Where(b => b.IsActive && b.MaxKoiCount.HasValue)
-                .OrderBy(b => b.Fee / (b.MaxKoiCount ?? 1)) 
+                .Include(b => b.Rules.Where(r => r.IsActive))
+                .Where(b => b.IsActive && b.MaxKoiCount.HasValue && b.MaxKoiCount.Value > 0)
+                .OrderBy(b => b.Fee / b.MaxKoiCount.Value)
                 .ToListAsync();
 
             if (!boxes.Any())
@@ -338,8 +338,8 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<ShippingBox> GetBoxById(int boxId)
         {
             return await _context.ShippingBoxes
-                .Include(b => b.Rules)
-                .FirstOrDefaultAsync(b => b.Id == boxId);
+                .Include(b => b.Rules.Where(r => r.IsActive))
+                .FirstOrDefaultAsync(b => b.Id == boxId && b.IsActive);
         }
 
         private class KoiItem

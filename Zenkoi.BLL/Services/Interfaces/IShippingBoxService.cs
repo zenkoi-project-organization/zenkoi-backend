@@ -10,7 +10,7 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<bool> UpdateAsync(int id, ShippingBoxRequestDTO dto);
         Task<bool> DeleteAsync(int id);
         Task<ShippingBoxRuleResponseDTO> AddRuleAsync(ShippingBoxRuleRequestDTO dto);
-        Task<bool> UpdateRuleAsync(int ruleId, ShippingBoxRuleRequestDTO dto);
+        Task<bool> UpdateRuleAsync(int ruleId, ShippingBoxRuleUpdateDTO dto);
         Task<bool> DeleteRuleAsync(int ruleId);
         Task<ShippingBoxRuleResponseDTO> GetRuleByIdAsync(int ruleId);
         Task<List<ShippingBoxRuleResponseDTO>> GetRulesByBoxIdAsync(int boxId);

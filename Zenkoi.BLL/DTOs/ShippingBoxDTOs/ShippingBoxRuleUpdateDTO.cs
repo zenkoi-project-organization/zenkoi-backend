@@ -3,12 +3,8 @@ using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.ShippingBoxDTOs
 {
-    public class ShippingBoxRuleRequestDTO
+    public class ShippingBoxRuleUpdateDTO
     {
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "ShippingBoxId must be greater than 0")]
-        public int ShippingBoxId { get; set; }
-
         [Required]
         public ShippingRuleType RuleType { get; set; }
 

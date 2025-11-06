@@ -132,7 +132,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPut("rules/{ruleId:int}")]
-        public async Task<IActionResult> UpdateRule(int ruleId, [FromBody] ShippingBoxRuleRequestDTO dto)
+        public async Task<IActionResult> UpdateRule(int ruleId, [FromBody] ShippingBoxRuleUpdateDTO dto)
         {
             try
             {

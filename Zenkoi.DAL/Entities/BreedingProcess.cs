@@ -39,6 +39,7 @@ namespace Zenkoi.DAL.Entities
         [ForeignKey(nameof(PondId))]
         public Pond? Pond { get; set; }
         public ICollection<KoiFish> KoiFishes { get; set; } = new List<KoiFish>();
+        public ICollection<PondPacketFish> PondPacketFishes { get; set; } = new List<PondPacketFish>();
         public EggBatch? Batch { get; set; }
         public FryFish? FryFish { get; set; }
         public ClassificationStage? ClassificationStage { get; set;}
