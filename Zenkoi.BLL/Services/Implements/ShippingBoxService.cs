@@ -71,6 +71,26 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<ShippingBoxResponseDTO> CreateAsync(ShippingBoxRequestDTO dto)
         {
+            if (dto.WeightCapacityLb <= 0)
+            {
+                throw new ArgumentException("WeightCapacityLb must be greater than 0");
+            }
+
+            if (dto.Fee <= 0)
+            {
+                throw new ArgumentException("Fee must be greater than 0");
+            }
+
+            if (dto.MaxKoiCount.HasValue && dto.MaxKoiCount.Value <= 0)
+            {
+                throw new ArgumentException("MaxKoiCount must be greater than 0 if specified");
+            }
+
+            if (dto.MaxKoiSizeInch.HasValue && dto.MaxKoiSizeInch.Value <= 0)
+            {
+                throw new ArgumentException("MaxKoiSizeInch must be greater than 0 if specified");
+            }
+
             var entity = _mapper.Map<ShippingBox>(dto);
             entity.CreatedAt = DateTime.UtcNow;
 
@@ -86,6 +106,26 @@ namespace Zenkoi.BLL.Services.Implements
             if (box == null)
             {
                 throw new KeyNotFoundException("Không tìm thấy hộp vận chuyển");
+            }
+
+            if (dto.WeightCapacityLb <= 0)
+            {
+                throw new ArgumentException("WeightCapacityLb must be greater than 0");
+            }
+
+            if (dto.Fee <= 0)
+            {
+                throw new ArgumentException("Fee must be greater than 0");
+            }
+
+            if (dto.MaxKoiCount.HasValue && dto.MaxKoiCount.Value <= 0)
+            {
+                throw new ArgumentException("MaxKoiCount must be greater than 0 if specified");
+            }
+
+            if (dto.MaxKoiSizeInch.HasValue && dto.MaxKoiSizeInch.Value <= 0)
+            {
+                throw new ArgumentException("MaxKoiSizeInch must be greater than 0 if specified");
             }
 
             _mapper.Map(dto, box);
@@ -126,6 +166,8 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new KeyNotFoundException("Không tìm thấy hộp vận chuyển");
                 }
 
+                ValidateShippingBoxRule(dto.MaxCount, dto.MaxLengthCm, dto.MinLengthCm, dto.MaxWeightLb, dto.Priority);
+
                 var entity = _mapper.Map<ShippingBoxRule>(dto);
                 entity.CreatedAt = DateTime.UtcNow;
 
@@ -150,12 +192,47 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("Không tìm thấy quy tắc vận chuyển");
             }
 
+            ValidateShippingBoxRule(dto.MaxCount, dto.MaxLengthCm, dto.MinLengthCm, dto.MaxWeightLb, dto.Priority);
+
             _mapper.Map(dto, rule);
 
             await _shippingBoxRuleRepo.UpdateAsync(rule);
             await _unitOfWork.SaveChangesAsync();
 
             return true;
+        }
+
+        private void ValidateShippingBoxRule(int? maxCount, int? maxLengthCm, int? minLengthCm, int? maxWeightLb, int priority)
+        {
+            if (maxCount.HasValue && maxCount.Value <= 0)
+            {
+                throw new ArgumentException("MaxCount must be greater than 0 if specified");
+            }
+
+            if (maxLengthCm.HasValue && maxLengthCm.Value <= 0)
+            {
+                throw new ArgumentException("MaxLengthCm must be greater than 0 if specified");
+            }
+
+            if (minLengthCm.HasValue && minLengthCm.Value <= 0)
+            {
+                throw new ArgumentException("MinLengthCm must be greater than 0 if specified");
+            }
+
+            if (maxWeightLb.HasValue && maxWeightLb.Value <= 0)
+            {
+                throw new ArgumentException("MaxWeightLb must be greater than 0 if specified");
+            }
+
+            if (minLengthCm.HasValue && maxLengthCm.HasValue && minLengthCm.Value > maxLengthCm.Value)
+            {
+                throw new ArgumentException("MinLengthCm cannot be greater than MaxLengthCm");
+            }
+
+            if (priority <= 0)
+            {
+                throw new ArgumentException("Priority must be greater than 0");
+            }
         }
 
         public async Task<bool> DeleteRuleAsync(int ruleId)
