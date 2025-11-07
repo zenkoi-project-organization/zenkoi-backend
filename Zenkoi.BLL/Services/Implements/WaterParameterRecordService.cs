@@ -29,45 +29,50 @@ namespace Zenkoi.BLL.Services.Implements
         }
 
         public async Task<PaginatedList<WaterParameterRecordResponseDTO>> GetAllAsync(
-            WaterParameterRecordFilterDTO? filter, int pageIndex = 1, int pageSize = 10)
+     WaterParameterRecordFilterDTO? filter, int pageIndex = 1, int pageSize = 10)
         {
             filter ??= new WaterParameterRecordFilterDTO();
 
             var queryOptions = new QueryOptions<WaterParameterRecord>
             {
                 IncludeProperties = new List<Expression<Func<WaterParameterRecord, object>>>
-                {
-                    r => r.Pond!,
-                    r => r.RecordedBy!
-                }
+        {
+            r => r.Pond!,
+            r => r.RecordedBy!
+        }
             };
 
             Expression<Func<WaterParameterRecord, bool>>? predicate = null;
 
             if (filter.PondId.HasValue)
             {
-                predicate = predicate.AndAlso(r => r.PondId == filter.PondId.Value);
+                Expression<Func<WaterParameterRecord, bool>> expr = r => r.PondId == filter.PondId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
             if (filter.FromDate.HasValue)
             {
-                predicate = predicate.AndAlso(r => r.RecordedAt >= filter.FromDate.Value);
+                Expression<Func<WaterParameterRecord, bool>> expr = r => r.RecordedAt >= filter.FromDate.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
             if (filter.ToDate.HasValue)
             {
                 var toDate = filter.ToDate.Value.AddDays(1).AddSeconds(-1);
-                predicate = predicate.AndAlso(r => r.RecordedAt <= toDate);
+                Expression<Func<WaterParameterRecord, bool>> expr = r => r.RecordedAt <= toDate;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
             if (filter.RecordedByUserId.HasValue)
             {
-                predicate = predicate.AndAlso(r => r.RecordedByUserId == filter.RecordedByUserId.Value);
+                Expression<Func<WaterParameterRecord, bool>> expr = r => r.RecordedByUserId == filter.RecordedByUserId.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
             if (!string.IsNullOrWhiteSpace(filter.NotesContains))
             {
-                predicate = predicate.AndAlso(r => r.Notes != null && r.Notes.Contains(filter.NotesContains));
+                Expression<Func<WaterParameterRecord, bool>> expr = r => r.Notes != null && r.Notes.Contains(filter.NotesContains);
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
             queryOptions.Predicate = predicate;
@@ -78,6 +83,7 @@ namespace Zenkoi.BLL.Services.Implements
             foreach (var item in mapped)
             {
                 item.PondName = (await _pondRepo.GetByIdAsync(item.PondId))?.PondName ?? "Không xác định";
+
                 if (item.RecordedByUserId.HasValue)
                 {
                     var user = await _userRepo.GetByIdAsync(item.RecordedByUserId.Value);
@@ -90,6 +96,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             return new PaginatedList<WaterParameterRecordResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
+
 
         public async Task<WaterParameterRecordResponseDTO?> GetByIdAsync(int id)
         {
