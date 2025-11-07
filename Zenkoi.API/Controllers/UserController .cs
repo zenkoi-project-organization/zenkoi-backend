@@ -18,7 +18,7 @@ namespace Zenkoi.API.Controllers
 		}
 
 		[HttpGet]
-		[Route("by-role/{role}/{pageIndex}/{pageSize}")]
+		[Route("by-role/{role}")]
 		public async Task<IActionResult> GetUsersByRole([FromRoute] Role role, [FromRoute] int pageIndex, [FromRoute] int pageSize)
 		{
 			try
