@@ -33,5 +33,11 @@ public interface IWorkScheduleService
         int pageIndex = 1,
         int pageSize = 10);
 
+    Task<PaginatedList<WorkScheduleResponseDTO>> GetWorkSchedulesByUserIdAsync(
+        int userId,
+        WorkScheduleFilterRequestDTO filter,
+        int pageIndex = 1,
+        int pageSize = 10);
+
     Task<BulkAssignmentResultDTO> BulkAssignStaffAsync(BulkAssignStaffDTO dto);
 }

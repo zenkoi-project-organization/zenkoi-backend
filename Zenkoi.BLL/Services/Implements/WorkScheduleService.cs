@@ -273,6 +273,16 @@ public class WorkScheduleService : IWorkScheduleService
         return await GetAllWorkSchedulesAsync(filter, pageIndex, pageSize);
     }
 
+    public async Task<PaginatedList<WorkScheduleResponseDTO>> GetWorkSchedulesByUserIdAsync(
+        int userId,
+        WorkScheduleFilterRequestDTO filter,
+        int pageIndex = 1,
+        int pageSize = 10)
+    {
+        filter.CreatedBy = userId;
+        return await GetAllWorkSchedulesAsync(filter, pageIndex, pageSize);
+    }
+
     private void ApplyFilters(QueryBuilder<WorkSchedule> queryBuilder, WorkScheduleFilterRequestDTO filter)
     {
         if (!string.IsNullOrEmpty(filter.Search))

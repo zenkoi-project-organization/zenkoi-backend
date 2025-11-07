@@ -99,6 +99,27 @@ public class WorkScheduleController : BaseAPIController
         }
     }
 
+    [HttpGet("me")]
+    public async Task<IActionResult> GetWorkSchedulesByUserId(
+        [FromQuery] WorkScheduleFilterRequestDTO? filter,
+        [FromQuery] int pageIndex = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var result = await _workScheduleService.GetWorkSchedulesByUserIdAsync(
+                UserId,
+                filter ?? new WorkScheduleFilterRequestDTO(),
+                pageIndex,
+                pageSize);
+            return GetPagedSuccess(result);
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error retrieving work schedules for user: {ex.Message}");
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateWorkSchedule([FromBody] WorkScheduleRequestDTO dto)
     {
