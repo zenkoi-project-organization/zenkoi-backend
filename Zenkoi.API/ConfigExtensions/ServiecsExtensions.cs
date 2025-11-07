@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-             //   await TruncateAllTablesExceptMigrationHistory(context);
+                await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -168,7 +168,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             }
             else
-            {         
+            {
                 var customers = await context.Users.Where(x => x.Role == Role.Customer).OrderBy(x => x.Id).Take(3).ToListAsync();
                 if (customers.Count >= 3)
                 {
@@ -283,7 +283,7 @@ namespace Zenkoi.API.ConfigExtensions
                     await context.Customers.AddRangeAsync(
                         new Customer
                         {
-                            Id = customer1.Id,  
+                            Id = customer1.Id,
                             ContactNumber = "0987654321",
                             TotalOrders = 2,
                             TotalSpent = 15000000,
@@ -292,7 +292,7 @@ namespace Zenkoi.API.ConfigExtensions
                         },
                         new Customer
                         {
-                            Id = customer2.Id, 
+                            Id = customer2.Id,
                             ContactNumber = "0912345678",
                             TotalOrders = 1,
                             TotalSpent = 12000000,
@@ -322,7 +322,7 @@ namespace Zenkoi.API.ConfigExtensions
                     await context.CustomerAddresses.AddRangeAsync(
                         new CustomerAddress
                         {
-                            CustomerId = customer1.Id, 
+                            CustomerId = customer1.Id,
                             FullAddress = "123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
                             City = "Hồ Chí Minh",
                             District = "Quận 1",
@@ -1087,7 +1087,7 @@ namespace Zenkoi.API.ConfigExtensions
                     await context.Orders.AddRangeAsync(
                         new Order
                         {
-                            CustomerId = customer1.Id, 
+                            CustomerId = customer1.Id,
                             CreatedAt = DateTime.UtcNow.AddDays(-5),
                             Status = OrderStatus.Created,
                             Subtotal = 8000000,
@@ -1178,7 +1178,7 @@ namespace Zenkoi.API.ConfigExtensions
                     await context.Carts.AddRangeAsync(
                         new Cart
                         {
-                            CustomerId = customer1.Id, 
+                            CustomerId = customer1.Id,
                             CreatedAt = DateTime.UtcNow.AddDays(-2),
                             UpdatedAt = DateTime.UtcNow.AddDays(-1)
                         },
@@ -1307,16 +1307,15 @@ namespace Zenkoi.API.ConfigExtensions
                 );
                 await context.SaveChangesAsync();
             }
-            #endregion
-
+            #endregion        
             #region Seeding TaskTemplates
             if (!context.TaskTemplates.Any())
             {
                 await context.TaskTemplates.AddRangeAsync(
                     new TaskTemplate
                     {
-                        TaskName = "Cho cá ăn buổi sáng",
-                        Description = "Cho cá ăn thức ăn viên lúc 6h sáng, kiểm tra lượng thức ăn và chất lượng nước trước khi cho ăn",
+                        TaskName = "Cho cá ăn buổi sáng (6h)",
+                        Description = "Cho cá ăn thức ăn viên, kiểm tra lượng thức ăn thừa từ lần trước.",
                         DefaultDuration = 30,
                         IsRecurring = true,
                         RecurrenceRule = "FREQ=DAILY;BYHOUR=6",
@@ -1325,8 +1324,8 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new TaskTemplate
                     {
-                        TaskName = "Cho cá ăn buổi chiều",
-                        Description = "Cho cá ăn thức ăn viên lúc 17h chiều",
+                        TaskName = "Cho cá ăn buổi chiều (17h)",
+                        Description = "Cho cá ăn thức ăn viên, điều chỉnh lượng ăn dựa trên sức khỏe và thời tiết.",
                         DefaultDuration = 30,
                         IsRecurring = true,
                         RecurrenceRule = "FREQ=DAILY;BYHOUR=17",
@@ -1336,7 +1335,7 @@ namespace Zenkoi.API.ConfigExtensions
                     new TaskTemplate
                     {
                         TaskName = "Kiểm tra chất lượng nước",
-                        Description = "Đo pH, nhiệt độ, DO, ammonia, nitrite. Ghi chép kết quả vào sổ theo dõi",
+                        Description = "Đo pH, nhiệt độ, DO (Oxy hòa tan), Ammonia (NH3), Nitrite (NO2). Ghi chép kết quả.",
                         DefaultDuration = 45,
                         IsRecurring = true,
                         RecurrenceRule = "FREQ=DAILY;BYHOUR=8",
@@ -1345,8 +1344,28 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new TaskTemplate
                     {
-                        TaskName = "Vệ sinh lưới lọc",
-                        Description = "Vệ sinh, rửa lưới lọc cơ học, kiểm tra bơm nước",
+                        TaskName = "Kiểm tra trực quan sức khỏe cá",
+                        Description = "Quan sát hành vi bơi, da, vảy, mắt, vây. Phát hiện các dấu hiệu bất thường (lờ đờ, cọ mình, đốm lạ).",
+                        DefaultDuration = 30,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=DAILY;BYHOUR=9",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Kiểm tra hệ thống bơm và sục khí",
+                        Description = "Nghe tiếng động lạ từ máy bơm, kiểm tra luồng nước, kiểm tra đầu sục khí đảm bảo hoạt động.",
+                        DefaultDuration = 15,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=DAILY;BYHOUR=7",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Vệ sinh lưới lọc/Drum filter",
+                        Description = "Vệ sinh, xịt rửa lưới lọc cơ học (hoặc kiểm tra chu trình xả của drum filter).",
                         DefaultDuration = 60,
                         IsRecurring = true,
                         RecurrenceRule = "FREQ=WEEKLY;BYDAY=MO,TH",
@@ -1355,18 +1374,28 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new TaskTemplate
                     {
-                        TaskName = "Kiểm tra sức khỏe cá",
-                        Description = "Quan sát cá, kiểm tra dấu hiệu bệnh, chấn thương, hành vi bất thường",
-                        DefaultDuration = 60,
+                        TaskName = "Vệ sinh Protein Skimmer",
+                        Description = "Vệ sinh cốc đựng bọt bẩn của Skimmer và kiểm tra hoạt động.",
+                        DefaultDuration = 30,
                         IsRecurring = true,
-                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=WE,SA",
+                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=TU",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
                     new TaskTemplate
                     {
-                        TaskName = "Thay nước ao",
-                        Description = "Thay 20-30% lượng nước ao, bổ sung nước sạch",
+                        TaskName = "Kiểm tra sức khỏe cá chuyên sâu (Lấy mẫu)",
+                        Description = "Bắt ngẫu nhiên 2-3 cá ở mỗi ao để kiểm tra nhớt (mucus scrape test) dưới kính hiển vi tìm ký sinh trùng.",
+                        DefaultDuration = 90,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=WE",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Thay nước ao định kỳ",
+                        Description = "Thay 20-30% lượng nước ao, châm nước sạch đã qua xử lý. Kiểm tra lại nồng độ muối nếu cần.",
                         DefaultDuration = 120,
                         IsRecurring = true,
                         RecurrenceRule = "FREQ=WEEKLY;BYDAY=SU",
@@ -1375,8 +1404,18 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new TaskTemplate
                     {
-                        TaskName = "Vệ sinh đáy ao",
-                        Description = "Hút bùn, cặn bẩn dưới đáy ao",
+                        TaskName = "Kiểm kê kho thức ăn",
+                        Description = "Kiểm tra số lượng thức ăn tồn kho, hạn sử dụng, và lập kế hoạch đặt hàng mới.",
+                        DefaultDuration = 30,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=FR",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Vệ sinh đáy ao và xả cặn lọc",
+                        Description = "Hút cặn bẩn (siphon) dưới đáy ao và xả cặn bẩn trong các khoang lắng của hệ thống lọc.",
                         DefaultDuration = 90,
                         IsRecurring = true,
                         RecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=1,15",
@@ -1385,11 +1424,68 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new TaskTemplate
                     {
-                        TaskName = "Bảo dưỡng máy bơm",
-                        Description = "Kiểm tra, vệ sinh, bảo dưỡng hệ thống máy bơm và lọc nước",
-                        DefaultDuration = 120,
+                        TaskName = "Bảo dưỡng/Vệ sinh đèn UV",
+                        Description = "Kiểm tra và vệ sinh ống thạch anh của đèn UV để đảm bảo hiệu suất diệt khuẩn.",
+                        DefaultDuration = 45,
                         IsRecurring = true,
                         RecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=1",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Kiểm kê kho thuốc và hóa chất",
+                        Description = "Kiểm tra tồn kho, hạn sử dụng của thuốc tím, muối, thuốc mê, và các hóa chất xử lý nước khác.",
+                        DefaultDuration = 45,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=5",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Vệ sinh vật liệu lọc (Bakki, Jmat)",
+                        Description = "Vệ sinh sơ bộ vật liệu lọc (chỉ dùng nước trong hồ) để tránh tắc nghẽn, không rửa quá sạch làm chết vi sinh.",
+                        DefaultDuration = 120,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=10",
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Tiếp nhận cá mới - Cách ly",
+                        Description = "Chuẩn bị ao cách ly, tiếp nhận cá mới, thực hiện quy trình tắm muối/kháng sinh, và bắt đầu theo dõi.",
+                        DefaultDuration = 120,
+                        IsRecurring = false,
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Xử lý cá bệnh (Tắm thuốc)",
+                        Description = "Pha thuốc (ví dụ: thuốc tím, Praziquantel) vào bồn riêng và tắm cho cá theo liều lượng và thời gian quy định.",
+                        DefaultDuration = 90,
+                        IsRecurring = false,
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Chuẩn bị ao đẻ (Mùa sinh sản)",
+                        Description = "Vệ sinh ao, chuẩn bị giá thể đẻ (lưới, bùi nhùi), điều chỉnh nhiệt độ và ánh sáng.",
+                        DefaultDuration = 180,
+                        IsRecurring = false,
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new TaskTemplate
+                    {
+                        TaskName = "Bảo dưỡng máy bơm tổng",
+                        Description = "Ngắt điện, tháo, kiểm tra, vệ sinh, và bảo dưỡng hệ thống máy bơm chính của farm.",
+                        DefaultDuration = 240,
+                        IsRecurring = true,
+                        RecurrenceRule = "FREQ=MONTHLY;INTERVAL=6;BYMONTHDAY=1",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     }
@@ -1483,6 +1579,364 @@ namespace Zenkoi.API.ConfigExtensions
                     }
                 );
                 await context.SaveChangesAsync();
+            }
+            #endregion
+            #region Seeding WeeklyScheduleTemplates
+            WeeklyScheduleTemplate standardTemplate = null;
+            if (!context.WeeklyScheduleTemplates.Any())
+            {
+                standardTemplate = new WeeklyScheduleTemplate
+                {
+                    Name = "Lịch Vận Hành Tiêu Chuẩn Tuần",
+                    Description = "Lịch mẫu bao gồm các công việc vận hành cốt lõi hàng ngày và các công việc bảo trì hàng tuần cho farm.",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await context.WeeklyScheduleTemplates.AddAsync(standardTemplate);
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+                standardTemplate = await context.WeeklyScheduleTemplates.FirstOrDefaultAsync();
+            }
+            #endregion
+            #region Seeding WeeklyScheduleTemplateItems
+            if (standardTemplate != null)
+            {
+                if (!context.WeeklyScheduleTemplateItems.Any())
+                {
+                    await context.WeeklyScheduleTemplateItems.AddRangeAsync(
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 1,
+                            DayOfWeek = DayOfWeek.Monday,
+                            StartTime = TimeOnly.Parse("06:00"),
+                            EndTime = TimeOnly.Parse("06:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 5,
+                            DayOfWeek = DayOfWeek.Monday,
+                            StartTime = TimeOnly.Parse("07:00"),
+                            EndTime = TimeOnly.Parse("07:15")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 3,
+                            DayOfWeek = DayOfWeek.Monday,
+                            StartTime = TimeOnly.Parse("08:00"),
+                            EndTime = TimeOnly.Parse("08:45")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 4,
+                            DayOfWeek = DayOfWeek.Monday,
+                            StartTime = TimeOnly.Parse("09:00"),
+                            EndTime = TimeOnly.Parse("09:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 6,
+                            DayOfWeek = DayOfWeek.Monday,
+                            StartTime = TimeOnly.Parse("10:00"),
+                            EndTime = TimeOnly.Parse("11:00")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 2,
+                            DayOfWeek = DayOfWeek.Monday,
+                            StartTime = TimeOnly.Parse("17:00"),
+                            EndTime = TimeOnly.Parse("17:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 1,
+                            DayOfWeek = DayOfWeek.Tuesday,
+                            StartTime = TimeOnly.Parse("06:00"),
+                            EndTime = TimeOnly.Parse("06:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 5,
+                            DayOfWeek = DayOfWeek.Tuesday,
+                            StartTime = TimeOnly.Parse("07:00"),
+                            EndTime = TimeOnly.Parse("07:15")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 3,
+                            DayOfWeek = DayOfWeek.Tuesday,
+                            StartTime = TimeOnly.Parse("08:00"),
+                            EndTime = TimeOnly.Parse("08:45")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 4,
+                            DayOfWeek = DayOfWeek.Tuesday,
+                            StartTime = TimeOnly.Parse("09:00"),
+                            EndTime = TimeOnly.Parse("09:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 7,
+                            DayOfWeek = DayOfWeek.Tuesday,
+                            StartTime = TimeOnly.Parse("10:00"),
+                            EndTime = TimeOnly.Parse("10:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 2,
+                            DayOfWeek = DayOfWeek.Tuesday,
+                            StartTime = TimeOnly.Parse("17:00"),
+                            EndTime = TimeOnly.Parse("17:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 1,
+                            DayOfWeek = DayOfWeek.Wednesday,
+                            StartTime = TimeOnly.Parse("06:00"),
+                            EndTime = TimeOnly.Parse("06:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 5,
+                            DayOfWeek = DayOfWeek.Wednesday,
+                            StartTime = TimeOnly.Parse("07:00"),
+                            EndTime = TimeOnly.Parse("07:15")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 3,
+                            DayOfWeek = DayOfWeek.Wednesday,
+                            StartTime = TimeOnly.Parse("08:00"),
+                            EndTime = TimeOnly.Parse("08:45")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 4,
+                            DayOfWeek = DayOfWeek.Wednesday,
+                            StartTime = TimeOnly.Parse("09:00"),
+                            EndTime = TimeOnly.Parse("09:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 8,
+                            DayOfWeek = DayOfWeek.Wednesday,
+                            StartTime = TimeOnly.Parse("10:00"),
+                            EndTime = TimeOnly.Parse("11:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 2,
+                            DayOfWeek = DayOfWeek.Wednesday,
+                            StartTime = TimeOnly.Parse("17:00"),
+                            EndTime = TimeOnly.Parse("17:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 1,
+                            DayOfWeek = DayOfWeek.Thursday,
+                            StartTime = TimeOnly.Parse("06:00"),
+                            EndTime = TimeOnly.Parse("06:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 5,
+                            DayOfWeek = DayOfWeek.Thursday,
+                            StartTime = TimeOnly.Parse("07:00"),
+                            EndTime = TimeOnly.Parse("07:15")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 3,
+                            DayOfWeek = DayOfWeek.Thursday,
+                            StartTime = TimeOnly.Parse("08:00"),
+                            EndTime = TimeOnly.Parse("08:45")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 4,
+                            DayOfWeek = DayOfWeek.Thursday,
+                            StartTime = TimeOnly.Parse("09:00"),
+                            EndTime = TimeOnly.Parse("09:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 6,
+                            DayOfWeek = DayOfWeek.Thursday,
+                            StartTime = TimeOnly.Parse("10:00"),
+                            EndTime = TimeOnly.Parse("11:00")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 2,
+                            DayOfWeek = DayOfWeek.Thursday,
+                            StartTime = TimeOnly.Parse("17:00"),
+                            EndTime = TimeOnly.Parse("17:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 1,
+                            DayOfWeek = DayOfWeek.Friday,
+                            StartTime = TimeOnly.Parse("06:00"),
+                            EndTime = TimeOnly.Parse("06:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 5,
+                            DayOfWeek = DayOfWeek.Friday,
+                            StartTime = TimeOnly.Parse("07:00"),
+                            EndTime = TimeOnly.Parse("07:15")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 3,
+                            DayOfWeek = DayOfWeek.Friday,
+                            StartTime = TimeOnly.Parse("08:00"),
+                            EndTime = TimeOnly.Parse("08:45")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 4,
+                            DayOfWeek = DayOfWeek.Friday,
+                            StartTime = TimeOnly.Parse("09:00"),
+                            EndTime = TimeOnly.Parse("09:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 10,
+                            DayOfWeek = DayOfWeek.Friday,
+                            StartTime = TimeOnly.Parse("14:00"),
+                            EndTime = TimeOnly.Parse("14:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 2,
+                            DayOfWeek = DayOfWeek.Friday,
+                            StartTime = TimeOnly.Parse("17:00"),
+                            EndTime = TimeOnly.Parse("17:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 1,
+                            DayOfWeek = DayOfWeek.Saturday,
+                            StartTime = TimeOnly.Parse("06:00"),
+                            EndTime = TimeOnly.Parse("06:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 5,
+                            DayOfWeek = DayOfWeek.Saturday,
+                            StartTime = TimeOnly.Parse("07:00"),
+                            EndTime = TimeOnly.Parse("07:15")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 3,
+                            DayOfWeek = DayOfWeek.Saturday,
+                            StartTime = TimeOnly.Parse("08:00"),
+                            EndTime = TimeOnly.Parse("08:45")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 4,
+                            DayOfWeek = DayOfWeek.Saturday,
+                            StartTime = TimeOnly.Parse("09:00"),
+                            EndTime = TimeOnly.Parse("09:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 2,
+                            DayOfWeek = DayOfWeek.Saturday,
+                            StartTime = TimeOnly.Parse("17:00"),
+                            EndTime = TimeOnly.Parse("17:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 1,
+                            DayOfWeek = DayOfWeek.Sunday,
+                            StartTime = TimeOnly.Parse("06:00"),
+                            EndTime = TimeOnly.Parse("06:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 5,
+                            DayOfWeek = DayOfWeek.Sunday,
+                            StartTime = TimeOnly.Parse("07:00"),
+                            EndTime = TimeOnly.Parse("07:15")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 3,
+                            DayOfWeek = DayOfWeek.Sunday,
+                            StartTime = TimeOnly.Parse("08:00"),
+                            EndTime = TimeOnly.Parse("08:45")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 4,
+                            DayOfWeek = DayOfWeek.Sunday,
+                            StartTime = TimeOnly.Parse("09:00"),
+                            EndTime = TimeOnly.Parse("09:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 9,
+                            DayOfWeek = DayOfWeek.Sunday,
+                            StartTime = TimeOnly.Parse("09:30"),
+                            EndTime = TimeOnly.Parse("11:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 2,
+                            DayOfWeek = DayOfWeek.Sunday,
+                            StartTime = TimeOnly.Parse("17:00"),
+                            EndTime = TimeOnly.Parse("17:30")
+                        }
+                    );
+                    await context.SaveChangesAsync();
+                }
             }
             #endregion
 
