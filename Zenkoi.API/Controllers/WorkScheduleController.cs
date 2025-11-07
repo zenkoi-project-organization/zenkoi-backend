@@ -177,4 +177,31 @@ public class WorkScheduleController : BaseAPIController
             return GetError($"Error deleting work schedule: {ex.Message}");
         }
     }
+
+    [HttpPost("bulk-assign")]
+    public async Task<IActionResult> BulkAssignStaff([FromBody] BulkAssignStaffDTO dto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return ModelInvalid();
+
+            var result = await _workScheduleService.BulkAssignStaffAsync(dto);
+
+            if (result.FailedAssignments > 0)
+            {
+                return Success(result, $"Bulk assignment completed with {result.SuccessfulAssignments} successful and {result.FailedAssignments} failed assignments");
+            }
+
+            return SaveSuccess(result, $"Successfully assigned {result.SuccessfulAssignments} staff to work schedules");
+        }
+        catch (ArgumentException ex)
+        {
+            return GetError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error during bulk assignment: {ex.Message}");
+        }
+    }
 }

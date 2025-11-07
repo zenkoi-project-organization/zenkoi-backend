@@ -32,4 +32,6 @@ public interface IWorkScheduleService
         WorkScheduleFilterRequestDTO filter,
         int pageIndex = 1,
         int pageSize = 10);
+
+    Task<BulkAssignmentResultDTO> BulkAssignStaffAsync(BulkAssignStaffDTO dto);
 }
