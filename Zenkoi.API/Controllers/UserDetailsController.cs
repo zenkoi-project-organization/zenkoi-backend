@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs;
 using Zenkoi.BLL.DTOs.UserDetailDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -124,9 +125,19 @@ namespace Zenkoi.API.Controllers
 				return Error($"Lỗi xử lý user details: {ex.Message}");
 			}
 		}
+		[Authorize]
+        [HttpGet("get-me")]
+        public async Task<IActionResult> GetMe()
+        {
+            if (UserId < 0)
+                return Unauthorized("Không tìm thấy thông tin người dùng trong token.");
+
+            var response = await _userDetailService.GetUserDetailByUserId(UserId);
+            return response == null ? GetError("Không tìm thấy thông tin người dùng.") : GetSuccess(response);
+        }
 
 
-		[HttpPost]
+        [HttpPost]
 		[Route("delete-user-detail")]
 		public async Task<IActionResult> DeleteUserDetail()
 		{

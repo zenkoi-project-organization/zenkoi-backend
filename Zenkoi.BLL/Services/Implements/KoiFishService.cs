@@ -94,11 +94,7 @@ namespace Zenkoi.BLL.Services.Implements
                 Expression<Func<KoiFish, bool>> expr = k => k.VarietyId == filter.VarietyId.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
-            if (filter.FishSize.HasValue)
-            {
-                Expression<Func<KoiFish, bool>> expr = k => k.Size == filter.FishSize.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
+           
         
             if (filter.PondId.HasValue)
             {

@@ -116,7 +116,13 @@ namespace Zenkoi.BLL.Services.Implements
                                                     .WithTracking(false)
                                                     .Build());
             if (response == null) return null;
-            return _mapper.Map<UserDetailResponseDTO>(response);
+            var res = _mapper.Map<UserDetailResponseDTO>(response);
+			res.FullName = response.User.FullName;
+			res.phoneNumber = response.User.PhoneNumber;
+			res.Email = response.User.Email;
+			res.Role = response.User.Role.ToString();
+			return res;
+			
         }
     }
 }
