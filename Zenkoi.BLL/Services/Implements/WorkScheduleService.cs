@@ -344,4 +344,69 @@ public class WorkScheduleService : IWorkScheduleService
             }
         }
     }
+
+    public async Task<BulkAssignmentResultDTO> BulkAssignStaffAsync(BulkAssignStaffDTO dto)
+    {
+        var result = new BulkAssignmentResultDTO();
+
+        try
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            foreach (var workScheduleId in dto.WorkScheduleIds)
+            {
+                var workSchedule = await _workScheduleRepo.GetByIdAsync(workScheduleId);
+                if (workSchedule == null)
+                {
+                    result.Errors.Add($"Work schedule with ID {workScheduleId} not found");
+                    result.FailedAssignments += dto.StaffIds.Count;
+                    continue;
+                }
+
+                foreach (var staffId in dto.StaffIds)
+                {
+                    result.TotalAssignments++;
+
+                    var staff = await _userRepo.GetByIdAsync(staffId);
+                    if (staff == null)
+                    {
+                        result.Errors.Add($"Staff with ID {staffId} not found");
+                        result.FailedAssignments++;
+                        continue;
+                    }
+
+                    var existingAssignment = await _staffAssignmentRepo.GetSingleAsync(new QueryBuilder<StaffAssignment>()
+                        .WithPredicate(sa => sa.WorkScheduleId == workScheduleId && sa.StaffId == staffId)
+                        .Build());
+
+                    if (existingAssignment != null)
+                    {
+                        result.Errors.Add($"Staff {staffId} is already assigned to work schedule {workScheduleId}");
+                        result.FailedAssignments++;
+                        continue;
+                    }
+
+                    var staffAssignment = new StaffAssignment
+                    {
+                        WorkScheduleId = workScheduleId,
+                        StaffId = staffId
+                    };
+
+                    await _staffAssignmentRepo.CreateAsync(staffAssignment);
+                    result.SuccessfulAssignments++;
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitTransactionAsync();
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollBackAsync();
+            result.Errors.Add($"An error occurred during bulk assignment: {ex.Message}");
+            throw;
+        }
+    }
 }

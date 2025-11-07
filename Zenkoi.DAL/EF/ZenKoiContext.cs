@@ -57,6 +57,8 @@ namespace Zenkoi.DAL.EF
         public DbSet<ShippingBoxRule> ShippingBoxRules { get; set; }
         public DbSet<ShippingDistance> ShippingDistances { get; set; }
         public DbSet<CustomerAddress> CustomerAddresses { get; set; }
+        public DbSet<WeeklyScheduleTemplate> WeeklyScheduleTemplates { get; set; }
+        public DbSet<WeeklyScheduleTemplateItem> WeeklyScheduleTemplateItems { get; set; }
 
         #endregion
 
@@ -101,6 +103,8 @@ namespace Zenkoi.DAL.EF
             modelBuilder.ApplyConfiguration(new ShippingBoxRuleConfiguration());
             modelBuilder.ApplyConfiguration(new ShippingDistanceConfiguration());
             modelBuilder.ApplyConfiguration(new CustomerAddressConfiguration());
+            modelBuilder.ApplyConfiguration(new WeeklyScheduleTemplateConfiguration());
+            modelBuilder.ApplyConfiguration(new WeeklyScheduleTemplateItemConfiguration());
 
             modelBuilder.Entity<IdentityUserLogin<int>>(entity =>
 			{

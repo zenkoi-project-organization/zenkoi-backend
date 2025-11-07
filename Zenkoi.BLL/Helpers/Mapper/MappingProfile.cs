@@ -28,6 +28,7 @@ using Zenkoi.BLL.DTOs.ShippingDistanceDTOs;
 using Zenkoi.BLL.DTOs.WaterParameterThresholdDTOs;
 using Zenkoi.BLL.DTOs.WaterParameterRecordDTOs;
 using Zenkoi.BLL.DTOs.CustomerAddressDTOs;
+using Zenkoi.BLL.DTOs.WeeklyScheduleTemplateDTOs;
 
 namespace Zenkoi.BLL.Helpers.Mapper
 {
@@ -224,6 +225,11 @@ namespace Zenkoi.BLL.Helpers.Mapper
 
             CreateMap<ShippingDistance, ShippingDistanceResponseDTO>().ReverseMap();
             CreateMap<ShippingDistanceRequestDTO, ShippingDistance>();
+
+            CreateMap<WeeklyScheduleTemplate, WeeklyScheduleTemplateResponseDTO>().ReverseMap();
+            CreateMap<WeeklyScheduleTemplateRequestDTO, WeeklyScheduleTemplate>();
+            CreateMap<WeeklyScheduleTemplateItem, WeeklyScheduleTemplateItemResponseDTO>().ReverseMap();
+            CreateMap<WeeklyScheduleTemplateItemDTO, WeeklyScheduleTemplateItem>();
 
         }
     }
