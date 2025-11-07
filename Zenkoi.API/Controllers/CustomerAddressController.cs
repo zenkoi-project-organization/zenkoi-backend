@@ -21,7 +21,7 @@ namespace Zenkoi.API.Controllers
         {
             try
             {
-                var result = await _customerAddressService.CreateCustomerAddressAsync(requestDTO);
+                var result = await _customerAddressService.CreateCustomerAddressAsync(requestDTO, UserId);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,
@@ -124,29 +124,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        [HttpGet("customer/me/active")]
-        public async Task<ActionResult<ResponseApiDTO>> GetActiveAddressesByCustomerId()
-        {
-            try
-            {
-                var result = await _customerAddressService.GetActiveAddressesByCustomerIdAsync(UserId);
-                return Ok(new ResponseApiDTO
-                {
-                    IsSuccess = true,
-                    Message = "Active customer addresses retrieved successfully",
-                    Result = result
-                });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new ResponseApiDTO
-                {
-                    IsSuccess = false,
-                    Message = "An error occurred while retrieving active customer addresses"
-                });
-            }
-        }
-
         [HttpGet("customer/me/default")]
         public async Task<ActionResult<ResponseApiDTO>> GetDefaultAddressByCustomerId()
         {
@@ -243,12 +220,12 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        [HttpPut("customer/{customerId}/set-default/{addressId}")]
-        public async Task<ActionResult<ResponseApiDTO>> SetDefaultAddress(int customerId, int addressId)
+        [HttpPut("customer/me/set-default/{addressId}")]
+        public async Task<ActionResult<ResponseApiDTO>> SetDefaultAddress(int addressId)
         {
             try
             {
-                var result = await _customerAddressService.SetDefaultAddressAsync(customerId, addressId);
+                var result = await _customerAddressService.SetDefaultAddressAsync(UserId, addressId);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,

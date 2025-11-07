@@ -18,9 +18,6 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(vpf => vpf.PacketFishId)
                 .IsRequired();
 
-            builder.Property(vpf => vpf.Count)
-                .IsRequired();
-
             builder.HasOne(vpf => vpf.Variety)
                 .WithMany(v => v.VarietyPacketFishes)
                 .HasForeignKey(vpf => vpf.VarietyId)

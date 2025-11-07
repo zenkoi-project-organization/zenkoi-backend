@@ -9,6 +9,5 @@ namespace Zenkoi.DAL.Entities
         public Variety Variety { get; set; }
         public int PacketFishId { get; set; }
         public PacketFish PacketFish { get; set; }
-        public int Count { get; set; }
     }
 }
