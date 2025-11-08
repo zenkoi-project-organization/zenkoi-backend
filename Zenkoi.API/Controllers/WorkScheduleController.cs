@@ -97,18 +97,14 @@ public class WorkScheduleController : BaseAPIController
 
     [HttpGet("me")]
     public async Task<IActionResult> GetWorkSchedulesByUserId(
-        [FromQuery] WorkScheduleFilterRequestDTO? filter,
-        [FromQuery] int pageIndex = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] WorkScheduleFilterRequestDTO? filter)
     {
         try
         {
             var result = await _workScheduleService.GetWorkSchedulesByUserIdAsync(
                 UserId,
-                filter ?? new WorkScheduleFilterRequestDTO(),
-                pageIndex,
-                pageSize);
-            return GetPagedSuccess(result);
+                filter ?? new WorkScheduleFilterRequestDTO());
+            return Success(result, "Work schedules retrieved successfully");
         }
         catch (Exception ex)
         {
