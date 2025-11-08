@@ -15,8 +15,6 @@ public class TaskTemplateRequestDTO
     [Range(1, 1440, ErrorMessage = "Default duration must be between 1 and 1440 minutes")]
     public int DefaultDuration { get; set; }
 
-    public bool IsRecurring { get; set; }
-
-    [MaxLength(500, ErrorMessage = "Recurrence rule cannot exceed 500 characters")]
-    public string? RecurrenceRule { get; set; }
+    [MaxLength(1000, ErrorMessage = "Notes cannot exceed 1000 characters")]
+    public string? NotesTask { get; set; }
 }

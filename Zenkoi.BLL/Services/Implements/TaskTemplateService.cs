@@ -38,11 +38,6 @@ public class TaskTemplateService : ITaskTemplateService
                 (t.Description != null && t.Description.Contains(filter.Search)));
         }
 
-        if (filter.IsRecurring.HasValue)
-        {
-            queryBuilder.WithPredicate(t => t.IsRecurring == filter.IsRecurring.Value);
-        }
-
         if (filter.IsDeleted.HasValue)
         {
             queryBuilder.WithPredicate(t => t.IsDeleted == filter.IsDeleted.Value);

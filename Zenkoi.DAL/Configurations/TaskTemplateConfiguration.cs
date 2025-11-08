@@ -22,12 +22,8 @@ public class TaskTemplateConfiguration : IEntityTypeConfiguration<TaskTemplate>
         builder.Property(tt => tt.DefaultDuration)
             .IsRequired();
 
-        builder.Property(tt => tt.IsRecurring)
-            .IsRequired()
-            .HasDefaultValue(false);
-
-        builder.Property(tt => tt.RecurrenceRule)
-            .HasMaxLength(500);
+        builder.Property(tt => tt.NotesTask)
+            .HasMaxLength(1000);
 
         builder.Property(tt => tt.IsDeleted)
             .IsRequired()
@@ -46,6 +42,5 @@ public class TaskTemplateConfiguration : IEntityTypeConfiguration<TaskTemplate>
 
         builder.HasIndex(tt => tt.TaskName);
         builder.HasIndex(tt => tt.IsDeleted);
-        builder.HasIndex(tt => tt.IsRecurring);
     }
 }
