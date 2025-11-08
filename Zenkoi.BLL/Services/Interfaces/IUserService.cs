@@ -6,6 +6,6 @@ namespace Zenkoi.BLL.Services.Interfaces
 {
 	public interface IUserService
 	{
-		Task<PaginatedList<ApplicationUserResponseDTO>> GetUsersByRoleAsync(Role role, int pageIndex, int pageSize);
+		Task<PaginatedList<ApplicationUserResponseDTO>> GetUsersByRoleAsync(Role role, int pageIndex, int pageSize, string? search = null);
 	}
 }

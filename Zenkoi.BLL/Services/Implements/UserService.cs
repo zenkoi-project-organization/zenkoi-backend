@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using System.Linq.Expressions;
 using Zenkoi.BLL.DTOs.ApplicationUserDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
@@ -20,12 +21,24 @@ namespace Zenkoi.BLL.Services.Implements
 			_mapper = mapper;
 		}
 
-	public async Task<PaginatedList<ApplicationUserResponseDTO>> GetUsersByRoleAsync(Role role, int pageIndex, int pageSize)
+	public async Task<PaginatedList<ApplicationUserResponseDTO>> GetUsersByRoleAsync(Role role, int pageIndex, int pageSize, string? search = null)
 	{
 		var repo = _unitOfWork.GetRepo<ApplicationUser>();
 
+		Expression<Func<ApplicationUser, bool>> predicate = x => x.Role == role && !x.IsDeleted;
+
+		if (!string.IsNullOrWhiteSpace(search))
+		{
+			string searchLower = search.ToLower();
+			Expression<Func<ApplicationUser, bool>> searchExpr = x =>
+				(x.FullName != null && x.FullName.ToLower().Contains(searchLower)) ||
+				(x.Email != null && x.Email.ToLower().Contains(searchLower)) ||
+				(x.UserName != null && x.UserName.ToLower().Contains(searchLower));
+			predicate = predicate.AndAlso(searchExpr);
+		}
+
 		var users = repo.Get(new QueryBuilder<ApplicationUser>()
-			.WithPredicate(x => x.Role == role && !x.IsDeleted)
+			.WithPredicate(predicate)
 			.WithTracking(false)
 			.Build());
 

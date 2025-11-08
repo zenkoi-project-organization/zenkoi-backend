@@ -17,34 +17,34 @@ namespace Zenkoi.API.Controllers
 			_userService = userService;
 		}
 
-		[HttpGet]
-		[Route("by-role/{role}")]
-		public async Task<IActionResult> GetUsersByRole([FromRoute] Role role, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+	[HttpGet]
+	[Route("by-role")]
+	public async Task<IActionResult> GetUsersByRole([FromQuery] Role role, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
+	{
+		try
 		{
-			try
+			if (pageIndex <= 0)
 			{
-				if (pageIndex <= 0)
-				{
-					return GetError("Page Index phải là số nguyên dương.");
-				}
-
-				if (pageSize <= 0)
-				{
-					return GetError("Page Size phải là số nguyên dương.");
-				}
-
-				var data = await _userService.GetUsersByRoleAsync(role, pageIndex, pageSize);
-				var response = new PagingDTO<ApplicationUserResponseDTO>(data);
-				if (response == null) return GetError();
-				return GetSuccess(response);
+				return GetError("Page Index phải là số nguyên dương.");
 			}
-			catch (Exception ex)
+
+			if (pageSize <= 0)
 			{
-				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine(ex.Message);
-				Console.ResetColor();
-				return Error($"Lỗi xử lý user: {ex.Message}");
+				return GetError("Page Size phải là số nguyên dương.");
 			}
+
+			var data = await _userService.GetUsersByRoleAsync(role, pageIndex, pageSize, search);
+			var response = new PagingDTO<ApplicationUserResponseDTO>(data);
+			if (response == null) return GetError();
+			return GetSuccess(response);
 		}
+		catch (Exception ex)
+		{
+			Console.ForegroundColor = ConsoleColor.Red;
+			Console.WriteLine(ex.Message);
+			Console.ResetColor();
+			return Error($"Lỗi xử lý user: {ex.Message}");
+		}
+	}
 	}
 }
