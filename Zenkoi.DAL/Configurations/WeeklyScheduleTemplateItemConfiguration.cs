@@ -24,9 +24,6 @@ public class WeeklyScheduleTemplateItemConfiguration : IEntityTypeConfiguration<
         builder.Property(wsti => wsti.StartTime)
             .IsRequired();
 
-        builder.Property(wsti => wsti.EndTime)
-            .IsRequired();
-
         builder.HasOne(wsti => wsti.WeeklyScheduleTemplate)
             .WithMany(wst => wst.TemplateItems)
             .HasForeignKey(wsti => wsti.WeeklyScheduleTemplateId)

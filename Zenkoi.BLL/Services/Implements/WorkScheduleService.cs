@@ -264,14 +264,30 @@ public class WorkScheduleService : IWorkScheduleService
         return await GetWorkSchedulesWithPaginationAsync(filter, pageIndex, pageSize);
     }
 
-    public async Task<PaginatedList<WorkScheduleResponseDTO>> GetWorkSchedulesByUserIdAsync(
+    public async Task<List<WorkScheduleResponseDTO>> GetWorkSchedulesByUserIdAsync(
         int userId,
-        WorkScheduleFilterRequestDTO filter,
-        int pageIndex = 1,
-        int pageSize = 10)
+        WorkScheduleFilterRequestDTO filter)
     {
-        filter.CreatedBy = userId;
-        return await GetWorkSchedulesWithPaginationAsync(filter, pageIndex, pageSize);
+        filter.StaffId = userId;
+
+        var queryBuilder = new QueryBuilder<WorkSchedule>()
+            .WithTracking(false)
+            .WithInclude(ws => ws.TaskTemplate)
+            .WithInclude(ws => ws.Creator)
+            .WithInclude(ws => ws.StaffAssignments)
+            .WithInclude(ws => ws.PondAssignments);
+
+        ApplyFilters(queryBuilder, filter);
+
+        queryBuilder.WithOrderBy(q => q.OrderByDescending(ws => ws.ScheduledDate)
+            .ThenByDescending(ws => ws.StartTime));
+
+        var query = _workScheduleRepo.Get(queryBuilder.Build());
+        var entities = await query.ToListAsync();
+
+        await LoadNavigationPropertiesAsync(entities);
+
+        return _mapper.Map<List<WorkScheduleResponseDTO>>(entities);
     }
 
     private async Task<PaginatedList<WorkScheduleResponseDTO>> GetWorkSchedulesWithPaginationAsync(

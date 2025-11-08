@@ -45,9 +45,9 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                     throw new ArgumentException($"TaskTemplate with ID {item.TaskTemplateId} not found");
                 }
 
-                if (item.EndTime <= item.StartTime)
+                if (taskTemplate.DefaultDuration <= 0)
                 {
-                    throw new ArgumentException("EndTime must be greater than StartTime");
+                    throw new ArgumentException($"TaskTemplate '{taskTemplate.TaskName}' must have a valid duration (greater than 0)");
                 }
             }
 
@@ -139,9 +139,9 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                     throw new ArgumentException($"TaskTemplate with ID {item.TaskTemplateId} not found");
                 }
 
-                if (item.EndTime <= item.StartTime)
+                if (taskTemplate.DefaultDuration <= 0)
                 {
-                    throw new ArgumentException("EndTime must be greater than StartTime");
+                    throw new ArgumentException($"TaskTemplate '{taskTemplate.TaskName}' must have a valid duration (greater than 0)");
                 }
             }
 
@@ -249,12 +249,15 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                 int daysToAdd = ((int)templateItem.DayOfWeek - (int)startDayOfWeek + 7) % 7;
                 var scheduleDate = startDate.AddDays(daysToAdd);
 
+                // Calculate EndTime from StartTime + Task Duration
+                var endTime = templateItem.StartTime.AddMinutes(templateItem.TaskTemplate.DefaultDuration);
+
                 var workSchedule = new WorkSchedule
                 {
                     TaskTemplateId = templateItem.TaskTemplateId,
                     ScheduledDate = scheduleDate,
                     StartTime = templateItem.StartTime,
-                    EndTime = templateItem.EndTime,
+                    EndTime = endTime,
                     Status = WorkTaskStatus.Pending,
                     CreatedBy = 1,
                     CreatedAt = DateTime.UtcNow
