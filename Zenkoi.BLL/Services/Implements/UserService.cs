@@ -20,18 +20,19 @@ namespace Zenkoi.BLL.Services.Implements
 			_mapper = mapper;
 		}
 
-		public async Task<PaginatedList<ApplicationUserResponseDTO>> GetUsersByRoleAsync(Role role, int pageIndex, int pageSize)
-		{
-			var repo = _unitOfWork.GetRepo<ApplicationUser>();
+	public async Task<PaginatedList<ApplicationUserResponseDTO>> GetUsersByRoleAsync(Role role, int pageIndex, int pageSize)
+	{
+		var repo = _unitOfWork.GetRepo<ApplicationUser>();
 
-			var users = repo.Get(new QueryBuilder<ApplicationUser>()
-				.WithPredicate(x => x.Role == role && !x.IsDeleted)			
-				.Build());
+		var users = repo.Get(new QueryBuilder<ApplicationUser>()
+			.WithPredicate(x => x.Role == role && !x.IsDeleted)
+			.WithTracking(false)
+			.Build());
 
-			var pagedUsers = await PaginatedList<ApplicationUser>.CreateAsync(users, pageIndex, pageSize);
-			var result = _mapper.Map<List<ApplicationUserResponseDTO>>(pagedUsers);
-			return new PaginatedList<ApplicationUserResponseDTO>(result, pagedUsers.TotalItems, pageIndex, pageSize);
-		}
+		var pagedUsers = await PaginatedList<ApplicationUser>.CreateAsync(users, pageIndex, pageSize);
+		var result = _mapper.Map<List<ApplicationUserResponseDTO>>(pagedUsers);
+		return new PaginatedList<ApplicationUserResponseDTO>(result, pagedUsers.TotalItems, pageIndex, pageSize);
+	}
 	}
 }
 
