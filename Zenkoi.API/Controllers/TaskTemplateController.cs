@@ -99,9 +99,7 @@ public class TaskTemplateController : BaseAPIController
         try
         {
             var result = await _taskTemplateService.DeleteTaskTemplateAsync(id);
-            if (result)
-                return SaveSuccess(new { message = "Task template deleted successfully" }, "Task template deleted successfully");
-            return GetNotFound("Task template not found");
+            return Success(result, result ? "Task template deleted successfully" : "Task template not found");
         }
         catch (Exception ex)
         {
@@ -115,9 +113,7 @@ public class TaskTemplateController : BaseAPIController
         try
         {
             var result = await _taskTemplateService.RestoreTaskTemplateAsync(id);
-            if (result)
-                return Success(new { message = "Task template restored successfully" }, "Task template restored successfully");
-            return GetNotFound("Task template not found");
+            return Success(result, result ? "Task template restored successfully" : "Task template not found");
         }
         catch (Exception ex)
         {
