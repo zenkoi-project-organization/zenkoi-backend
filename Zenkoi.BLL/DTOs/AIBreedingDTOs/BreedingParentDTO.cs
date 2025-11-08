@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
 {
@@ -16,8 +18,9 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public string Size { get; set; }
         public double Age { get; set; }
         public string Health { get; set; } = "";
-        public string? BodyShape { get; set; }
-        public string? ColorPattern { get; set; }
+        public bool IsMutated { get; set; }
+        public string MutationType { get; set; }
+        public double? MutationRate { get; set; }
         public string? Note { get; set; }
         public List<BreedingRecordDTO> BreedingHistory { get; set; } = new();
     }
