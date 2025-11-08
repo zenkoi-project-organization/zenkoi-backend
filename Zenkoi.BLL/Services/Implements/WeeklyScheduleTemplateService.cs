@@ -217,6 +217,22 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                 throw new KeyNotFoundException("Weekly schedule template not found");
             }
 
+            var taskTemplateIds = template.TemplateItems.Select(ti => ti.TaskTemplateId).Distinct().ToList();
+            var taskTemplates = await _taskTemplateRepo.GetAllAsync(new QueryOptions<TaskTemplate>
+            {
+                Predicate = tt => taskTemplateIds.Contains(tt.Id)
+            });
+            var taskTemplateDict = taskTemplates.ToDictionary(tt => tt.Id, tt => tt);
+
+            foreach (var templateItem in template.TemplateItems)
+            {
+                if (!taskTemplateDict.TryGetValue(templateItem.TaskTemplateId, out var taskTemplate))
+                {
+                    throw new KeyNotFoundException($"TaskTemplate with ID {templateItem.TaskTemplateId} not found");
+                }
+                templateItem.TaskTemplate = taskTemplate;
+            }
+
             var startDate = request.StartDate;
             var startDayOfWeek = startDate.DayOfWeek;
 
@@ -249,7 +265,6 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                 int daysToAdd = ((int)templateItem.DayOfWeek - (int)startDayOfWeek + 7) % 7;
                 var scheduleDate = startDate.AddDays(daysToAdd);
 
-                // Calculate EndTime from StartTime + Task Duration
                 var endTime = templateItem.StartTime.AddMinutes(templateItem.TaskTemplate.DefaultDuration);
 
                 var workSchedule = new WorkSchedule
