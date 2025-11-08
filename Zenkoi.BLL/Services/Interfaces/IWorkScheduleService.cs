@@ -6,10 +6,7 @@ namespace Zenkoi.BLL.Services.Interfaces;
 
 public interface IWorkScheduleService
 {
-    Task<PaginatedList<WorkScheduleResponseDTO>> GetAllWorkSchedulesAsync(
-        WorkScheduleFilterRequestDTO filter,
-        int pageIndex = 1,
-        int pageSize = 10);
+    Task<List<WorkScheduleResponseDTO>> GetAllWorkSchedulesAsync(WorkScheduleFilterRequestDTO filter);
 
     Task<WorkScheduleResponseDTO> GetWorkScheduleByIdAsync(int id);
 
@@ -32,6 +29,10 @@ public interface IWorkScheduleService
         WorkScheduleFilterRequestDTO filter,
         int pageIndex = 1,
         int pageSize = 10);
+
+    Task<List<WorkScheduleResponseDTO>> GetWorkSchedulesByUserIdAsync(
+        int userId,
+        WorkScheduleFilterRequestDTO filter);
 
     Task<BulkAssignmentResultDTO> BulkAssignStaffAsync(BulkAssignStaffDTO dto);
 }

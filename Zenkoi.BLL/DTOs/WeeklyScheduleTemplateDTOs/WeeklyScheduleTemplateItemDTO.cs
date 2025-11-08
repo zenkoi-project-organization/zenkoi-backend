@@ -13,7 +13,4 @@ public class WeeklyScheduleTemplateItemDTO
 
     [Required]
     public TimeOnly StartTime { get; set; }
-
-    [Required]
-    public TimeOnly EndTime { get; set; }
 }

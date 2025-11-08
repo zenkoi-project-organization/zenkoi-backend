@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251108094917_RemoveEndTimeFromWeeklyScheduleTemplateItem")]
+    partial class RemoveEndTimeFromWeeklyScheduleTemplateItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -277,9 +280,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("CommonMutationType")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
@@ -294,9 +294,6 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<int>("MaleKoiId")
                         .HasColumnType("int");
-
-                    b.Property<double?>("MutationRate")
-                        .HasColumnType("float");
 
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
@@ -876,8 +873,16 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<DateTime?>("BirthDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("BodyShape")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<int?>("BreedingProcessId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ColorPattern")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -899,15 +904,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<string>("Images")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
-
-                    b.Property<bool>("IsMutated")
-                        .HasColumnType("bit");
-
-                    b.Property<double?>("MutationRate")
-                        .HasColumnType("float");
-
-                    b.Property<int>("MutationType")
-                        .HasColumnType("int");
 
                     b.Property<string>("Origin")
                         .HasMaxLength(1000)
@@ -932,7 +928,7 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<string>("Size")
                         .IsRequired()
-                        .HasColumnType("nvarchar(64)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -1868,9 +1864,14 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("NotesTask")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                    b.Property<bool>("IsRecurring")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("RecurrenceRule")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("TaskName")
                         .IsRequired()
@@ -1883,6 +1884,8 @@ namespace Zenkoi.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted");
+
+                    b.HasIndex("IsRecurring");
 
                     b.HasIndex("TaskName");
 

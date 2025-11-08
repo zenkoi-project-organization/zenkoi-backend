@@ -34,10 +34,7 @@ public class WorkScheduleService : IWorkScheduleService
         _pondRepo = _unitOfWork.GetRepo<Pond>();
     }
 
-    public async Task<PaginatedList<WorkScheduleResponseDTO>> GetAllWorkSchedulesAsync(
-        WorkScheduleFilterRequestDTO filter,
-        int pageIndex = 1,
-        int pageSize = 10)
+    public async Task<List<WorkScheduleResponseDTO>> GetAllWorkSchedulesAsync(WorkScheduleFilterRequestDTO filter)
     {
         var queryBuilder = new QueryBuilder<WorkSchedule>()
             .WithTracking(false)
@@ -52,17 +49,11 @@ public class WorkScheduleService : IWorkScheduleService
             .ThenByDescending(ws => ws.StartTime));
 
         var query = _workScheduleRepo.Get(queryBuilder.Build());
-        var paginatedEntities = await PaginatedList<WorkSchedule>.CreateAsync(query, pageIndex, pageSize);
+        var entities = await query.ToListAsync();
 
-        await LoadNavigationPropertiesAsync(paginatedEntities);
+        await LoadNavigationPropertiesAsync(entities);
 
-        var resultDto = _mapper.Map<List<WorkScheduleResponseDTO>>(paginatedEntities);
-
-        return new PaginatedList<WorkScheduleResponseDTO>(
-            resultDto,
-            paginatedEntities.TotalItems,
-            pageIndex,
-            pageSize);
+        return _mapper.Map<List<WorkScheduleResponseDTO>>(entities);
     }
 
     public async Task<WorkScheduleResponseDTO> GetWorkScheduleByIdAsync(int id)
@@ -260,7 +251,7 @@ public class WorkScheduleService : IWorkScheduleService
         int pageSize = 10)
     {
         filter.StaffId = staffId;
-        return await GetAllWorkSchedulesAsync(filter, pageIndex, pageSize);
+        return await GetWorkSchedulesWithPaginationAsync(filter, pageIndex, pageSize);
     }
 
     public async Task<PaginatedList<WorkScheduleResponseDTO>> GetWorkSchedulesByPondIdAsync(
@@ -270,7 +261,64 @@ public class WorkScheduleService : IWorkScheduleService
         int pageSize = 10)
     {
         filter.PondId = pondId;
-        return await GetAllWorkSchedulesAsync(filter, pageIndex, pageSize);
+        return await GetWorkSchedulesWithPaginationAsync(filter, pageIndex, pageSize);
+    }
+
+    public async Task<List<WorkScheduleResponseDTO>> GetWorkSchedulesByUserIdAsync(
+        int userId,
+        WorkScheduleFilterRequestDTO filter)
+    {
+        filter.StaffId = userId;
+
+        var queryBuilder = new QueryBuilder<WorkSchedule>()
+            .WithTracking(false)
+            .WithInclude(ws => ws.TaskTemplate)
+            .WithInclude(ws => ws.Creator)
+            .WithInclude(ws => ws.StaffAssignments)
+            .WithInclude(ws => ws.PondAssignments);
+
+        ApplyFilters(queryBuilder, filter);
+
+        queryBuilder.WithOrderBy(q => q.OrderByDescending(ws => ws.ScheduledDate)
+            .ThenByDescending(ws => ws.StartTime));
+
+        var query = _workScheduleRepo.Get(queryBuilder.Build());
+        var entities = await query.ToListAsync();
+
+        await LoadNavigationPropertiesAsync(entities);
+
+        return _mapper.Map<List<WorkScheduleResponseDTO>>(entities);
+    }
+
+    private async Task<PaginatedList<WorkScheduleResponseDTO>> GetWorkSchedulesWithPaginationAsync(
+        WorkScheduleFilterRequestDTO filter,
+        int pageIndex = 1,
+        int pageSize = 10)
+    {
+        var queryBuilder = new QueryBuilder<WorkSchedule>()
+            .WithTracking(false)
+            .WithInclude(ws => ws.TaskTemplate)
+            .WithInclude(ws => ws.Creator)
+            .WithInclude(ws => ws.StaffAssignments)
+            .WithInclude(ws => ws.PondAssignments);
+
+        ApplyFilters(queryBuilder, filter);
+
+        queryBuilder.WithOrderBy(q => q.OrderByDescending(ws => ws.ScheduledDate)
+            .ThenByDescending(ws => ws.StartTime));
+
+        var query = _workScheduleRepo.Get(queryBuilder.Build());
+        var paginatedEntities = await PaginatedList<WorkSchedule>.CreateAsync(query, pageIndex, pageSize);
+
+        await LoadNavigationPropertiesAsync(paginatedEntities);
+
+        var resultDto = _mapper.Map<List<WorkScheduleResponseDTO>>(paginatedEntities);
+
+        return new PaginatedList<WorkScheduleResponseDTO>(
+            resultDto,
+            paginatedEntities.TotalItems,
+            pageIndex,
+            pageSize);
     }
 
     private void ApplyFilters(QueryBuilder<WorkSchedule> queryBuilder, WorkScheduleFilterRequestDTO filter)

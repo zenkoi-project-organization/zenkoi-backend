@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-          //      await TruncateAllTablesExceptMigrationHistory(context);
+                await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -1352,8 +1352,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Cho cá ăn buổi sáng (6h)",
                         Description = "Cho cá ăn thức ăn viên, kiểm tra lượng thức ăn thừa từ lần trước.",
                         DefaultDuration = 30,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=DAILY;BYHOUR=6",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1362,8 +1360,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Cho cá ăn buổi chiều (17h)",
                         Description = "Cho cá ăn thức ăn viên, điều chỉnh lượng ăn dựa trên sức khỏe và thời tiết.",
                         DefaultDuration = 30,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=DAILY;BYHOUR=17",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1372,8 +1368,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Kiểm tra chất lượng nước",
                         Description = "Đo pH, nhiệt độ, DO (Oxy hòa tan), Ammonia (NH3), Nitrite (NO2). Ghi chép kết quả.",
                         DefaultDuration = 45,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=DAILY;BYHOUR=8",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1382,8 +1376,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Kiểm tra trực quan sức khỏe cá",
                         Description = "Quan sát hành vi bơi, da, vảy, mắt, vây. Phát hiện các dấu hiệu bất thường (lờ đờ, cọ mình, đốm lạ).",
                         DefaultDuration = 30,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=DAILY;BYHOUR=9",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1392,8 +1384,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Kiểm tra hệ thống bơm và sục khí",
                         Description = "Nghe tiếng động lạ từ máy bơm, kiểm tra luồng nước, kiểm tra đầu sục khí đảm bảo hoạt động.",
                         DefaultDuration = 15,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=DAILY;BYHOUR=7",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1402,8 +1392,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Vệ sinh lưới lọc/Drum filter",
                         Description = "Vệ sinh, xịt rửa lưới lọc cơ học (hoặc kiểm tra chu trình xả của drum filter).",
                         DefaultDuration = 60,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=MO,TH",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1412,8 +1400,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Vệ sinh Protein Skimmer",
                         Description = "Vệ sinh cốc đựng bọt bẩn của Skimmer và kiểm tra hoạt động.",
                         DefaultDuration = 30,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=TU",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1422,8 +1408,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Kiểm tra sức khỏe cá chuyên sâu (Lấy mẫu)",
                         Description = "Bắt ngẫu nhiên 2-3 cá ở mỗi ao để kiểm tra nhớt (mucus scrape test) dưới kính hiển vi tìm ký sinh trùng.",
                         DefaultDuration = 90,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=WE",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1432,8 +1416,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Thay nước ao định kỳ",
                         Description = "Thay 20-30% lượng nước ao, châm nước sạch đã qua xử lý. Kiểm tra lại nồng độ muối nếu cần.",
                         DefaultDuration = 120,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=SU",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1442,8 +1424,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Kiểm kê kho thức ăn",
                         Description = "Kiểm tra số lượng thức ăn tồn kho, hạn sử dụng, và lập kế hoạch đặt hàng mới.",
                         DefaultDuration = 30,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=WEEKLY;BYDAY=FR",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1452,8 +1432,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Vệ sinh đáy ao và xả cặn lọc",
                         Description = "Hút cặn bẩn (siphon) dưới đáy ao và xả cặn bẩn trong các khoang lắng của hệ thống lọc.",
                         DefaultDuration = 90,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=1,15",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1462,8 +1440,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Bảo dưỡng/Vệ sinh đèn UV",
                         Description = "Kiểm tra và vệ sinh ống thạch anh của đèn UV để đảm bảo hiệu suất diệt khuẩn.",
                         DefaultDuration = 45,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=1",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1472,8 +1448,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Kiểm kê kho thuốc và hóa chất",
                         Description = "Kiểm tra tồn kho, hạn sử dụng của thuốc tím, muối, thuốc mê, và các hóa chất xử lý nước khác.",
                         DefaultDuration = 45,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=5",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1482,8 +1456,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Vệ sinh vật liệu lọc (Bakki, Jmat)",
                         Description = "Vệ sinh sơ bộ vật liệu lọc (chỉ dùng nước trong hồ) để tránh tắc nghẽn, không rửa quá sạch làm chết vi sinh.",
                         DefaultDuration = 120,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=10",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1492,7 +1464,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Tiếp nhận cá mới - Cách ly",
                         Description = "Chuẩn bị ao cách ly, tiếp nhận cá mới, thực hiện quy trình tắm muối/kháng sinh, và bắt đầu theo dõi.",
                         DefaultDuration = 120,
-                        IsRecurring = false,
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1501,7 +1472,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Xử lý cá bệnh (Tắm thuốc)",
                         Description = "Pha thuốc (ví dụ: thuốc tím, Praziquantel) vào bồn riêng và tắm cho cá theo liều lượng và thời gian quy định.",
                         DefaultDuration = 90,
-                        IsRecurring = false,
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1510,7 +1480,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Chuẩn bị ao đẻ (Mùa sinh sản)",
                         Description = "Vệ sinh ao, chuẩn bị giá thể đẻ (lưới, bùi nhùi), điều chỉnh nhiệt độ và ánh sáng.",
                         DefaultDuration = 180,
-                        IsRecurring = false,
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
@@ -1519,8 +1488,6 @@ namespace Zenkoi.API.ConfigExtensions
                         TaskName = "Bảo dưỡng máy bơm tổng",
                         Description = "Ngắt điện, tháo, kiểm tra, vệ sinh, và bảo dưỡng hệ thống máy bơm chính của farm.",
                         DefaultDuration = 240,
-                        IsRecurring = true,
-                        RecurrenceRule = "FREQ=MONTHLY;INTERVAL=6;BYMONTHDAY=1",
                         IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     }
@@ -1529,90 +1496,75 @@ namespace Zenkoi.API.ConfigExtensions
             }
             #endregion
 
-            #region Seeding WorkSchedules
+            #region Seeding WorkSchedules for Complete Week
             if (!context.WorkSchedules.Any())
             {
-                await context.WorkSchedules.AddRangeAsync(
-                    new WorkSchedule
-                    {
-                        TaskTemplateId = 1,
-                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
-                        StartTime = new TimeOnly(6, 0),
-                        EndTime = new TimeOnly(6, 30),
-                        Status = WorkTaskStatus.Pending,
-                        Notes = "Cho ăn buổi sáng hôm nay",
-                        CreatedBy = 1,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new WorkSchedule
-                    {
-                        TaskTemplateId = 2,
-                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
-                        StartTime = new TimeOnly(17, 0),
-                        EndTime = new TimeOnly(17, 30),
-                        Status = WorkTaskStatus.Pending,
-                        Notes = "Cho ăn buổi chiều hôm nay",
-                        CreatedBy = 1,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new WorkSchedule
-                    {
-                        TaskTemplateId = 3,
-                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
-                        StartTime = new TimeOnly(8, 0),
-                        EndTime = new TimeOnly(8, 45),
-                        Status = WorkTaskStatus.InProgress,
-                        Notes = "Kiểm tra chất lượng nước tất cả các ao",
-                        CreatedBy = 1,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new WorkSchedule
-                    {
-                        TaskTemplateId = 1,
-                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)),
-                        StartTime = new TimeOnly(6, 0),
-                        EndTime = new TimeOnly(6, 30),
-                        Status = WorkTaskStatus.Completed,
-                        Notes = "Đã hoàn thành cho ăn sáng ngày hôm qua",
-                        CreatedBy = 1,
-                        CreatedAt = DateTime.UtcNow.AddDays(-1),
-                        UpdatedAt = DateTime.UtcNow.AddDays(-1).AddHours(1)
-                    },
-                    new WorkSchedule
-                    {
-                        TaskTemplateId = 5,
-                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-2)),
-                        StartTime = new TimeOnly(9, 0),
-                        EndTime = new TimeOnly(10, 0),
-                        Status = WorkTaskStatus.Completed,
-                        Notes = "Đã kiểm tra sức khỏe cá, không phát hiện bệnh",
-                        CreatedBy = 1,
-                        CreatedAt = DateTime.UtcNow.AddDays(-2),
-                        UpdatedAt = DateTime.UtcNow.AddDays(-2).AddHours(2)
-                    },
-                    new WorkSchedule
-                    {
-                        TaskTemplateId = 4,
-                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
-                        StartTime = new TimeOnly(10, 0),
-                        EndTime = new TimeOnly(11, 0),
-                        Status = WorkTaskStatus.Pending,
-                        Notes = "Vệ sinh lưới lọc ngày mai",
-                        CreatedBy = 1,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new WorkSchedule
-                    {
-                        TaskTemplateId = 6,
-                        ScheduledDate = DateOnly.FromDateTime(DateTime.Today.AddDays(2)),
-                        StartTime = new TimeOnly(7, 0),
-                        EndTime = new TimeOnly(9, 0),
-                        Status = WorkTaskStatus.Pending,
-                        Notes = "Thay nước ao cuối tuần",
-                        CreatedBy = 1,
-                        CreatedAt = DateTime.UtcNow
-                    }
-                );
+                // Get Monday of current week
+                var today = DateTime.Today;
+                var currentDayOfWeek = (int)today.DayOfWeek;
+                var monday = today.AddDays(-(currentDayOfWeek == 0 ? 6 : currentDayOfWeek - 1));
+
+                var workSchedules = new List<WorkSchedule>();
+
+                // MONDAY (6 tasks)
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 1, ScheduledDate = DateOnly.FromDateTime(monday), StartTime = new TimeOnly(6, 0), EndTime = new TimeOnly(6, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-7) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 5, ScheduledDate = DateOnly.FromDateTime(monday), StartTime = new TimeOnly(7, 0), EndTime = new TimeOnly(7, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-7) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 3, ScheduledDate = DateOnly.FromDateTime(monday), StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(8, 45), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-7) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 4, ScheduledDate = DateOnly.FromDateTime(monday), StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(9, 15), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-7) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 11, ScheduledDate = DateOnly.FromDateTime(monday), StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-7) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 2, ScheduledDate = DateOnly.FromDateTime(monday), StartTime = new TimeOnly(17, 0), EndTime = new TimeOnly(17, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-7) });
+
+                // TUESDAY (6 tasks)
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 1, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(1)), StartTime = new TimeOnly(6, 0), EndTime = new TimeOnly(6, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-6) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 5, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(1)), StartTime = new TimeOnly(7, 0), EndTime = new TimeOnly(7, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-6) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 3, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(1)), StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(8, 45), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-6) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 4, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(1)), StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(9, 15), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-6) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 7, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(1)), StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(10, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-6) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 2, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(1)), StartTime = new TimeOnly(17, 0), EndTime = new TimeOnly(17, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-6) });
+
+                // WEDNESDAY (6 tasks)
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 1, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(2)), StartTime = new TimeOnly(6, 0), EndTime = new TimeOnly(6, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-5) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 5, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(2)), StartTime = new TimeOnly(7, 0), EndTime = new TimeOnly(7, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-5) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 3, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(2)), StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(8, 45), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-5) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 4, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(2)), StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(9, 15), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-5) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 8, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(2)), StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-5) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 2, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(2)), StartTime = new TimeOnly(17, 0), EndTime = new TimeOnly(17, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-5) });
+
+                // THURSDAY (6 tasks)
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 1, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(3)), StartTime = new TimeOnly(6, 0), EndTime = new TimeOnly(6, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-4) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 5, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(3)), StartTime = new TimeOnly(7, 0), EndTime = new TimeOnly(7, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-4) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 3, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(3)), StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(8, 45), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-4) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 4, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(3)), StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(9, 15), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-4) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 13, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(3)), StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(10, 45), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-4) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 2, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(3)), StartTime = new TimeOnly(17, 0), EndTime = new TimeOnly(17, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-4) });
+
+                // FRIDAY (6 tasks)
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 1, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(4)), StartTime = new TimeOnly(6, 0), EndTime = new TimeOnly(6, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-3) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 5, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(4)), StartTime = new TimeOnly(7, 0), EndTime = new TimeOnly(7, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-3) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 3, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(4)), StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(8, 45), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-3) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 4, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(4)), StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(9, 15), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-3) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 10, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(4)), StartTime = new TimeOnly(14, 0), EndTime = new TimeOnly(14, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-3) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 2, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(4)), StartTime = new TimeOnly(17, 0), EndTime = new TimeOnly(17, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-3) });
+
+                // SATURDAY (7 tasks)
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 1, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(5)), StartTime = new TimeOnly(6, 0), EndTime = new TimeOnly(6, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-2) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 5, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(5)), StartTime = new TimeOnly(7, 0), EndTime = new TimeOnly(7, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-2) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 3, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(5)), StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(8, 45), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-2) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 4, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(5)), StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(9, 15), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-2) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 11, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(5)), StartTime = new TimeOnly(10, 0), EndTime = new TimeOnly(11, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-2) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 12, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(5)), StartTime = new TimeOnly(14, 0), EndTime = new TimeOnly(14, 45), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-2) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 2, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(5)), StartTime = new TimeOnly(17, 0), EndTime = new TimeOnly(17, 30), Status = WorkTaskStatus.Completed, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-2) });
+
+                // SUNDAY (7 tasks)
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 1, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(6)), StartTime = new TimeOnly(6, 0), EndTime = new TimeOnly(6, 30), Status = WorkTaskStatus.InProgress, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-1) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 5, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(6)), StartTime = new TimeOnly(7, 0), EndTime = new TimeOnly(7, 30), Status = WorkTaskStatus.Pending, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-1) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 3, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(6)), StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(8, 45), Status = WorkTaskStatus.Pending, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-1) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 4, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(6)), StartTime = new TimeOnly(9, 0), EndTime = new TimeOnly(9, 15), Status = WorkTaskStatus.Pending, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-1) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 9, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(6)), StartTime = new TimeOnly(9, 30), EndTime = new TimeOnly(11, 30), Status = WorkTaskStatus.Pending, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-1) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 14, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(6)), StartTime = new TimeOnly(13, 0), EndTime = new TimeOnly(15, 0), Status = WorkTaskStatus.Pending, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-1) });
+                workSchedules.Add(new WorkSchedule { TaskTemplateId = 2, ScheduledDate = DateOnly.FromDateTime(monday.AddDays(6)), StartTime = new TimeOnly(17, 0), EndTime = new TimeOnly(17, 30), Status = WorkTaskStatus.Pending, CreatedBy = 1, CreatedAt = DateTime.UtcNow.AddDays(-1) });
+
+                await context.WorkSchedules.AddRangeAsync(workSchedules);
                 await context.SaveChangesAsync();
             }
             #endregion
@@ -1647,7 +1599,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 1,
                             DayOfWeek = DayOfWeek.Monday,
                             StartTime = TimeOnly.Parse("06:00"),
-                            EndTime = TimeOnly.Parse("06:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1655,7 +1606,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 5,
                             DayOfWeek = DayOfWeek.Monday,
                             StartTime = TimeOnly.Parse("07:00"),
-                            EndTime = TimeOnly.Parse("07:15")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1663,7 +1613,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 3,
                             DayOfWeek = DayOfWeek.Monday,
                             StartTime = TimeOnly.Parse("08:00"),
-                            EndTime = TimeOnly.Parse("08:45")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1671,15 +1620,13 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 4,
                             DayOfWeek = DayOfWeek.Monday,
                             StartTime = TimeOnly.Parse("09:00"),
-                            EndTime = TimeOnly.Parse("09:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
                             WeeklyScheduleTemplateId = standardTemplate.Id,
-                            TaskTemplateId = 6,
+                            TaskTemplateId = 11,
                             DayOfWeek = DayOfWeek.Monday,
                             StartTime = TimeOnly.Parse("10:00"),
-                            EndTime = TimeOnly.Parse("11:00")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1687,7 +1634,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 2,
                             DayOfWeek = DayOfWeek.Monday,
                             StartTime = TimeOnly.Parse("17:00"),
-                            EndTime = TimeOnly.Parse("17:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1695,7 +1641,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 1,
                             DayOfWeek = DayOfWeek.Tuesday,
                             StartTime = TimeOnly.Parse("06:00"),
-                            EndTime = TimeOnly.Parse("06:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1703,7 +1648,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 5,
                             DayOfWeek = DayOfWeek.Tuesday,
                             StartTime = TimeOnly.Parse("07:00"),
-                            EndTime = TimeOnly.Parse("07:15")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1711,7 +1655,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 3,
                             DayOfWeek = DayOfWeek.Tuesday,
                             StartTime = TimeOnly.Parse("08:00"),
-                            EndTime = TimeOnly.Parse("08:45")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1719,7 +1662,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 4,
                             DayOfWeek = DayOfWeek.Tuesday,
                             StartTime = TimeOnly.Parse("09:00"),
-                            EndTime = TimeOnly.Parse("09:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1727,7 +1669,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 7,
                             DayOfWeek = DayOfWeek.Tuesday,
                             StartTime = TimeOnly.Parse("10:00"),
-                            EndTime = TimeOnly.Parse("10:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1735,7 +1676,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 2,
                             DayOfWeek = DayOfWeek.Tuesday,
                             StartTime = TimeOnly.Parse("17:00"),
-                            EndTime = TimeOnly.Parse("17:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1743,7 +1683,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 1,
                             DayOfWeek = DayOfWeek.Wednesday,
                             StartTime = TimeOnly.Parse("06:00"),
-                            EndTime = TimeOnly.Parse("06:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1751,7 +1690,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 5,
                             DayOfWeek = DayOfWeek.Wednesday,
                             StartTime = TimeOnly.Parse("07:00"),
-                            EndTime = TimeOnly.Parse("07:15")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1759,7 +1697,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 3,
                             DayOfWeek = DayOfWeek.Wednesday,
                             StartTime = TimeOnly.Parse("08:00"),
-                            EndTime = TimeOnly.Parse("08:45")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1767,7 +1704,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 4,
                             DayOfWeek = DayOfWeek.Wednesday,
                             StartTime = TimeOnly.Parse("09:00"),
-                            EndTime = TimeOnly.Parse("09:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1775,7 +1711,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 8,
                             DayOfWeek = DayOfWeek.Wednesday,
                             StartTime = TimeOnly.Parse("10:00"),
-                            EndTime = TimeOnly.Parse("11:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1783,7 +1718,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 2,
                             DayOfWeek = DayOfWeek.Wednesday,
                             StartTime = TimeOnly.Parse("17:00"),
-                            EndTime = TimeOnly.Parse("17:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1791,7 +1725,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 1,
                             DayOfWeek = DayOfWeek.Thursday,
                             StartTime = TimeOnly.Parse("06:00"),
-                            EndTime = TimeOnly.Parse("06:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1799,7 +1732,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 5,
                             DayOfWeek = DayOfWeek.Thursday,
                             StartTime = TimeOnly.Parse("07:00"),
-                            EndTime = TimeOnly.Parse("07:15")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1807,7 +1739,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 3,
                             DayOfWeek = DayOfWeek.Thursday,
                             StartTime = TimeOnly.Parse("08:00"),
-                            EndTime = TimeOnly.Parse("08:45")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1815,15 +1746,13 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 4,
                             DayOfWeek = DayOfWeek.Thursday,
                             StartTime = TimeOnly.Parse("09:00"),
-                            EndTime = TimeOnly.Parse("09:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
                             WeeklyScheduleTemplateId = standardTemplate.Id,
-                            TaskTemplateId = 6,
+                            TaskTemplateId = 13,
                             DayOfWeek = DayOfWeek.Thursday,
                             StartTime = TimeOnly.Parse("10:00"),
-                            EndTime = TimeOnly.Parse("11:00")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1831,7 +1760,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 2,
                             DayOfWeek = DayOfWeek.Thursday,
                             StartTime = TimeOnly.Parse("17:00"),
-                            EndTime = TimeOnly.Parse("17:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1839,7 +1767,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 1,
                             DayOfWeek = DayOfWeek.Friday,
                             StartTime = TimeOnly.Parse("06:00"),
-                            EndTime = TimeOnly.Parse("06:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1847,7 +1774,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 5,
                             DayOfWeek = DayOfWeek.Friday,
                             StartTime = TimeOnly.Parse("07:00"),
-                            EndTime = TimeOnly.Parse("07:15")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1855,7 +1781,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 3,
                             DayOfWeek = DayOfWeek.Friday,
                             StartTime = TimeOnly.Parse("08:00"),
-                            EndTime = TimeOnly.Parse("08:45")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1863,7 +1788,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 4,
                             DayOfWeek = DayOfWeek.Friday,
                             StartTime = TimeOnly.Parse("09:00"),
-                            EndTime = TimeOnly.Parse("09:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1871,7 +1795,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 10,
                             DayOfWeek = DayOfWeek.Friday,
                             StartTime = TimeOnly.Parse("14:00"),
-                            EndTime = TimeOnly.Parse("14:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1879,7 +1802,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 2,
                             DayOfWeek = DayOfWeek.Friday,
                             StartTime = TimeOnly.Parse("17:00"),
-                            EndTime = TimeOnly.Parse("17:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1887,7 +1809,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 1,
                             DayOfWeek = DayOfWeek.Saturday,
                             StartTime = TimeOnly.Parse("06:00"),
-                            EndTime = TimeOnly.Parse("06:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1895,7 +1816,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 5,
                             DayOfWeek = DayOfWeek.Saturday,
                             StartTime = TimeOnly.Parse("07:00"),
-                            EndTime = TimeOnly.Parse("07:15")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1903,7 +1823,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 3,
                             DayOfWeek = DayOfWeek.Saturday,
                             StartTime = TimeOnly.Parse("08:00"),
-                            EndTime = TimeOnly.Parse("08:45")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1911,7 +1830,20 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 4,
                             DayOfWeek = DayOfWeek.Saturday,
                             StartTime = TimeOnly.Parse("09:00"),
-                            EndTime = TimeOnly.Parse("09:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 11,
+                            DayOfWeek = DayOfWeek.Saturday,
+                            StartTime = TimeOnly.Parse("10:00"),
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 12,
+                            DayOfWeek = DayOfWeek.Saturday,
+                            StartTime = TimeOnly.Parse("14:00"),
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1919,7 +1851,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 2,
                             DayOfWeek = DayOfWeek.Saturday,
                             StartTime = TimeOnly.Parse("17:00"),
-                            EndTime = TimeOnly.Parse("17:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1927,7 +1858,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 1,
                             DayOfWeek = DayOfWeek.Sunday,
                             StartTime = TimeOnly.Parse("06:00"),
-                            EndTime = TimeOnly.Parse("06:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1935,7 +1865,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 5,
                             DayOfWeek = DayOfWeek.Sunday,
                             StartTime = TimeOnly.Parse("07:00"),
-                            EndTime = TimeOnly.Parse("07:15")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1943,7 +1872,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 3,
                             DayOfWeek = DayOfWeek.Sunday,
                             StartTime = TimeOnly.Parse("08:00"),
-                            EndTime = TimeOnly.Parse("08:45")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1951,7 +1879,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 4,
                             DayOfWeek = DayOfWeek.Sunday,
                             StartTime = TimeOnly.Parse("09:00"),
-                            EndTime = TimeOnly.Parse("09:30")
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1959,7 +1886,13 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 9,
                             DayOfWeek = DayOfWeek.Sunday,
                             StartTime = TimeOnly.Parse("09:30"),
-                            EndTime = TimeOnly.Parse("11:30")
+                        },
+                        new WeeklyScheduleTemplateItem
+                        {
+                            WeeklyScheduleTemplateId = standardTemplate.Id,
+                            TaskTemplateId = 14,
+                            DayOfWeek = DayOfWeek.Sunday,
+                            StartTime = TimeOnly.Parse("13:00"),
                         },
                         new WeeklyScheduleTemplateItem
                         {
@@ -1967,7 +1900,6 @@ namespace Zenkoi.API.ConfigExtensions
                             TaskTemplateId = 2,
                             DayOfWeek = DayOfWeek.Sunday,
                             StartTime = TimeOnly.Parse("17:00"),
-                            EndTime = TimeOnly.Parse("17:30")
                         }
                     );
                     await context.SaveChangesAsync();
@@ -1975,71 +1907,199 @@ namespace Zenkoi.API.ConfigExtensions
             }
             #endregion
 
-            #region Seeding StaffAssignments
+            #region Seeding StaffAssignments for Complete Week
             if (!context.StaffAssignments.Any())
             {
-                await context.StaffAssignments.AddRangeAsync(
-                    new StaffAssignment { WorkScheduleId = 1, StaffId = 5, CompletionNotes = null, CompletedAt = null },
-                    new StaffAssignment { WorkScheduleId = 1, StaffId = 6, CompletionNotes = null, CompletedAt = null },
-                    new StaffAssignment { WorkScheduleId = 2, StaffId = 5, CompletionNotes = null, CompletedAt = null },
-                    new StaffAssignment { WorkScheduleId = 2, StaffId = 7, CompletionNotes = null, CompletedAt = null },
-                    new StaffAssignment { WorkScheduleId = 3, StaffId = 6, CompletionNotes = null, CompletedAt = null },
-                    new StaffAssignment
-                    {
-                        WorkScheduleId = 4,
-                        StaffId = 5,
-                        CompletionNotes = "Đã cho ăn đầy đủ, cá ăn tốt",
-                        CompletedAt = DateTime.UtcNow.AddDays(-1).AddHours(1)
-                    },
-                    new StaffAssignment
-                    {
-                        WorkScheduleId = 4,
-                        StaffId = 6,
-                        CompletionNotes = "Hỗ trợ cho ăn, không có vấn đề",
-                        CompletedAt = DateTime.UtcNow.AddDays(-1).AddHours(1)
-                    },
-                    new StaffAssignment
-                    {
-                        WorkScheduleId = 5,
-                        StaffId = 7,
-                        CompletionNotes = "Kiểm tra sức khỏe, tất cả cá đều khỏe mạnh",
-                        CompletedAt = DateTime.UtcNow.AddDays(-2).AddHours(2)
-                    },
-                    new StaffAssignment { WorkScheduleId = 6, StaffId = 5, CompletionNotes = null, CompletedAt = null },
-                    new StaffAssignment { WorkScheduleId = 6, StaffId = 7, CompletionNotes = null, CompletedAt = null },
-                    new StaffAssignment { WorkScheduleId = 7, StaffId = 6, CompletionNotes = null, CompletedAt = null },
-                    new StaffAssignment { WorkScheduleId = 7, StaffId = 7, CompletionNotes = null, CompletedAt = null }
-                );
+                var staffAssignments = new List<StaffAssignment>();
+
+                // Rotate staff assignments: Staff1(5), Staff2(6), Staff3(7)
+                // Pattern: Morning feeding & Evening feeding = 2 staff, Other tasks = 1-2 staff based on complexity
+
+                int wsId = 1; // WorkSchedule ID counter
+
+                // MONDAY - 6 tasks (Completed)
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Đã cho ăn sáng đầy đủ", CompletedAt = DateTime.UtcNow.AddDays(-7) }); // Task 1
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 1, StaffId = 6, CompletionNotes = "Hỗ trợ cho ăn", CompletedAt = DateTime.UtcNow.AddDays(-7) });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Kiểm tra sức khỏe cá, không phát hiện bệnh", CompletedAt = DateTime.UtcNow.AddDays(-7) }); // Task 5
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Đo pH 7.2, DO 8.5mg/L - Tốt", CompletedAt = DateTime.UtcNow.AddDays(-7) }); // Task 3
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Máy bơm hoạt động bình thường", CompletedAt = DateTime.UtcNow.AddDays(-7) }); // Task 4
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Vệ sinh đáy ao hoàn tất", CompletedAt = DateTime.UtcNow.AddDays(-7) }); // Task 11
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 5, StaffId = 5, CompletionNotes = "Hỗ trợ vệ sinh", CompletedAt = DateTime.UtcNow.AddDays(-7) });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Cho ăn chiều đầy đủ", CompletedAt = DateTime.UtcNow.AddDays(-7) }); // Task 2
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 6, StaffId = 7, CompletionNotes = "Hỗ trợ cho ăn chiều", CompletedAt = DateTime.UtcNow.AddDays(-7) });
+
+                // TUESDAY - 6 tasks (Completed)
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Cho ăn sáng đầy đủ", CompletedAt = DateTime.UtcNow.AddDays(-6) }); // Task 1
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 7, StaffId = 7, CompletionNotes = "Hỗ trợ cho ăn", CompletedAt = DateTime.UtcNow.AddDays(-6) });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Kiểm tra sức khỏe, cá khỏe mạnh", CompletedAt = DateTime.UtcNow.AddDays(-6) }); // Task 5
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Chất lượng nước ổn định", CompletedAt = DateTime.UtcNow.AddDays(-6) }); // Task 3
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Hệ thống hoạt động tốt", CompletedAt = DateTime.UtcNow.AddDays(-6) }); // Task 4
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Vệ sinh Protein Skimmer hoàn tất", CompletedAt = DateTime.UtcNow.AddDays(-6) }); // Task 7
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Cho ăn chiều", CompletedAt = DateTime.UtcNow.AddDays(-6) }); // Task 2
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 12, StaffId = 5, CompletionNotes = "Hỗ trợ cho ăn", CompletedAt = DateTime.UtcNow.AddDays(-6) });
+
+                // WEDNESDAY - 6 tasks (Completed)
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Cho ăn sáng", CompletedAt = DateTime.UtcNow.AddDays(-5) }); // Task 1
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 13, StaffId = 5, CompletionNotes = "Hỗ trợ", CompletedAt = DateTime.UtcNow.AddDays(-5) });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Kiểm tra sức khỏe OK", CompletedAt = DateTime.UtcNow.AddDays(-5) }); // Task 5
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Nước trong sạch", CompletedAt = DateTime.UtcNow.AddDays(-5) }); // Task 3
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Thiết bị bình thường", CompletedAt = DateTime.UtcNow.AddDays(-5) }); // Task 4
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Lấy mẫu 3 cá, không phát hiện ký sinh trùng", CompletedAt = DateTime.UtcNow.AddDays(-5) }); // Task 8
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 17, StaffId = 7, CompletionNotes = "Hỗ trợ kiểm tra", CompletedAt = DateTime.UtcNow.AddDays(-5) });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Cho ăn chiều", CompletedAt = DateTime.UtcNow.AddDays(-5) }); // Task 2
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 18, StaffId = 6, CompletionNotes = "Hỗ trợ", CompletedAt = DateTime.UtcNow.AddDays(-5) });
+
+                // THURSDAY - 6 tasks (Completed)
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Cho ăn sáng", CompletedAt = DateTime.UtcNow.AddDays(-4) }); // Task 1
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 19, StaffId = 6, CompletionNotes = "Hỗ trợ", CompletedAt = DateTime.UtcNow.AddDays(-4) });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Cá khỏe mạnh", CompletedAt = DateTime.UtcNow.AddDays(-4) }); // Task 5
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Chất lượng nước tốt", CompletedAt = DateTime.UtcNow.AddDays(-4) }); // Task 3
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Hệ thống OK", CompletedAt = DateTime.UtcNow.AddDays(-4) }); // Task 4
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Kiểm kê thuốc hoàn tất, cần đặt mua muối", CompletedAt = DateTime.UtcNow.AddDays(-4) }); // Task 13
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Cho ăn chiều", CompletedAt = DateTime.UtcNow.AddDays(-4) }); // Task 2
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 24, StaffId = 7, CompletionNotes = "Hỗ trợ", CompletedAt = DateTime.UtcNow.AddDays(-4) });
+
+                // FRIDAY - 6 tasks (Completed)
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Cho ăn sáng", CompletedAt = DateTime.UtcNow.AddDays(-3) }); // Task 1
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 25, StaffId = 7, CompletionNotes = "Hỗ trợ", CompletedAt = DateTime.UtcNow.AddDays(-3) });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Sức khỏe cá tốt", CompletedAt = DateTime.UtcNow.AddDays(-3) }); // Task 5
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Nước sạch", CompletedAt = DateTime.UtcNow.AddDays(-3) }); // Task 3
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Máy bơm bình thường", CompletedAt = DateTime.UtcNow.AddDays(-3) }); // Task 4
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Kiểm kê thức ăn, tồn kho đủ dùng", CompletedAt = DateTime.UtcNow.AddDays(-3) }); // Task 10
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Cho ăn chiều", CompletedAt = DateTime.UtcNow.AddDays(-3) }); // Task 2
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 30, StaffId = 5, CompletionNotes = "Hỗ trợ", CompletedAt = DateTime.UtcNow.AddDays(-3) });
+
+                // SATURDAY - 7 tasks (Completed)
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Cho ăn sáng", CompletedAt = DateTime.UtcNow.AddDays(-2) }); // Task 1
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 31, StaffId = 5, CompletionNotes = "Hỗ trợ", CompletedAt = DateTime.UtcNow.AddDays(-2) });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Cá khỏe", CompletedAt = DateTime.UtcNow.AddDays(-2) }); // Task 5
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = "Chất lượng nước OK", CompletedAt = DateTime.UtcNow.AddDays(-2) }); // Task 3
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Thiết bị tốt", CompletedAt = DateTime.UtcNow.AddDays(-2) }); // Task 4
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = "Vệ sinh đáy ao xong", CompletedAt = DateTime.UtcNow.AddDays(-2) }); // Task 11
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 35, StaffId = 7, CompletionNotes = "Hỗ trợ", CompletedAt = DateTime.UtcNow.AddDays(-2) });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Vệ sinh đèn UV hoàn tất", CompletedAt = DateTime.UtcNow.AddDays(-2) }); // Task 12
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = "Cho ăn chiều", CompletedAt = DateTime.UtcNow.AddDays(-2) }); // Task 2
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 37, StaffId = 6, CompletionNotes = "Hỗ trợ", CompletedAt = DateTime.UtcNow.AddDays(-2) });
+
+                // SUNDAY - 7 tasks (1 InProgress, 6 Pending)
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = null, CompletedAt = null }); // Task 1 - InProgress
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 38, StaffId = 7, CompletionNotes = null, CompletedAt = null });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = null, CompletedAt = null }); // Task 5 - Pending
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = null, CompletedAt = null }); // Task 3 - Pending
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = null, CompletedAt = null }); // Task 4 - Pending
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 5, CompletionNotes = null, CompletedAt = null }); // Task 9 - Pending
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 42, StaffId = 6, CompletionNotes = null, CompletedAt = null });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 7, CompletionNotes = null, CompletedAt = null }); // Task 14 - Pending
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 43, StaffId = 5, CompletionNotes = null, CompletedAt = null });
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = wsId++, StaffId = 6, CompletionNotes = null, CompletedAt = null }); // Task 2 - Pending
+                staffAssignments.Add(new StaffAssignment { WorkScheduleId = 44, StaffId = 7, CompletionNotes = null, CompletedAt = null });
+
+                await context.StaffAssignments.AddRangeAsync(staffAssignments);
                 await context.SaveChangesAsync();
             }
             #endregion
 
-            #region Seeding PondAssignments
+            #region Seeding PondAssignments for Complete Week
             if (!context.PondAssignments.Any())
             {
-                await context.PondAssignments.AddRangeAsync(
-                    new PondAssignment { WorkScheduleId = 1, PondId = 1 },
-                    new PondAssignment { WorkScheduleId = 1, PondId = 2 },
-                    new PondAssignment { WorkScheduleId = 1, PondId = 3 },
-                    new PondAssignment { WorkScheduleId = 2, PondId = 1 },
-                    new PondAssignment { WorkScheduleId = 2, PondId = 2 },
-                    new PondAssignment { WorkScheduleId = 2, PondId = 3 },
-                    new PondAssignment { WorkScheduleId = 3, PondId = 1 },
-                    new PondAssignment { WorkScheduleId = 3, PondId = 2 },
-                    new PondAssignment { WorkScheduleId = 3, PondId = 3 },
-                    new PondAssignment { WorkScheduleId = 3, PondId = 4 },
-                    new PondAssignment { WorkScheduleId = 3, PondId = 5 },
-                    new PondAssignment { WorkScheduleId = 4, PondId = 1 },
-                    new PondAssignment { WorkScheduleId = 4, PondId = 2 },
-                    new PondAssignment { WorkScheduleId = 5, PondId = 1 },
-                    new PondAssignment { WorkScheduleId = 5, PondId = 3 },
-                    new PondAssignment { WorkScheduleId = 5, PondId = 4 },
-                    new PondAssignment { WorkScheduleId = 6, PondId = 2 },
-                    new PondAssignment { WorkScheduleId = 6, PondId = 5 },
-                    new PondAssignment { WorkScheduleId = 7, PondId = 1 },
-                    new PondAssignment { WorkScheduleId = 7, PondId = 3 },
-                    new PondAssignment { WorkScheduleId = 7, PondId = 5 }
-                );
+                var pondAssignments = new List<PondAssignment>();
+
+                // 5 Ponds: 1=Ao Chính Fuji, 2=Bể Cách Ly, 3=Ao Phát Triển 1, 4=Ao Sinh Sản 101, 5=Ao Thư Giãn
+                // Feeding tasks (1,2) = All active ponds (1,3,5), Health check (5) = All ponds, Water quality (3) = All ponds
+                // Equipment check (4) = All ponds, Maintenance tasks = Specific ponds
+
+                for (int wsId = 1; wsId <= 44; wsId++) // 44 total WorkSchedules
+                {
+                    // Determine task type based on position in week (6-7 tasks per day)
+                    int dayIndex = (wsId - 1) / 6; // 0=Mon, 1=Tue, ..., 6=Sun
+                    int taskIndex = (wsId - 1) % 6; // Position within day
+
+                    // Task patterns per day (simplified based on our seed data)
+                    // Task 0,1,2,3 = daily tasks, Task 4+ = special tasks
+
+                    if (taskIndex == 0) // Morning feeding (Task 1)
+                    {
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 5 });
+                    }
+                    else if (taskIndex == 1) // Health inspection (Task 5)
+                    {
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 2 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 4 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 5 });
+                    }
+                    else if (taskIndex == 2) // Water quality check (Task 3)
+                    {
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 2 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 4 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 5 });
+                    }
+                    else if (taskIndex == 3) // Equipment check (Task 4)
+                    {
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 5 });
+                    }
+                    else if (taskIndex == 4) // Special tasks (maintenance/water change)
+                    {
+                        // Varies by day - maintenance tasks usually on main ponds
+                        if (dayIndex == 0 || dayIndex == 5) // Monday/Saturday - Pond bottom cleaning
+                        {
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                        }
+                        else if (dayIndex == 1) // Tuesday - Protein skimmer
+                        {
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 5 });
+                        }
+                        else if (dayIndex == 2) // Wednesday - Deep health check
+                        {
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                        }
+                        else if (dayIndex == 6) // Sunday - Water change (9)
+                        {
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 5 });
+                        }
+                        // Thursday = inventory (no pond), Friday = inventory (no pond)
+                    }
+                    else if (taskIndex == 5 && dayIndex < 6) // Evening feeding (Task 2) - Mon-Sat
+                    {
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 5 });
+                    }
+                    else if (dayIndex == 5 && wsId == 36) // Saturday special task 2 - UV maintenance
+                    {
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                        pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                    }
+                    else if (dayIndex == 6) // Sunday special tasks
+                    {
+                        if (wsId == 43) // Filter media cleaning
+                        {
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 5 });
+                        }
+                        else if (wsId == 44) // Evening feeding
+                        {
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 1 });
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 3 });
+                            pondAssignments.Add(new PondAssignment { WorkScheduleId = wsId, PondId = 5 });
+                        }
+                    }
+                }
+
+                await context.PondAssignments.AddRangeAsync(pondAssignments);
                 await context.SaveChangesAsync();
             }
             #endregion

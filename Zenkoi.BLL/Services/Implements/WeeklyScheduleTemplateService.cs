@@ -45,9 +45,9 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                     throw new ArgumentException($"TaskTemplate with ID {item.TaskTemplateId} not found");
                 }
 
-                if (item.EndTime <= item.StartTime)
+                if (taskTemplate.DefaultDuration <= 0)
                 {
-                    throw new ArgumentException("EndTime must be greater than StartTime");
+                    throw new ArgumentException($"TaskTemplate '{taskTemplate.TaskName}' must have a valid duration (greater than 0)");
                 }
             }
 
@@ -139,9 +139,9 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                     throw new ArgumentException($"TaskTemplate with ID {item.TaskTemplateId} not found");
                 }
 
-                if (item.EndTime <= item.StartTime)
+                if (taskTemplate.DefaultDuration <= 0)
                 {
-                    throw new ArgumentException("EndTime must be greater than StartTime");
+                    throw new ArgumentException($"TaskTemplate '{taskTemplate.TaskName}' must have a valid duration (greater than 0)");
                 }
             }
 
@@ -217,22 +217,62 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                 throw new KeyNotFoundException("Weekly schedule template not found");
             }
 
+            var taskTemplateIds = template.TemplateItems.Select(ti => ti.TaskTemplateId).Distinct().ToList();
+            var taskTemplates = await _taskTemplateRepo.GetAllAsync(new QueryOptions<TaskTemplate>
+            {
+                Predicate = tt => taskTemplateIds.Contains(tt.Id)
+            });
+            var taskTemplateDict = taskTemplates.ToDictionary(tt => tt.Id, tt => tt);
+
+            foreach (var templateItem in template.TemplateItems)
+            {
+                if (!taskTemplateDict.TryGetValue(templateItem.TaskTemplateId, out var taskTemplate))
+                {
+                    throw new KeyNotFoundException($"TaskTemplate with ID {templateItem.TaskTemplateId} not found");
+                }
+                templateItem.TaskTemplate = taskTemplate;
+            }
+
             var startDate = request.StartDate;
             var startDayOfWeek = startDate.DayOfWeek;
 
             var generatedSchedules = new List<WorkSchedule>();
+
+            var scheduleDates = new HashSet<DateOnly>();
+            foreach (var templateItem in template.TemplateItems)
+            {
+                int daysToAdd = ((int)templateItem.DayOfWeek - (int)startDayOfWeek + 7) % 7;
+                var scheduleDate = startDate.AddDays(daysToAdd);
+
+                if (!scheduleDates.Add(scheduleDate))
+                {
+                    continue;
+                }
+
+                var existingSchedule = await _workScheduleRepo.GetSingleAsync(new QueryOptions<WorkSchedule>
+                {
+                    Predicate = ws => ws.ScheduledDate == scheduleDate
+                });
+
+                if (existingSchedule != null)
+                {
+                    throw new InvalidOperationException($"Duplicate schedule detected: A schedule already exists for date {scheduleDate:yyyy-MM-dd}");
+                }
+            }
 
             foreach (var templateItem in template.TemplateItems)
             {
                 int daysToAdd = ((int)templateItem.DayOfWeek - (int)startDayOfWeek + 7) % 7;
                 var scheduleDate = startDate.AddDays(daysToAdd);
 
+                var endTime = templateItem.StartTime.AddMinutes(templateItem.TaskTemplate.DefaultDuration);
+
                 var workSchedule = new WorkSchedule
                 {
                     TaskTemplateId = templateItem.TaskTemplateId,
                     ScheduledDate = scheduleDate,
                     StartTime = templateItem.StartTime,
-                    EndTime = templateItem.EndTime,
+                    EndTime = endTime,
                     Status = WorkTaskStatus.Pending,
                     CreatedBy = 1,
                     CreatedAt = DateTime.UtcNow

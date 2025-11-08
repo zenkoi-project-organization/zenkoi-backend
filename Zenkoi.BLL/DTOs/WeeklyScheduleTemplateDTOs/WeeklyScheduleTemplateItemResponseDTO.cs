@@ -9,5 +9,7 @@ public class WeeklyScheduleTemplateItemResponseDTO
     public TaskTemplateResponseDTO? TaskTemplate { get; set; }
     public DayOfWeek DayOfWeek { get; set; }
     public TimeOnly StartTime { get; set; }
-    public TimeOnly EndTime { get; set; }
+    public TimeOnly EndTime => TaskTemplate != null
+        ? StartTime.AddMinutes(TaskTemplate.DefaultDuration)
+        : StartTime;
 }

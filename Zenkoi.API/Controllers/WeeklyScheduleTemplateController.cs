@@ -10,7 +10,7 @@ namespace Zenkoi.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class WeeklyScheduleTemplateController : ControllerBase
+public class WeeklyScheduleTemplateController : BaseAPIController
 {
     private readonly IWeeklyScheduleTemplateService _templateService;
 
@@ -189,6 +189,14 @@ public class WeeklyScheduleTemplateController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(new ResponseApiDTO
+            {
+                IsSuccess = false,
+                Message = ex.Message
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new ResponseApiDTO
             {
                 IsSuccess = false,
                 Message = ex.Message
