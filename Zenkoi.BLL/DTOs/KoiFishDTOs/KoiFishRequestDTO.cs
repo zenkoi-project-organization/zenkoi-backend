@@ -17,11 +17,14 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
 
         [Required(ErrorMessage = "RFID is required.")]
         [MaxLength(50, ErrorMessage = "RFID cannot exceed 50 characters.")]
-        public string RFID { get; set; }
+        public string RFID { get; set; } = string.Empty;
 
-        public FishSize? Size { get; set; }
+        [Range(0, double.MaxValue, ErrorMessage = "Size must be a positive number.")]
+        public double? Size { get; set; }
 
+        [Required(ErrorMessage = "Koi Type is required.")]
         public KoiType Type { get; set; }
+
         public DateTime? BirthDate { get; set; }
 
         [Required(ErrorMessage = "Gender is required.")]
@@ -29,24 +32,27 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
 
         [Required(ErrorMessage = "HealthStatus is required.")]
         public HealthStatus HealthStatus { get; set; }
-        
+
         [Required(ErrorMessage = "SaleStatus is required.")]
-        public SaleStatus SaleStatus { get; set; }
-        
+        public SaleStatus SaleStatus { get; set; } = SaleStatus.NotForSale;
+
+        [MaxLength(100, ErrorMessage = "Origin cannot exceed 100 characters.")]
         public string? Origin { get; set; }
 
-        public List<string>? Images { get; set; }
-        public List<string>? Videos { get; set; }
+        public List<string>? Images { get; set; } = new();
+        public List<string>? Videos { get; set; } = new();
 
         [Range(0, double.MaxValue, ErrorMessage = "SellingPrice must be a positive value.")]
         public decimal? SellingPrice { get; set; }
 
-        [MaxLength(100, ErrorMessage = "BodyShape cannot exceed 100 characters.")]
-        public string? BodyShape { get; set; }
-        [MaxLength(100, ErrorMessage = "ColorPattern cannot exceed 100 characters.")]
-        public string? ColorPattern { get; set; }
-
         [MaxLength(1000, ErrorMessage = "Description cannot exceed 1000 characters.")]
         public string? Description { get; set; }
+
+        public bool IsMutated { get; set; } = false;
+
+        public MutationType MutationType { get; set; } = MutationType.None;
+
+        [Range(0, 100, ErrorMessage = "MutationRate must be between 0 and 100.")]
+        public double? MutationRate { get; set; }
     }
 }

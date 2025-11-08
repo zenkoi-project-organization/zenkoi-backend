@@ -110,7 +110,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                     koiInputs.Add(new KoiSizeInput
                     {
-                        Size = koiFish.Size,
+//                       Size = koiFish.Size,
                         Quantity = item.Quantity
                     });
                 }

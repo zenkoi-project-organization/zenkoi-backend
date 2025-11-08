@@ -1,4 +1,5 @@
 ﻿using System;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs
 {
@@ -10,9 +11,12 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs
         public double PredictedHatchRate { get; set; }
         public double PredictedSurvivalRate { get; set; }
         public double PredictedHighQualifiedRate { get; set; }
-        public double PatternMatchScore { get; set; }
-        public double BodyShapeCompatibility { get; set; }
         public double PercentInbreeding { get; set; }
+
+        public double PredictedMutationRate { get; set; }
+        public MutationType PredictedCommonMutationType { get; set; } = MutationType.None;
+        public double PredictedMatchToDesiredMutationType { get; set; }
+
         public string Summary { get; set; }
 
         public BreedingInfo MaleBreedingInfo { get; set; }

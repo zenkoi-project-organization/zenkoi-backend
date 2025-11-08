@@ -15,7 +15,7 @@ namespace Zenkoi.DAL.Entities
         public int? BreedingProcessId { get; set; }
         public int VarietyId { get; set; }
         public string RFID { get; set; }
-        public FishSize Size { get; set; }
+        public double? Size { get; set; }
         public KoiType Type {  get; set; }
         public DateTime? BirthDate { get; set; }
         public Gender Gender { get; set; }
@@ -24,8 +24,9 @@ namespace Zenkoi.DAL.Entities
         public List<string>? Images { get; set; }
         public List<string>? Videos { get; set; }
         public decimal? SellingPrice { get; set; }
-        public string? BodyShape { get; set; }
-        public string? ColorPattern { get; set; }
+        public bool IsMutated { get; set; }
+        public MutationType MutationType { get; set; } = MutationType.None;
+        public double? MutationRate { get; set; }
         public string? Description { get; set; }
         public string? Origin { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -475,7 +475,8 @@ namespace Zenkoi.BLL.Services.Implements
                 };
             }
 
-            return new KoiFishParentResponseDTO
+            // 🧮 Tính toán cơ bản
+            var response = new KoiFishParentResponseDTO
             {
                 KoiFishId = koiFishId,
                 ParticipationCount = breedings.Count(),
@@ -484,7 +485,6 @@ namespace Zenkoi.BLL.Services.Implements
                 FertilizationRate = breedings.Average(b => b.FertilizationRate ?? 0),
                 HatchRate = breedings.Average(b => b.HatchingRate ?? 0),
                 SurvivalRate = breedings.Average(b => b.SurvivalRate ?? 0),
-
                 HighQualifiedRate = breedings
                     .Where(b => (b.SurvivalRate ?? 0) > 0 && (b.HatchingRate ?? 0) > 0 && (b.TotalEggs ?? 0) > 0)
                     .Average(b =>
@@ -492,7 +492,25 @@ namespace Zenkoi.BLL.Services.Implements
                         ((b.SurvivalRate ?? 0) * (b.HatchingRate ?? 0) * (b.TotalEggs ?? 1.0))
                     )
             };
+
+            // 🧬 Tính trung bình tỷ lệ đột biến (nếu có)
+            if (breedings.Any(b => b.MutationRate.HasValue))
+            {
+                response.AverageMutationRate = breedings.Average(b => b.MutationRate ?? 0);
+
+                // (Tùy chọn) tìm loại đột biến phổ biến nhất
+                var commonMutation = breedings
+                    .Where(b => b.CommonMutationType.HasValue && b.CommonMutationType != MutationType.None)
+                    .GroupBy(b => b.CommonMutationType)
+                    .OrderByDescending(g => g.Count())
+                    .FirstOrDefault()?.Key;
+
+                response.CommonMutationType = commonMutation ?? MutationType.None;
+            }
+
+            return response;
         }
+
 
         public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync()
         {
@@ -538,10 +556,11 @@ namespace Zenkoi.BLL.Services.Implements
                     RFID = k.RFID,
                     Variety = k.Variety.VarietyName,
                     Gender = k.Gender.ToString(),
+                    IsMutated = k.IsMutated,
+                    MutationRate = k.MutationRate,
+                    MutationType = k.MutationType.ToString(),
                     Size = k.Size.ToString(),
-                     image = k.Images[0],
-                    BodyShape = k.BodyShape,
-                    ColorPattern = k.ColorPattern,
+                    image = k.Images[0],
                     Health = k.HealthStatus.ToString(),
                     Age = Math.Round(age, 1),
                     BreedingHistory = new List<BreedingRecordDTO>

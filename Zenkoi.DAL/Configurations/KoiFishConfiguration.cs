@@ -58,13 +58,10 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(k => k.SellingPrice)
                 .HasColumnType("decimal(18,2)");
 
-            builder.Property(k => k.BodyShape)
-                .HasMaxLength(100);
-
+      
             builder.Property(k => k.Description)
                 .HasMaxLength(1000);
-            builder.Property(k => k.ColorPattern)
-               .HasMaxLength(1000);
+      
             builder.Property(k => k.Origin)
                 .HasMaxLength(1000);
 
