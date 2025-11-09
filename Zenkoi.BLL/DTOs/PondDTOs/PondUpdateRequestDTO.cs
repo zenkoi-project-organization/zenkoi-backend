@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Zenkoi.BLL.DTOs.WaterParameterRecordDTOs;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.PondDTOs
 {
-    public class PondRequestDTO
+    public class PondUpdateRequestDTO
     {
         [Required]
         public int PondTypeId { get; set; }
@@ -22,6 +25,5 @@ namespace Zenkoi.BLL.DTOs.PondDTOs
         public double? DepthMeters { get; set; }
         public double? LengthMeters { get; set; }
         public double? WidthMeters { get; set; }
-        public WaterRecordDTO? record {  get; set; } 
     }
 }

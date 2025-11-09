@@ -142,6 +142,7 @@ namespace Zenkoi.BLL.Helpers.Mapper
             .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond.PondName))
             .ForMember(dest => dest.RecordedByUserName, opt => opt.MapFrom(src => src.RecordedBy != null ? src.RecordedBy.UserName : null));
             CreateMap<WaterParameterRecordRequestDTO, WaterParameterRecord>();
+            CreateMap<WaterRecordDTO, WaterParameterRecordRequestDTO>();
 
             // Order mappings
             CreateMap<OrderDetail, OrderDetailResponseDTO>()

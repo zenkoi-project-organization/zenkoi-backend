@@ -43,14 +43,15 @@ namespace Zenkoi.API.Controllers
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();
+            int userId = UserId; 
 
-            var created = await _pondService.CreateAsync(dto);
+            var created = await _pondService.CreateAsync(userId,dto);
             return SaveSuccess(created, "Tạo ao thành công.");
         }
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePond(int id, [FromBody] PondRequestDTO dto)
+        public async Task<IActionResult> UpdatePond(int id, [FromBody] PondUpdateRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();
