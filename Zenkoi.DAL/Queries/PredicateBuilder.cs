@@ -8,7 +8,9 @@ namespace Zenkoi.DAL.Queries
 			this Expression<Func<T, bool>> expr1,
 			Expression<Func<T, bool>> expr2)
 		{
-			var parameter = Expression.Parameter(typeof(T));
+            if (expr1 == null)
+                return expr2;
+            var parameter = Expression.Parameter(typeof(T));
 
 			var leftVisitor = new ReplaceParameterVisitor(expr1.Parameters[0], parameter);
 			var left = leftVisitor.Visit(expr1.Body);
