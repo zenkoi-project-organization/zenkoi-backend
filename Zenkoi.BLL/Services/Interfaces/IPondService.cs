@@ -16,8 +16,8 @@ namespace Zenkoi.BLL.Services.Interfaces
     {
         Task<PaginatedList<PondResponseDTO>> GetAllPondsAsync(PondFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<PondResponseDTO?> GetByIdAsync(int id);
-        Task<PondResponseDTO> CreateAsync(PondRequestDTO dto);
-        Task<bool> UpdateAsync(int id, PondRequestDTO dto);
+        Task<PondResponseDTO> CreateAsync(int userId, PondRequestDTO dto);
+        Task<bool> UpdateAsync(int id, PondUpdateRequestDTO dto);
         Task<bool> DeleteAsync(int id);
         Task<List<KoiFishResponseDTO>> GetAllKoiFishInPond(int id);
     }

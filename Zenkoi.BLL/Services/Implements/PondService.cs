@@ -11,6 +11,7 @@ using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.PondDTOs;
 using Zenkoi.BLL.DTOs.PondTypeDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
+using Zenkoi.BLL.DTOs.WaterParameterRecordDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
@@ -26,11 +27,13 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IRepoBase<Pond> _pondRepo;
-        public PondService(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IWaterParameterRecordService _recordService;
+        public PondService(IUnitOfWork unitOfWork, IMapper mapper, IWaterParameterRecordService recordService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _pondRepo = _unitOfWork.GetRepo<Pond>();
+            _recordService = recordService;
         }
         public async Task<PaginatedList<PondResponseDTO>> GetAllPondsAsync(PondFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
@@ -139,9 +142,10 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<PondResponseDTO>(pond);
         }
 
-        public async Task<PondResponseDTO> CreateAsync(PondRequestDTO dto)
+        public async Task<PondResponseDTO> CreateAsync(int userId, PondRequestDTO dto)
         {
             var areaRepo = _unitOfWork.GetRepo<Area>();
+            
             var area = await areaRepo.CheckExistAsync(dto.AreaId);
             if (!area)
             {
@@ -164,11 +168,15 @@ namespace Zenkoi.BLL.Services.Implements
             entity.MaxFishCount = pondType.RecommendedQuantity;
             entity.CreatedAt = DateTime.UtcNow;
             await _pondRepo.CreateAsync(entity);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(); 
+            var waterRecordDto = _mapper.Map<WaterParameterRecordRequestDTO>(dto.record);
+            waterRecordDto.PondId = entity.Id;
+            Console.WriteLine($"pondID = {entity.Id}");
+            await _recordService.CreateAsync(userId, waterRecordDto);
             return _mapper.Map<PondResponseDTO>(entity);
         }
-
-        public async Task<bool> UpdateAsync(int id, PondRequestDTO dto)
+    
+        public async Task<bool> UpdateAsync(int id, PondUpdateRequestDTO dto)
         {
             var pond = await _pondRepo.GetByIdAsync(id);
             if (pond == null) return false;

@@ -43,10 +43,10 @@ namespace Zenkoi.BLL.Services.Implements
 
             Expression<Func<WaterParameterThreshold, bool>>? predicate = null;
 
-            if (!string.IsNullOrWhiteSpace(filter.ParameterName))
+            if (filter.ParameterName.HasValue)
             {
                 Expression<Func<WaterParameterThreshold, bool>> expr =
-                    t => t.ParameterName.Contains(filter.ParameterName);
+                    t => t.ParameterName.Equals(filter.ParameterName);
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
