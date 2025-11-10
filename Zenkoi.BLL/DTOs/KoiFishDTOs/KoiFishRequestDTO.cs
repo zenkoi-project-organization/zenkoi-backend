@@ -24,6 +24,8 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
 
         [Required(ErrorMessage = "Koi Type is required.")]
         public KoiType Type { get; set; }
+        [Required(ErrorMessage = "Koi Pattern Type is required.")]
+        public KoiPatternType PatternType { get; set; }
 
         public DateTime? BirthDate { get; set; }
 

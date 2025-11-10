@@ -124,7 +124,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                     koiInputs.Add(new KoiSizeInput
                     {
-                        Size = packetFish.Size,
+                       // Size = packetFish.Size,
                         Quantity = packetFish.FishPerPacket * item.Quantity
                     });
                 }

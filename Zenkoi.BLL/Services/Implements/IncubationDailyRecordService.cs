@@ -224,11 +224,12 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var record = await _incubationDailyRepo.GetSingleAsync(new QueryOptions<IncubationDailyRecord>
             {
+                Predicate = p => p.Id == id,
                 IncludeProperties = new List<Expression<Func<IncubationDailyRecord, object>>>
                 {
                     b => b.EggBatch
                 }
-            });
+            }); ;
             return _mapper.Map<IncubationDailyRecordResponseDTO?>(record);
         }
 

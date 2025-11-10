@@ -95,6 +95,75 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<ClassificationRecordResponseDTO>(record);
         }
 
+        public async Task<ClassificationRecordResponseDTO> CreateV1Async(ClassificationRecordV1RequestDTO dto)
+        {
+            var _classRepo = _unitOfWork.GetRepo<ClassificationStage>();
+            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+
+            var classification = await _classRepo.GetByIdAsync(dto.ClassificationStageId);
+            if (classification == null)
+                throw new KeyNotFoundException("Không tìm thấy bầy phân loại");
+
+            var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
+            if (classification.Status == ClassificationStatus.Success)
+                throw new InvalidOperationException("Phân loại đã hoàn tất, không thể tạo thêm ghi nhận mới");
+
+            var record = _mapper.Map<ClassificationRecord>(dto);
+
+            var existingRecords = await _recordRepo.GetAllAsync(new QueryOptions<ClassificationRecord>
+            {
+                Predicate = r => r.ClassificationStageId == dto.ClassificationStageId,
+                OrderBy = q => q.OrderBy(r => r.StageNumber),
+                Tracked = false
+            });
+
+            // ✅ Validate cơ bản
+            if (dto.CullQualifiedCount < 0)
+                throw new InvalidOperationException("Số cá loại bỏ không hợp lệ.");
+
+            if (!existingRecords.Any())
+            {
+                if (dto.CullQualifiedCount >= classification.TotalCount)
+                    throw new InvalidOperationException("Số cá loại bỏ vượt quá tổng số cá ban đầu.");
+
+                record.StageNumber = 1;
+                record.PondQualifiedCount = classification.TotalCount - dto.CullQualifiedCount;
+
+                classification.Status = (ClassificationStatus)record.StageNumber;
+                classification.PondQualifiedCount = record.PondQualifiedCount;
+                classification.CullQualifiedCount = record.CullQualifiedCount;
+            }
+            else
+            {
+                var lastRecord = existingRecords.Last();
+
+                if (dto.CullQualifiedCount > lastRecord.PondQualifiedCount)
+                    throw new InvalidOperationException("Số cá loại bỏ vượt quá số cá hiện có trong hồ.");
+
+                record.StageNumber = lastRecord.StageNumber + 1;
+                record.PondQualifiedCount = lastRecord.PondQualifiedCount - dto.CullQualifiedCount;
+
+                classification.Status = (ClassificationStatus)record.StageNumber;
+                classification.PondQualifiedCount = record.PondQualifiedCount;
+                classification.CullQualifiedCount += record.CullQualifiedCount;
+            }
+             breed.CommonMutationType = dto.MutationType;
+
+             breed.MutationRate =  dto.MutatedFishCount/(breed.TotalEggs * breed.HatchingRate/100 * breed.SurvivalRate/100) * 100;
+
+
+            if (record.StageNumber > 4)
+                    throw new InvalidOperationException("Bạn đã hoàn thành quy trình phân loại.");
+
+                await _recordRepo.CreateAsync(record);
+                await _breedRepo.UpdateAsync(breed);
+                await _classRepo.UpdateAsync(classification);
+                await _unitOfWork.SaveChangesAsync();
+
+                return _mapper.Map<ClassificationRecordResponseDTO>(record);
+        }
+
+
         // phân loại lần 3
         public async Task<ClassificationRecordResponseDTO> CreateV2Async(ClassificationRecordV2RequestDTO dto)
         {
@@ -204,7 +273,6 @@ namespace Zenkoi.BLL.Services.Implements
             }
             else
             {
-
                 int cull = 0, pond = classification.TotalCount, high = 0, show = 0;
 
                 var stage1 = records.FirstOrDefault(r => r.StageNumber == 1);
@@ -251,10 +319,20 @@ namespace Zenkoi.BLL.Services.Implements
                     : (ClassificationStatus)currentStage;
             }
 
+            var breed = await _breedRepo.GetByIdAsync(classification.BreedingProcessId);
+
+            if (record.StageNumber == 2)
+            {
+                breed.CommonMutationType = null;
+                breed.MutationRate = 0;
+            }
+
             await _classRepo.UpdateAsync(classification);
-            await _breedRepo.UpdateAsync(await _breedRepo.GetByIdAsync(classification.BreedingProcessId));
+            await _breedRepo.UpdateAsync(breed);
+
             return await _unitOfWork.SaveAsync();
         }
+
 
 
         public async Task<PaginatedList<ClassificationRecordResponseDTO>> GetAllAsync(ClassificationRecordFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)

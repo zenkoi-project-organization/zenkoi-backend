@@ -22,6 +22,7 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
 
         public Gender? Gender { get; set; }
         public HealthStatus? HealthStatus { get; set; }
+        public string? PatternType { get; set; }
         public SaleStatus? SaleStatus { get; set; }
 
         [MaxLength(200, ErrorMessage = "Origin cannot exceed 200 characters.")]

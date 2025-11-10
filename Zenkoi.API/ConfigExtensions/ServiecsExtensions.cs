@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-        //        await TruncateAllTablesExceptMigrationHistory(context);
+              //  await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -636,6 +636,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2022, 3, 15),
                         Description = "Kohaku chất lượng cao, có Hi rõ nét, triển vọng thi đấu.",
                         Gender = Gender.Male,
+                        PatternType = KoiPatternType.Tancho,
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string>
@@ -660,6 +661,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2023, 8, 1),
                         Description = "Sanke cái đang phát triển, Sumi đẹp và cân đối.",
                         Gender = Gender.Female,
+                        PatternType = KoiPatternType.Bozu,
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string>
@@ -684,6 +686,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2024, 1, 20),
                         Description = "Cá mới nhập khẩu, đang theo dõi vì vết xước nhỏ ở vây.",
                         Gender = Gender.Female,
+                        PatternType = KoiPatternType.Maruten,
                         HealthStatus = HealthStatus.Warning,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string>
@@ -708,6 +711,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2021, 6, 10),
                         Description = "Ogon ánh kim rực rỡ, kích thước lớn, cá bố mẹ tiềm năng.",
                         Gender = Gender.Male,
+                        PatternType = KoiPatternType.None,
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
                         Images = new List<string>
@@ -732,6 +736,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2024, 4, 5),
                         Description = "Asagi Tosai (cá non) có màu xanh sáng đẹp, đang nuôi dưỡng.",
                         Gender = Gender.Male,
+                        PatternType = KoiPatternType.None,
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string>
@@ -1055,7 +1060,8 @@ namespace Zenkoi.API.ConfigExtensions
                         Description = "Bộ sưu tập cá Kohaku chất lượng cao, kích thước từ 21-25cm",
                         FishPerPacket = 10,
                         PricePerPacket = 5000000,
-                        Size = FishSize.From21To25cm,
+                        MinSize = 40,
+                        MaxSize = 50,
                         AgeMonths = 6,
                         Images = new List<string> { "https://res.cloudinary.com/detykxgzs/image/upload/v1761745730/Screenshot_2025-10-29_204746_mrp212.png" },
                         IsAvailable = true,
@@ -1067,7 +1073,8 @@ namespace Zenkoi.API.ConfigExtensions
                         Description = "Cá Sanke show grade, màu sắc rực rỡ, kích thước từ 26-30cm",
                         FishPerPacket = 10,
                         PricePerPacket = 8000000,
-                        Size = FishSize.From26To30cm,
+                        MinSize = 26,
+                        MaxSize = 30,
                         AgeMonths = 8,
                         Images = new List<string> { "https://res.cloudinary.com/detykxgzs/image/upload/v1761745730/Screenshot_2025-10-29_204746_mrp212.png" },
                         IsAvailable = true,
@@ -1079,7 +1086,8 @@ namespace Zenkoi.API.ConfigExtensions
                         Description = "Cá Showa dạng bán thương phẩm, kích thước từ 31-40cm",
                         FishPerPacket = 10,
                         PricePerPacket = 12000000,
-                        Size = FishSize.From31To40cm,
+                        MinSize = 30,
+                        MaxSize = 40,
                         AgeMonths = 12,
                         Images = new List<string> { "https://res.cloudinary.com/detykxgzs/image/upload/v1761745730/Screenshot_2025-10-29_204746_mrp212.png" },
                         IsAvailable = true,
@@ -1091,7 +1099,8 @@ namespace Zenkoi.API.ConfigExtensions
                         Description = "Cá Ogon còn nhỏ (tosai), kích thước từ 10-20cm",
                         FishPerPacket = 10,
                         PricePerPacket = 3000000,
-                        Size = FishSize.From10To20cm,
+                        MinSize = 10,
+                        MaxSize = 20,
                         AgeMonths = 3,
                         Images = new List<string> { "https://res.cloudinary.com/detykxgzs/image/upload/v1761745730/Screenshot_2025-10-29_204746_mrp212.png" },
                         IsAvailable = true,
@@ -1103,7 +1112,8 @@ namespace Zenkoi.API.ConfigExtensions
                         Description = "Cá Asagi kích thước lớn, từ 41-45cm",
                         FishPerPacket = 10,
                         PricePerPacket = 10000000,
-                        Size = FishSize.From41To45cm,
+                        MinSize = 30,
+                        MaxSize = 35,
                         AgeMonths = 18,
                         Images = new List<string> { "https://res.cloudinary.com/detykxgzs/image/upload/v1761745730/Screenshot_2025-10-29_204746_mrp212.png" },
                         IsAvailable = true,

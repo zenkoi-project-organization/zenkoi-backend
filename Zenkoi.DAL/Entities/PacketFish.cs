@@ -12,7 +12,8 @@ namespace Zenkoi.DAL.Entities
         public string? Description { get; set; }
         public int FishPerPacket { get; set; } = 10;
         public decimal PricePerPacket { get; set; }
-        public FishSize Size { get; set; }
+        public double MinSize { get; set; }
+        public double MaxSize { get; set; }
         public decimal AgeMonths { get; set; }
         public List<string>? Images { get; set; }
         public List<string>? Videos { get; set; }
