@@ -18,28 +18,17 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(pi => pi.PondId)
                 .IsRequired();
 
-            builder.Property(pi => pi.ImpactLevel)
-                .HasConversion<string>();
-
             builder.Property(pi => pi.EnvironmentalChanges)
                 .HasMaxLength(2000);
 
             builder.Property(pi => pi.RequiresWaterChange)
-                .IsRequired();
+                .IsRequired()
+                .HasDefaultValue(false);
 
             builder.Property(pi => pi.FishDiedCount);
 
             builder.Property(pi => pi.CorrectiveActions)
                 .HasMaxLength(2000);
-
-            builder.Property(pi => pi.ReportedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
-
-            builder.Property(pi => pi.ResolvedAt);
-
-            builder.Property(pi => pi.Status)
-                .IsRequired()
-                .HasConversion<string>();
 
             builder.Property(pi => pi.Notes)
                 .HasMaxLength(2000);

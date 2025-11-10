@@ -19,14 +19,15 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(it => it.Description)
                 .HasMaxLength(500);
 
-            builder.Property(it => it.SeverityLevel)
+            builder.Property(it => it.DefaultSeverity)
                 .IsRequired()
                 .HasConversion<string>();
 
-            builder.Property(it => it.RequiresQuarantine);
+            builder.Property(it => it.RequiresQuarantine)
+                .HasDefaultValue(false);
 
             builder.Property(it => it.AffectsBreeding)
-                .HasMaxLength(200);
+                .HasDefaultValue(false);
 
             builder.HasMany(it => it.Incidents)
                 .WithOne(i => i.IncidentType)

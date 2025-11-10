@@ -22,10 +22,6 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasConversion<string>();
 
-            builder.Property(ki => ki.Severity)
-                .IsRequired()
-                .HasConversion<string>();
-
             builder.Property(ki => ki.SpecificSymptoms)
                 .HasMaxLength(1000);
 
