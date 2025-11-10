@@ -1124,7 +1124,7 @@ namespace Zenkoi.API.ConfigExtensions
                         {
                             CustomerId = customer1.Id,
                             CreatedAt = DateTime.UtcNow.AddDays(-5),
-                            Status = OrderStatus.Created,
+                            Status = OrderStatus.PendingPayment,
                             Subtotal = 8000000,
                             ShippingFee = 100000,
                             DiscountAmount = 0,
@@ -1164,7 +1164,7 @@ namespace Zenkoi.API.ConfigExtensions
                         {
                             CustomerId = customer2.Id,
                             CreatedAt = DateTime.UtcNow.AddHours(-1),
-                            Status = OrderStatus.Created,
+                            Status = OrderStatus.PendingPayment,
                             Subtotal = 3000000,
                             ShippingFee = 50000,
                             DiscountAmount = 0,
