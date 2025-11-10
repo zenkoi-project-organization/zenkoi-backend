@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-              //  await TruncateAllTablesExceptMigrationHistory(context);
+                await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -666,7 +666,7 @@ namespace Zenkoi.API.ConfigExtensions
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string>
                         {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-2.jpg"
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
                         },
                         PondId = 3,
                         RFID = "KOI-0002",
@@ -691,7 +691,7 @@ namespace Zenkoi.API.ConfigExtensions
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string>
                         {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-3.jpg"
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
                         },
                         PondId = 4,
                         RFID = "KOI-0003",
@@ -716,7 +716,7 @@ namespace Zenkoi.API.ConfigExtensions
                         SaleStatus = SaleStatus.NotForSale,
                         Images = new List<string>
                         {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-4.jpg"
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
                         },
                         PondId = 5,
                         RFID = "KOI-0004",
@@ -741,7 +741,7 @@ namespace Zenkoi.API.ConfigExtensions
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string>
                         {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-5.jpg"
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
                         },
                         PondId = 1,
                         RFID = "KOI-0005",
@@ -750,6 +750,256 @@ namespace Zenkoi.API.ConfigExtensions
                         Type = KoiType.High,
                         VarietyId = 5,
                         Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationType = MutationType.None,
+                        MutationRate = 0
+                    },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 5, 12),
+                        Description = "Showa Sanshoku đẹp, Hi và Sumi cân đối.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 2,
+                        RFID = "KOI-0006",
+                        SellingPrice = 42000000m,
+                        Size = 30.5,
+                        Type = KoiType.Show,
+                        VarietyId = 1,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationType = MutationType.None,
+                        MutationRate = 0
+                    },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 9, 20),
+                        Description = "Kohaku với Hi pattern đẹp, bloodline cao cấp.",
+                        Gender = Gender.Male,
+                        PatternType = KoiPatternType.Maruten,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 3,
+                        RFID = "KOI-0007",
+                        SellingPrice = 75000000m,
+                        Size = 35.2,
+                        Type = KoiType.Show,
+                        VarietyId = 1,
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationType = MutationType.None,
+                        MutationRate = 0
+                    },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 11, 8),
+                        Description = "Sanke cái với Sumi pattern tuyệt đẹp, tiềm năng làm giống.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 3,
+                        RFID = "KOI-0008",
+                        SellingPrice = 55000000m,
+                        Size = 32.8,
+                        Type = KoiType.Show,
+                        VarietyId = 2,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationType = MutationType.GinRin,
+                        MutationRate = 0.85
+                    },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2024, 2, 14),
+                        Description = "Shiro Utsuri đẹp, Sumi đậm nét, đang phát triển tốt.",
+                        Gender = Gender.Male,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 4,
+                        RFID = "KOI-0009",
+                        SellingPrice = 28000000m,
+                        Size = 25.5,
+                        Type = KoiType.High,
+                        VarietyId = 3,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationType = MutationType.None,
+                        MutationRate = 0
+                    },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 7, 3),
+                        Description = "Yamabuki Ogon với màu vàng kim rực rỡ.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 5,
+                        RFID = "KOI-0010",
+                        SellingPrice = 38000000m,
+                        Size = 29.0,
+                        Type = KoiType.High,
+                        VarietyId = 4,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationType = MutationType.Metallic,
+                        MutationRate = 0.95
+                    },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2024, 6, 18),
+                        Description = "Asagi non với màu xanh nhạt đẹp mắt.",
+                        Gender = Gender.Male,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 1,
+                        RFID = "KOI-0011",
+                        SellingPrice = 15000000m,
+                        Size = 18.5,
+                        Type = KoiType.High,
+                        VarietyId = 5,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationType = MutationType.None,
+                        MutationRate = 0
+                    },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 12, 5),
+                        Description = "Kohaku Grand Champion bloodline, cá bố giống xuất sắc.",
+                        Gender = Gender.Male,
+                        PatternType = KoiPatternType.Inazuma,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 2,
+                        RFID = "KOI-0012",
+                        SellingPrice = 120000000m,
+                        Size = 42.5,
+                        Type = KoiType.Show,
+                        VarietyId = 1,
+                        Origin = "Sakai Fish Farm, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationType = MutationType.None,
+                        MutationRate = 0
+                    },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 3, 22),
+                        Description = "Sanke cái với pattern cân đối, cá mẹ giống chất lượng cao.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 3,
+                        RFID = "KOI-0013",
+                        SellingPrice = 68000000m,
+                        Size = 38.0,
+                        Type = KoiType.Show,
+                        VarietyId = 2,
+                        Origin = "Dainichi Koi Farm, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationType = MutationType.GinRin,
+                        MutationRate = 0.9
+                    },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2024, 8, 10),
+                        Description = "Showa con F1 từ breeding process BP-006, đang phát triển tốt.",
+                        Gender = Gender.Male,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 4,
+                        RFID = "KOI-0014",
+                        SellingPrice = 25000000m,
+                        Size = 22.0,
+                        Type = KoiType.High,
+                        VarietyId = 1,
+                        Origin = "Vietnam Farm - BP-006",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationType = MutationType.None,
+                        MutationRate = 0
+                    },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2024, 8, 10),
+                        Description = "Kohaku con F1 từ breeding process BP-006, Hi pattern đẹp.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.Tancho,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 4,
+                        RFID = "KOI-0015",
+                        SellingPrice = 30000000m,
+                        Size = 21.5,
+                        Type = KoiType.High,
+                        VarietyId = 1,
+                        Origin = "Vietnam Farm - BP-006",
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
@@ -836,19 +1086,19 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new BreedingProcess
                     {
-                        MaleKoiId = 1,
-                        FemaleKoiId = 3,
+                        MaleKoiId = 12,
+                        FemaleKoiId = 13,
                         PondId = 3,
-                        StartDate = DateTime.Now.AddDays(-60),
-                        EndDate = DateTime.Now.AddDays(-1),
+                        StartDate = DateTime.Now.AddDays(-90),
+                        EndDate = DateTime.Now.AddDays(-30),
                         Status = BreedingStatus.Complete,
-                        Note = "Hoàn tất quy trình, kết quả đạt chuẩn.",
+                        Note = "Hoàn tất quy trình, kết quả xuất sắc từ cặp bố mẹ bloodline cao cấp.",
                         Result = BreedingResult.Success,
-                        TotalFishQualified = 1000,
-                        TotalPackage = 20,
-                        SurvivalRate = 82.2,
-                        FertilizationRate = 92,
-                        TotalEggs = 3500,
+                        TotalFishQualified = 1200,
+                        TotalPackage = 25,
+                        SurvivalRate = 88.5,
+                        FertilizationRate = 95,
+                        TotalEggs = 4000,
                         Code = "BP-006"
                     },
                     new BreedingProcess
@@ -925,6 +1175,16 @@ namespace Zenkoi.API.ConfigExtensions
                     }
                 );
                 await context.SaveChangesAsync();
+
+                // Update BreedingProcessId only for offspring (F1 generation) after BreedingProcess is seeded
+                // KOI-0012 and KOI-0013 are parents (referenced via MaleKoiId/FemaleKoiId), not products of BP-006
+                var koi14 = await context.KoiFishes.FirstOrDefaultAsync(k => k.RFID == "KOI-0014");
+                var koi15 = await context.KoiFishes.FirstOrDefaultAsync(k => k.RFID == "KOI-0015");
+
+                if (koi14 != null) koi14.BreedingProcessId = 6;
+                if (koi15 != null) koi15.BreedingProcessId = 6;
+
+                await context.SaveChangesAsync();
             }
             #endregion
 
@@ -940,6 +1200,15 @@ namespace Zenkoi.API.ConfigExtensions
                         Status = EggBatchStatus.Success,
                         SpawnDate = new DateTime(2025, 2, 16),
                         HatchingTime = new DateTime(2025, 2, 22)
+                    },
+                    new EggBatch
+                    {
+                        BreedingProcessId = 6,
+                        Quantity = 4000,
+                        FertilizationRate = 0.95,
+                        Status = EggBatchStatus.Success,
+                        SpawnDate = DateTime.Now.AddDays(-85),
+                        HatchingTime = DateTime.Now.AddDays(-79)
                     }
                 );
                 await context.SaveChangesAsync();
@@ -988,6 +1257,13 @@ namespace Zenkoi.API.ConfigExtensions
                         InitialCount = 6200,
                         Status = FryFishStatus.Completed,
                         CurrentSurvivalRate = 0.89
+                    },
+                    new FryFish
+                    {
+                        BreedingProcessId = 6,
+                        InitialCount = 3800,
+                        Status = FryFishStatus.Completed,
+                        CurrentSurvivalRate = 0.885
                     }
                 );
                 await context.SaveChangesAsync();
@@ -1044,6 +1320,18 @@ namespace Zenkoi.API.ConfigExtensions
                         StartDate = DateTime.Now.AddDays(-5),
                         EndDate = DateTime.Now,
                         Status = Zenkoi.DAL.Enums.ClassificationStatus.Success
+                    },
+                    new ClassificationStage
+                    {
+                        BreedingProcessId = 6,
+                        TotalCount = 3360,
+                        HighQualifiedCount = 1200,
+                        ShowQualifiedCount = 800,
+                        PondQualifiedCount = 1360,
+                        Notes = "Phân loại hoàn tất từ BP-006 - Bloodline cao cấp, tỷ lệ High quality cao.",
+                        StartDate = DateTime.Now.AddDays(-45),
+                        EndDate = DateTime.Now.AddDays(-30),
+                        Status = Zenkoi.DAL.Enums.ClassificationStatus.Stage4
                     }
                 );
                 await context.SaveChangesAsync();

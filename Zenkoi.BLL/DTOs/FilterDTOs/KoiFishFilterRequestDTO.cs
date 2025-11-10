@@ -13,7 +13,8 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
         public Gender? Gender { get; set; }
         public HealthStatus? Health { get; set; }
         public int? VarietyId { get; set; }
-        public FishSize? FishSize { get; set; }
+        public double? MinSize { get; set; }
+        public double? MaxSize { get; set; }
         public SaleStatus? SaleStatus { get; set; }
         public int? PondId { get; set; }
         public string? Origin { get; set; }
