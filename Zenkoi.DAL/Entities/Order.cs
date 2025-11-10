@@ -18,7 +18,7 @@ namespace Zenkoi.DAL.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
-        public OrderStatus Status { get; set; } = OrderStatus.Created;
+        public OrderStatus Status { get; set; } = OrderStatus.PendingPayment;
         public decimal Subtotal { get; set; }
         public decimal ShippingFee { get; set; }
         public decimal DiscountAmount { get; set; }
