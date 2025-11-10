@@ -2402,6 +2402,199 @@ namespace Zenkoi.API.ConfigExtensions
             }
             #endregion
 
+            #region Seeding IncidentTypes
+            if (!context.IncidentTypes.Any())
+            {
+                await context.IncidentTypes.AddRangeAsync(
+                    new IncidentType
+                    {
+                        Name = "Bệnh nấm trắng",
+                        Description = "Các biểu hiện nấm trắng xuất hiện trên thân hoặc mang của cá.",
+                        DefaultSeverity = SeverityLevel.High,
+                        RequiresQuarantine = true,
+                        AffectsBreeding = true
+                    },
+                    new IncidentType
+                    {
+                        Name = "Sự cố chất lượng nước",
+                        Description = "Thông số nước vượt ngưỡng an toàn cần xử lý.",
+                        DefaultSeverity = SeverityLevel.Medium,
+                        RequiresQuarantine = false,
+                        AffectsBreeding = false
+                    },
+                    new IncidentType
+                    {
+                        Name = "Chấn thương trong ao",
+                        Description = "Cá bị trầy xước hoặc chấn thương do thiết bị hoặc va chạm.",
+                        DefaultSeverity = SeverityLevel.Low,
+                        RequiresQuarantine = false,
+                        AffectsBreeding = false
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+            #endregion
+
+            #region Seeding Incidents
+            if (!context.Incidents.Any())
+            {
+                var fungalType = await context.IncidentTypes.FirstOrDefaultAsync(t => t.Name == "Bệnh nấm trắng");
+                var waterType = await context.IncidentTypes.FirstOrDefaultAsync(t => t.Name == "Sự cố chất lượng nước");
+                var injuryType = await context.IncidentTypes.FirstOrDefaultAsync(t => t.Name == "Chấn thương trong ao");
+
+                var manager = await context.Users.FirstOrDefaultAsync(u => u.Role == Role.Manager);
+                var farmStaff = await context.Users.Where(u => u.Role == Role.FarmStaff).OrderBy(u => u.Id).ToListAsync();
+                var ponds = await context.Ponds.OrderBy(p => p.Id).ToListAsync();
+                var koiList = await context.KoiFishes.OrderBy(k => k.Id).Take(4).ToListAsync();
+
+                if (fungalType != null && waterType != null && manager != null && farmStaff.Any() && ponds.Any() && koiList.Any())
+                {
+                    var primaryReporter = farmStaff[0];
+                    var secondaryReporter = farmStaff.Count > 1 ? farmStaff[1] : farmStaff[0];
+                    var isolationPond = ponds.FirstOrDefault(p => p.PondName == "Bể Cách Ly") ?? ponds[0];
+                    var growOutPond = ponds.FirstOrDefault(p => p.PondName == "Ao Phát Triển 1") ?? ponds[0];
+                    var lastPond = ponds.Count > 1 ? ponds[ponds.Count - 1] : ponds[0];
+                    var fallbackKoi = koiList[0];
+                    var koiForInjury = koiList.Count > 3 ? koiList[3] : koiList[koiList.Count - 1];
+
+                    var fungalIncident = new Incident
+                    {
+                        IncidentTypeId = fungalType.Id,
+                        IncidentTitle = "Phát hiện nấm trắng trên đàn Showa",
+                        Description = "Xuất hiện đốm trắng trên da của hai cá Showa ở bể cách ly. Cần cách ly và điều trị ngay.",
+                        Severity = SeverityLevel.High,
+                        Status = IncidentStatus.Investigating,
+                        OccurredAt = DateTime.UtcNow.AddDays(-4),
+                        CreatedAt = DateTime.UtcNow.AddDays(-4),
+                        ReportedByUserId = primaryReporter.Id,
+                        KoiIncidents = new List<KoiIncident>
+                        {
+                            new KoiIncident
+                            {
+                                KoiFishId = koiList[0].Id,
+                                AffectedStatus = KoiAffectedStatus.Exposed,
+                                SpecificSymptoms = "Xuất hiện đốm trắng quanh mang và thân.",
+                                RequiresTreatment = true,
+                                IsIsolated = true,
+                                AffectedFrom = DateTime.UtcNow.AddDays(-4),
+                                TreatmentNotes = "Tắm thuốc xanh methylen và tăng nhiệt độ."
+                            },
+                            new KoiIncident
+                            {
+                                KoiFishId = koiList.Count > 1 ? koiList[1].Id : fallbackKoi.Id,
+                                AffectedStatus = KoiAffectedStatus.Recovered,
+                                SpecificSymptoms = "Vây hậu môn bị sưng đỏ, cá kém ăn.",
+                                RequiresTreatment = true,
+                                IsIsolated = true,
+                                AffectedFrom = DateTime.UtcNow.AddDays(-3),
+                                TreatmentNotes = "Theo dõi phản ứng thuốc sau 3 giờ."
+                            }
+                        },
+                        PondIncidents = new List<PondIncident>
+                        {
+                            new PondIncident
+                            {
+                                PondId = isolationPond.Id,
+                                EnvironmentalChanges = "Amonia tăng nhẹ sau khi cho ăn.",
+                                RequiresWaterChange = true,
+                                FishDiedCount = 0,
+                                CorrectiveActions = "Thay 30% nước và bổ sung muối 0.3%.",
+                                Notes = "Đã bật hệ thống sưởi để ổn định nhiệt độ."
+                            }
+                        }
+                    };
+
+                    var waterIncident = new Incident
+                    {
+                        IncidentTypeId = waterType.Id,
+                        IncidentTitle = "pH giảm đột ngột tại ao phát triển",
+                        Description = "pH đo sáng nay là 6.4, thấp hơn mức an toàn. Nghi ngờ mưa lớn làm loãng đệm.",
+                        Severity = SeverityLevel.Medium,
+                        Status = IncidentStatus.Resolved,
+                        OccurredAt = DateTime.UtcNow.AddDays(-2),
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-2),
+                        ReportedByUserId = secondaryReporter.Id,
+                        ResolvedByUserId = manager.Id,
+                        ResolvedAt = DateTime.UtcNow.AddDays(-1),
+                        ResolutionNotes = "Đã bón dolomite, tăng sục khí và pH ổn định sau 12 giờ.",
+                        KoiIncidents = new List<KoiIncident>
+                        {
+                            new KoiIncident
+                            {
+                                KoiFishId = koiList.Count > 2 ? koiList[2].Id : fallbackKoi.Id,
+                                AffectedStatus = KoiAffectedStatus.Deceased,
+                                SpecificSymptoms = "Bơi gần mặt nước, thở gấp.",
+                                RequiresTreatment = false,
+                                IsIsolated = false,
+                                AffectedFrom = DateTime.UtcNow.AddDays(-2),
+                                TreatmentNotes = "Theo dõi hành vi, chưa cần can thiệp."
+                            }
+                        },
+                        PondIncidents = new List<PondIncident>
+                        {
+                            new PondIncident
+                            {
+                                PondId = growOutPond.Id,
+                                EnvironmentalChanges = "pH giảm xuống 6.4, ORP thấp.",
+                                RequiresWaterChange = false,
+                                FishDiedCount = null,
+                                CorrectiveActions = "Bổ sung 5kg dolomite và tăng sục khí.",
+                                Notes = "Theo dõi pH mỗi 3 giờ trong ngày."
+                            }
+                        }
+                    };
+
+                    var incidentsToSeed = new List<Incident> { fungalIncident, waterIncident };
+
+                    if (injuryType != null)
+                    {
+                        var injuryIncident = new Incident
+                        {
+                            IncidentTypeId = injuryType.Id,
+                            IncidentTitle = "Cá trầy xước do máng ăn lỏng",
+                            Description = "Một cá bị trầy nhẹ phần thân do cạnh máng ăn bị lỏng và bám rêu.",
+                            Severity = SeverityLevel.Low,
+                            Status = IncidentStatus.Reported,
+                            OccurredAt = DateTime.UtcNow.AddDays(-1),
+                            CreatedAt = DateTime.UtcNow.AddDays(-1),
+                            ReportedByUserId = primaryReporter.Id,
+                            KoiIncidents = new List<KoiIncident>
+                            {
+                                new KoiIncident
+                                {
+                                    KoiFishId = koiForInjury.Id,
+                                    AffectedStatus = KoiAffectedStatus.Infected,
+                                    SpecificSymptoms = "Trầy nhẹ bên hông phải.",
+                                    RequiresTreatment = true,
+                                    IsIsolated = false,
+                                    AffectedFrom = DateTime.UtcNow.AddDays(-1),
+                                    TreatmentNotes = "Bôi povidine và kiểm tra lại sau 24 giờ."
+                                }
+                            },
+                            PondIncidents = new List<PondIncident>
+                            {
+                                new PondIncident
+                                {
+                                    PondId = lastPond.Id,
+                                    EnvironmentalChanges = "Thiết bị máng ăn bị lỏng, có rêu bám.",
+                                    RequiresWaterChange = false,
+                                    FishDiedCount = 0,
+                                    CorrectiveActions = "Vệ sinh và cố định lại máng ăn.",
+                                    Notes = "Yêu cầu kiểm tra lại trong ca tối."
+                                }
+                            }
+                        };
+
+                        incidentsToSeed.Add(injuryIncident);
+                    }
+
+                    await context.Incidents.AddRangeAsync(incidentsToSeed);
+                    await context.SaveChangesAsync();
+                }
+            }
+            #endregion
+
             #region Seeding ShippingBoxes
             if (!context.ShippingBoxes.Any())
             {
