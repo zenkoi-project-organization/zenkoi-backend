@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.KoiFishDTOs
@@ -15,6 +16,7 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public DateTime? BirthDate { get; set; }
         public Gender Gender { get; set; }
         public HealthStatus HealthStatus { get; set; }
+        public KoiPatternType? PatternType { get; set; }
         public SaleStatus SaleStatus { get; set; }
 
         public List<string>? Images { get; set; } = new();

@@ -11,6 +11,12 @@ namespace Zenkoi.BLL.DTOs.PacketFishDTOs
 
         [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
         public string? Description { get; set; }
+        [Required]
+        [Range(0.01, double.MaxValue, ErrorMessage = "MinSize must be greater than 0")]
+        public double MinSize { get; set; }
+        [Required]
+        [Range(0.01, double.MaxValue, ErrorMessage = "MaxSize must be greater than 0")]
+        public double MaxSize { get; set; }
 
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "FishPerPacket must be at least 1")]

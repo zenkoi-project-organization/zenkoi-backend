@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Identity.Client;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace Zenkoi.BLL.Services.Interfaces
 {
     public interface IWaterAlertService
     {
-        Task<PaginatedList<WaterAlertResponseDTO>> GetAllWaterAlertAsync( int pageIndex = 1, int pageSize = 10);
+        Task<PaginatedList<WaterAlertResponseDTO>> GetAllWaterAlertAsync(WaterAlertFilterRequestDTO? filter, int pageIndex = 1, int pageSize = 10);
         Task<WaterAlertResponseDTO?> GetByIdAsync(int id);
         Task<WaterAlertResponseDTO> CreateAsync(int userId, WaterAlertRequestDTO dto);
         Task<bool> ResolveAsync(int id, int userId);

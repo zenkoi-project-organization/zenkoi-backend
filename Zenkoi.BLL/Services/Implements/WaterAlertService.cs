@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.PondDTOs;
 using Zenkoi.BLL.DTOs.WaterAlertDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -30,24 +31,47 @@ namespace Zenkoi.BLL.Services.Implements
             _pondRepo = _unitOfWork.GetRepo<Pond>();
         }
 
-        // 📦 Lấy tất cả cảnh báo nước (phân trang)
-        public async Task<PaginatedList<WaterAlertResponseDTO>> GetAllWaterAlertAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<WaterAlertResponseDTO>> GetAllWaterAlertAsync(
+            WaterAlertFilterRequestDTO? filter, int pageIndex = 1, int pageSize = 10)
         {
+            filter ??= new WaterAlertFilterRequestDTO();
+
             var queryOptions = new QueryOptions<WaterAlert>
             {
                 IncludeProperties = new List<Expression<Func<WaterAlert, object>>>
                 {
                     a => a.Pond!,
-                    a => a.ResolvedBy!
-                },
-                OrderBy = q => q.OrderByDescending(a => a.CreatedAt)
+                }
             };
 
-            var alerts = await _waterAlertRepo.GetAllAsync(queryOptions);
-            var mappedList = _mapper.Map<List<WaterAlertResponseDTO>>(alerts);
+            Expression<Func<WaterAlert, bool>>? predicate = null;
 
-            var totalCount = mappedList.Count;
-            var pagedItems = mappedList
+            if (filter.PondId.HasValue)
+                predicate = predicate.AndAlso(a => a.PondId == filter.PondId.Value);
+
+            if (filter.AlertType.HasValue)
+                predicate = predicate.AndAlso(a => a.AlertType == filter.AlertType.Value);
+
+            if (filter.Severity.HasValue)
+                predicate = predicate.AndAlso(a => a.Severity == filter.Severity.Value);
+
+            if (filter.IsResolved.HasValue)
+                predicate = predicate.AndAlso(a => a.IsResolved == filter.IsResolved.Value);
+
+            queryOptions.Predicate = predicate;
+
+            var alerts = await _waterAlertRepo.GetAllAsync(queryOptions);
+            var mapped = _mapper.Map<List<WaterAlertResponseDTO>>(alerts);
+
+            foreach (var item in mapped)
+            {
+                var pond = await _pondRepo.GetByIdAsync(item.PondId);
+                item.PondName = pond?.PondName ?? "Không xác định";
+            }
+
+            var totalCount = mapped.Count;
+            var pagedItems = mapped
+                .OrderByDescending(a => a.CreatedAt)
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();

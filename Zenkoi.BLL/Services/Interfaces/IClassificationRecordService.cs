@@ -15,6 +15,7 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<PaginatedList<ClassificationRecordResponseDTO>> GetAllAsync(ClassificationRecordFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<ClassificationRecordResponseDTO?> GetByIdAsync(int id);
         Task<ClassificationRecordResponseDTO> CreateAsync(ClassificationRecordRequestDTO dto);
+        Task<ClassificationRecordResponseDTO> CreateV1Async(ClassificationRecordV1RequestDTO dto);
         Task<ClassificationRecordResponseDTO> UpdateAsync(int id, ClassificationRecordUpdateRequestDTO dto);
         Task<bool> DeleteAsync(int id);
         Task<ClassificationRecordResponseDTO> CreateV2Async(ClassificationRecordV2RequestDTO dto);
