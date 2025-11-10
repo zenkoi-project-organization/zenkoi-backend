@@ -29,6 +29,8 @@ namespace Zenkoi.DAL.Entities
         public double? SurvivalRate { get; set; } = 0;
         public int? TotalFishQualified { get; set; } = 0;
         public int? TotalPackage { get; set; } = 0;
+        public double? MutationRate { get; set; } = 0;  
+        public MutationType? CommonMutationType { get; set; }
 
         [ForeignKey(nameof(MaleKoiId))]
         public KoiFish MaleKoi { get; set; }

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
 {
@@ -13,8 +15,8 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public double? HatchRate { get; set; }
         public double? SurvivalRate { get; set; }
         public double? HighQualifiedRate { get; set; }
-        public string? ColorPattern { get; set; }
-        public string? PartnerVariety { get; set; }
+        public double? MutationRate { get; set; }
+        public string? CommonMutationType { get; set; }
         public string? ResultNote { get; set; }
     }
 }

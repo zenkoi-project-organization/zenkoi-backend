@@ -122,10 +122,10 @@ namespace Zenkoi.API.Controllers
             {
                 TargetVariety = input.TargetVariety,
                 Priority = input.Priority,
-                DesiredPattern = input.DesiredPattern,
-                DesiredBodyShape = input.DesiredBodyShape,
                 MinHatchRate = input.MinHatchRate,
                 MinSurvivalRate = input.MinSurvivalRate,
+                DesiredMutationRate = input.DesiredMutationRate,
+                DesiredMutationType = input.DesiredMutationType,
                 MinHighQualifiedRate = input.MinHighQualifiedRate,
                 PotentialParents = allParents
             };

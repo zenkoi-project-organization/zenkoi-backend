@@ -8,6 +8,7 @@ using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 using System.Linq.Expressions;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -29,51 +30,34 @@ namespace Zenkoi.BLL.Services.Implements
         }
 
         public async Task<PaginatedList<WaterParameterRecordResponseDTO>> GetAllAsync(
-     WaterParameterRecordFilterDTO? filter, int pageIndex = 1, int pageSize = 10)
+            WaterParameterRecordFilterDTO? filter, int pageIndex = 1, int pageSize = 10)
         {
             filter ??= new WaterParameterRecordFilterDTO();
 
             var queryOptions = new QueryOptions<WaterParameterRecord>
             {
                 IncludeProperties = new List<Expression<Func<WaterParameterRecord, object>>>
-        {
-            r => r.Pond!,
-            r => r.RecordedBy!
-        }
+                {
+                    r => r.Pond!,
+                    r => r.RecordedBy!
+                }
             };
 
             Expression<Func<WaterParameterRecord, bool>>? predicate = null;
 
             if (filter.PondId.HasValue)
-            {
-                Expression<Func<WaterParameterRecord, bool>> expr = r => r.PondId == filter.PondId.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
-
+                predicate = predicate.AndAlso(r => r.PondId == filter.PondId.Value);
             if (filter.FromDate.HasValue)
-            {
-                Expression<Func<WaterParameterRecord, bool>> expr = r => r.RecordedAt >= filter.FromDate.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
-
+                predicate = predicate.AndAlso(r => r.RecordedAt >= filter.FromDate.Value);
             if (filter.ToDate.HasValue)
             {
                 var toDate = filter.ToDate.Value.AddDays(1).AddSeconds(-1);
-                Expression<Func<WaterParameterRecord, bool>> expr = r => r.RecordedAt <= toDate;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                predicate = predicate.AndAlso(r => r.RecordedAt <= toDate);
             }
-
             if (filter.RecordedByUserId.HasValue)
-            {
-                Expression<Func<WaterParameterRecord, bool>> expr = r => r.RecordedByUserId == filter.RecordedByUserId.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
-
+                predicate = predicate.AndAlso(r => r.RecordedByUserId == filter.RecordedByUserId.Value);
             if (!string.IsNullOrWhiteSpace(filter.NotesContains))
-            {
-                Expression<Func<WaterParameterRecord, bool>> expr = r => r.Notes != null && r.Notes.Contains(filter.NotesContains);
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
-            }
+                predicate = predicate.AndAlso(r => r.Notes != null && r.Notes.Contains(filter.NotesContains));
 
             queryOptions.Predicate = predicate;
 
@@ -97,7 +81,6 @@ namespace Zenkoi.BLL.Services.Implements
             return new PaginatedList<WaterParameterRecordResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
 
-
         public async Task<WaterParameterRecordResponseDTO?> GetByIdAsync(int id)
         {
             var record = await _recordRepo.GetSingleAsync(new QueryOptions<WaterParameterRecord>
@@ -119,38 +102,51 @@ namespace Zenkoi.BLL.Services.Implements
             return result;
         }
 
-        public async Task<WaterParameterRecordResponseDTO> CreateAsync(int userId, WaterParameterRecordRequestDTO dto) 
+   
+
+        public async Task<WaterParameterRecordResponseDTO> CreateAsync(int userId, WaterParameterRecordRequestDTO dto)
         {
-            // Kiểm tra Pond tồn tại
-            var pondExists = await _pondRepo.CheckExistAsync(dto.PondId);
-            if (!pondExists)
+            var _alertRepo = _unitOfWork.GetRepo<WaterAlert>();
+            var _thresholdRepo = _unitOfWork.GetRepo<WaterParameterThreshold>();
+
+            var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == dto.PondId
+            });
+
+            if (pond == null)
                 throw new KeyNotFoundException($"Không tìm thấy ao với Id = {dto.PondId}");
 
-           
+            var thresholds = await _thresholdRepo.GetAllAsync(new QueryOptions<WaterParameterThreshold>
+            {
+                Predicate = t => t.PondTypeId == pond.PondTypeId
+            });
 
+            // Lưu record mới
             var entity = _mapper.Map<WaterParameterRecord>(dto);
-            entity.RecordedAt = dto.RecordedAt ?? DateTime.UtcNow;
+            entity.RecordedAt = DateTime.UtcNow;
             entity.RecordedByUserId = userId;
 
             await _recordRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 
+            await CheckAndCreateAlertsAsync(entity, thresholds, _alertRepo);
+
             var result = _mapper.Map<WaterParameterRecordResponseDTO>(entity);
-            result.PondName = (await _pondRepo.GetByIdAsync(entity.PondId))?.PondName;
+            result.PondName = pond.PondName;
             if (entity.RecordedByUserId.HasValue)
-            {
                 result.RecordedByUserName = (await _userRepo.GetByIdAsync(entity.RecordedByUserId.Value))?.UserName;
-            }
 
             return result;
         }
+
 
         public async Task<WaterParameterRecordResponseDTO?> UpdateAsync(int id, WaterParameterRecordRequestDTO dto)
         {
             var entity = await _recordRepo.GetByIdAsync(id);
             if (entity == null) return null;
 
-            // Kiểm tra Pond
+            // Kiểm tra Pond tồn tại
             if (dto.PondId != entity.PondId)
             {
                 var pondExists = await _pondRepo.CheckExistAsync(dto.PondId);
@@ -158,23 +154,33 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new KeyNotFoundException($"Không tìm thấy ao với Id = {dto.PondId}");
             }
 
-           
-
             _mapper.Map(dto, entity);
-            if (dto.RecordedAt.HasValue)
-                entity.RecordedAt = dto.RecordedAt.Value;
+            entity.RecordedAt = DateTime.UtcNow;
 
             await _recordRepo.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 
+            // Kiểm tra vượt ngưỡng sau khi cập nhật
+            var _alertRepo = _unitOfWork.GetRepo<WaterAlert>();
+            var _thresholdRepo = _unitOfWork.GetRepo<WaterParameterThreshold>();
+
+            var pond = await _pondRepo.GetByIdAsync(entity.PondId);
+            var thresholds = await _thresholdRepo.GetAllAsync(new QueryOptions<WaterParameterThreshold>
+            {
+                Predicate = t => t.PondTypeId == pond!.PondTypeId
+            });
+
+            await CheckAndCreateAlertsAsync(entity, thresholds, _alertRepo);
+
             var result = _mapper.Map<WaterParameterRecordResponseDTO>(entity);
-            result.PondName = (await _pondRepo.GetByIdAsync(entity.PondId))?.PondName;
+            result.PondName = pond?.PondName;
             result.RecordedByUserName = entity.RecordedByUserId.HasValue
                 ? (await _userRepo.GetByIdAsync(entity.RecordedByUserId.Value))?.UserName
                 : null;
 
             return result;
         }
+
 
         public async Task<bool> DeleteAsync(int id)
         {
@@ -185,5 +191,90 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
+
+        private async Task CheckAndCreateAlertsAsync(WaterParameterRecord entity, IEnumerable<WaterParameterThreshold> thresholds, IRepoBase<WaterAlert> _alertRepo)
+        {
+            var parameterValues = new Dictionary<WaterParameterType, double?>
+            {
+                { WaterParameterType.PHLevel, entity.PHLevel },
+                { WaterParameterType.TemperatureCelsius, entity.TemperatureCelsius },
+                { WaterParameterType.OxygenLevel, entity.OxygenLevel },
+                { WaterParameterType.AmmoniaLevel, entity.AmmoniaLevel },
+                { WaterParameterType.NitriteLevel, entity.NitriteLevel },
+                { WaterParameterType.NitrateLevel, entity.NitrateLevel },
+                { WaterParameterType.CarbonHardness, entity.CarbonHardness },
+                { WaterParameterType.WaterLevelMeters, entity.WaterLevelMeters }
+            };
+
+            foreach (var kv in parameterValues)
+            {
+                var parameter = kv.Key;
+                var value = kv.Value;
+                if (value == null) continue;
+
+                var threshold = thresholds.FirstOrDefault(t => t.ParameterName == parameter);
+                if (threshold == null) continue;
+
+                if (value < threshold.MinValue)
+                {
+                    var severity = GetSeverityLevel(threshold, value.Value);
+                    await _alertRepo.CreateAsync(new WaterAlert
+                    {
+                        PondId = entity.PondId,
+                        ParameterName = parameter,
+                        MeasuredValue = value.Value,
+                        AlertType = AlertType.Low,
+                        Severity = severity,
+                        Message = $"Giá trị {parameter} = {value} {threshold.Unit} thấp hơn ngưỡng tối thiểu {threshold.MinValue}.",
+                        CreatedAt = DateTime.UtcNow,
+                        IsResolved = false,
+                        WaterParameterRecord = entity
+                    });
+                }
+                else if (value > threshold.MaxValue)
+                {
+                    var severity = GetSeverityLevel(threshold, value.Value);
+                    await _alertRepo.CreateAsync(new WaterAlert
+                    {
+                        PondId = entity.PondId,
+                        ParameterName = parameter,
+                        MeasuredValue = value.Value,
+                        AlertType = AlertType.High,
+                        Severity = severity,
+                        Message = $"Giá trị {parameter} = {value} {threshold.Unit} vượt ngưỡng tối đa {threshold.MaxValue}.",
+                        CreatedAt = DateTime.UtcNow,
+                        IsResolved = false,
+                        WaterParameterRecord = entity
+                    });
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        private SeverityLevel GetSeverityLevel(WaterParameterThreshold threshold, double value)
+        {
+            var range = threshold.MaxValue - threshold.MinValue;
+            if (range <= 0)
+                return SeverityLevel.Medium;
+
+            double delta = 0;
+            if (value < threshold.MinValue)
+                delta = threshold.MinValue - value;
+            else if (value > threshold.MaxValue)
+                delta = value - threshold.MaxValue;
+
+            double ratio = delta / range;
+
+            if (ratio < 0.1)
+                return SeverityLevel.Low;
+            else if (ratio < 0.25)
+                return SeverityLevel.Medium;
+            else if (ratio < 0.5)
+                return SeverityLevel.High;
+            else
+                return SeverityLevel.Urgent;
+        }
+
     }
 }

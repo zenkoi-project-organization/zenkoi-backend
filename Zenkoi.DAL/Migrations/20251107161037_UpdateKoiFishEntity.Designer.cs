@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251107161037_UpdateKoiFishEntity")]
+    partial class UpdateKoiFishEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -277,9 +280,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("CommonMutationType")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
@@ -294,9 +294,6 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<int>("MaleKoiId")
                         .HasColumnType("int");
-
-                    b.Property<double?>("MutationRate")
-                        .HasColumnType("float");
 
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
@@ -1868,9 +1865,14 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("NotesTask")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                    b.Property<bool>("IsRecurring")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("RecurrenceRule")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("TaskName")
                         .IsRequired()
@@ -1883,6 +1885,8 @@ namespace Zenkoi.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted");
+
+                    b.HasIndex("IsRecurring");
 
                     b.HasIndex("TaskName");
 
@@ -1985,9 +1989,6 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AlertType")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -2006,23 +2007,15 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("ParameterName")
+                    b.Property<string>("ParameterName")
+                        .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("PondId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("ResolveAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<int?>("ResolvedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Severity")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("WaterParameterRecordId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -2034,8 +2027,6 @@ namespace Zenkoi.DAL.Migrations
                     b.HasIndex("PondId");
 
                     b.HasIndex("ResolvedByUserId");
-
-                    b.HasIndex("WaterParameterRecordId");
 
                     b.ToTable("WaterAlerts", "dbo");
                 });
@@ -2112,9 +2103,10 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<decimal>("MinValue")
                         .HasColumnType("decimal(10,4)");
 
-                    b.Property<int>("ParameterName")
+                    b.Property<string>("ParameterName")
+                        .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("PondTypeId")
                         .HasColumnType("int");
@@ -2176,6 +2168,9 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<int>("DayOfWeek")
                         .HasColumnType("int");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
 
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time");
@@ -2800,15 +2795,9 @@ namespace Zenkoi.DAL.Migrations
                         .HasForeignKey("ResolvedByUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Zenkoi.DAL.Entities.WaterParameterRecord", "WaterParameterRecord")
-                        .WithMany()
-                        .HasForeignKey("WaterParameterRecordId");
-
                     b.Navigation("Pond");
 
                     b.Navigation("ResolvedBy");
-
-                    b.Navigation("WaterParameterRecord");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.WaterParameterRecord", b =>

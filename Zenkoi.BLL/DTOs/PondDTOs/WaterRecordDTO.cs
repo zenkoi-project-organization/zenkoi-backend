@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Zenkoi.BLL.DTOs.WaterParameterRecordDTOs
+namespace Zenkoi.BLL.DTOs.PondDTOs
 {
-    public class WaterParameterRecordRequestDTO
+    public class WaterRecordDTO
     {
-        [Required]
-        public int PondId { get; set; }
-
         public double? PHLevel { get; set; }
 
         public double? TemperatureCelsius { get; set; }

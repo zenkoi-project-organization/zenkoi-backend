@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-                await TruncateAllTablesExceptMigrationHistory(context);
+        //        await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -631,96 +631,131 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.KoiFishes.Any())
             {
                 await context.KoiFishes.AddRangeAsync(
-                   new KoiFish
-                   {
-                       BirthDate = new DateTime(2022, 3, 15),
-                       BodyShape = "Thân dày, Đầu to",
-                       Description = "Kohaku chất lượng cao, có Hi rõ nét, triển vọng thi đấu.",
-                       Gender = Gender.Male,
-                       HealthStatus = HealthStatus.Healthy,
-                       Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
-                       PondId = 2,
-                       RFID = "123",
-                       SellingPrice = 50000000m,
-                       Size = (FishSize)7,
-                       Type = KoiType.High,
-                       VarietyId = 1,
-                       Origin = "Japan",
-                       CreatedAt = DateTime.UtcNow,
-                       Videos = new List<string>()
-                   },
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 3, 15),
+                        Description = "Kohaku chất lượng cao, có Hi rõ nét, triển vọng thi đấu.",
+                        Gender = Gender.Male,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
+                        },
+                        PondId = 2,
+                        RFID = "KOI-0001",
+                        SellingPrice = 50000000m,
+                        Size = 20,
+                        Type = KoiType.High,
+                        VarietyId = 1,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationType = MutationType.None,
+                        MutationRate = 0.0
+                    },
                     new KoiFish
                     {
                         BirthDate = new DateTime(2023, 8, 1),
-                        BodyShape = "Thân thon, Lưng cong đẹp",
                         Description = "Sanke cái đang phát triển, Sumi đẹp và cân đối.",
                         Gender = Gender.Female,
                         HealthStatus = HealthStatus.Healthy,
-                        Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-2.jpg"
+                        },
                         PondId = 3,
-                        RFID = "132",
+                        RFID = "KOI-0002",
                         SellingPrice = 35000000m,
-                        Size = (FishSize)6,
+                        Size = 26,
                         Type = KoiType.Show,
                         VarietyId = 2,
+                        Origin = "Japan",
                         CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>()
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationType = MutationType.GinRin, 
+                        MutationRate = 0.8
                     },
                     new KoiFish
                     {
                         BirthDate = new DateTime(2024, 1, 20),
-                        BodyShape = "Hơi gầy",
                         Description = "Cá mới nhập khẩu, đang theo dõi vì vết xước nhỏ ở vây.",
                         Gender = Gender.Female,
                         HealthStatus = HealthStatus.Warning,
                         SaleStatus = SaleStatus.Available,
-                        Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-3.jpg"
+                        },
                         PondId = 4,
-                        RFID = "213",
+                        RFID = "KOI-0003",
                         SellingPrice = null,
-                        Size = (FishSize)4,
+                        Size = 24,
                         Type = KoiType.High,
                         VarietyId = 3,
+                        Origin = "Japan",
                         CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>()
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationType = MutationType.Doitsu, 
+                        MutationRate = 0.9
                     },
                     new KoiFish
                     {
                         BirthDate = new DateTime(2021, 6, 10),
-                        BodyShape = "Thân dài, Dáng chuẩn",
                         Description = "Ogon ánh kim rực rỡ, kích thước lớn, cá bố mẹ tiềm năng.",
                         Gender = Gender.Male,
                         HealthStatus = HealthStatus.Healthy,
-                        Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-4.jpg"
+                        },
                         PondId = 5,
-                        RFID = "321",
+                        RFID = "KOI-0004",
                         SellingPrice = 85000000m,
-                        Size = (FishSize)7,
+                        Size = 27,
                         Type = KoiType.Show,
                         VarietyId = 4,
+                        Origin = "Niigata, Japan",
                         CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>()
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationType = MutationType.Metallic, 
+                        MutationRate = 0.9
                     },
                     new KoiFish
                     {
                         BirthDate = new DateTime(2024, 4, 5),
-                        BodyShape = "Thân nhỏ, Vảy đều",
                         Description = "Asagi Tosai (cá non) có màu xanh sáng đẹp, đang nuôi dưỡng.",
                         Gender = Gender.Male,
                         HealthStatus = HealthStatus.Healthy,
-                        Images = new List<string> { "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg" },
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string>
+                        {
+                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-5.jpg"
+                        },
                         PondId = 1,
-                        RFID = "231",
+                        RFID = "KOI-0005",
                         SellingPrice = 12000000m,
-                        Size = (FishSize)3,
+                        Size = 23,
                         Type = KoiType.High,
                         VarietyId = 5,
+                        Origin = "Vietnam Farm",
                         CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>()
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationType = MutationType.None,
+                        MutationRate = 0
                     }
                 );
+
                 await context.SaveChangesAsync();
             }
+
             #endregion
 
             #region Seeding BreedingProcesses

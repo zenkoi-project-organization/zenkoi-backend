@@ -4,13 +4,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.WaterParameterThresholdDTOs
 {
     public class WaterParameterThresholdRequestDTO
     {
         [Required]
-        public string ParameterName { get; set; } = default!;
+        public WaterParameterType ParameterName { get; set; }
 
         public string Unit { get; set; } = default!;
 
