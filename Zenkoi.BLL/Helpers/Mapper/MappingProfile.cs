@@ -30,6 +30,7 @@ using Zenkoi.BLL.DTOs.WaterParameterRecordDTOs;
 using Zenkoi.BLL.DTOs.CustomerAddressDTOs;
 using Zenkoi.BLL.DTOs.WeeklyScheduleTemplateDTOs;
 using Zenkoi.BLL.DTOs.IncidentDTOs;
+using Zenkoi.BLL.DTOs.IncidentTypeDTOs;
 
 namespace Zenkoi.BLL.Helpers.Mapper
 {
@@ -250,6 +251,11 @@ namespace Zenkoi.BLL.Helpers.Mapper
                 .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : string.Empty))
                 .ForMember(dest => dest.EnvironmentalChanges, opt => opt.MapFrom(src => src.EnvironmentalChanges ?? string.Empty));
             CreateMap<PondIncidentRequestDTO, PondIncident>();
+
+            CreateMap<IncidentType, IncidentTypeResponseDTO>().ReverseMap();
+            CreateMap<IncidentTypeRequestDTO, IncidentType>();
+            CreateMap<IncidentTypeUpdateRequestDTO, IncidentType>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
         }
     }
