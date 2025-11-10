@@ -16,7 +16,8 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         [MaxLength(50, ErrorMessage = "RFID cannot exceed 50 characters.")]
         public string? RFID { get; set; }
 
-        public FishSize? Size { get; set; }
+        [Range(0, double.MaxValue, ErrorMessage = "Size must be a positive number.")]
+        public double? Size { get; set; }
         public KoiType? Type { get; set; }
         public DateTime? BirthDate { get; set; }
 

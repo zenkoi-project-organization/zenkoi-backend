@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251110094405_RefactorIncidentEntities")]
+    partial class RefactorIncidentEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -924,9 +927,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("PatternType")
-                        .HasColumnType("int");
-
                     b.Property<int>("PondId")
                         .HasColumnType("int");
 
@@ -1167,12 +1167,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
-                    b.Property<double>("MaxSize")
-                        .HasColumnType("float");
-
-                    b.Property<double>("MinSize")
-                        .HasColumnType("float");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -1180,6 +1174,9 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<decimal>("PricePerPacket")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Size")
+                        .HasColumnType("decimal(8,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");

@@ -128,6 +128,18 @@ namespace Zenkoi.BLL.Services.Implements
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
 
+            if (filter.MinSize.HasValue)
+            {
+                Expression<Func<KoiFish, bool>> expr = k => k.Size.HasValue && k.Size.Value >= filter.MinSize.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxSize.HasValue)
+            {
+                Expression<Func<KoiFish, bool>> expr = k => k.Size.HasValue && k.Size.Value <= filter.MaxSize.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
             queryOptions.Predicate = predicate;
 
             var koiList = await _koiFishRepo.GetAllAsync(queryOptions);
