@@ -27,10 +27,6 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasColumnType("decimal(18,2)");
 
-            builder.Property(pf => pf.Size)
-                .IsRequired()
-                .HasColumnType("decimal(8,2)");
-
             builder.Property(pf => pf.AgeMonths)
                 .IsRequired()
                 .HasColumnType("decimal(8,2)");
