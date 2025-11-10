@@ -4,19 +4,17 @@ namespace Zenkoi.DAL.Enums
 {
     public enum OrderStatus
     {
-        [EnumMember(Value = "Created")]
-        Created = 0,
         [EnumMember(Value = "PendingPayment")]
-        PendingPayment = 1,
+        PendingPayment = 0,
         [EnumMember(Value = "Paid")]
-        Paid = 2,
+        Paid = 1,
         [EnumMember(Value = "Confirmed")]
-        Confirmed = 3,
+        Confirmed = 2,
         [EnumMember(Value = "Shipped")]
-        Shipped = 4,
+        Shipped = 3,
         [EnumMember(Value = "Cancelled")]
-        Cancelled = 5,
+        Cancelled = 4,
         [EnumMember(Value = "Completed")]
-        Completed = 6
+        Completed = 5
     }
 }
