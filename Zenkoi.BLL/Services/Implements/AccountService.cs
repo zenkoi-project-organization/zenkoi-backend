@@ -68,7 +68,7 @@ namespace Zenkoi.BLL.Services.Implements
                 var jwtToken = new JwtSecurityToken(
                         issuer: _configuration["JWT:ValidIssuer"],
                         audience: _configuration["JWT:ValidAudience"],
-                        expires: DateTime.Now.AddMinutes(30),
+                        expires: DateTime.Now.AddDays(1),
                         claims: authClaims,
                         signingCredentials: new SigningCredentials(authenKey, SecurityAlgorithms.HmacSha512)
                     );
@@ -85,7 +85,7 @@ namespace Zenkoi.BLL.Services.Implements
                     IsUsed = false,
                     IsRevoked = false,
                     IssuedAt = DateTime.Now,
-                    ExpiredAt = DateTime.Now.AddDays(1),
+                    ExpiredAt = DateTime.Now.AddDays(30),
                 };
 
                 await _unitOfWork.BeginTransactionAsync();
@@ -191,6 +191,15 @@ namespace Zenkoi.BLL.Services.Implements
                     {
                         IsSuccess = false,
                         Message = "Refresh token đã bị thu hồi."
+                    };
+                }
+
+                if (storedToken.ExpiredAt < DateTime.Now)
+                {
+                    return new BaseResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Refresh token đã hết hạn."
                     };
                 }
 
