@@ -7,7 +7,6 @@ public class TaskTemplateResponseDTO
     public string? Description { get; set; }
     public int DefaultDuration { get; set; }
     public string? NotesTask { get; set; }
-    public bool IsDeleted { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
