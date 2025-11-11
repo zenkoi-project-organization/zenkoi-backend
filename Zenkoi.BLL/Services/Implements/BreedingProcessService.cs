@@ -239,7 +239,8 @@ namespace Zenkoi.BLL.Services.Implements
                 b => b.FemaleKoi,
                 b => b.Pond,
                 b => b.MaleKoi.Variety,
-                b => b.FemaleKoi.Variety
+                b => b.FemaleKoi.Variety,
+                b => b.Batch
             }
             };
 
