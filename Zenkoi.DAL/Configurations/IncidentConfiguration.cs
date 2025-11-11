@@ -31,6 +31,12 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasDefaultValueSql("GETUTCDATE()");
 
+            builder.Property(i => i.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("GETUTCDATE()");
+
+            builder.Property(i => i.UpdatedAt);
+
             builder.Property(i => i.ResolvedAt);
 
             builder.Property(i => i.Status)
