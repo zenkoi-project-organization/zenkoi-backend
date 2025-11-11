@@ -53,8 +53,5 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public bool IsMutated { get; set; } = false;
 
         public MutationType MutationType { get; set; } = MutationType.None;
-
-        [Range(0, 100, ErrorMessage = "MutationRate must be between 0 and 100.")]
-        public double? MutationRate { get; set; }
     }
 }

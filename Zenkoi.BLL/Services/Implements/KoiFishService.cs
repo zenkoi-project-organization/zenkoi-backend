@@ -180,9 +180,11 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<KoiFishResponseDTO> CreateAsync(KoiFishRequestDTO dto)
         {
+            double mutationRate = 0;
+
             var variety = await _varietyRepo.CheckExistAsync(dto.VarietyId);
             if (!variety)
-                throw new Exception($"không tìm thấy variety với id : {dto.VarietyId}");
+                throw new Exception($"Không tìm thấy variety với id: {dto.VarietyId}");
 
             var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
             {
@@ -191,14 +193,14 @@ namespace Zenkoi.BLL.Services.Implements
             });
 
             if (pond == null)
-                throw new Exception($"không tìm thấy pond với id {dto.PondId}");
+                throw new Exception($"Không tìm thấy pond với id {dto.PondId}");
 
             if (pond.PondStatus == PondStatus.Maintenance)
-                throw new InvalidOperationException("hồ hiện tại đang bảo trì vui lòng chọn hồ khác");
+                throw new InvalidOperationException("Hồ hiện tại đang bảo trì, vui lòng chọn hồ khác.");
 
             pond.CurrentCount = pond?.KoiFishes.Count();
             if (pond.MaxFishCount < pond.CurrentCount + 1)
-                throw new InvalidOperationException("hồ đã đầy vui lòng chuyển cá sang hồ khác");
+                throw new InvalidOperationException("Hồ đã đầy, vui lòng chuyển cá sang hồ khác.");
 
             if (dto.BreedingProcessId.HasValue)
             {
@@ -206,18 +208,36 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     Predicate = p => p.Id == dto.BreedingProcessId,
                     IncludeProperties = new List<Expression<Func<BreedingProcess, object>>>
-                    {
-                        p => p.ClassificationStage
-                    }
+            {
+                p => p.ClassificationStage,
+                p => p.MaleKoi,
+                p => p.FemaleKoi
+            }
                 });
-                if (breed == null)
-                    throw new InvalidOperationException("không tìm thấy quy trình sinh sản");
 
-                if (breed.Status != BreedingStatus.Complete && breed.ClassificationStage.Status != ClassificationStatus.Stage4)
-                    throw new InvalidOperationException("Quy trình sinh sản này chưa hoàn thành");
+                if (breed == null)
+                    throw new InvalidOperationException("Không tìm thấy quy trình sinh sản.");
+
+                if (breed.Status != BreedingStatus.Complete && breed.ClassificationStage?.Status != ClassificationStatus.Stage4)
+                    throw new InvalidOperationException("Quy trình sinh sản này chưa hoàn thành.");
+
+                if (breed.MaleKoi.IsMutated || breed.FemaleKoi.IsMutated)
+                {
+                    mutationRate = 70;
+                }
+                else
+                {
+                    mutationRate = 50;
+                }
+            }
+            else
+            {
+                mutationRate = 50;
             }
 
             var entity = _mapper.Map<KoiFish>(dto);
+            entity.MutationRate = mutationRate;
+
             await _koiFishRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 
