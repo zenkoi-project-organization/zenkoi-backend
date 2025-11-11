@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Net.payOS;
+using OfficeOpenXml;
 using System.Text;
 using System.Text.Json.Serialization;
 using Zenkoi.API.ConfigExtensions;
@@ -24,6 +25,9 @@ namespace Zenkoi.API
     {
         public static void Main(string[] args)
         {
+            // Set EPPlus license context for non-commercial use (EPPlus 7.x)
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
             var builder = WebApplication.CreateBuilder(args);
 
            /* var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";

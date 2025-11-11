@@ -300,30 +300,5 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Tính tổng tiền đơn hàng
-        /// </summary>
-        /// <param name="createOrderDTO">Thông tin đơn hàng</param>
-        /// <returns>Tổng tiền</returns>
-        [HttpPost("calculate-total")]
-        public async Task<IActionResult> CalculateOrderTotal([FromBody] CreateOrderDTO createOrderDTO)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return ModelInvalid();
-
-                var total = await _orderService.CalculateOrderTotalAsync(createOrderDTO);
-                return GetSuccess(new { TotalAmount = total });
-            }
-            catch (ArgumentException ex)
-            {
-                return GetError(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return GetError($"Lỗi khi tính tổng tiền: {ex.Message}");
-            }
-        }
     }
 }
