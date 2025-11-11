@@ -84,6 +84,8 @@ namespace Zenkoi.BLL.Helpers.Mapper
                 opt => opt.MapFrom(src => src.FemaleKoi != null ? src.FemaleKoi.RFID : null))
             .ForMember(dest => dest.PondName,
                 opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : null))
+              .ForMember(dest => dest.HatchedTime,
+               opt => opt.MapFrom(src => src.Batch != null ? src.Batch.HatchingTime : null))
             .ForMember(dest => dest.MaleKoiVariety, otp => otp.MapFrom(src => src.MaleKoi.Variety.VarietyName))
             .ForMember(dest => dest.FemaleKoiVariety, otp => otp.MapFrom(src => src.FemaleKoi.Variety.VarietyName))
             .ForMember(dest => dest.KoiFishes,
@@ -103,6 +105,8 @@ namespace Zenkoi.BLL.Helpers.Mapper
                 opt => opt.MapFrom(src => src.FemaleKoi != null ? src.FemaleKoi.RFID : null))
             .ForMember(dest => dest.PondName,
                 opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : null))
+            .ForMember(dest => dest.HatchedTime,
+               opt => opt.MapFrom(src => src.Batch != null ? src.Batch.HatchingTime : null))
             .ForMember(dest => dest.MaleKoiVariety, otp => otp.MapFrom(src => src.MaleKoi.Variety.VarietyName))
             .ForMember(dest => dest.FemaleKoiVariety, otp => otp.MapFrom(src => src.FemaleKoi.Variety.VarietyName))
             .ForMember(dest => dest.KoiFishes,
