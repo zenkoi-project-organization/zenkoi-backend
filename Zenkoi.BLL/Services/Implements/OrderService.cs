@@ -26,16 +26,13 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<KoiFish> _koiFishRepo;
         private readonly IRepoBase<PacketFish> _packetFishRepo;
         private readonly IRepoBase<Promotion> _promotionRepo;
-        private readonly IShippingFeeCalculationService _shippingFeeCalculationService;
 
         public OrderService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IShippingFeeCalculationService shippingFeeCalculationService)
+            IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _shippingFeeCalculationService = shippingFeeCalculationService;
             _orderRepo = _unitOfWork.GetRepo<Order>();
             _orderDetailRepo = _unitOfWork.GetRepo<OrderDetail>();
             _customerRepo = _unitOfWork.GetRepo<Customer>();
@@ -106,16 +103,6 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             decimal shippingFee = createOrderDTO.ShippingFee;
-
-            if (createOrderDTO.CustomerAddressId.HasValue && createOrderDTO.ShippingFee == 0)
-            {
-                var shippingFeeBreakdown = await _shippingFeeCalculationService.CalculateShippingFeeForOrderAsync(
-                    createOrderDTO.Items,
-                    createOrderDTO.CustomerAddressId.Value
-                );
-                shippingFee = shippingFeeBreakdown.TotalShippingFee;
-            }
-
             decimal discountAmount = await CalculateDiscountAsync(createOrderDTO.PromotionId, subtotal);
             var totalAmount = subtotal + shippingFee - discountAmount;
 
@@ -513,52 +500,6 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             return Math.Min(discountAmount, subtotal);
-        }
-
-        public async Task<decimal> CalculateOrderTotalAsync(CreateOrderDTO createOrderDTO)
-        {
-            decimal subtotal = 0;
-
-            foreach (var item in createOrderDTO.Items)
-            {
-                decimal unitPrice = 0;
-
-                if (item.KoiFishId.HasValue)
-                {
-                    var koiFish = await _koiFishRepo.GetByIdAsync(item.KoiFishId.Value);
-                    if (koiFish == null)
-                    {
-                        throw new ArgumentException($"KoiFish with ID {item.KoiFishId} not found");
-                    }
-                    unitPrice = koiFish.SellingPrice ?? 0;
-                }
-                else if (item.PacketFishId.HasValue)
-                {
-                    var packetFish = await _packetFishRepo.GetByIdAsync(item.PacketFishId.Value);
-                    if (packetFish == null)
-                    {
-                        throw new ArgumentException($"PacketFish with ID {item.PacketFishId} not found");
-                    }
-                    unitPrice = packetFish.PricePerPacket;
-                }
-
-                subtotal += unitPrice * item.Quantity;
-            }
-
-            decimal shippingFee = createOrderDTO.ShippingFee;
-
-            if (createOrderDTO.CustomerAddressId.HasValue && createOrderDTO.ShippingFee == 0)
-            {
-                var shippingFeeBreakdown = await _shippingFeeCalculationService.CalculateShippingFeeForOrderAsync(
-                    createOrderDTO.Items,
-                    createOrderDTO.CustomerAddressId.Value
-                );
-                shippingFee = shippingFeeBreakdown.TotalShippingFee;
-            }
-
-            decimal discountAmount = await CalculateDiscountAsync(createOrderDTO.PromotionId, subtotal);
-
-            return subtotal + shippingFee - discountAmount;
         }
     }
 }

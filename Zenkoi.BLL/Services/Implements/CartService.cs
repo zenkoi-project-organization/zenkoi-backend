@@ -20,16 +20,13 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<KoiFish> _koiFishRepo;
         private readonly IRepoBase<PacketFish> _packetFishRepo;
         private readonly IRepoBase<Promotion> _promotionRepo;
-        private readonly IShippingFeeCalculationService _shippingFeeCalculationService;
 
         public CartService(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IShippingFeeCalculationService shippingFeeCalculationService)
+            IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _shippingFeeCalculationService = shippingFeeCalculationService;
             _cartRepo = _unitOfWork.GetRepo<Cart>();
             _cartItemRepo = _unitOfWork.GetRepo<CartItem>();
             _customerRepo = _unitOfWork.GetRepo<Customer>();
@@ -483,23 +480,6 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             decimal shippingFee = convertCartToOrderDTO.ShippingFee;
-
-            if (convertCartToOrderDTO.CustomerAddressId.HasValue && convertCartToOrderDTO.ShippingFee == 0)
-            {
-                var orderItems = cart.CartItems.Select(ci => new Zenkoi.BLL.DTOs.OrderDTOs.OrderItemDTO
-                {
-                    KoiFishId = ci.KoiFishId,
-                    PacketFishId = ci.PacketFishId,
-                    Quantity = ci.Quantity
-                }).ToList();
-
-                var shippingFeeBreakdown = await _shippingFeeCalculationService.CalculateShippingFeeForOrderAsync(
-                    orderItems,
-                    convertCartToOrderDTO.CustomerAddressId.Value
-                );
-                shippingFee = shippingFeeBreakdown.TotalShippingFee;
-            }
-
             decimal discountAmount = await CalculateDiscountAsync(convertCartToOrderDTO.PromotionId, subtotal);
             var totalAmount = subtotal + shippingFee - discountAmount;
 

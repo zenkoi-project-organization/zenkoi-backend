@@ -120,6 +120,17 @@ namespace Zenkoi.BLL.Services.Implements
 
                     if (extraLargeBox != null)
                     {
+                        var maxKoiSizeInch = remainingKoi.Max(k => k.SizeInch);
+
+                        if (extraLargeBox.MaxKoiSizeInch.HasValue && maxKoiSizeInch > extraLargeBox.MaxKoiSizeInch.Value)
+                        {
+                            throw new InvalidOperationException(
+                                $"Có cá quá lớn ({maxKoiSizeInch:F2} inch) không thể vận chuyển. " +
+                                $"Kích thước tối đa: {extraLargeBox.MaxKoiSizeInch.Value} inch. " +
+                                "Vui lòng liên hệ quản lý trang trại."
+                            );
+                        }
+
                         result.Boxes.Add(new BoxSelection
                         {
                             BoxId = extraLargeBox.Id,
