@@ -108,9 +108,13 @@ namespace Zenkoi.BLL.Services.Implements
                         throw new ArgumentException($"KoiFish with ID {item.KoiFishId} not found");
                     }
 
+                    var fishSize = koiFish.Size.HasValue
+                        ? FishSizeHelper.GetFishSizeFromCm(koiFish.Size.Value)
+                        : FishSize.From20To25cm;
+
                     koiInputs.Add(new KoiSizeInput
                     {
-//                       Size = koiFish.Size,
+                        Size = fishSize,
                         Quantity = item.Quantity
                     });
                 }
@@ -122,9 +126,12 @@ namespace Zenkoi.BLL.Services.Implements
                         throw new ArgumentException($"PacketFish with ID {item.PacketFishId} not found");
                     }
 
+                    var avgSize = (packetFish.MinSize + packetFish.MaxSize) / 2;
+                    var fishSize = FishSizeHelper.GetFishSizeFromCm(avgSize);
+
                     koiInputs.Add(new KoiSizeInput
                     {
-                       // Size = packetFish.Size,
+                        Size = fishSize,
                         Quantity = packetFish.FishPerPacket * item.Quantity
                     });
                 }
