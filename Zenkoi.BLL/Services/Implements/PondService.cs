@@ -40,10 +40,11 @@ namespace Zenkoi.BLL.Services.Implements
             var queryOptions = new QueryOptions<Pond>
             {
                 IncludeProperties = new List<Expression<Func<Pond, object>>>
-                {
-                    a => a.Area,
-                    b => b.PondType
-                }
+        {
+            a => a.Area,
+            b => b.PondType,
+            c => c.WaterParameters 
+        }
             };
 
 
@@ -121,6 +122,17 @@ namespace Zenkoi.BLL.Services.Implements
             var ponds = await _pondRepo.GetAllAsync(queryOptions);
             var mappedList = _mapper.Map<List<PondResponseDTO>>(ponds);
 
+            foreach (var pondEntity in ponds)
+            {
+                var dtoItem = mappedList.First(p => p.Id == pondEntity.Id);
+
+                var latestRecord = pondEntity.WaterParameters
+                    .OrderByDescending(w => w.RecordedAt)
+                    .FirstOrDefault();
+
+                dtoItem.record = _mapper.Map<WaterRecordDTO>(latestRecord);
+            }
+
             var totalCount = mappedList.Count;
             var pagedItems = mappedList
                 .Skip((pageIndex - 1) * pageSize)
@@ -136,10 +148,20 @@ namespace Zenkoi.BLL.Services.Implements
             Predicate = p => p.Id == id, IncludeProperties = new List<Expression<Func<Pond, object>>>
             {
                 p => p.Area,
-                p => p.PondType
+                p => p.PondType,
+                p => p.WaterParameters 
+          
             }
             });
-            return _mapper.Map<PondResponseDTO>(pond);
+
+            var latestWaterParam = pond.WaterParameters
+            .OrderByDescending(w => w.RecordedAt)  
+            .FirstOrDefault();
+
+            var resut =  _mapper.Map<PondResponseDTO>(pond);
+            var record = _mapper.Map<WaterRecordDTO>(latestWaterParam);
+            resut.record = record;
+            return resut;
         }
 
         public async Task<PondResponseDTO> CreateAsync(int userId, PondRequestDTO dto)
@@ -173,12 +195,22 @@ namespace Zenkoi.BLL.Services.Implements
             waterRecordDto.PondId = entity.Id;
             Console.WriteLine($"pondID = {entity.Id}");
             await _recordService.CreateAsync(userId, waterRecordDto);
-            return _mapper.Map<PondResponseDTO>(entity);
+            var res = _mapper.Map<PondResponseDTO>(entity);
+            var record = _mapper.Map<WaterRecordDTO>(waterRecordDto);
+            res.record = record;
+            return res;
         }
     
         public async Task<bool> UpdateAsync(int id, PondUpdateRequestDTO dto)
         {
-            var pond = await _pondRepo.GetByIdAsync(id);
+            var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id  == id, IncludeProperties = new List<Expression<Func<Pond, object>>> { 
+                
+                    p => p.WaterParameters
+                }
+            });
+
             if (pond == null) return false;
             var areaRepo = _unitOfWork.GetRepo<Area>();
             var area = await areaRepo.CheckExistAsync(dto.AreaId);
@@ -186,8 +218,8 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception($"không tìm thấy ví trí với AreaId : {dto.AreaId}");
             }
-            var pondRepo = _unitOfWork.GetRepo<Pond>();
-            var pondType = await pondRepo.CheckExistAsync(dto.PondTypeId);
+            var _pondTypeRepo = _unitOfWork.GetRepo<PondType>();
+            var pondType = await _pondTypeRepo.CheckExistAsync(dto.PondTypeId);
             if (!pondType)
             {
                 throw new Exception($"không tìm thấy ví trí với PondTypeId : {dto.PondTypeId}");
@@ -197,7 +229,15 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new InvalidOperationException("dung tích thực đang lớn hơn dung tích tối đa của hồ");
             }
 
+               var latestWaterParam = pond.WaterParameters
+              .OrderByDescending(w => w.RecordedAt)
+              .FirstOrDefault();
+                
             _mapper.Map(dto, pond);
+            var updaterecord =  _mapper.Map<WaterParameterRecordRequestDTO>(dto.record);
+            updaterecord.PondId = id;
+            await _recordService.UpdateAsync(latestWaterParam.Id, updaterecord);
+
             await _pondRepo.UpdateAsync(pond);
             await _unitOfWork.SaveChangesAsync();
             return true;

@@ -25,5 +25,7 @@ namespace Zenkoi.BLL.DTOs.PondDTOs
         public double? DepthMeters { get; set; }
         public double? LengthMeters { get; set; }
         public double? WidthMeters { get; set; }
+        public WaterRecordDTO? record { get; set; }
+
     }
 }
