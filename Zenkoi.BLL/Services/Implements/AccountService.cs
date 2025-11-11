@@ -391,6 +391,14 @@ namespace Zenkoi.BLL.Services.Implements
                     await _customerService.CreateCustomerProfileAsync(user.Id);
                 }
 
+				var userDetailRepo = _unitOfWork.GetRepo<UserDetail>();
+				var userDetail = new UserDetail
+				{
+					ApplicationUserId = user.Id,
+					Gender = Gender.Male
+				};
+				await userDetailRepo.CreateAsync(userDetail);
+
                 await _unitOfWork.SaveChangesAsync();
 				await _unitOfWork.CommitTransactionAsync();
 				
@@ -735,6 +743,202 @@ namespace Zenkoi.BLL.Services.Implements
 			public string Exp { get; set; }
 		}
 
+        public async Task<StaffAccountResponseDTO?> CreateStaffAccountAsync(StaffAccountRequestDTO dto)
+        {
+            if (dto.Role != Role.FarmStaff && dto.Role != Role.SaleStaff)
+                return null;
+
+            var existingUser = await _identityService.GetByEmailAsync(dto.Email);
+            if (existingUser != null)
+                return null;
+
+            var tempPassword = string.IsNullOrEmpty(dto.Password) ? GenerateRandomPassword() : dto.Password;
+
+            var user = new ApplicationUser
+            {
+                Email = dto.Email,
+                UserName = dto.UserName,
+                FullName = dto.FullName,
+                PhoneNumber = dto.PhoneNumber,
+                Role = dto.Role,
+                EmailConfirmed = true,
+                IsDeleted = false,
+                IsBlocked = false
+            };
+
+            var result = await _identityService.CreateAsync(user, tempPassword);
+            if (!result.Succeeded)
+                return null;
+
+            await _identityService.AddToRoleAsync(user, dto.Role.ToString());
+
+            var userDetailRepo = _unitOfWork.GetRepo<UserDetail>();
+            var userDetail = new UserDetail
+            {
+                ApplicationUserId = user.Id,
+                Gender = Gender.Male
+            };
+            await userDetailRepo.CreateAsync(userDetail);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new StaffAccountResponseDTO
+            {
+                Id = user.Id,
+                Email = user.Email,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                TempPassword = tempPassword
+            };
+        }
+
+        public async Task<ImportStaffResultDTO> ImportStaffAccountsFromExcelAsync(Stream fileStream)
+        {
+            var result = new ImportStaffResultDTO();
+
+            try
+            {
+                using var package = new OfficeOpenXml.ExcelPackage(fileStream);
+                var worksheet = package.Workbook.Worksheets[0];
+                var rowCount = worksheet.Dimension?.Rows ?? 0;
+
+                if (rowCount <= 1)
+                {
+                    result.TotalRows = 0;
+                    return result;
+                }
+
+                result.TotalRows = rowCount - 1;
+
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    try
+                    {
+                        var email = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                        var userName = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                        var fullName = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+                        var phoneNumber = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
+                        var roleStr = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
+                        var password = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
+
+                        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(userName) ||
+                            string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(roleStr))
+                        {
+                            result.FailureCount++;
+                            result.Errors.Add(new ImportErrorDTO
+                            {
+                                RowNumber = row,
+                                Email = email ?? "",
+                                ErrorMessage = "Thiếu thông tin bắt buộc"
+                            });
+                            continue;
+                        }
+
+                        if (!Enum.TryParse<Role>(roleStr, true, out var role) ||
+                            (role != Role.FarmStaff && role != Role.SaleStaff))
+                        {
+                            result.FailureCount++;
+                            result.Errors.Add(new ImportErrorDTO
+                            {
+                                RowNumber = row,
+                                Email = email,
+                                ErrorMessage = "Role không hợp lệ (chỉ FarmStaff hoặc SaleStaff)"
+                            });
+                            continue;
+                        }
+
+                        var dto = new StaffAccountRequestDTO
+                        {
+                            Email = email,
+                            UserName = userName,
+                            FullName = fullName,
+                            PhoneNumber = phoneNumber ?? "",
+                            Role = role,
+                            Password = password
+                        };
+
+                        var createdAccount = await CreateStaffAccountAsync(dto);
+                        if (createdAccount != null)
+                        {
+                            result.SuccessCount++;
+                            result.SuccessfulAccounts.Add(createdAccount);
+                        }
+                        else
+                        {
+                            result.FailureCount++;
+                            result.Errors.Add(new ImportErrorDTO
+                            {
+                                RowNumber = row,
+                                Email = email,
+                                ErrorMessage = "Email đã tồn tại hoặc không thể tạo tài khoản"
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        result.FailureCount++;
+                        result.Errors.Add(new ImportErrorDTO
+                        {
+                            RowNumber = row,
+                            Email = worksheet.Cells[row, 1].Value?.ToString() ?? "",
+                            ErrorMessage = $"Lỗi: {ex.Message}"
+                        });
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<StaffAccountResponseDTO?> UpdateStaffAccountAsync(int userId, StaffAccountUpdateDTO dto)
+        {
+            var user = await _identityService.GetByIdAsync(userId);
+            if (user == null)
+                return null;
+
+            if (user.Role != Role.FarmStaff && user.Role != Role.SaleStaff)
+                return null;
+
+            user.UserName = dto.UserName;
+            user.FullName = dto.FullName;
+            user.PhoneNumber = dto.PhoneNumber;
+
+            var userRepo = _unitOfWork.GetRepo<ApplicationUser>();
+            await userRepo.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new StaffAccountResponseDTO
+            {
+                Id = user.Id,
+                Email = user.Email,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                TempPassword = "***"
+            };
+        }
+
+        public async Task<bool> ToggleBlockUserAsync(int userId)
+        {
+            var user = await _identityService.GetByIdAsync(userId);
+            if (user == null)
+                return false;
+
+            user.IsBlocked = !user.IsBlocked;
+
+            var userRepo = _unitOfWork.GetRepo<ApplicationUser>();
+            await userRepo.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
+
 		#region Private
 		private string GenerateRefreshToken()
 		{
@@ -746,6 +950,14 @@ namespace Zenkoi.BLL.Services.Implements
 				return Convert.ToBase64String(random);
 			}
 		}
+
+        private string GenerateRandomPassword()
+        {
+            const string chars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789@#$";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 12)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
 
         private DateTime ConvertUnixTimeToDateTime(long utcExpireDate)
         {

@@ -19,5 +19,9 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<BaseResponse> SendOTPByEmailAsync(string email);
 		Task<bool> VerifyOTPByEmailAsync(string email, string code);
         Task<AuthenResultDTO> SignInWithGoogleAsync(GoogleAuthDTO dto);
+        Task<StaffAccountResponseDTO?> CreateStaffAccountAsync(StaffAccountRequestDTO dto);
+        Task<ImportStaffResultDTO> ImportStaffAccountsFromExcelAsync(Stream fileStream);
+        Task<StaffAccountResponseDTO?> UpdateStaffAccountAsync(int userId, StaffAccountUpdateDTO dto);
+        Task<bool> ToggleBlockUserAsync(int userId);
     }
 }

@@ -13,7 +13,7 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<IncidentResponseDTO> UpdateAsync(int id, IncidentUpdateRequestDTO dto);
         Task<bool> DeleteAsync(int id);
         Task<bool> ChangeStatusAsync(int id, UpdateStatusDto dto);
-        Task<bool> ResolveAsync(int id, int userId, string resolutionNotes);
+        Task<bool> ResolveAsync(int id, int userId, ResolveIncidentDTO dto);
         Task<KoiIncidentSimpleDTO> AddKoiIncidentAsync(int incidentId, KoiIncidentRequestDTO dto);
         Task<bool> RemoveKoiIncidentAsync(int koiIncidentId);
         Task<PondIncidentSimpleDTO> AddPondIncidentAsync(int incidentId, PondIncidentRequestDTO dto);

@@ -137,7 +137,7 @@ namespace Zenkoi.API.Controllers
         }
 
 
-        [HttpPost]
+        [HttpDelete]
 		[Route("delete-user-detail")]
 		public async Task<IActionResult> DeleteUserDetail()
 		{
