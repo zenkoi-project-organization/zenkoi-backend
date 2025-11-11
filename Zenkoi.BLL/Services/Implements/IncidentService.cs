@@ -83,6 +83,16 @@ namespace Zenkoi.BLL.Services.Implements
                 queryBuilder.WithPredicate(i => i.OccurredAt <= filter.OccurredTo.Value);
             }
 
+            if (filter.PondId.HasValue)
+            {
+                queryBuilder.WithPredicate(i => i.PondIncidents.Any(pi => pi.PondId == filter.PondId.Value));
+            }
+
+            if (filter.KoiFishId.HasValue)
+            {
+                queryBuilder.WithPredicate(i => i.KoiIncidents.Any(ki => ki.KoiFishId == filter.KoiFishId.Value));
+            }
+
             var query = _incidentRepo.Get(queryBuilder.Build());
             var paginatedEntities = await PaginatedList<Incident>.CreateAsync(query, pageIndex, pageSize);
             var dtoList = _mapper.Map<List<IncidentResponseDTO>>(paginatedEntities);
