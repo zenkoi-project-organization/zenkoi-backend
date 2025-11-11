@@ -21,11 +21,17 @@ namespace Zenkoi.BLL.Services.Implements
 			_mapper = mapper;
 		}
 
-	public async Task<PaginatedList<ApplicationUserResponseDTO>> GetUsersByRoleAsync(Role role, int pageIndex, int pageSize, string? search = null)
+	public async Task<PaginatedList<ApplicationUserResponseDTO>> GetUsersByRoleAsync(Role? role, int pageIndex, int pageSize, string? search = null)
 	{
 		var repo = _unitOfWork.GetRepo<ApplicationUser>();
 
-		Expression<Func<ApplicationUser, bool>> predicate = x => x.Role == role && !x.IsDeleted;
+		Expression<Func<ApplicationUser, bool>> predicate = x => !x.IsDeleted;
+
+		if (role.HasValue)
+		{
+			Expression<Func<ApplicationUser, bool>> roleExpr = x => x.Role == role.Value;
+			predicate = predicate.AndAlso(roleExpr);
+		}
 
 		if (!string.IsNullOrWhiteSpace(search))
 		{
