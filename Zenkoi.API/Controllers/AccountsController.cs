@@ -546,7 +546,7 @@ namespace Zenkoi.API.Controllers
                 }
 
                 Console.WriteLine($"Received Google IdToken: {dto.IdToken?.Substring(0, Math.Min(50, dto.IdToken?.Length ?? 0))}...");
-                
+
                 var token = await _accountService.SignInWithGoogleAsync(dto);
                 if (token == null)
                 {
@@ -555,9 +555,9 @@ namespace Zenkoi.API.Controllers
                 }
 
                 Console.WriteLine("Google authentication successful");
-                var googleAuthResult = new { 
-                    accessToken = token.AccessToken, 
-                    refreshToken = token.RefreshToken 
+                var googleAuthResult = new {
+                    accessToken = token.AccessToken,
+                    refreshToken = token.RefreshToken
                 };
                 return Success(googleAuthResult, "Đăng nhập thành công.");
             }
@@ -569,6 +569,67 @@ namespace Zenkoi.API.Controllers
                 Console.ResetColor();
                 return Error($"Lỗi đăng nhập bằng Google: {ex.Message}");
             }
+        }
+
+        [HttpPost("staff")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> CreateStaffAccount([FromBody] StaffAccountRequestDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return ModelInvalid();
+
+            var result = await _accountService.CreateStaffAccountAsync(dto);
+            if (result == null)
+                return GetError("Không thể tạo tài khoản. Email có thể đã tồn tại hoặc Role không hợp lệ.");
+
+            return SaveSuccess(result, "Tạo tài khoản thành công.");
+        }
+
+        [HttpPost("staff/import")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> ImportStaffAccounts(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return GetError("File không được để trống.");
+
+            if (!file.FileName.EndsWith(".xlsx"))
+                return GetError("Chỉ hỗ trợ file Excel (.xlsx).");
+
+            try
+            {
+                using var stream = file.OpenReadStream();
+                var result = await _accountService.ImportStaffAccountsFromExcelAsync(stream);
+                return GetSuccess(result);
+            }
+            catch (Exception ex)
+            {
+                return GetError($"Không thể import file: {ex.Message}");
+            }
+        }
+
+        [HttpPut("staff/{userId}")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> UpdateStaffAccount(int userId, [FromBody] StaffAccountUpdateDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return ModelInvalid();
+
+            var result = await _accountService.UpdateStaffAccountAsync(userId, dto);
+            if (result == null)
+                return GetError("Không thể cập nhật tài khoản. Tài khoản không tồn tại hoặc không phải staff.");
+
+            return Success(result, "Cập nhật tài khoản thành công.");
+        }
+
+        [HttpPut("{userId}/toggle-block")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> ToggleBlockUser(int userId)
+        {
+            var result = await _accountService.ToggleBlockUserAsync(userId);
+            if (!result)
+                return GetError("Không tìm thấy tài khoản.");
+
+            return Success(result, "Thay đổi trạng thái tài khoản thành công.");
         }
     }
 }

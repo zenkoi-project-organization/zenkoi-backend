@@ -146,11 +146,14 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPut("{id}/resolve")]
-        public async Task<IActionResult> Resolve(int id, [FromBody] string resolutionNotes)
+        public async Task<IActionResult> Resolve(int id, [FromBody] ResolveIncidentDTO dto)
         {
             try
             {
-                var success = await _incidentService.ResolveAsync(id, UserId, resolutionNotes);
+                if (!ModelState.IsValid)
+                    return ModelInvalid();
+
+                var success = await _incidentService.ResolveAsync(id, UserId, dto);
                 return Success(success, "Giải quyết sự cố thành công.");
             }
             catch (ArgumentException ex)

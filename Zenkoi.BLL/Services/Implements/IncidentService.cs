@@ -204,11 +204,11 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<bool> ResolveAsync(int id, int userId, string resolutionNotes)
+        public async Task<bool> ResolveAsync(int id, int userId, ResolveIncidentDTO dto)
         {
-            if (string.IsNullOrWhiteSpace(resolutionNotes))
+            if (dto == null)
             {
-                throw new ArgumentException("Ghi chú xử lý không được để trống.", nameof(resolutionNotes));
+                throw new ArgumentNullException(nameof(dto));
             }
 
             var incident = await _incidentRepo.GetByIdAsync(id);
@@ -220,7 +220,7 @@ namespace Zenkoi.BLL.Services.Implements
             incident.Status = IncidentStatus.Resolved;
             incident.ResolvedAt = DateTime.UtcNow;
             incident.ResolvedByUserId = userId;
-            incident.ResolutionNotes = resolutionNotes;
+            incident.ResolutionNotes = dto.ResolutionNotes;
             incident.UpdatedAt = DateTime.UtcNow;
 
             await _incidentRepo.UpdateAsync(incident);
