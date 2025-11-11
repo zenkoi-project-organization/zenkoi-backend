@@ -145,6 +145,7 @@ namespace Zenkoi.BLL.Helpers.Mapper
             .ForMember(dest => dest.RecordedByUserName, opt => opt.MapFrom(src => src.RecordedBy != null ? src.RecordedBy.UserName : null));
             CreateMap<WaterParameterRecordRequestDTO, WaterParameterRecord>();
             CreateMap<WaterRecordDTO, WaterParameterRecordRequestDTO>();
+            CreateMap<WaterParameterRecordRequestDTO, WaterRecordDTO>();
             CreateMap<WaterParameterRecord, WaterRecordDTO>().ReverseMap();
 
 
