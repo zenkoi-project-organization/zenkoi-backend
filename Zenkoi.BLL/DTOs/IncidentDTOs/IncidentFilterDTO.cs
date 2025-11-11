@@ -12,5 +12,7 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         public int? ReportedByUserId { get; set; }
         public DateTime? OccurredFrom { get; set; }
         public DateTime? OccurredTo { get; set; }
+        public int? PondId { get; set; }
+        public int? KoiFishId { get; set; }
     }
 }
