@@ -30,6 +30,8 @@ namespace Zenkoi.BLL.DTOs.PondDTOs
         public int AreaId { get; set; }
         public string AreaName { get; set; }
 
+        public WaterRecordDTO record {  get; set; }
+
         // Optionally include related data
       //  public ICollection<KoiFishBasicDTO>? KoiFishes { get; set; }
     }
