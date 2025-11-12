@@ -7,5 +7,8 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
     {
         [Required]
         public IncidentStatus Status { get; set; }
+
+        [MaxLength(2000)]
+        public string? ResolutionNotes { get; set; }
     }
 }

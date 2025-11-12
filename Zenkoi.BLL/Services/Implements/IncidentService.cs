@@ -119,61 +119,289 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<IncidentResponseDTO>(incident);
         }
 
-        public async Task<IncidentResponseDTO> CreateAsync(int userId, IncidentRequestDTO dto)
+        public async Task<IncidentResponseDTO> CreateIncidentWithDetailsAsync(int userId, CreateIncidentWithDetailsDTO dto)
         {
             if (dto == null)
             {
                 throw new ArgumentNullException(nameof(dto));
             }
 
-            var incidentTypeExists = await _incidentTypeRepo.CheckExistAsync(dto.IncidentTypeId);
-            if (!incidentTypeExists)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                throw new ArgumentException($"Không tìm thấy loại sự cố với id {dto.IncidentTypeId}.");
-            }
-
-            var incident = _mapper.Map<Incident>(dto);
-            incident.ReportedByUserId = userId;
-            incident.Status = IncidentStatus.Reported;
-            incident.CreatedAt = DateTime.UtcNow;
-            incident.UpdatedAt = null;
-            incident.ResolvedAt = null;
-
-            await _incidentRepo.CreateAsync(incident);
-            await _unitOfWork.SaveChangesAsync();
-
-            return await GetByIdAsync(incident.Id);
-        }
-
-        public async Task<IncidentResponseDTO> UpdateAsync(int id, IncidentUpdateRequestDTO dto)
-        {
-            if (dto == null)
-            {
-                throw new ArgumentNullException(nameof(dto));
-            }
-
-            var incident = await _incidentRepo.GetByIdAsync(id);
-            if (incident == null)
-            {
-                throw new KeyNotFoundException($"Không tìm thấy sự cố với id {id}.");
-            }
-
-            if (dto.IncidentTypeId.HasValue)
-            {
-                var incidentTypeExists = await _incidentTypeRepo.CheckExistAsync(dto.IncidentTypeId.Value);
+                // Validate incident type
+                var incidentTypeExists = await _incidentTypeRepo.CheckExistAsync(dto.IncidentTypeId);
                 if (!incidentTypeExists)
                 {
-                    throw new ArgumentException($"Không tìm thấy loại sự cố với id {dto.IncidentTypeId.Value}.");
+                    throw new ArgumentException($"Không tìm thấy loại sự cố với id {dto.IncidentTypeId}.");
                 }
+
+                // Create incident
+                var incident = new Incident
+                {
+                    IncidentTypeId = dto.IncidentTypeId,
+                    IncidentTitle = dto.IncidentTitle,
+                    Description = dto.Description,
+                    Severity = dto.Severity,
+                    OccurredAt = dto.OccurredAt,
+                    ReportedByUserId = userId,
+                    Status = IncidentStatus.Reported,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _incidentRepo.CreateAsync(incident);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Add affected Koi fish
+                if (dto.AffectedKoiFish != null && dto.AffectedKoiFish.Any())
+                {
+                    foreach (var koiDto in dto.AffectedKoiFish)
+                    {
+                        var koiFish = await _koiFishRepo.GetByIdAsync(koiDto.KoiFishId);
+                        if (koiFish == null)
+                        {
+                            throw new ArgumentException($"Không tìm thấy cá Koi với id {koiDto.KoiFishId}.");
+                        }
+
+                        var koiIncident = new KoiIncident
+                        {
+                            IncidentId = incident.Id,
+                            KoiFishId = koiDto.KoiFishId,
+                            AffectedStatus = koiDto.AffectedStatus,
+                            SpecificSymptoms = koiDto.SpecificSymptoms,
+                            RequiresTreatment = koiDto.RequiresTreatment,
+                            IsIsolated = koiDto.IsIsolated,
+                            AffectedFrom = koiDto.AffectedFrom,
+                            TreatmentNotes = koiDto.TreatmentNotes
+                        };
+
+                        await _koiIncidentRepo.CreateAsync(koiIncident);
+
+                        // Update KoiFish HealthStatus
+                        koiFish.HealthStatus = koiDto.AffectedStatus;
+                        koiFish.UpdatedAt = DateTime.UtcNow;
+                        await _koiFishRepo.UpdateAsync(koiFish);
+                    }
+                }
+
+                // Add affected Ponds
+                if (dto.AffectedPonds != null && dto.AffectedPonds.Any())
+                {
+                    foreach (var pondDto in dto.AffectedPonds)
+                    {
+                        var pond = await _pondRepo.GetByIdAsync(pondDto.PondId);
+                        if (pond == null)
+                        {
+                            throw new ArgumentException($"Không tìm thấy ao với id {pondDto.PondId}.");
+                        }
+
+                        var pondIncident = new PondIncident
+                        {
+                            IncidentId = incident.Id,
+                            PondId = pondDto.PondId,
+                            EnvironmentalChanges = pondDto.EnvironmentalChanges,
+                            RequiresWaterChange = pondDto.RequiresWaterChange,
+                            FishDiedCount = pondDto.FishDiedCount,
+                            CorrectiveActions = pondDto.CorrectiveActions,
+                            Notes = pondDto.Notes
+                        };
+
+                        await _pondIncidentRepo.CreateAsync(pondIncident);
+
+                        // Update Pond Status to Maintenance
+                        pond.PondStatus = PondStatus.Maintenance;
+                        await _pondRepo.UpdateAsync(pond);
+                    }
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return await GetByIdAsync(incident.Id);
+            }
+            catch
+            {
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
+        }
+
+        public async Task<IncidentResponseDTO> UpdateAsync(int id, int userId, IncidentUpdateRequestDTO dto)
+        {
+            if (dto == null)
+            {
+                throw new ArgumentNullException(nameof(dto));
             }
 
-            _mapper.Map(dto, incident);
-            incident.UpdatedAt = DateTime.UtcNow;
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var incident = await _incidentRepo.GetSingleAsync(
+                    BuildIncidentQueryBuilder()
+                        .WithPredicate(i => i.Id == id)
+                        .Build());
 
-            await _incidentRepo.UpdateAsync(incident);
-            await _unitOfWork.SaveChangesAsync();
+                if (incident == null)
+                {
+                    throw new KeyNotFoundException($"Không tìm thấy sự cố với id {id}.");
+                }
 
-            return await GetByIdAsync(id);
+                if (dto.IncidentTypeId.HasValue)
+                {
+                    var incidentTypeExists = await _incidentTypeRepo.CheckExistAsync(dto.IncidentTypeId.Value);
+                    if (!incidentTypeExists)
+                    {
+                        throw new ArgumentException($"Không tìm thấy loại sự cố với id {dto.IncidentTypeId.Value}.");
+                    }
+                }
+
+                // Update basic incident info
+                _mapper.Map(dto, incident);
+                incident.UpdatedAt = DateTime.UtcNow;
+
+                // Handle status change to Resolved
+                bool wasResolved = incident.Status == IncidentStatus.Resolved;
+                bool isNowResolved = dto.Status.HasValue && dto.Status.Value == IncidentStatus.Resolved;
+
+                if (isNowResolved && !wasResolved)
+                {
+                    incident.ResolvedAt = DateTime.UtcNow;
+                    incident.ResolvedByUserId = userId;
+
+                    // Auto-restore HealthStatus and PondStatus when resolving
+                    if (incident.KoiIncidents != null && incident.KoiIncidents.Any())
+                    {
+                        foreach (var koiIncident in incident.KoiIncidents)
+                        {
+                            var koiFish = await _koiFishRepo.GetByIdAsync(koiIncident.KoiFishId);
+                            if (koiFish != null && koiFish.HealthStatus != HealthStatus.Dead)
+                            {
+                                koiFish.HealthStatus = HealthStatus.Healthy;
+                                koiFish.UpdatedAt = DateTime.UtcNow;
+                                await _koiFishRepo.UpdateAsync(koiFish);
+                            }
+
+                            koiIncident.RecoveredAt = DateTime.UtcNow;
+                            await _koiIncidentRepo.UpdateAsync(koiIncident);
+                        }
+                    }
+
+                    if (incident.PondIncidents != null && incident.PondIncidents.Any())
+                    {
+                        foreach (var pondIncident in incident.PondIncidents)
+                        {
+                            var pond = await _pondRepo.GetByIdAsync(pondIncident.PondId);
+                            if (pond != null)
+                            {
+                                pond.PondStatus = PondStatus.Active;
+                                await _pondRepo.UpdateAsync(pond);
+                            }
+                        }
+                    }
+                }
+
+                await _incidentRepo.UpdateAsync(incident);
+
+                // Update affected Koi fish
+                if (dto.AffectedKoiFish != null)
+                {
+                    // Remove all existing koi incidents
+                    var existingKoiIncidents = await _koiIncidentRepo.GetAllAsync(new QueryBuilder<KoiIncident>()
+                        .WithPredicate(ki => ki.IncidentId == id)
+                        .Build());
+
+                    foreach (var existing in existingKoiIncidents)
+                    {
+                        await _koiIncidentRepo.DeleteAsync(existing);
+                    }
+
+                    // Add new koi incidents
+                    foreach (var koiDto in dto.AffectedKoiFish)
+                    {
+                        var koiFish = await _koiFishRepo.GetByIdAsync(koiDto.KoiFishId);
+                        if (koiFish == null)
+                        {
+                            throw new ArgumentException($"Không tìm thấy cá Koi với id {koiDto.KoiFishId}.");
+                        }
+
+                        var koiIncident = new KoiIncident
+                        {
+                            IncidentId = id,
+                            KoiFishId = koiDto.KoiFishId,
+                            AffectedStatus = koiDto.AffectedStatus,
+                            SpecificSymptoms = koiDto.SpecificSymptoms,
+                            RequiresTreatment = koiDto.RequiresTreatment,
+                            IsIsolated = koiDto.IsIsolated,
+                            AffectedFrom = koiDto.AffectedFrom,
+                            TreatmentNotes = koiDto.TreatmentNotes
+                        };
+
+                        await _koiIncidentRepo.CreateAsync(koiIncident);
+
+                        // Update KoiFish HealthStatus if not resolved
+                        if (!isNowResolved)
+                        {
+                            koiFish.HealthStatus = koiDto.AffectedStatus;
+                            koiFish.UpdatedAt = DateTime.UtcNow;
+                            await _koiFishRepo.UpdateAsync(koiFish);
+                        }
+                    }
+                }
+
+                // Update affected Ponds
+                if (dto.AffectedPonds != null)
+                {
+                    // Remove all existing pond incidents
+                    var existingPondIncidents = await _pondIncidentRepo.GetAllAsync(new QueryBuilder<PondIncident>()
+                        .WithPredicate(pi => pi.IncidentId == id)
+                        .Build());
+
+                    foreach (var existing in existingPondIncidents)
+                    {
+                        await _pondIncidentRepo.DeleteAsync(existing);
+                    }
+
+                    // Add new pond incidents
+                    foreach (var pondDto in dto.AffectedPonds)
+                    {
+                        var pond = await _pondRepo.GetByIdAsync(pondDto.PondId);
+                        if (pond == null)
+                        {
+                            throw new ArgumentException($"Không tìm thấy ao với id {pondDto.PondId}.");
+                        }
+
+                        var pondIncident = new PondIncident
+                        {
+                            IncidentId = id,
+                            PondId = pondDto.PondId,
+                            EnvironmentalChanges = pondDto.EnvironmentalChanges,
+                            RequiresWaterChange = pondDto.RequiresWaterChange,
+                            FishDiedCount = pondDto.FishDiedCount,
+                            CorrectiveActions = pondDto.CorrectiveActions,
+                            Notes = pondDto.Notes
+                        };
+
+                        await _pondIncidentRepo.CreateAsync(pondIncident);
+
+                        // Update Pond Status if not resolved
+                        if (!isNowResolved)
+                        {
+                            pond.PondStatus = PondStatus.Maintenance;
+                            await _pondRepo.UpdateAsync(pond);
+                        }
+                    }
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return await GetByIdAsync(id);
+            }
+            catch
+            {
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -189,157 +417,327 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<bool> ChangeStatusAsync(int id, UpdateStatusDto dto)
+        public async Task<IncidentResponseDTO> ChangeStatusAsync(int id, int userId, IncidentStatus status, string? resolutionNotes)
         {
-            if (dto == null)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                throw new ArgumentNullException(nameof(dto));
-            }
+                var incident = await _incidentRepo.GetSingleAsync(
+                    BuildIncidentQueryBuilder()
+                        .WithPredicate(i => i.Id == id)
+                        .Build());
 
-            var incident = await _incidentRepo.GetByIdAsync(id);
-            if (incident == null)
+                if (incident == null)
+                {
+                    throw new KeyNotFoundException($"Không tìm thấy sự cố với id {id}.");
+                }
+
+                bool wasResolved = incident.Status == IncidentStatus.Resolved;
+                bool isNowResolved = status == IncidentStatus.Resolved;
+
+                incident.Status = status;
+                incident.UpdatedAt = DateTime.UtcNow;
+
+                // Auto-restore health status when resolving
+                if (isNowResolved && !wasResolved)
+                {
+                    incident.ResolvedAt = DateTime.UtcNow;
+                    incident.ResolvedByUserId = userId;
+
+                    // Set resolution notes if provided
+                    if (!string.IsNullOrWhiteSpace(resolutionNotes))
+                    {
+                        incident.ResolutionNotes = resolutionNotes;
+                    }
+
+                    // Restore KoiFish HealthStatus
+                    if (incident.KoiIncidents != null && incident.KoiIncidents.Any())
+                    {
+                        foreach (var koiIncident in incident.KoiIncidents)
+                        {
+                            var koiFish = await _koiFishRepo.GetByIdAsync(koiIncident.KoiFishId);
+                            if (koiFish != null && koiFish.HealthStatus != HealthStatus.Dead)
+                            {
+                                koiFish.HealthStatus = HealthStatus.Healthy;
+                                koiFish.UpdatedAt = DateTime.UtcNow;
+                                await _koiFishRepo.UpdateAsync(koiFish);
+                            }
+
+                            koiIncident.RecoveredAt = DateTime.UtcNow;
+                            await _koiIncidentRepo.UpdateAsync(koiIncident);
+                        }
+                    }
+
+                    // Restore Pond Status
+                    if (incident.PondIncidents != null && incident.PondIncidents.Any())
+                    {
+                        foreach (var pondIncident in incident.PondIncidents)
+                        {
+                            var pond = await _pondRepo.GetByIdAsync(pondIncident.PondId);
+                            if (pond != null)
+                            {
+                                pond.PondStatus = PondStatus.Active;
+                                await _pondRepo.UpdateAsync(pond);
+                            }
+                        }
+                    }
+                }
+
+                await _incidentRepo.UpdateAsync(incident);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return await GetByIdAsync(id);
+            }
+            catch
             {
-                throw new KeyNotFoundException($"Không tìm thấy sự cố với id {id}.");
+                await _unitOfWork.RollBackAsync();
+                throw;
             }
-
-            incident.Status = dto.Status;
-            if (dto.Status == IncidentStatus.Resolved && !incident.ResolvedAt.HasValue)
-            {
-                incident.ResolvedAt = DateTime.UtcNow;
-            }
-            incident.UpdatedAt = DateTime.UtcNow;
-
-            await _incidentRepo.UpdateAsync(incident);
-            await _unitOfWork.SaveChangesAsync();
-            return true;
         }
 
-        public async Task<bool> ResolveAsync(int id, int userId, ResolveIncidentDTO dto)
+        public async Task<KoiIncidentResponseDTO> AddKoiIncidentAsync(int incidentId, KoiIncidentRequestDTO dto)
         {
             if (dto == null)
             {
                 throw new ArgumentNullException(nameof(dto));
             }
 
-            var incident = await _incidentRepo.GetByIdAsync(id);
-            if (incident == null)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                throw new KeyNotFoundException($"Không tìm thấy sự cố với id {id}.");
+                // Validate incident exists
+                var incident = await _incidentRepo.GetByIdAsync(incidentId);
+                if (incident == null)
+                {
+                    throw new KeyNotFoundException($"Không tìm thấy sự cố với id {incidentId}.");
+                }
+
+                // Validate koi fish exists
+                var koiFish = await _koiFishRepo.GetByIdAsync(dto.KoiFishId);
+                if (koiFish == null)
+                {
+                    throw new ArgumentException($"Không tìm thấy cá Koi với id {dto.KoiFishId}.");
+                }
+
+                // Create koi incident
+                var koiIncident = new KoiIncident
+                {
+                    IncidentId = incidentId,
+                    KoiFishId = dto.KoiFishId,
+                    AffectedStatus = dto.AffectedStatus,
+                    SpecificSymptoms = dto.SpecificSymptoms,
+                    RequiresTreatment = dto.RequiresTreatment,
+                    IsIsolated = dto.IsIsolated,
+                    AffectedFrom = dto.AffectedFrom,
+                    TreatmentNotes = dto.TreatmentNotes
+                };
+
+                await _koiIncidentRepo.CreateAsync(koiIncident);
+
+                // Update KoiFish HealthStatus
+                koiFish.HealthStatus = dto.AffectedStatus;
+                koiFish.UpdatedAt = DateTime.UtcNow;
+                await _koiFishRepo.UpdateAsync(koiFish);
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return _mapper.Map<KoiIncidentResponseDTO>(koiIncident);
             }
-
-            incident.Status = IncidentStatus.Resolved;
-            incident.ResolvedAt = DateTime.UtcNow;
-            incident.ResolvedByUserId = userId;
-            incident.ResolutionNotes = dto.ResolutionNotes;
-            incident.UpdatedAt = DateTime.UtcNow;
-
-            await _incidentRepo.UpdateAsync(incident);
-            await _unitOfWork.SaveChangesAsync();
-            return true;
+            catch
+            {
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
         }
 
-        public async Task<KoiIncidentSimpleDTO> AddKoiIncidentAsync(int incidentId, KoiIncidentRequestDTO dto)
+        public async Task<PondIncidentResponseDTO> AddPondIncidentAsync(int incidentId, PondIncidentRequestDTO dto)
         {
             if (dto == null)
             {
                 throw new ArgumentNullException(nameof(dto));
             }
 
-            var incidentExists = await _incidentRepo.CheckExistAsync(incidentId);
-            if (!incidentExists)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                throw new KeyNotFoundException($"Không tìm thấy sự cố với id {incidentId}.");
+                // Validate incident exists
+                var incident = await _incidentRepo.GetByIdAsync(incidentId);
+                if (incident == null)
+                {
+                    throw new KeyNotFoundException($"Không tìm thấy sự cố với id {incidentId}.");
+                }
+
+                // Validate pond exists
+                var pond = await _pondRepo.GetByIdAsync(dto.PondId);
+                if (pond == null)
+                {
+                    throw new ArgumentException($"Không tìm thấy ao với id {dto.PondId}.");
+                }
+
+                // Create pond incident
+                var pondIncident = new PondIncident
+                {
+                    IncidentId = incidentId,
+                    PondId = dto.PondId,
+                    EnvironmentalChanges = dto.EnvironmentalChanges,
+                    RequiresWaterChange = dto.RequiresWaterChange,
+                    FishDiedCount = dto.FishDiedCount,
+                    CorrectiveActions = dto.CorrectiveActions,
+                    Notes = dto.Notes
+                };
+
+                await _pondIncidentRepo.CreateAsync(pondIncident);
+
+                // Update Pond Status to Maintenance
+                pond.PondStatus = PondStatus.Maintenance;
+                await _pondRepo.UpdateAsync(pond);
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return _mapper.Map<PondIncidentResponseDTO>(pondIncident);
+            }
+            catch
+            {
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
+        }
+
+        public async Task<KoiIncidentResponseDTO> UpdateKoiIncidentAsync(int koiIncidentId, UpdateKoiIncidentRequestDTO dto)
+        {
+            if (dto == null)
+            {
+                throw new ArgumentNullException(nameof(dto));
             }
 
-            var koiFish = await _koiFishRepo.GetByIdAsync(dto.KoiFishId);
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                // Get koi incident
+                var koiIncident = await _koiIncidentRepo.GetSingleAsync(new QueryBuilder<KoiIncident>()
+                    .WithPredicate(ki => ki.Id == koiIncidentId)
+                    .WithInclude(ki => ki.KoiFish)
+                    .Build());
+
+                if (koiIncident == null)
+                {
+                    throw new KeyNotFoundException($"Không tìm thấy KoiIncident với id {koiIncidentId}.");
+                }
+
+                // Update koi incident
+                if (dto.AffectedStatus.HasValue)
+                {
+                    koiIncident.AffectedStatus = dto.AffectedStatus.Value;
+
+                    // Update KoiFish HealthStatus
+                    var koiFish = await _koiFishRepo.GetByIdAsync(koiIncident.KoiFishId);
+                    if (koiFish != null)
+                    {
+                        koiFish.HealthStatus = dto.AffectedStatus.Value;
+                        koiFish.UpdatedAt = DateTime.UtcNow;
+                        await _koiFishRepo.UpdateAsync(koiFish);
+                    }
+                }
+
+                if (dto.SpecificSymptoms != null)
+                    koiIncident.SpecificSymptoms = dto.SpecificSymptoms;
+
+                if (dto.RequiresTreatment.HasValue)
+                    koiIncident.RequiresTreatment = dto.RequiresTreatment.Value;
+
+                if (dto.IsIsolated.HasValue)
+                    koiIncident.IsIsolated = dto.IsIsolated.Value;
+
+                if (dto.TreatmentNotes != null)
+                    koiIncident.TreatmentNotes = dto.TreatmentNotes;
+
+                if (dto.RecoveredAt.HasValue)
+                    koiIncident.RecoveredAt = dto.RecoveredAt.Value;
+
+                await _koiIncidentRepo.UpdateAsync(koiIncident);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return _mapper.Map<KoiIncidentResponseDTO>(koiIncident);
+            }
+            catch
+            {
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
+        }
+
+        public async Task<PondIncidentResponseDTO> UpdatePondIncidentAsync(int pondIncidentId, UpdatePondIncidentRequestDTO dto)
+        {
+            if (dto == null)
+            {
+                throw new ArgumentNullException(nameof(dto));
+            }
+
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                // Get pond incident
+                var pondIncident = await _pondIncidentRepo.GetSingleAsync(new QueryBuilder<PondIncident>()
+                    .WithPredicate(pi => pi.Id == pondIncidentId)
+                    .WithInclude(pi => pi.Pond)
+                    .Build());
+
+                if (pondIncident == null)
+                {
+                    throw new KeyNotFoundException($"Không tìm thấy PondIncident với id {pondIncidentId}.");
+                }
+
+                // Update pond incident
+                if (dto.EnvironmentalChanges != null)
+                    pondIncident.EnvironmentalChanges = dto.EnvironmentalChanges;
+
+                if (dto.RequiresWaterChange.HasValue)
+                    pondIncident.RequiresWaterChange = dto.RequiresWaterChange.Value;
+
+                if (dto.FishDiedCount.HasValue)
+                    pondIncident.FishDiedCount = dto.FishDiedCount.Value;
+
+                if (dto.CorrectiveActions != null)
+                    pondIncident.CorrectiveActions = dto.CorrectiveActions;
+
+                if (dto.Notes != null)
+                    pondIncident.Notes = dto.Notes;
+
+                await _pondIncidentRepo.UpdateAsync(pondIncident);
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return _mapper.Map<PondIncidentResponseDTO>(pondIncident);
+            }
+            catch
+            {
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
+        }
+
+        public async Task<List<KoiIncidentResponseDTO>> GetKoiHealthHistoryAsync(int koiFishId)
+        {
+            // Validate koi fish exists
+            var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
             if (koiFish == null)
             {
-                throw new ArgumentException($"Không tìm thấy cá Koi với id {dto.KoiFishId}.");
+                throw new KeyNotFoundException($"Không tìm thấy cá Koi với id {koiFishId}.");
             }
 
-            var koiIncident = _mapper.Map<KoiIncident>(dto);
-            koiIncident.IncidentId = incidentId;
-
-            await _koiIncidentRepo.CreateAsync(koiIncident);
-            await _unitOfWork.SaveChangesAsync();
-
-            var created = await _koiIncidentRepo.GetSingleAsync(new QueryBuilder<KoiIncident>()
-                .WithPredicate(ki => ki.Id == koiIncident.Id)
-                .WithTracking(false)
+            // Get all koi incidents for this fish, ordered by date
+            var koiIncidents = await _koiIncidentRepo.GetAllAsync(new QueryBuilder<KoiIncident>()
+                .WithPredicate(ki => ki.KoiFishId == koiFishId)
                 .WithInclude(ki => ki.KoiFish)
+                .WithInclude(ki => ki.Incident)
+                .WithOrderBy(q => q.OrderByDescending(ki => ki.AffectedFrom))
                 .Build());
 
-            if (created == null)
-            {
-                throw new InvalidOperationException("Không thể tải thông tin cá bị ảnh hưởng vừa tạo.");
-            }
-
-            return _mapper.Map<KoiIncidentSimpleDTO>(created);
-        }
-
-        public async Task<bool> RemoveKoiIncidentAsync(int koiIncidentId)
-        {
-            var koiIncident = await _koiIncidentRepo.GetByIdAsync(koiIncidentId);
-            if (koiIncident == null)
-            {
-                throw new KeyNotFoundException($"Không tìm thấy bản ghi cá bị ảnh hưởng với id {koiIncidentId}.");
-            }
-
-            await _koiIncidentRepo.DeleteAsync(koiIncident);
-            await _unitOfWork.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<PondIncidentSimpleDTO> AddPondIncidentAsync(int incidentId, PondIncidentRequestDTO dto)
-        {
-            if (dto == null)
-            {
-                throw new ArgumentNullException(nameof(dto));
-            }
-
-            var incidentExists = await _incidentRepo.CheckExistAsync(incidentId);
-            if (!incidentExists)
-            {
-                throw new KeyNotFoundException($"Không tìm thấy sự cố với id {incidentId}.");
-            }
-
-            var pond = await _pondRepo.GetByIdAsync(dto.PondId);
-            if (pond == null)
-            {
-                throw new ArgumentException($"Không tìm thấy ao với id {dto.PondId}.");
-            }
-
-            var pondIncident = _mapper.Map<PondIncident>(dto);
-            pondIncident.IncidentId = incidentId;
-
-            await _pondIncidentRepo.CreateAsync(pondIncident);
-            await _unitOfWork.SaveChangesAsync();
-
-            var created = await _pondIncidentRepo.GetSingleAsync(new QueryBuilder<PondIncident>()
-                .WithPredicate(pi => pi.Id == pondIncident.Id)
-                .WithTracking(false)
-                .WithInclude(pi => pi.Pond)
-                .Build());
-
-            if (created == null)
-            {
-                throw new InvalidOperationException("Không thể tải thông tin ao bị ảnh hưởng vừa tạo.");
-            }
-
-            return _mapper.Map<PondIncidentSimpleDTO>(created);
-        }
-
-        public async Task<bool> RemovePondIncidentAsync(int pondIncidentId)
-        {
-            var pondIncident = await _pondIncidentRepo.GetByIdAsync(pondIncidentId);
-            if (pondIncident == null)
-            {
-                throw new KeyNotFoundException($"Không tìm thấy bản ghi ao bị ảnh hưởng với id {pondIncidentId}.");
-            }
-
-            await _pondIncidentRepo.DeleteAsync(pondIncident);
-            await _unitOfWork.SaveChangesAsync();
-            return true;
+            return _mapper.Map<List<KoiIncidentResponseDTO>>(koiIncidents);
         }
 
         private QueryBuilder<Incident> BuildIncidentQueryBuilder(bool tracked = false)

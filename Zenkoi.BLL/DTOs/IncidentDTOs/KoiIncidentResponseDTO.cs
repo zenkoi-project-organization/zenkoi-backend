@@ -1,20 +1,20 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.IncidentDTOs
 {
-    public class KoiIncidentRequestDTO
+    public class KoiIncidentResponseDTO
     {
-        [Required]
+        public int Id { get; set; }
+        public int IncidentId { get; set; }
         public int KoiFishId { get; set; }
-        public HealthStatus AffectedStatus { get; set; } = HealthStatus.Warning;
-        [MaxLength(1000)]
+        public string? KoiFishRFID { get; set; }
+        public HealthStatus AffectedStatus { get; set; }
         public string? SpecificSymptoms { get; set; }
         public bool RequiresTreatment { get; set; }
         public bool IsIsolated { get; set; }
-        public DateTime AffectedFrom { get; set; } = DateTime.UtcNow;
-        [MaxLength(2000)]
+        public DateTime AffectedFrom { get; set; }
+        public DateTime? RecoveredAt { get; set; }
         public string? TreatmentNotes { get; set; }
     }
 }

@@ -218,7 +218,8 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<WorkScheduleRequestDTO, WorkSchedule>();
 
             CreateMap<StaffAssignment, StaffAssignmentResponseDTO>()
-                .ForMember(dest => dest.StaffName, opt => opt.MapFrom(src => src.Staff != null ? src.Staff.FullName : string.Empty));
+                .ForMember(dest => dest.StaffName, opt => opt.MapFrom(src => src.Staff != null ? src.Staff.FullName : string.Empty))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Staff != null ? src.Staff.Role : Role.Customer));
 
             CreateMap<PondAssignment, PondAssignmentResponseDTO>()
                 .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : string.Empty));
@@ -249,10 +250,19 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<KoiIncident, KoiIncidentSimpleDTO>()
                 .ForMember(dest => dest.KoiFishRFID, opt => opt.MapFrom(src => src.KoiFish != null ? src.KoiFish.RFID : string.Empty))
                 .ForMember(dest => dest.SpecificSymptoms, opt => opt.MapFrom(src => src.SpecificSymptoms ?? string.Empty));
+            CreateMap<KoiIncident, KoiIncidentResponseDTO>()
+                .ForMember(dest => dest.KoiFishRFID, opt => opt.MapFrom(src => src.KoiFish != null ? src.KoiFish.RFID : null))
+                .ForMember(dest => dest.SpecificSymptoms, opt => opt.MapFrom(src => src.SpecificSymptoms))
+                .ForMember(dest => dest.TreatmentNotes, opt => opt.MapFrom(src => src.TreatmentNotes));
             CreateMap<KoiIncidentRequestDTO, KoiIncident>();
             CreateMap<PondIncident, PondIncidentSimpleDTO>()
                 .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : string.Empty))
                 .ForMember(dest => dest.EnvironmentalChanges, opt => opt.MapFrom(src => src.EnvironmentalChanges ?? string.Empty));
+            CreateMap<PondIncident, PondIncidentResponseDTO>()
+                .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : null))
+                .ForMember(dest => dest.EnvironmentalChanges, opt => opt.MapFrom(src => src.EnvironmentalChanges))
+                .ForMember(dest => dest.CorrectiveActions, opt => opt.MapFrom(src => src.CorrectiveActions))
+                .ForMember(dest => dest.Notes, opt => opt.MapFrom(src => src.Notes));
             CreateMap<PondIncidentRequestDTO, PondIncident>();
 
             CreateMap<IncidentType, IncidentTypeResponseDTO>().ReverseMap();
