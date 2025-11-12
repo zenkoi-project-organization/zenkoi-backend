@@ -129,6 +129,7 @@ namespace Zenkoi.BLL.Services.Implements
                     eggBatch.EndDate = DateTime.Now;
                     record.RottenEggs = eggBatch.Quantity - (total.TotalHatchedEggs + dto.HatchedEggs);
                     eggBatch.TotalHatchedEggs = total.TotalHatchedEggs + dto.HatchedEggs;
+                    record.HealthyEggs = 0;
                     breed.HatchingRate = (double)eggBatch.TotalHatchedEggs / eggBatch.Quantity * 100;
                 }
                 await _incubationDailyRepo.CreateAsync(record);

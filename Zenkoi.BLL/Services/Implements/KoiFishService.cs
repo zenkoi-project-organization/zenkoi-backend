@@ -238,7 +238,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var entity = _mapper.Map<KoiFish>(dto);
             entity.MutationRate = mutationRate;
-
+            
             await _koiFishRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 
