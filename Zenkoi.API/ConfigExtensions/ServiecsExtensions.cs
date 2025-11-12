@@ -2472,7 +2472,7 @@ namespace Zenkoi.API.ConfigExtensions
                             new KoiIncident
                             {
                                 KoiFishId = koiList[0].Id,
-                                AffectedStatus = KoiAffectedStatus.Exposed,
+                                AffectedStatus = HealthStatus.Warning,
                                 SpecificSymptoms = "Xuất hiện đốm trắng quanh mang và thân.",
                                 RequiresTreatment = true,
                                 IsIsolated = true,
@@ -2482,7 +2482,7 @@ namespace Zenkoi.API.ConfigExtensions
                             new KoiIncident
                             {
                                 KoiFishId = koiList.Count > 1 ? koiList[1].Id : fallbackKoi.Id,
-                                AffectedStatus = KoiAffectedStatus.Recovered,
+                                AffectedStatus = HealthStatus.Healthy,
                                 SpecificSymptoms = "Vây hậu môn bị sưng đỏ, cá kém ăn.",
                                 RequiresTreatment = true,
                                 IsIsolated = true,
@@ -2523,7 +2523,7 @@ namespace Zenkoi.API.ConfigExtensions
                             new KoiIncident
                             {
                                 KoiFishId = koiList.Count > 2 ? koiList[2].Id : fallbackKoi.Id,
-                                AffectedStatus = KoiAffectedStatus.Deceased,
+                                AffectedStatus = HealthStatus.Dead,
                                 SpecificSymptoms = "Bơi gần mặt nước, thở gấp.",
                                 RequiresTreatment = false,
                                 IsIsolated = false,
@@ -2564,7 +2564,7 @@ namespace Zenkoi.API.ConfigExtensions
                                 new KoiIncident
                                 {
                                     KoiFishId = koiForInjury.Id,
-                                    AffectedStatus = KoiAffectedStatus.Infected,
+                                    AffectedStatus = HealthStatus.Sick,
                                     SpecificSymptoms = "Trầy nhẹ bên hông phải.",
                                     RequiresTreatment = true,
                                     IsIsolated = false,

@@ -28,6 +28,7 @@ public class StaffAssignmentResponseDTO
     public int WorkScheduleId { get; set; }
     public int StaffId { get; set; }
     public string StaffName { get; set; } = string.Empty;
+    public Role Role { get; set; }
     public string? CompletionNotes { get; set; }
     public DateTime? CompletedAt { get; set; }
 }

@@ -31,7 +31,7 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         public int Id { get; set; }
         public int KoiFishId { get; set; }
         public string KoiFishRFID { get; set; }
-        public KoiAffectedStatus AffectedStatus { get; set; }
+        public HealthStatus AffectedStatus { get; set; }
         public string SpecificSymptoms { get; set; }
         public bool RequiresTreatment { get; set; }
         public bool IsIsolated { get; set; }

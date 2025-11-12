@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using Zenkoi.BLL.DTOs.CustomerDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
@@ -78,21 +79,18 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<CustomerResponseDTO>(customer);
         }
 
-        public async Task<IEnumerable<CustomerResponseDTO>> GetAllCustomersAsync(QueryOptions<Customer>? queryOptions = null)
+        public async Task<PaginatedList<CustomerResponseDTO>> GetAllCustomersAsync(int pageIndex = 1, int pageSize = 10)
         {
-            if (queryOptions == null)
-            {
-                var customers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>()
-                    .WithInclude(c => c.ApplicationUser)
-                    .WithInclude(c => c.Orders.Take(3))
-                    .WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt))
-                    .Build());
+            var query = _customerRepo.Get(new QueryBuilder<Customer>()
+                .WithInclude(c => c.ApplicationUser)
+                .WithInclude(c => c.Orders.Take(3))
+                .WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt))
+                .WithTracking(false)
+                .Build());
 
-                return _mapper.Map<IEnumerable<CustomerResponseDTO>>(customers);
-            }
-
-            var customersWithCustomOptions = await _customerRepo.GetAllAsync(queryOptions);
-            return _mapper.Map<IEnumerable<CustomerResponseDTO>>(customersWithCustomOptions);
+            var pagedCustomers = await PaginatedList<Customer>.CreateAsync(query, pageIndex, pageSize);
+            var result = _mapper.Map<List<CustomerResponseDTO>>(pagedCustomers);
+            return new PaginatedList<CustomerResponseDTO>(result, pagedCustomers.TotalItems, pageIndex, pageSize);
         }
 
         public async Task<CustomerResponseDTO> UpdateCustomerAsync(int id, CustomerUpdateDTO customerUpdateDTO)
@@ -127,28 +125,34 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<IEnumerable<CustomerResponseDTO>> GetActiveCustomersAsync()
+        public async Task<PaginatedList<CustomerResponseDTO>> GetActiveCustomersAsync(int pageIndex = 1, int pageSize = 10)
         {
-            var customers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>()
+            var query = _customerRepo.Get(new QueryBuilder<Customer>()
                 .WithPredicate(c => c.IsActive == true)
                 .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(3))
                 .WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt))
+                .WithTracking(false)
                 .Build());
 
-            return _mapper.Map<IEnumerable<CustomerResponseDTO>>(customers);
+            var pagedCustomers = await PaginatedList<Customer>.CreateAsync(query, pageIndex, pageSize);
+            var result = _mapper.Map<List<CustomerResponseDTO>>(pagedCustomers);
+            return new PaginatedList<CustomerResponseDTO>(result, pagedCustomers.TotalItems, pageIndex, pageSize);
         }
 
-        public async Task<IEnumerable<CustomerResponseDTO>> GetCustomersByTotalSpentAsync(decimal minAmount)
+        public async Task<PaginatedList<CustomerResponseDTO>> GetCustomersByTotalSpentAsync(decimal minAmount, int pageIndex = 1, int pageSize = 10)
         {
-            var customers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>()
+            var query = _customerRepo.Get(new QueryBuilder<Customer>()
                 .WithPredicate(c => c.TotalSpent >= minAmount && c.IsActive == true)
                 .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(3))
                 .WithOrderBy(c => c.OrderByDescending(x => x.TotalSpent))
+                .WithTracking(false)
                 .Build());
 
-            return _mapper.Map<IEnumerable<CustomerResponseDTO>>(customers);
+            var pagedCustomers = await PaginatedList<Customer>.CreateAsync(query, pageIndex, pageSize);
+            var result = _mapper.Map<List<CustomerResponseDTO>>(pagedCustomers);
+            return new PaginatedList<CustomerResponseDTO>(result, pagedCustomers.TotalItems, pageIndex, pageSize);
         }
 
         public async Task<CustomerResponseDTO> UpdateCustomerStatusAsync(int customerId)

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs;
 using Zenkoi.BLL.DTOs.CustomerDTOs;
 using Zenkoi.BLL.DTOs.Response;
 using Zenkoi.BLL.Services.Interfaces;
@@ -59,16 +60,17 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <returns>List of customers</returns>
         [HttpGet]
-        public async Task<ActionResult<ResponseApiDTO>> GetAllCustomers()
+        public async Task<ActionResult<ResponseApiDTO>> GetAllCustomers([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _customerService.GetAllCustomersAsync();
+                var result = await _customerService.GetAllCustomersAsync(pageIndex, pageSize);
+                var response = new PagingDTO<CustomerResponseDTO>(result);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,
                     Message = "Customers retrieved successfully",
-                    Result = result
+                    Result = response
                 });
             }
             catch (Exception)
@@ -162,16 +164,17 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <returns>List of active customers</returns>
         [HttpGet("active")]
-        public async Task<ActionResult<ResponseApiDTO>> GetActiveCustomers()
+        public async Task<ActionResult<ResponseApiDTO>> GetActiveCustomers([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _customerService.GetActiveCustomersAsync();
+                var result = await _customerService.GetActiveCustomersAsync(pageIndex, pageSize);
+                var response = new PagingDTO<CustomerResponseDTO>(result);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,
                     Message = "Active customers retrieved successfully",
-                    Result = result
+                    Result = response
                 });
             }
             catch (Exception)
@@ -190,16 +193,17 @@ namespace Zenkoi.API.Controllers
         /// <param name="minAmount">Minimum total spent amount</param>
         /// <returns>List of customers</returns>
         [HttpGet("by-total-spent/{minAmount}")]
-        public async Task<ActionResult<ResponseApiDTO>> GetCustomersByTotalSpent(decimal minAmount)
+        public async Task<ActionResult<ResponseApiDTO>> GetCustomersByTotalSpent(decimal minAmount, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _customerService.GetCustomersByTotalSpentAsync(minAmount);
+                var result = await _customerService.GetCustomersByTotalSpentAsync(minAmount, pageIndex, pageSize);
+                var response = new PagingDTO<CustomerResponseDTO>(result);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,
                     Message = "Customers retrieved successfully",
-                    Result = result
+                    Result = response
                 });
             }
             catch (Exception)

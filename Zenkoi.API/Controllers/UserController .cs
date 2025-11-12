@@ -19,7 +19,7 @@ namespace Zenkoi.API.Controllers
 
 	[HttpGet]
 	[Route("by-role")]
-	public async Task<IActionResult> GetUsersByRole([FromQuery] Role? role = null, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
+	public async Task<IActionResult> GetUsersByRole([FromQuery] Role? role = null, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isBlocked = null)
 	{
 		try
 		{
@@ -33,7 +33,7 @@ namespace Zenkoi.API.Controllers
 				return GetError("Page Size phải là số nguyên dương.");
 			}
 
-			var data = await _userService.GetUsersByRoleAsync(role, pageIndex, pageSize, search);
+			var data = await _userService.GetUsersByRoleAsync(role, pageIndex, pageSize, search, isBlocked);
 			var response = new PagingDTO<ApplicationUserResponseDTO>(data);
 			if (response == null) return GetError();
 			return GetSuccess(response);
@@ -44,6 +44,36 @@ namespace Zenkoi.API.Controllers
 			Console.WriteLine(ex.Message);
 			Console.ResetColor();
 			return Error($"Lỗi xử lý user: {ex.Message}");
+		}
+	}
+
+	/// <summary>
+	/// Update user profile (fullname, phone, userdetail)
+	/// </summary>
+	[HttpPut]
+	[Route("profile")]
+	public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileDTO dto)
+	{
+		try
+		{
+			if (!ModelState.IsValid)
+			{
+				return ModelInvalid();
+			}
+
+			var result = await _userService.UpdateUserProfileAsync(UserId, dto);
+			return SaveSuccess(result, "Cập nhật thông tin người dùng thành công.");
+		}
+		catch (ArgumentException ex)
+		{
+			return GetError(ex.Message);
+		}
+		catch (Exception ex)
+		{
+			Console.ForegroundColor = ConsoleColor.Red;
+			Console.WriteLine(ex.Message);
+			Console.ResetColor();
+			return Error($"Lỗi cập nhật thông tin người dùng: {ex.Message}");
 		}
 	}
 	}
