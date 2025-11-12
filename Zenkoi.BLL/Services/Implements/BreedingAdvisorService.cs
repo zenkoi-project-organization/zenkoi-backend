@@ -48,10 +48,10 @@ namespace Zenkoi.BLL.Services.Implements
 
             var body = new
             {
-                model = "qwen/qwen3-30b-a3b",
+                model = "openai/gpt-4.1-mini",
                 messages,
                 temperature = 0.6,
-                max_tokens = 10000,
+                max_tokens = 8000,
                 response_format = new { type = "json_object" }
             };
 
@@ -131,7 +131,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var body = new
             {
-                model = "qwen/qwen3-30b-a3b",
+                model = "openai/gpt-4.1-mini",
                 messages,
                 temperature = 0.3,
                 max_tokens = 8000,

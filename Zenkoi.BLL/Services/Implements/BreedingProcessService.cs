@@ -239,7 +239,8 @@ namespace Zenkoi.BLL.Services.Implements
                 b => b.FemaleKoi,
                 b => b.Pond,
                 b => b.MaleKoi.Variety,
-                b => b.FemaleKoi.Variety
+                b => b.FemaleKoi.Variety,
+                b => b.Batch
             }
             };
 
@@ -449,7 +450,7 @@ namespace Zenkoi.BLL.Services.Implements
               };
             var breed = await _breedRepo.GetSingleAsync(options);
             var res =  _mapper.Map<BreedingResponseDTO>(breed);
-            res.HatchedTime = breed.Batch.HatchingTime;
+            res.HatchedTime = breed.Batch?.HatchingTime;
             return res;
         }
 

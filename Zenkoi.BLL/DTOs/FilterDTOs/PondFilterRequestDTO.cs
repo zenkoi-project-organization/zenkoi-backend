@@ -9,7 +9,7 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
         public int? AreaId { get; set; }
         public int? PondTypeId { get; set; }
         public TypeOfPond? PondTypeEnum { get; set; }
-
+        public bool? Available { get; set; }
         public double? MinCapacityLiters { get; set; }
         public double? MaxCapacityLiters { get; set; }
         public double? MinDepthMeters { get; set; }

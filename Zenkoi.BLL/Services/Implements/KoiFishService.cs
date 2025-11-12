@@ -136,6 +136,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (filter.MaxSize.HasValue)
             {
+                var max = (decimal)filter.MaxSize.Value + 0.0001m ;
                 Expression<Func<KoiFish, bool>> expr = k => k.Size.HasValue && k.Size.Value <= filter.MaxSize.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
@@ -237,7 +238,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var entity = _mapper.Map<KoiFish>(dto);
             entity.MutationRate = mutationRate;
-
+            
             await _koiFishRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 

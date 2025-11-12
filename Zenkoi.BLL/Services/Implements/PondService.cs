@@ -67,7 +67,11 @@ namespace Zenkoi.BLL.Services.Implements
                 System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.AreaId == filter.AreaId.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
-
+            if (filter.Available.HasValue && filter.Available.Value)
+            {
+                System.Linq.Expressions.Expression<Func<Pond, bool>> expr = p => p.PondStatus == PondStatus.Empty;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
             if (filter.PondTypeId.HasValue)
             {
                 System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.PondTypeId == filter.PondTypeId.Value;
@@ -224,7 +228,8 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception($"không tìm thấy ví trí với PondTypeId : {dto.PondTypeId}");
             }
-            if (dto.CurrentCapacity > pond.CapacityLiters)
+            var CapacityLiters = dto.DepthMeters * dto.WidthMeters * dto.LengthMeters * 1000;
+            if (dto.CurrentCapacity > CapacityLiters)
             {
                 throw new InvalidOperationException("dung tích thực đang lớn hơn dung tích tối đa của hồ");
             }
@@ -234,6 +239,7 @@ namespace Zenkoi.BLL.Services.Implements
               .FirstOrDefault();
                 
             _mapper.Map(dto, pond);
+            pond.CapacityLiters = CapacityLiters;
             var updaterecord =  _mapper.Map<WaterParameterRecordRequestDTO>(dto.record);
             updaterecord.PondId = id;
             await _recordService.UpdateAsync(latestWaterParam.Id, updaterecord);
