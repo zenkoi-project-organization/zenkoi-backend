@@ -49,7 +49,10 @@ public class WorkScheduleService : IWorkScheduleService
             .ThenByDescending(ws => ws.StartTime));
 
         var query = _workScheduleRepo.Get(queryBuilder.Build());
-        var entities = await query.ToListAsync();
+        var entities = await query
+            .Include(ws => ws.StaffAssignments)
+                .ThenInclude(sa => sa.Staff)
+            .ToListAsync();
 
         await LoadNavigationPropertiesAsync(entities);
 
@@ -283,7 +286,10 @@ public class WorkScheduleService : IWorkScheduleService
             .ThenByDescending(ws => ws.StartTime));
 
         var query = _workScheduleRepo.Get(queryBuilder.Build());
-        var entities = await query.ToListAsync();
+        var entities = await query
+            .Include(ws => ws.StaffAssignments)
+                .ThenInclude(sa => sa.Staff)
+            .ToListAsync();
 
         await LoadNavigationPropertiesAsync(entities);
 
@@ -308,6 +314,9 @@ public class WorkScheduleService : IWorkScheduleService
             .ThenByDescending(ws => ws.StartTime));
 
         var query = _workScheduleRepo.Get(queryBuilder.Build());
+        query = query.Include(ws => ws.StaffAssignments)
+                .ThenInclude(sa => sa.Staff);
+
         var paginatedEntities = await PaginatedList<WorkSchedule>.CreateAsync(query, pageIndex, pageSize);
 
         await LoadNavigationPropertiesAsync(paginatedEntities);
@@ -343,6 +352,11 @@ public class WorkScheduleService : IWorkScheduleService
         if (filter.StaffId.HasValue)
         {
             queryBuilder.WithPredicate(ws => ws.StaffAssignments.Any(sa => sa.StaffId == filter.StaffId.Value));
+        }
+
+        if (filter.StaffRole.HasValue)
+        {
+            queryBuilder.WithPredicate(ws => ws.StaffAssignments.Any(sa => sa.Staff.Role == filter.StaffRole.Value));
         }
 
         if (filter.PondId.HasValue)

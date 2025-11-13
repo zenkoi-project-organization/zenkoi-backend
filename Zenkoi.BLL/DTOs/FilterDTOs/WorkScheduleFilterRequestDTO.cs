@@ -10,6 +10,7 @@ public class WorkScheduleFilterRequestDTO
     public WorkTaskStatus? Status { get; set; }
     public int? StaffId { get; set; }
     public int? PondId { get; set; }
+    public Role? StaffRole { get; set; }
 
     [DateRangeValidation(nameof(ScheduledDateTo))]
     public DateOnly? ScheduledDateFrom { get; set; }
