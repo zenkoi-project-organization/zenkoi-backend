@@ -12,6 +12,9 @@ using Zenkoi.BLL.DTOs.AIBreedingDTOs;
 using Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs;
 using Zenkoi.BLL.DTOs.BreedingDTOs;
 using Zenkoi.BLL.Services.Interfaces;
+using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Repositories;
+using Zenkoi.DAL.UnitOfWork;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -20,16 +23,19 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly HttpClient _http;
         private readonly string _apiKey;
         private readonly JsonSerializerOptions _jsonOptions;
-
-        public BreedingAdvisorService(IConfiguration config)
+        private readonly IUnitOfWork _unitOfWork;
+     
+        public BreedingAdvisorService(IConfiguration config, IUnitOfWork unitOfWork)
         {
             _http = new HttpClient();
             _apiKey = config["OpenRouter:ApiKey"]!;
+            _unitOfWork = unitOfWork;
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
                 Converters = { new JsonStringEnumConverter() }
             };
+        
 
         }
 
@@ -105,6 +111,30 @@ namespace Zenkoi.BLL.Services.Implements
 
                 string resultPath = Path.Combine(logDir, $"Result_{timestamp}.json");
                 File.WriteAllText(resultPath, JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }), Encoding.UTF8);
+
+             /*   foreach (var pair in result.RecommendedPairs)
+                {
+                    var advice = new AIBreedingAdvice
+                    {
+                        MaleKoiId = pair.MaleId,
+                        FemaleKoiId = pair.FemaleId,
+                        GeneticCompatibility = 100 - pair.PercentInbreeding, // ví dụ: tương thích di truyền = 100 - cận huyết
+                        ColorPredictionScore = pair.PredictedHighQualifiedRate, // có thể tạm dùng nếu chưa tách riêng
+                        SizePredictionScore = pair.PredictedSurvivalRate,
+                        QualityPredictionScore = pair.PredictedFertilizationRate,
+                        PredictedOffspringTraits = JsonSerializer.Serialize(new
+                        {
+                            pair.PredictedMutationRate,
+                            pair.PredictedFertilizationRate,
+                            pair.PredictedHighQualifiedRate
+                        }),
+                        BreedingRecommendations = pair.Reason,
+                        GeneratedAt = DateTime.Now
+                    };
+
+                    await _adviceRepo.CreateAsync(advice);
+                }
+                await _unitOfWork.SaveChangesAsync();*/
 
                 Console.WriteLine($"✅ Parse JSON thành công — lưu tại: {resultPath}");
                 return result;
@@ -190,8 +220,6 @@ namespace Zenkoi.BLL.Services.Implements
             // 🎯 Mục tiêu phối giống
             sb.AppendLine("🎯 Mục tiêu phối giống:");
             sb.AppendLine($"- Giống mục tiêu: {request.TargetVariety}");
-            sb.AppendLine($"- Loại đột biến mong muốn: {request.DesiredMutationType}");
-            sb.AppendLine($"- Tỷ lệ đột biến mong muốn: {request.DesiredMutationRate}%");
             sb.AppendLine($"- Ưu tiên: {request.Priority}");
             sb.AppendLine($"- Ngưỡng yêu cầu: HatchRate ≥ {request.MinHatchRate}%, SurvivalRate ≥ {request.MinSurvivalRate}%, HighQualifiedRate ≥ {request.MinHighQualifiedRate}%");
             sb.AppendLine();
@@ -201,13 +229,13 @@ namespace Zenkoi.BLL.Services.Implements
             foreach (var p in request.PotentialParents)
             {
                 sb.AppendLine($"- ID {p.Id} | RFID: {p.RFID} | Giống: {p.Variety} | Giới tính: {p.Gender} | Kích thước: {p.Size} cm | Tuổi: {p.Age} | Sức khỏe: {p.Health}");
-                sb.AppendLine($"  🧬 Đột biến: {(p.IsMutated ? $"{p.MutationType} ({p.MutationRate}%)" : "Không có")}");
+                sb.AppendLine($"  🧬 Đột biến: {(p.IsMutated ? $"{p.MutationDescription} ({p.MutationRate}%)" : "Không có")}");
                 sb.AppendLine($"  🖼️ Hình ảnh: {p.image}");
                 if (p.BreedingHistory?.Any() == true)
                 {
                     foreach (var h in p.BreedingHistory)
                     {
-                        sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, MutRate={h.MutationRate}%, CommonMut={h.CommonMutationType}, Note={h.ResultNote}");
+                        sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, MutRate={h.MutationRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
                     }
                 }
             }
@@ -241,10 +269,10 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("📋 Kết quả cần trả về:");
             sb.AppendLine("Trả về đối tượng JSON gồm `RecommendedPairs` là mảng 3–5 cặp tốt nhất, sắp xếp theo `Rank` tăng dần (1 là tốt nhất).");
             sb.AppendLine("Mỗi phần tử gồm:");
-            sb.AppendLine("  • MaleId, MaleRFID, MaleImage, MaleIsMutated, MaleMutationType, MaleMutationRate");
-            sb.AppendLine("  • FemaleId, FemaleRFID, FemaleImage, FemaleIsMutated, FemaleMutationType, FemaleMutationRate");
+            sb.AppendLine("  • MaleId, MaleRFID, MaleImage, MaleIsMutated, MaleMutationDescription, MaleMutationRate");
+            sb.AppendLine("  • FemaleId, FemaleRFID, FemaleImage, FemaleIsMutated, FemaleMutationDescription, FemaleMutationRate");
             sb.AppendLine("  • PredictedFertilizationRate, PredictedHatchRate, PredictedSurvivalRate, PredictedHighQualifiedRate");
-            sb.AppendLine("  • PredictedMutationRate, PredictedCommonMutationType, PercentInbreeding, Rank");
+            sb.AppendLine("  • PredictedMutationRate, PredictedMutationDescription, PercentInbreeding, Rank");
             sb.AppendLine("  • Reason: Một hoặc hai câu, diễn đạt tự nhiên, chuyên nghiệp, mang ngôn ngữ của chuyên gia lai tạo.");
             sb.AppendLine();
 
@@ -253,41 +281,46 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("- Male phải là cá đực (Gender = Male). Female phải là cá cái (Gender = Female).");
             sb.AppendLine("- Không được ghép cùng giới tính hoặc tạo ID mới.");
             sb.AppendLine("- `PercentInbreeding` là double (0 nếu không có dữ liệu).");
-            sb.AppendLine("- Ưu tiên đột biến trùng khớp với `DesiredMutationType`. Nếu không có, cho phép loại tương tự và ghi rõ 'gần đúng'.");
+            sb.AppendLine("- Ưu tiên đột biến trùng khớp với `DesiredMutationDescription`. Nếu không có, cho phép loại tương tự và ghi rõ 'gần đúng'.");
             sb.AppendLine("- Chỉ ghi lý do có thật, ngắn gọn, không trùng lặp giữa các cặp.");
             sb.AppendLine();
 
             // 📦 Mẫu JSON chuẩn
-            sb.AppendLine("📦 Cấu trúc JSON mẫu hợp lệ:");
+            sb.AppendLine("📋 Kết quả cần trả về:");
+            sb.AppendLine("Trả về đối tượng JSON hợp lệ gồm mảng `RecommendedPairs`, mỗi phần tử tương ứng với 1 đối tượng kiểu `AIPairAnalysisResponseDTO` như sau:");
             sb.AppendLine("{");
-            sb.AppendLine("  \"RecommendedPairs\": [");
-            sb.AppendLine("    {");
-            sb.AppendLine("      \"MaleId\": 3,");
-            sb.AppendLine("      \"MaleRFID\": \"KOI-003\",");
-            sb.AppendLine("      \"MaleImage\": \"https://example.com/male.jpg\",");
-            sb.AppendLine("      \"MaleIsMutated\": true,");
-            sb.AppendLine("      \"MaleMutationType\": \"GinRin\",");
-            sb.AppendLine("      \"MaleMutationRate\": 70.5,");
-            sb.AppendLine();
-            sb.AppendLine("      \"FemaleId\": 8,");
-            sb.AppendLine("      \"FemaleRFID\": \"KOI-008\",");
-            sb.AppendLine("      \"FemaleImage\": \"https://example.com/female.jpg\",");
-            sb.AppendLine("      \"FemaleIsMutated\": false,");
-            sb.AppendLine("      \"FemaleMutationType\": \"None\",");
-            sb.AppendLine("      \"FemaleMutationRate\": 0.0,");
-            sb.AppendLine();
-            sb.AppendLine("      \"PredictedFertilizationRate\": 92.5,");
-            sb.AppendLine("      \"PredictedHatchRate\": 88.1,");
-            sb.AppendLine("      \"PredictedSurvivalRate\": 79.6,");
-            sb.AppendLine("      \"PredictedHighQualifiedRate\": 82.0,");
-            sb.AppendLine("      \"PredictedMutationRate\": 25.3,");
-            sb.AppendLine("      \"PredictedCommonMutationType\": \"GinRin\",");
-            sb.AppendLine("      \"PercentInbreeding\": 0.0,");
-            sb.AppendLine("      \"Reason\": \"Cặp này có khả năng sinh ra cá con khỏe mạnh, mang đặc tính ánh kim tương tự GinRin.\",");
-            sb.AppendLine("      \"Rank\": 1");
-            sb.AppendLine("    }");
-            sb.AppendLine("  ]");
+            sb.AppendLine(" \"RecommendedPairs\": [");
+            sb.AppendLine("   {");
+            sb.AppendLine("     \"MaleId\": 3,");
+            sb.AppendLine("     \"FemaleId\": 8,");
+            sb.AppendLine("     \"PredictedFertilizationRate\": 92.5,");
+            sb.AppendLine("     \"PredictedHatchRate\": 88.1,");
+            sb.AppendLine("     \"PredictedSurvivalRate\": 79.6,");
+            sb.AppendLine("     \"PredictedHighQualifiedRate\": 82.0,");
+            sb.AppendLine("     \"PercentInbreeding\": 0.0,");
+            sb.AppendLine("     \"PredictedMutationRate\": 25.3,");
+            sb.AppendLine("     \"MutationDescription\": \"Đột biến ánh kim tương tự GinRin\",");
+            sb.AppendLine("     \"PredictedMutationDescription\": 78.5,");
+            sb.AppendLine("     \"Summary\": \"Cặp này có khả năng sinh ra cá con mang ánh sáng mạnh và di truyền ổn định.\",");
+            sb.AppendLine("     \"MaleBreedingInfo\": {");
+            sb.AppendLine("         \"Summary\": \"Cá đực sức khỏe tốt, từng đạt tỷ lệ nở cao trong các lần phối giống trước.\",");
+            sb.AppendLine("         \"BreedingSuccessRate\": 85.3");
+            sb.AppendLine("     },");
+            sb.AppendLine("     \"FemaleBreedingInfo\": {");
+            sb.AppendLine("         \"Summary\": \"Cá cái có nền di truyền ổn định, màu sắc sáng và tỷ lệ sống con cao.\",");
+            sb.AppendLine("         \"BreedingSuccessRate\": 88.1");
+            sb.AppendLine("     }");
+            sb.AppendLine("   }");
+            sb.AppendLine(" ]");
             sb.AppendLine("}");
+            sb.AppendLine();
+            sb.AppendLine("📌 Ghi nhớ:");
+            sb.AppendLine("- Tất cả các trường phải có mặt và đúng kiểu dữ liệu theo mẫu trên.");
+            sb.AppendLine("- Các giá trị tỷ lệ (Rate, Percent, Match) nằm trong khoảng 0–100.");
+            sb.AppendLine("- `Summary` là mô tả ngắn gọn (1–2 câu), mang phong cách chuyên gia di truyền cá Koi, diễn đạt tự nhiên và có cơ sở khoa học.");
+            sb.AppendLine("- Nếu không có dữ liệu, đặt giá trị 0 hoặc để chuỗi rỗng (\"\").");
+            sb.AppendLine("- `MutationDescription` có thể là mô tả loại đột biến thật, hoặc ghi rõ là 'gần đúng' nếu không trùng loại mong muốn.");
+            sb.AppendLine("- `PredictedMatchToDesiredMutationDescription` là % mức độ tương đồng với loại đột biến mục tiêu.");
             sb.AppendLine();
             sb.AppendLine("⚠️ Chỉ trả về JSON hợp lệ, bắt đầu bằng { và kết thúc bằng }. Không thêm văn bản khác.");
 
@@ -318,61 +351,50 @@ namespace Zenkoi.BLL.Services.Implements
 
             var sb = new StringBuilder();
 
+            // 🧠 Giới thiệu & mục tiêu
             sb.AppendLine("Bạn là **Smart Koi Breeder**, chuyên gia di truyền cá Koi.");
-            sb.AppendLine("Phân tích khả năng phối giống giữa **một cặp cá đực và cá cái cụ thể** dựa trên dữ liệu thật bên dưới.");
-            sb.AppendLine("Hãy đánh giá toàn diện về **giống, sức khỏe, hình thể, hiệu quả sinh sản, và xu hướng di truyền đột biến (Mutation)**.");
+            sb.AppendLine("Hãy phân tích chi tiết **khả năng phối giống của một cặp cá đực và cá cái** dựa trên dữ liệu thật bên dưới.");
             sb.AppendLine();
-            sb.AppendLine("🎯 Mục tiêu:");
-            sb.AppendLine("- Dự đoán độ tương thích, hiệu quả sinh sản, và khả năng sinh ra đời con mang loại đột biến mong muốn (DesiredMutationType).");
-            sb.AppendLine("- Cung cấp kết quả định lượng (0–100%) và phần tóm tắt ngắn gọn, rõ ràng.");
-            sb.AppendLine();
-            sb.AppendLine("📊 Quy tắc đánh giá:");
-            sb.AppendLine("- Chỉ dựa vào dữ liệu thật, không được suy diễn ngẫu nhiên.");
-            sb.AppendLine("- Đánh giá dựa trên 6 yếu tố chính:");
-            sb.AppendLine("  1️⃣ Giống và độ tương thích di truyền (30%)");
-            sb.AppendLine("  2️⃣ Sức khỏe và độ tuổi sinh sản (15%)");
-            sb.AppendLine("  3️⃣ Dáng và kích thước cơ thể tương đồng (15%)");
-            sb.AppendLine("  4️⃣ Hiệu quả sinh sản trung bình (20%)");
-            sb.AppendLine("  5️⃣ Ảnh hưởng đột biến (MutationType, MutationRate) (10%)");
-            sb.AppendLine("  6️⃣ Khả năng sinh ra loại đột biến mong muốn (DesiredMutationType) (10%)");
-            sb.AppendLine("- Nếu giống khác nhau, trừ 30 điểm PatternMatchScore.");
-            sb.AppendLine("- Nếu cá cái có Health = 'Warning' hoặc 'Bad', giảm 20 điểm FertilizationRate.");
-            sb.AppendLine("- Nếu thiếu dữ liệu, đặt giá trị 0 thay vì 'unknown'.");
-            sb.AppendLine("- Không được thêm bất kỳ giải thích hoặc văn bản nào ngoài JSON.");
+            sb.AppendLine("⚠️ Quy tắc bắt buộc:");
+            sb.AppendLine("- Chỉ dùng dữ liệu thật, không được tạo, suy diễn hoặc thêm thông tin ngoài danh sách.");
+            sb.AppendLine("- Mọi giá trị ID, RFID, Image phải giữ nguyên 100% như dữ liệu đầu vào.");
+            sb.AppendLine("- Không thêm markdown, ký hiệu emoji hoặc văn bản ngoài JSON.");
+            sb.AppendLine("- Mọi tỷ lệ (Rate, Percent, Match) nằm trong khoảng 0–100.");
+            sb.AppendLine("- Nếu thiếu dữ liệu, đặt giá trị 0 thay vì null hoặc unknown.");
             sb.AppendLine();
 
-            // 🧬 Cá đực
+            // 🧬 Thông tin cá đực
             sb.AppendLine("🐟 Cá đực (Male):");
             sb.AppendLine($"- ID: {request.Male.Id} | RFID: {request.Male.RFID} | Giống: {request.Male.Variety}");
             sb.AppendLine($"- Kích thước: {request.Male.Size} | Tuổi: {request.Male.Age} | Sức khỏe: {request.Male.Health}");
-            sb.AppendLine($"- Đột biến: {(request.Male.IsMutated ? $"{request.Male.MutationType} ({request.Male.MutationRate}%)" : "Không có")}");
+            sb.AppendLine($"- Đột biến: {(request.Male.IsMutated ? $"{request.Male.MutationDescription} ({request.Male.MutationRate}%)" : "Không có")}");
             sb.AppendLine($"- Ảnh: {request.Male.image}");
             if (request.Male.BreedingHistory?.Any() == true)
             {
                 foreach (var h in request.Male.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, MutRate={h.MutationRate}%, CommonMut={h.CommonMutationType}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, MutRate={h.MutationRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
 
-            // 🧬 Cá cái
+            // 🧬 Thông tin cá cái
             sb.AppendLine("🐠 Cá cái (Female):");
             sb.AppendLine($"- ID: {request.Female.Id} | RFID: {request.Female.RFID} | Giống: {request.Female.Variety}");
             sb.AppendLine($"- Kích thước: {request.Female.Size} | Tuổi: {request.Female.Age} | Sức khỏe: {request.Female.Health}");
-            sb.AppendLine($"- Đột biến: {(request.Female.IsMutated ? $"{request.Female.MutationType} ({request.Female.MutationRate}%)" : "Không có")}");
+            sb.AppendLine($"- Đột biến: {(request.Female.IsMutated ? $"{request.Female.MutationDescription} ({request.Female.MutationRate}%)" : "Không có")}");
             sb.AppendLine($"- Ảnh: {request.Female.image}");
             if (request.Female.BreedingHistory?.Any() == true)
             {
                 foreach (var h in request.Female.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, MutRate={h.MutationRate}%, CommonMut={h.CommonMutationType}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, MutRate={h.MutationRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
 
             sb.AppendLine("📋 Trả về kết quả **JSON hợp lệ duy nhất**, KHÔNG markdown, KHÔNG văn bản ngoài JSON.");
-            sb.AppendLine("JSON phải khớp cấu trúc sau (giá trị mẫu chỉ để minh họa):");
+            sb.AppendLine("JSON phải đúng cấu trúc sau (giá trị mẫu chỉ minh họa):");
             sb.AppendLine("{");
             sb.AppendLine($"  \"MaleId\": {request.Male.Id},");
             sb.AppendLine($"  \"FemaleId\": {request.Female.Id},");
@@ -380,39 +402,33 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("  \"PredictedHatchRate\": 78.6,");
             sb.AppendLine("  \"PredictedSurvivalRate\": 81.4,");
             sb.AppendLine("  \"PredictedHighQualifiedRate\": 76.9,");
-            sb.AppendLine("  \"PredictedMutationRate\": 12.4,");
-            sb.AppendLine("  \"PredictedCommonMutationType\": \"Doitsu\",");
-            sb.AppendLine("  \"PredictedMatchToDesiredMutationType\": 90.3,");
-            sb.AppendLine("  \"PatternMatchScore\": 88.5,");
-            sb.AppendLine("  \"BodyShapeCompatibility\": 85.7,");
             sb.AppendLine("  \"PercentInbreeding\": 0.0,");
-            sb.AppendLine("  \"Summary\": \"Cặp này tương thích cao, có khả năng sinh ra cá Doitsu khỏe mạnh.\",");
+            sb.AppendLine("  \"PredictedMutationRate\": 12.4,");
+            sb.AppendLine("  \"MutationDescription\": \"Đột biến ánh kim tương tự GinRin\",");
+            sb.AppendLine("  \"PredictedMutationDescription\": 90.3,");
+            sb.AppendLine("  \"Summary\": \"Cặp này tương thích tốt, có tiềm năng sinh ra cá con mang đặc tính ánh kim ổn định.\",");
 
             sb.AppendLine("  \"MaleBreedingInfo\": {");
-            sb.AppendLine("    \"Summary\": \"Cá đực có sức khỏe tốt, ổn định di truyền.\",");
-            sb.AppendLine("    \"BreedingSuccessRate\": 84.0,");
-            sb.AppendLine("    \"MutationInfluence\": 10.5");
+            sb.AppendLine("    \"Summary\": \"Cá đực có sức khỏe tốt, ổn định di truyền và tỷ lệ sinh sản cao.\",");
+            sb.AppendLine("    \"BreedingSuccessRate\": 84.0");
             sb.AppendLine("  },");
 
             sb.AppendLine("  \"FemaleBreedingInfo\": {");
-            sb.AppendLine("    \"Summary\": \"Cá cái có lịch sử nở tốt, ổn định.\",");
-            sb.AppendLine("    \"BreedingSuccessRate\": 87.0,");
-            sb.AppendLine("    \"MutationInfluence\": 8.0");
+            sb.AppendLine("    \"Summary\": \"Cá cái có lịch sử nở tốt, sức khỏe ổn định và màu sắc sáng.\",");
+            sb.AppendLine("    \"BreedingSuccessRate\": 87.0");
             sb.AppendLine("  }");
             sb.AppendLine("}");
             sb.AppendLine();
 
-            sb.AppendLine("⚠️ Yêu cầu bắt buộc:");
-            sb.AppendLine("- Không bỏ sót hoặc đổi tên trường JSON.");
-            sb.AppendLine("- Không thêm markdown, emoji hoặc ký tự đặc biệt.");
-            sb.AppendLine("- Mọi giá trị số là double trong khoảng 0–100.");
-            sb.AppendLine("- Các trường enum (ví dụ MutationType) phải là chuỗi (string) hợp lệ, ví dụ: \"None\", \"Doitsu\", \"Ginrin\".");
-            sb.AppendLine("- Nếu thiếu dữ liệu, đặt 0 thay vì null hoặc unknown.");
+            sb.AppendLine("⚠️ Lưu ý cuối cùng:");
+            sb.AppendLine("- Không đổi tên trường JSON hoặc kiểu dữ liệu.");
+            sb.AppendLine("- Không thêm các trường khác như PatternMatchScore hoặc PredictedCommonMutationType.");
             sb.AppendLine("- Đảm bảo JSON bắt đầu bằng `{` và kết thúc bằng `}`.");
+            sb.AppendLine("- Summary phải là 1–2 câu tự nhiên, phong cách chuyên gia lai tạo cá Koi.");
+            sb.AppendLine("- Nếu không có dữ liệu, đặt giá trị 0 hoặc chuỗi rỗng (\"\").");
 
             return sb.ToString();
         }
-
 
         private static string ExtractAiMessage(string content)
         {

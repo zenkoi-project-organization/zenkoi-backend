@@ -14,6 +14,7 @@ namespace Zenkoi.BLL.Services.Interfaces
     {
         Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(KoiFishFilterRequestDTO filter, int pageIndex = 1,int pageSize = 10);
         Task<KoiFishResponseDTO?> GetByIdAsync(int id);
+        Task<KoiFishResponseDTO?> ScanRFID(string RFID);
         Task<BreedingParentDTO> GetAnalysisAsync(int id);
         Task<KoiFishResponseDTO> CreateAsync(KoiFishRequestDTO dto);
         Task<bool> TransferFish(int id, int PondId);

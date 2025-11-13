@@ -49,6 +49,6 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
 
         public bool? IsMutated { get; set; }
 
-        public MutationType? MutationType { get; set; }
+        public string? MutationDescription { get; set; }
     }
 }

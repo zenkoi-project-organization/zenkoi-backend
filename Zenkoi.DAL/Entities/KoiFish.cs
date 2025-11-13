@@ -26,7 +26,7 @@ namespace Zenkoi.DAL.Entities
         public List<string>? Videos { get; set; }
         public decimal? SellingPrice { get; set; }
         public bool IsMutated { get; set; }
-        public MutationType MutationType { get; set; } = MutationType.None;
+        public string? MutationDescription { get; set; }
         public double? MutationRate { get; set; }
         public string? Description { get; set; }
         public string? Origin { get; set; }

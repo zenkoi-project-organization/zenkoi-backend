@@ -27,8 +27,8 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public string? Origin { get; set; }
 
         public bool IsMutated { get; set; }
-        
-        public MutationType MutationType { get; set; }
+
+        public string? MutationDescription { get; set; }
         public double? MutationRate { get; set; }
 
         public DateTime CreatedAt { get; set; }

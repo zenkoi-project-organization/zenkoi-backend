@@ -178,6 +178,25 @@ namespace Zenkoi.BLL.Services.Implements
 
             return result;
         }
+        public async Task<KoiFishResponseDTO?> ScanRFID(string RFID)
+        {
+            var koifish = await _koiFishRepo.GetSingleAsync(new QueryOptions<KoiFish>
+            {
+                Predicate = p => p.RFID == RFID,
+                IncludeProperties = new List<Expression<Func<KoiFish, object>>>
+                {
+                    p => p.BreedingProcess,
+                    p => p.Pond,
+                    p => p.Variety
+                }
+            });
+
+            var result = _mapper.Map<KoiFishResponseDTO>(koifish);
+            if (result != null)
+                FormatSizeForResponse(result);
+
+            return result;
+        }
 
         public async Task<KoiFishResponseDTO> CreateAsync(KoiFishRequestDTO dto)
         {
@@ -451,7 +470,7 @@ namespace Zenkoi.BLL.Services.Implements
                 Health = koifish.HealthStatus.ToString(),
                 Age = Math.Round(age, 1),
                 IsMutated = koifish.IsMutated,
-                MutationType = koifish.MutationType.ToString(),
+                MutationDescription = koifish.MutationDescription,
                 MutationRate = koifish.MutationRate,
                 BreedingHistory = new List<BreedingRecordDTO>
                 {
@@ -471,5 +490,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             return cm / 2.54;
         }
+
+       
     }
 }
