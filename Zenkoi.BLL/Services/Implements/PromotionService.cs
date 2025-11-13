@@ -78,7 +78,7 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<PromotionResponseDTO>(promotion);
         }
         public async Task<PromotionResponseDTO> CreateAsync(PromotionRequestDTO dto)
-        {         
+        {
             var existingCode = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
             {
                 Predicate = p => p.Code == dto.Code
@@ -92,6 +92,17 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException("Ngày bắt đầu phải trước ngày kết thúc.");
             }
 
+            var overlappingPromotion = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
+            {
+                Predicate = p => p.IsActive && !p.IsDeleted &&
+                    ((p.ValidFrom <= dto.ValidTo && p.ValidTo >= dto.ValidFrom) ||
+                     (dto.ValidFrom <= p.ValidTo && dto.ValidTo >= p.ValidFrom))
+            });
+            if (overlappingPromotion)
+            {
+                throw new ArgumentException("Đã tồn tại một promotion active trong khoảng thời gian này. Chỉ có thể có một promotion hoạt động tại một thời điểm.");
+            }
+
             var entity = _mapper.Map<Promotion>(dto);
             await _promotionRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
@@ -103,7 +114,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var promotion = await _promotionRepo.GetByIdAsync(id);
             if (promotion == null) return false;
-        
+
             var existingCode = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
             {
                 Predicate = p => p.Code == dto.Code && p.Id != id
@@ -115,6 +126,18 @@ namespace Zenkoi.BLL.Services.Implements
             if (dto.ValidFrom >= dto.ValidTo)
             {
                 throw new ArgumentException("Ngày bắt đầu phải trước ngày kết thúc.");
+            }
+
+            // Kiểm tra xem đã có promotion nào active khác trong khoảng thời gian này chưa
+            var overlappingPromotion = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
+            {
+                Predicate = p => p.IsActive && !p.IsDeleted && p.Id != id &&
+                    ((p.ValidFrom <= dto.ValidTo && p.ValidTo >= dto.ValidFrom) ||
+                     (dto.ValidFrom <= p.ValidTo && dto.ValidTo >= p.ValidFrom))
+            });
+            if (overlappingPromotion)
+            {
+                throw new ArgumentException("Đã tồn tại một promotion active khác trong khoảng thời gian này. Chỉ có thể có một promotion hoạt động tại một thời điểm.");
             }
 
             _mapper.Map(dto, promotion);
@@ -129,12 +152,23 @@ namespace Zenkoi.BLL.Services.Implements
             var promotion = await _promotionRepo.GetByIdAsync(id);
             if (promotion == null) return false;
 
-    
             promotion.IsDeleted = true;
             await _promotionRepo.UpdateAsync(promotion);
             await _unitOfWork.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<PromotionResponseDTO?> GetCurrentActivePromotionAsync()
+        {
+            var now = DateTime.UtcNow;
+            var promotion = await _promotionRepo.GetSingleAsync(new QueryOptions<Promotion>
+            {
+                Predicate = p => p.IsActive && !p.IsDeleted &&
+                    p.ValidFrom <= now && p.ValidTo >= now
+            });
+
+            return promotion == null ? null : _mapper.Map<PromotionResponseDTO>(promotion);
         }
     }
 }

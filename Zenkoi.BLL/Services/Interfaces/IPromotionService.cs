@@ -15,6 +15,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<PromotionResponseDTO> CreateAsync(PromotionRequestDTO dto);
         Task<bool> UpdateAsync(int id, PromotionRequestDTO dto);
         Task<bool> DeleteAsync(int id);
-
+        Task<PromotionResponseDTO?> GetCurrentActivePromotionAsync();
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.UserDetailDTOs
 {
@@ -14,7 +15,7 @@ namespace Zenkoi.BLL.DTOs.UserDetailDTOs
         public string phoneNumber { get; set; }
         public string Email { get; set; }
         public DateTime? DateOfBirth { get; set; }
-        public string Gender { get; set; }
+        public Gender Gender { get; set; }
         public string AvatarURL { get; set; }
         public string Address { get; set; }
 
