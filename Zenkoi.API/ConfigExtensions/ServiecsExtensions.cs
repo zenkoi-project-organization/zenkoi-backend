@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-            //    await TruncateAllTablesExceptMigrationHistory(context);
+             //  await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -105,8 +105,38 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.Users.Any(x => x.Role == Role.Manager))
             {
                 // Pass: Admin@123
-                var manager = new ApplicationUser { FullName = "manager", Role = Role.Manager, UserName = "manager", NormalizedUserName = "MANAGER", Email = "manager@email.com", NormalizedEmail = "MANAGER@EMAIL.COM", PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==", SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP", ConcurrencyStamp = "4bd4dcb0-b231-4169-93c3-81f70479637a", PhoneNumber = "0999999999", LockoutEnabled = true };
-                await context.Users.AddAsync(manager);
+                var manager = new ApplicationUser
+                {
+                    FullName = "manager",
+                    Role = Role.Manager,
+                    UserName = "manager",
+                    NormalizedUserName = "MANAGER",
+                    Email = "manager@email.com",
+                    NormalizedEmail = "MANAGER@EMAIL.COM",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==",
+                    SecurityStamp = "BWYPPRX7FGAHVOE7REDRNSWC72LU67ZP",
+                    ConcurrencyStamp = "4bd4dcb0-b231-4169-93c3-81f70479637a",
+                    PhoneNumber = "0999999999",
+                    LockoutEnabled = true
+                };
+
+                // 👇 Thêm tài khoản Manager mới từ JSON
+                var manager2 = new ApplicationUser
+                {
+                    FullName = "Huy",
+                    Role = Role.Manager,
+                    UserName = "dinhhoa",
+                    NormalizedUserName = "DINHHOA",
+                    Email = "885relative@powerscrews.com",
+                    NormalizedEmail = "885RELATIVE@POWERSCREWS.COM",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==", // bạn có thể thay hash thật nếu muốn
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    PhoneNumber = "09463575689",
+                    LockoutEnabled = true
+                };
+
+                await context.Users.AddRangeAsync(manager, manager2);
                 await context.SaveChangesAsync();
             }
             #endregion
@@ -227,7 +257,23 @@ namespace Zenkoi.API.ConfigExtensions
                     LockoutEnabled = true
                 };
 
-                await context.Users.AddRangeAsync(staff1, staff2, staff3);
+                // 👇 Thêm tài khoản FarmStaff mới từ JSON
+                var staff4 = new ApplicationUser
+                {
+                    FullName = "Huy",
+                    Role = Role.FarmStaff,
+                    UserName = "Huy",
+                    NormalizedUserName = "HUY",
+                    Email = "huy@gmailcom",
+                    NormalizedEmail = "HUY@GMAILCOM",
+                    PasswordHash = "AQAAAAIAAYagAAAAEDH0xTQNvAznmb/NtaE+zrtLrV4Xz1hGMInXCZE2MoDFR88A06IT6meJb7wHSEj6vQ==",
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    PhoneNumber = "09463575689",
+                    LockoutEnabled = true
+                };
+
+                await context.Users.AddRangeAsync(staff1, staff2, staff3, staff4);
                 await context.SaveChangesAsync();
             }
             #endregion
@@ -631,385 +677,371 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.KoiFishes.Any())
             {
                 await context.KoiFishes.AddRangeAsync(
+
+                    // 🧬 1. Kohaku Male
                     new KoiFish
                     {
-                        BirthDate = new DateTime(2022, 3, 15),
-                        Description = "Kohaku chất lượng cao, có Hi rõ nét, triển vọng thi đấu.",
+                        BirthDate = new DateTime(2022, 5, 10),
+                        Description = "Kohaku đực đỏ trắng rõ nét, thân thon dài, Hi đều – dòng thuần Nhật.",
                         Gender = Gender.Male,
-                        PatternType = KoiPatternType.Tancho,
+                        PatternType = KoiPatternType.Maruten,
                         HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 2,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 1,
                         RFID = "KOI-0001",
-                        SellingPrice = 50000000m,
-                        Size = 20,
-                        Type = KoiType.High,
-                        VarietyId = 1,
-                        Origin = "Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = false,
-                        MutationType = MutationType.None,
-                        MutationRate = 0.0
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2023, 8, 1),
-                        Description = "Sanke cái đang phát triển, Sumi đẹp và cân đối.",
-                        Gender = Gender.Female,
-                        PatternType = KoiPatternType.Bozu,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 3,
-                        RFID = "KOI-0002",
-                        SellingPrice = 35000000m,
-                        Size = 26,
-                        Type = KoiType.Show,
-                        VarietyId = 2,
-                        Origin = "Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = true,
-                        MutationType = MutationType.GinRin, 
-                        MutationRate = 0.8
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2024, 1, 20),
-                        Description = "Cá mới nhập khẩu, đang theo dõi vì vết xước nhỏ ở vây.",
-                        Gender = Gender.Female,
-                        PatternType = KoiPatternType.Maruten,
-                        HealthStatus = HealthStatus.Warning,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 4,
-                        RFID = "KOI-0003",
-                        SellingPrice = null,
-                        Size = 24,
-                        Type = KoiType.High,
-                        VarietyId = 3,
-                        Origin = "Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = true,
-                        MutationType = MutationType.Doitsu, 
-                        MutationRate = 0.9
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2021, 6, 10),
-                        Description = "Ogon ánh kim rực rỡ, kích thước lớn, cá bố mẹ tiềm năng.",
-                        Gender = Gender.Male,
-                        PatternType = KoiPatternType.None,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 5,
-                        RFID = "KOI-0004",
-                        SellingPrice = 85000000m,
-                        Size = 27,
-                        Type = KoiType.Show,
-                        VarietyId = 4,
-                        Origin = "Niigata, Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = true,
-                        MutationType = MutationType.Metallic, 
-                        MutationRate = 0.9
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2024, 4, 5),
-                        Description = "Asagi Tosai (cá non) có màu xanh sáng đẹp, đang nuôi dưỡng.",
-                        Gender = Gender.Male,
-                        PatternType = KoiPatternType.None,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 1,
-                        RFID = "KOI-0005",
-                        SellingPrice = 12000000m,
-                        Size = 23,
-                        Type = KoiType.High,
-                        VarietyId = 5,
-                        Origin = "Vietnam Farm",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = false,
-                        MutationType = MutationType.None,
-                        MutationRate = 0
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2023, 5, 12),
-                        Description = "Showa Sanshoku đẹp, Hi và Sumi cân đối.",
-                        Gender = Gender.Female,
-                        PatternType = KoiPatternType.None,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 2,
-                        RFID = "KOI-0006",
-                        SellingPrice = 42000000m,
-                        Size = 30.5,
-                        Type = KoiType.Show,
-                        VarietyId = 1,
-                        Origin = "Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = false,
-                        MutationType = MutationType.None,
-                        MutationRate = 0
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2022, 9, 20),
-                        Description = "Kohaku với Hi pattern đẹp, bloodline cao cấp.",
-                        Gender = Gender.Male,
-                        PatternType = KoiPatternType.Maruten,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 3,
-                        RFID = "KOI-0007",
-                        SellingPrice = 75000000m,
-                        Size = 35.2,
+                        SellingPrice = 65000000m,
+                        Size = 28.5,
                         Type = KoiType.Show,
                         VarietyId = 1,
                         Origin = "Niigata, Japan",
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationType = MutationType.None,
+                        MutationDescription = "Không có",
                         MutationRate = 0
                     },
+
+                    // 🧬 2. Sanke Male
                     new KoiFish
                     {
-                        BirthDate = new DateTime(2023, 11, 8),
-                        Description = "Sanke cái với Sumi pattern tuyệt đẹp, tiềm năng làm giống.",
-                        Gender = Gender.Female,
-                        PatternType = KoiPatternType.None,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 3,
-                        RFID = "KOI-0008",
-                        SellingPrice = 55000000m,
-                        Size = 32.8,
-                        Type = KoiType.Show,
-                        VarietyId = 2,
-                        Origin = "Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = true,
-                        MutationType = MutationType.GinRin,
-                        MutationRate = 0.85
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2024, 2, 14),
-                        Description = "Shiro Utsuri đẹp, Sumi đậm nét, đang phát triển tốt.",
-                        Gender = Gender.Male,
-                        PatternType = KoiPatternType.None,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 4,
-                        RFID = "KOI-0009",
-                        SellingPrice = 28000000m,
-                        Size = 25.5,
-                        Type = KoiType.High,
-                        VarietyId = 3,
-                        Origin = "Vietnam Farm",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = false,
-                        MutationType = MutationType.None,
-                        MutationRate = 0
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2023, 7, 3),
-                        Description = "Yamabuki Ogon với màu vàng kim rực rỡ.",
-                        Gender = Gender.Female,
-                        PatternType = KoiPatternType.None,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 5,
-                        RFID = "KOI-0010",
-                        SellingPrice = 38000000m,
-                        Size = 29.0,
-                        Type = KoiType.High,
-                        VarietyId = 4,
-                        Origin = "Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = true,
-                        MutationType = MutationType.Metallic,
-                        MutationRate = 0.95
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2024, 6, 18),
-                        Description = "Asagi non với màu xanh nhạt đẹp mắt.",
-                        Gender = Gender.Male,
-                        PatternType = KoiPatternType.None,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 1,
-                        RFID = "KOI-0011",
-                        SellingPrice = 15000000m,
-                        Size = 18.5,
-                        Type = KoiType.High,
-                        VarietyId = 5,
-                        Origin = "Vietnam Farm",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = false,
-                        MutationType = MutationType.None,
-                        MutationRate = 0
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2022, 12, 5),
-                        Description = "Kohaku Grand Champion bloodline, cá bố giống xuất sắc.",
+                        BirthDate = new DateTime(2022, 8, 25),
+                        Description = "Sanke đực ba màu rõ, Sumi đậm, Beni tươi – dáng cân đối.",
                         Gender = Gender.Male,
                         PatternType = KoiPatternType.Inazuma,
                         HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
                         PondId = 2,
-                        RFID = "KOI-0012",
-                        SellingPrice = 120000000m,
-                        Size = 42.5,
-                        Type = KoiType.Show,
-                        VarietyId = 1,
-                        Origin = "Sakai Fish Farm, Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = false,
-                        MutationType = MutationType.None,
-                        MutationRate = 0
-                    },
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2023, 3, 22),
-                        Description = "Sanke cái với pattern cân đối, cá mẹ giống chất lượng cao.",
-                        Gender = Gender.Female,
-                        PatternType = KoiPatternType.None,
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 3,
-                        RFID = "KOI-0013",
-                        SellingPrice = 68000000m,
-                        Size = 38.0,
-                        Type = KoiType.Show,
+                        RFID = "KOI-0002",
+                        SellingPrice = 48000000m,
+                        Size = 27.2,
+                        Type = KoiType.High,
                         VarietyId = 2,
                         Origin = "Dainichi Koi Farm, Japan",
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationType = MutationType.GinRin,
-                        MutationRate = 0.9
+                        MutationDescription = "Ginrin ánh sáng nhẹ",
+                        MutationRate = 0.75
                     },
+
+                    // 🧬 3. Showa Male
                     new KoiFish
                     {
-                        BirthDate = new DateTime(2024, 8, 10),
-                        Description = "Showa con F1 từ breeding process BP-006, đang phát triển tốt.",
+                        BirthDate = new DateTime(2021, 9, 15),
+                        Description = "Showa đực mạnh mẽ, Sumi đen tuyền, Hi đỏ sâu – bố giống tốt.",
+                        Gender = Gender.Male,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 3,
+                        RFID = "KOI-0003",
+                        SellingPrice = 78000000m,
+                        Size = 30.5,
+                        Type = KoiType.Show,
+                        VarietyId = 3,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // 🧬 4. Ogon Male
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2021, 6, 10),
+                        Description = "Yamabuki Ogon đực ánh kim vàng rực rỡ, thân to khỏe.",
+                        Gender = Gender.Male,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 4,
+                        RFID = "KOI-0004",
+                        SellingPrice = 85000000m,
+                        Size = 32.0,
+                        Type = KoiType.Show,
+                        VarietyId = 4,
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ogon ánh kim vàng mạnh",
+                        MutationRate = 0.9
+                    },
+
+                    // 🧬 5. Asagi Male
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 3, 12),
+                        Description = "Asagi đực trẻ, vảy xanh bạc đều, bụng Hi đỏ nhẹ – gen ổn định.",
                         Gender = Gender.Male,
                         PatternType = KoiPatternType.None,
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 4,
-                        RFID = "KOI-0014",
-                        SellingPrice = 25000000m,
-                        Size = 22.0,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 5,
+                        RFID = "KOI-0005",
+                        SellingPrice = 22000000m,
+                        Size = 24.0,
                         Type = KoiType.High,
-                        VarietyId = 1,
-                        Origin = "Vietnam Farm - BP-006",
+                        VarietyId = 5,
+                        Origin = "Vietnam Farm",
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationType = MutationType.None,
+                        MutationDescription = "Không có",
                         MutationRate = 0
                     },
+
+                    // 🧬 6. Asagi Male (Doitsu từ Shusui)
                     new KoiFish
                     {
-                        BirthDate = new DateTime(2024, 8, 10),
-                        Description = "Kohaku con F1 từ breeding process BP-006, Hi pattern đẹp.",
+                        BirthDate = new DateTime(2022, 11, 30),
+                        Description = "Asagi đực Doitsu – vảy lưng xanh đậm, lưng trơn mượt.",
+                        Gender = Gender.Male,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 2,
+                        RFID = "KOI-0006",
+                        SellingPrice = 40000000m,
+                        Size = 26.0,
+                        Type = KoiType.High,
+                        VarietyId = 5, // Shusui quy về Asagi
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Doitsu không vảy",
+                        MutationRate = 0.85
+                    },
+
+                    // 🧬 7. Sanke Male (Bekko quy về Sanke)
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 2, 15),
+                        Description = "Sanke đực dạng Bekko – nền trắng, đốm đen rõ.",
+                        Gender = Gender.Male,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 3,
+                        RFID = "KOI-0007",
+                        SellingPrice = 25000000m,
+                        Size = 23.5,
+                        Type = KoiType.High,
+                        VarietyId = 2,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // 🧬 8. Showa Male (Kumonryu quy về Showa)
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2021, 7, 7),
+                        Description = "Showa đực biến sắc kiểu Kumonryu – đen trắng uốn lượn.",
+                        Gender = Gender.Male,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 5,
+                        RFID = "KOI-0008",
+                        SellingPrice = 78000000m,
+                        Size = 31.5,
+                        Type = KoiType.Show,
+                        VarietyId = 3, // Kumonryu quy về Showa
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Biến sắc theo nhiệt độ",
+                        MutationRate = 0.88
+                    },
+
+                    // 🐠 9. Kohaku Female
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 5, 10),
+                        Description = "Kohaku mái thân bầu, Hi đều, vảy bóng – sinh sản ổn định.",
                         Gender = Gender.Female,
                         PatternType = KoiPatternType.Tancho,
                         HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string>
-                        {
-                "https://topanh.com/wp-content/uploads/2025/05/hinh-anh-con-ca-1-768x494.jpg"
-                        },
-                        PondId = 4,
-                        RFID = "KOI-0015",
-                        SellingPrice = 30000000m,
-                        Size = 21.5,
-                        Type = KoiType.High,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 1,
+                        RFID = "KOI-0009",
+                        SellingPrice = 62000000m,
+                        Size = 29.0,
+                        Type = KoiType.Show,
                         VarietyId = 1,
-                        Origin = "Vietnam Farm - BP-006",
+                        Origin = "Niigata, Japan",
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationType = MutationType.None,
+                        MutationDescription = "Không có",
                         MutationRate = 0
+                    },
+
+                    // 🐠 10. Sanke Female
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 7, 1),
+                        Description = "Sanke mái ba màu rõ, Sumi sáng, thân tròn – gen ổn định.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 2,
+                        RFID = "KOI-0010",
+                        SellingPrice = 45000000m,
+                        Size = 28.5,
+                        Type = KoiType.High,
+                        VarietyId = 2,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ginrin ánh sáng mạnh",
+                        MutationRate = 0.8
+                    },
+
+                    // 🐠 11. Showa Female
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2021, 8, 5),
+                        Description = "Showa mái đỏ đen trắng rõ, cá mẹ tiềm năng – dòng Dainichi.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 3,
+                        RFID = "KOI-0011",
+                        SellingPrice = 88000000m,
+                        Size = 33.0,
+                        Type = KoiType.Show,
+                        VarietyId = 3,
+                        Origin = "Dainichi Koi Farm, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // 🐠 12. Ogon Female
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 11, 20),
+                        Description = "Yamabuki Ogon mái vàng kim óng ánh, thân tròn, ánh sáng mạnh.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 4,
+                        RFID = "KOI-0012",
+                        SellingPrice = 52000000m,
+                        Size = 30.0,
+                        Type = KoiType.Show,
+                        VarietyId = 4,
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ogon ánh kim vàng đậm",
+                        MutationRate = 0.88
+                    },
+
+                    // 🐠 13. Asagi Female
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 2, 15),
+                        Description = "Asagi mái vảy xanh bạc đều, bụng Hi đỏ – gen ổn định.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 5,
+                        RFID = "KOI-0013",
+                        SellingPrice = 33000000m,
+                        Size = 27.5,
+                        Type = KoiType.High,
+                        VarietyId = 5,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // 🐠 14. Asagi Female (Shusui quy về Asagi)
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 9, 9),
+                        Description = "Asagi mái Doitsu – vảy lưng xanh, cam đỏ bụng, lai Shusui.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 1,
+                        RFID = "KOI-0014",
+                        SellingPrice = 38000000m,
+                        Size = 28.0,
+                        Type = KoiType.High,
+                        VarietyId = 5,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Doitsu không vảy",
+                        MutationRate = 0.9
+                    },
+
+                    // 🐠 15. Sanke Female (Goshiki quy về Sanke)
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 12, 5),
+                        Description = "Sanke mái ánh kim nhẹ – pha kiểu Goshiki, gen ánh sáng đẹp.",
+                        Gender = Gender.Female,
+                        PatternType = KoiPatternType.None,
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        PondId = 2,
+                        RFID = "KOI-0015",
+                        SellingPrice = 59000000m,
+                        Size = 31.0,
+                        Type = KoiType.Show,
+                        VarietyId = 2,
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ginrin ánh kim nhẹ",
+                        MutationRate = 0.86
                     }
                 );
 
                 await context.SaveChangesAsync();
             }
+
 
             #endregion
 

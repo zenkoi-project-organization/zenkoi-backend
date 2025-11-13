@@ -81,7 +81,12 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<WaterAlertResponseDTO?> GetByIdAsync(int id)
         {
-            var alert = await _waterAlertRepo.GetByIdAsync(id);
+            var alert = await _waterAlertRepo.GetSingleAsync(new QueryOptions<WaterAlert>
+            {
+                Predicate = p => p.Id == id , IncludeProperties = new List<Expression<Func<WaterAlert, object>>> { 
+                p => p.Pond
+                }
+            });
             return _mapper.Map<WaterAlertResponseDTO>(alert);
         }
 

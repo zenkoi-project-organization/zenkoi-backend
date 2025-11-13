@@ -11,7 +11,6 @@ namespace Zenkoi.BLL.DTOs.ClassificationRecordDTOs
     {
         public int ClassificationStageId { get; set; }
         public int? CullQualifiedCount { get; set; }
-        public MutationType MutationType { get; set; } 
         public double? MutatedFishCount { get; set; }
         public string Notes { get; set; }
     }

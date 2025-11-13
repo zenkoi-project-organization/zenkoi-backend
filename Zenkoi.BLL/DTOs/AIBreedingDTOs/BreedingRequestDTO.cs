@@ -11,8 +11,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
     {
         public string TargetVariety { get; set; } = "";
         public string Priority { get; set; } = ""; // "Quality", "Quantity", or "Both"
-        public double DesiredMutationRate { get; set; }
-        public MutationType DesiredMutationType { get; set; }
+        public bool IsMutation { get; set; }
         public double MinHatchRate { get; set; }
         public double MinSurvivalRate { get; set; }
         public double MinHighQualifiedRate { get; set; }

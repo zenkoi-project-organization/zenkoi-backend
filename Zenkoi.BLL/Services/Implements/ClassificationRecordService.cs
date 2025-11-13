@@ -147,7 +147,6 @@ namespace Zenkoi.BLL.Services.Implements
                 classification.PondQualifiedCount = record.PondQualifiedCount;
                 classification.CullQualifiedCount += record.CullQualifiedCount;
             }
-             breed.CommonMutationType = dto.MutationType;
 
              breed.MutationRate =  dto.MutatedFishCount/(breed.TotalEggs * breed.HatchingRate/100 * breed.SurvivalRate/100) * 100;
 
@@ -324,7 +323,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (record.StageNumber == 2)
             {
-                breed.CommonMutationType = null;
                 breed.MutationRate = 0;
             }
 
