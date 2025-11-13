@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Zenkoi.DAL.Enums;
 
@@ -16,5 +17,9 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         public DateTime? OccurredAt { get; set; }
         [MaxLength(2000)]
         public string? ResolutionNotes { get; set; }
+
+        // Update affected Koi and Ponds
+        public List<KoiIncidentRequestDTO>? AffectedKoiFish { get; set; }
+        public List<PondIncidentRequestDTO>? AffectedPonds { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace Zenkoi.DAL.Entities
 
         public int KoiFishId { get; set; }
         public KoiFish KoiFish { get; set; }
-        public KoiAffectedStatus AffectedStatus { get; set; } = KoiAffectedStatus.Exposed;
+        public HealthStatus AffectedStatus { get; set; } = HealthStatus.Warning;
         public string? SpecificSymptoms { get; set; }
         public bool RequiresTreatment { get; set; }
         public bool IsIsolated { get; set; }

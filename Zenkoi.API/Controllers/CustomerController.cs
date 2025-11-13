@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Zenkoi.BLL.DTOs;
 using Zenkoi.BLL.DTOs.CustomerDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.Response;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Queries;
@@ -57,26 +59,33 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Get all customers
         /// </summary>
+        /// <param name="filter">Filter parameters</param>
+        /// <param name="pageIndex">Page index (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 10)</param>
         /// <returns>List of customers</returns>
         [HttpGet]
-        public async Task<ActionResult<ResponseApiDTO>> GetAllCustomers()
+        public async Task<ActionResult<ResponseApiDTO>> GetAllCustomers(
+            [FromQuery] CustomerFilterRequestDTO? filter,
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _customerService.GetAllCustomersAsync();
+                var result = await _customerService.GetAllCustomersAsync(filter ?? new CustomerFilterRequestDTO(), pageIndex, pageSize);
+                var response = new PagingDTO<CustomerResponseDTO>(result);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,
                     Message = "Customers retrieved successfully",
-                    Result = result
+                    Result = response
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return StatusCode(500, new ResponseApiDTO
                 {
                     IsSuccess = false,
-                    Message = "An error occurred while retrieving customers"
+                    Message = $"An error occurred while retrieving customers: {ex.Message}"
                 });
             }
         }
@@ -162,16 +171,17 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <returns>List of active customers</returns>
         [HttpGet("active")]
-        public async Task<ActionResult<ResponseApiDTO>> GetActiveCustomers()
+        public async Task<ActionResult<ResponseApiDTO>> GetActiveCustomers([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _customerService.GetActiveCustomersAsync();
+                var result = await _customerService.GetActiveCustomersAsync(pageIndex, pageSize);
+                var response = new PagingDTO<CustomerResponseDTO>(result);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,
                     Message = "Active customers retrieved successfully",
-                    Result = result
+                    Result = response
                 });
             }
             catch (Exception)
@@ -190,16 +200,17 @@ namespace Zenkoi.API.Controllers
         /// <param name="minAmount">Minimum total spent amount</param>
         /// <returns>List of customers</returns>
         [HttpGet("by-total-spent/{minAmount}")]
-        public async Task<ActionResult<ResponseApiDTO>> GetCustomersByTotalSpent(decimal minAmount)
+        public async Task<ActionResult<ResponseApiDTO>> GetCustomersByTotalSpent(decimal minAmount, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _customerService.GetCustomersByTotalSpentAsync(minAmount);
+                var result = await _customerService.GetCustomersByTotalSpentAsync(minAmount, pageIndex, pageSize);
+                var response = new PagingDTO<CustomerResponseDTO>(result);
                 return Ok(new ResponseApiDTO
                 {
                     IsSuccess = true,
                     Message = "Customers retrieved successfully",
-                    Result = result
+                    Result = response
                 });
             }
             catch (Exception)

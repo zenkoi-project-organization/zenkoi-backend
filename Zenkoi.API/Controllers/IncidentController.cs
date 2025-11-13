@@ -51,8 +51,11 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Tạo sự cố kèm theo thông tin chi tiết về cá và ao bị ảnh hưởng
+        /// </summary>
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] IncidentRequestDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreateIncidentWithDetailsDTO dto)
         {
             try
             {
@@ -60,8 +63,8 @@ namespace Zenkoi.API.Controllers
                     return ModelInvalid();
 
                 int userId = UserId;
-                var incident = await _incidentService.CreateAsync(userId, dto);
-                return SaveSuccess(incident, "Tạo sự cố thành công.");
+                var incident = await _incidentService.CreateIncidentWithDetailsAsync(userId, dto);
+                return SaveSuccess(incident, "Tạo sự cố kèm chi tiết thành công.");
             }
             catch (ArgumentException ex)
             {
@@ -77,6 +80,9 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Cập nhật sự cố (bao gồm cả thay đổi status, resolve, và affected koi/ponds)
+        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] IncidentUpdateRequestDTO dto)
         {
@@ -85,7 +91,7 @@ namespace Zenkoi.API.Controllers
                 if (!ModelState.IsValid)
                     return ModelInvalid();
 
-                var incident = await _incidentService.UpdateAsync(id, dto);
+                var incident = await _incidentService.UpdateAsync(id, UserId, dto);
                 return Success(incident, "Cập nhật sự cố thành công.");
             }
             catch (KeyNotFoundException ex)
@@ -120,7 +126,10 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        [HttpPut("{id}/status")]
+        /// <summary>
+        /// Thay đổi trạng thái của sự cố
+        /// </summary>
+        [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] UpdateStatusDto dto)
         {
             try
@@ -128,8 +137,8 @@ namespace Zenkoi.API.Controllers
                 if (!ModelState.IsValid)
                     return ModelInvalid();
 
-                var success = await _incidentService.ChangeStatusAsync(id, dto);
-                return Success(success, "Thay đổi trạng thái sự cố thành công.");
+                var incident = await _incidentService.ChangeStatusAsync(id, UserId, dto.Status, dto.ResolutionNotes);
+                return Success(incident, "Thay đổi trạng thái sự cố thành công.");
             }
             catch (KeyNotFoundException ex)
             {
@@ -145,31 +154,9 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        [HttpPut("{id}/resolve")]
-        public async Task<IActionResult> Resolve(int id, [FromBody] ResolveIncidentDTO dto)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return ModelInvalid();
-
-                var success = await _incidentService.ResolveAsync(id, UserId, dto);
-                return Success(success, "Giải quyết sự cố thành công.");
-            }
-            catch (ArgumentException ex)
-            {
-                return GetError(ex.Message);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return GetNotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return GetError($"Không thể giải quyết sự cố: {ex.Message}");
-            }
-        }
-
+        /// <summary>
+        /// Thêm cá Koi bị ảnh hưởng vào sự cố
+        /// </summary>
         [HttpPost("{id}/koi")]
         public async Task<IActionResult> AddKoiIncident(int id, [FromBody] KoiIncidentRequestDTO dto)
         {
@@ -179,40 +166,25 @@ namespace Zenkoi.API.Controllers
                     return ModelInvalid();
 
                 var koiIncident = await _incidentService.AddKoiIncidentAsync(id, dto);
-                return SaveSuccess(koiIncident, "Thêm cá bị ảnh hưởng thành công.");
+                return SaveSuccess(koiIncident, "Thêm cá Koi vào sự cố thành công.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return GetNotFound(ex.Message);
             }
             catch (ArgumentException ex)
             {
                 return GetError(ex.Message);
             }
-            catch (KeyNotFoundException ex)
-            {
-                return GetNotFound(ex.Message);
-            }
             catch (Exception ex)
             {
-                return GetError($"Không thể thêm cá bị ảnh hưởng: {ex.Message}");
+                return GetError($"Không thể thêm cá Koi vào sự cố: {ex.Message}");
             }
         }
 
-        [HttpDelete("koi/{koiIncidentId}")]
-        public async Task<IActionResult> RemoveKoiIncident(int koiIncidentId)
-        {
-            try
-            {
-                var success = await _incidentService.RemoveKoiIncidentAsync(koiIncidentId);
-                return Success(success, "Xóa cá bị ảnh hưởng thành công.");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return GetNotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return GetError($"Không thể xóa cá bị ảnh hưởng: {ex.Message}");
-            }
-        }
-
+        /// <summary>
+        /// Thêm ao bị ảnh hưởng vào sự cố
+        /// </summary>
         [HttpPost("{id}/pond")]
         public async Task<IActionResult> AddPondIncident(int id, [FromBody] PondIncidentRequestDTO dto)
         {
@@ -222,38 +194,77 @@ namespace Zenkoi.API.Controllers
                     return ModelInvalid();
 
                 var pondIncident = await _incidentService.AddPondIncidentAsync(id, dto);
-                return SaveSuccess(pondIncident, "Thêm ao bị ảnh hưởng thành công.");
+                return SaveSuccess(pondIncident, "Thêm ao vào sự cố thành công.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return GetNotFound(ex.Message);
             }
             catch (ArgumentException ex)
             {
                 return GetError(ex.Message);
             }
-            catch (KeyNotFoundException ex)
-            {
-                return GetNotFound(ex.Message);
-            }
             catch (Exception ex)
             {
-                return GetError($"Không thể thêm ao bị ảnh hưởng: {ex.Message}");
+                return GetError($"Không thể thêm ao vào sự cố: {ex.Message}");
             }
         }
 
-        [HttpDelete("pond/{pondIncidentId}")]
-        public async Task<IActionResult> RemovePondIncident(int pondIncidentId)
+        /// <summary>
+        /// Cập nhật thông tin cá Koi bị ảnh hưởng trong sự cố
+        /// </summary>
+        [HttpPut("{id}/koi/{koiIncidentId}")]
+        public async Task<IActionResult> UpdateKoiIncident(int id, int koiIncidentId, [FromBody] UpdateKoiIncidentRequestDTO dto)
         {
             try
             {
-                var success = await _incidentService.RemovePondIncidentAsync(pondIncidentId);
-                return Success(success, "Xóa ao bị ảnh hưởng thành công.");
+                if (!ModelState.IsValid)
+                    return ModelInvalid();
+
+                var koiIncident = await _incidentService.UpdateKoiIncidentAsync(koiIncidentId, dto);
+                return Success(koiIncident, "Cập nhật thông tin cá Koi thành công.");
             }
             catch (KeyNotFoundException ex)
             {
                 return GetNotFound(ex.Message);
             }
+            catch (ArgumentException ex)
+            {
+                return GetError(ex.Message);
+            }
             catch (Exception ex)
             {
-                return GetError($"Không thể xóa ao bị ảnh hưởng: {ex.Message}");
+                return GetError($"Không thể cập nhật thông tin cá Koi: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Cập nhật thông tin ao bị ảnh hưởng trong sự cố
+        /// </summary>
+        [HttpPut("{id}/pond/{pondIncidentId}")]
+        public async Task<IActionResult> UpdatePondIncident(int id, int pondIncidentId, [FromBody] UpdatePondIncidentRequestDTO dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return ModelInvalid();
+
+                var pondIncident = await _incidentService.UpdatePondIncidentAsync(pondIncidentId, dto);
+                return Success(pondIncident, "Cập nhật thông tin ao thành công.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return GetNotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return GetError(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return GetError($"Không thể cập nhật thông tin ao: {ex.Message}");
+            }
+        }
+
     }
 }

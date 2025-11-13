@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251113074826_AddKoiReIDTables")]
+    partial class AddKoiReIDTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -276,6 +279,9 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("CommonMutationType")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
@@ -911,11 +917,11 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<bool>("IsMutated")
                         .HasColumnType("bit");
 
-                    b.Property<string>("MutationDescription")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<double?>("MutationRate")
                         .HasColumnType("float");
+
+                    b.Property<int>("MutationType")
+                        .HasColumnType("int");
 
                     b.Property<string>("Origin")
                         .HasMaxLength(1000)
@@ -1287,27 +1293,6 @@ namespace Zenkoi.DAL.Migrations
                     b.HasIndex("Name");
 
                     b.ToTable("PacketFishes", "dbo");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.Pattern", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PatternName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Patterns", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.Payment", b =>
@@ -2090,29 +2075,6 @@ namespace Zenkoi.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("VarietyPacketFishes", "dbo");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.VarietyPattern", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("PatternId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("VarietyId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PatternId");
-
-                    b.HasIndex("VarietyId");
-
-                    b.ToTable("VarietyPatterns", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.WaterAlert", b =>
@@ -2960,25 +2922,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("Variety");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.VarietyPattern", b =>
-                {
-                    b.HasOne("Zenkoi.DAL.Entities.Pattern", "Pattern")
-                        .WithMany("VarietyPatterns")
-                        .HasForeignKey("PatternId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Zenkoi.DAL.Entities.Variety", "Variety")
-                        .WithMany("VarietyPatterns")
-                        .HasForeignKey("VarietyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Pattern");
-
-                    b.Navigation("Variety");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.WaterAlert", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
@@ -3162,11 +3105,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("VarietyPacketFishes");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.Pattern", b =>
-                {
-                    b.Navigation("VarietyPatterns");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.Pond", b =>
                 {
                     b.Navigation("BreedingProcesses");
@@ -3213,8 +3151,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("KoiFishes");
 
                     b.Navigation("VarietyPacketFishes");
-
-                    b.Navigation("VarietyPatterns");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.WeeklyScheduleTemplate", b =>

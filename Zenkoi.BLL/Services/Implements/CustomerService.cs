@@ -1,11 +1,14 @@
 using AutoMapper;
 using System.Linq.Expressions;
 using Zenkoi.BLL.DTOs.CustomerDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
+using Microsoft.EntityFrameworkCore;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -78,21 +81,21 @@ namespace Zenkoi.BLL.Services.Implements
             return _mapper.Map<CustomerResponseDTO>(customer);
         }
 
-        public async Task<IEnumerable<CustomerResponseDTO>> GetAllCustomersAsync(QueryOptions<Customer>? queryOptions = null)
+        public async Task<PaginatedList<CustomerResponseDTO>> GetAllCustomersAsync(CustomerFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            if (queryOptions == null)
-            {
-                var customers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>()
-                    .WithInclude(c => c.ApplicationUser)
-                    .WithInclude(c => c.Orders.Take(3))
-                    .WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt))
-                    .Build());
+            var queryBuilder = new QueryBuilder<Customer>()
+                .WithInclude(c => c.ApplicationUser)
+                .WithInclude(c => c.Orders.Take(3))
+                .WithTracking(false);
 
-                return _mapper.Map<IEnumerable<CustomerResponseDTO>>(customers);
-            }
+            ApplyFilters(queryBuilder, filter);
 
-            var customersWithCustomOptions = await _customerRepo.GetAllAsync(queryOptions);
-            return _mapper.Map<IEnumerable<CustomerResponseDTO>>(customersWithCustomOptions);
+            queryBuilder.WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt));
+
+            var query = _customerRepo.Get(queryBuilder.Build());
+            var pagedCustomers = await PaginatedList<Customer>.CreateAsync(query, pageIndex, pageSize);
+            var result = _mapper.Map<List<CustomerResponseDTO>>(pagedCustomers);
+            return new PaginatedList<CustomerResponseDTO>(result, pagedCustomers.TotalItems, pageIndex, pageSize);
         }
 
         public async Task<CustomerResponseDTO> UpdateCustomerAsync(int id, CustomerUpdateDTO customerUpdateDTO)
@@ -127,28 +130,34 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<IEnumerable<CustomerResponseDTO>> GetActiveCustomersAsync()
+        public async Task<PaginatedList<CustomerResponseDTO>> GetActiveCustomersAsync(int pageIndex = 1, int pageSize = 10)
         {
-            var customers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>()
+            var query = _customerRepo.Get(new QueryBuilder<Customer>()
                 .WithPredicate(c => c.IsActive == true)
                 .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(3))
                 .WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt))
+                .WithTracking(false)
                 .Build());
 
-            return _mapper.Map<IEnumerable<CustomerResponseDTO>>(customers);
+            var pagedCustomers = await PaginatedList<Customer>.CreateAsync(query, pageIndex, pageSize);
+            var result = _mapper.Map<List<CustomerResponseDTO>>(pagedCustomers);
+            return new PaginatedList<CustomerResponseDTO>(result, pagedCustomers.TotalItems, pageIndex, pageSize);
         }
 
-        public async Task<IEnumerable<CustomerResponseDTO>> GetCustomersByTotalSpentAsync(decimal minAmount)
+        public async Task<PaginatedList<CustomerResponseDTO>> GetCustomersByTotalSpentAsync(decimal minAmount, int pageIndex = 1, int pageSize = 10)
         {
-            var customers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>()
+            var query = _customerRepo.Get(new QueryBuilder<Customer>()
                 .WithPredicate(c => c.TotalSpent >= minAmount && c.IsActive == true)
                 .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(3))
                 .WithOrderBy(c => c.OrderByDescending(x => x.TotalSpent))
+                .WithTracking(false)
                 .Build());
 
-            return _mapper.Map<IEnumerable<CustomerResponseDTO>>(customers);
+            var pagedCustomers = await PaginatedList<Customer>.CreateAsync(query, pageIndex, pageSize);
+            var result = _mapper.Map<List<CustomerResponseDTO>>(pagedCustomers);
+            return new PaginatedList<CustomerResponseDTO>(result, pagedCustomers.TotalItems, pageIndex, pageSize);
         }
 
         public async Task<CustomerResponseDTO> UpdateCustomerStatusAsync(int customerId)
@@ -171,6 +180,62 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.SaveChangesAsync();
 
             return await GetCustomerByIdAsync(customerId);
+        }
+
+        private void ApplyFilters(QueryBuilder<Customer> queryBuilder, CustomerFilterRequestDTO filter)
+        {
+            if (filter == null)
+                return;
+
+            // Search in FullName, Email, UserName, ContactNumber
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                queryBuilder.WithPredicate(c =>
+                    (c.ApplicationUser != null && c.ApplicationUser.FullName.Contains(filter.Search)) ||
+                    (c.ApplicationUser != null && c.ApplicationUser.Email != null && c.ApplicationUser.Email.Contains(filter.Search)) ||
+                    (c.ApplicationUser != null && c.ApplicationUser.UserName != null && c.ApplicationUser.UserName.Contains(filter.Search)) ||
+                    (c.ContactNumber != null && c.ContactNumber.Contains(filter.Search)));
+            }
+
+            if (filter.IsActive.HasValue)
+            {
+                queryBuilder.WithPredicate(c => c.IsActive == filter.IsActive.Value);
+            }
+
+            if (filter.MinTotalSpent.HasValue)
+            {
+                queryBuilder.WithPredicate(c => c.TotalSpent >= filter.MinTotalSpent.Value);
+            }
+
+            if (filter.MaxTotalSpent.HasValue)
+            {
+                queryBuilder.WithPredicate(c => c.TotalSpent <= filter.MaxTotalSpent.Value);
+            }
+
+            if (filter.MinTotalOrders.HasValue)
+            {
+                queryBuilder.WithPredicate(c => c.TotalOrders >= filter.MinTotalOrders.Value);
+            }
+
+            if (filter.MaxTotalOrders.HasValue)
+            {
+                queryBuilder.WithPredicate(c => c.TotalOrders <= filter.MaxTotalOrders.Value);
+            }
+
+            if (filter.CreatedFrom.HasValue)
+            {
+                queryBuilder.WithPredicate(c => c.CreatedAt >= filter.CreatedFrom.Value);
+            }
+
+            if (filter.CreatedTo.HasValue)
+            {
+                queryBuilder.WithPredicate(c => c.CreatedAt <= filter.CreatedTo.Value);
+            }
+
+            if (!string.IsNullOrEmpty(filter.ContactNumber))
+            {
+                queryBuilder.WithPredicate(c => c.ContactNumber != null && c.ContactNumber.Contains(filter.ContactNumber));
+            }
         }
     }
 }

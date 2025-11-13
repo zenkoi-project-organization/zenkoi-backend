@@ -12,9 +12,7 @@ namespace Zenkoi.DAL.Enums
         Investigating = 1,
         [EnumMember(Value = "Resolved")]
         Resolved = 2,
-        [EnumMember(Value = "Closed")]
-        Closed = 3,
         [EnumMember(Value = "Cancelled")]
-        Cancelled = 4
+        Cancelled = 3
     }
 }
