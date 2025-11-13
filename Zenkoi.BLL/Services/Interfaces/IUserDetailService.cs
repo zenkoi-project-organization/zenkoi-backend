@@ -7,6 +7,7 @@ namespace Zenkoi.BLL.Services.Interfaces
 	public interface IUserDetailService
 	{
 		Task<BaseResponse> CreateUpdateUserDetail(UserDetailRequestDTO dto, int userId);
+		Task<BaseResponse> UpdateAvatarAsync(UpdateAvatarDTO dto, int userId);
 		Task<BaseResponse> DeleteUserDetail(int userId);
 		Task<PaginatedList<UserDetailResponseDTO>> GetAllUserDetails(int pageIndex, int pageSize);
 		Task<PaginatedList<UserDetailResponseDTO>> GetAllUserDetailsByName(int pageIndex, int pageSize, string? name);

@@ -136,6 +136,29 @@ namespace Zenkoi.API.Controllers
             return response == null ? GetError("Không tìm thấy thông tin người dùng.") : GetSuccess(response);
         }
 
+		[Authorize]
+		[HttpPut("update-avatar")]
+		public async Task<IActionResult> UpdateAvatar([FromBody] UpdateAvatarDTO dto)
+		{
+			try
+			{
+				if (!ModelState.IsValid)
+					return ModelInvalid();
+
+				var response = await _userDetailService.UpdateAvatarAsync(dto, UserId);
+				if (!response.IsSuccess)
+					return SaveError(response.Message);
+
+				return SaveSuccess(response);
+			}
+			catch (Exception ex)
+			{
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine(ex.Message);
+				Console.ResetColor();
+				return Error($"Lỗi cập nhật avatar: {ex.Message}");
+			}
+		}
 
         [HttpDelete]
 		[Route("delete-user-detail")]

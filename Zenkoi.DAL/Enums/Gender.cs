@@ -4,11 +4,11 @@ namespace Zenkoi.DAL.Enums
 {
 	public enum Gender
 	{
-		[EnumMember(Value = "Nam")]
+		[EnumMember(Value = "Male")]
 		Male,
-		[EnumMember(Value = "Nữ")]
+		[EnumMember(Value = "Female")]
 		Female,
-		[EnumMember(Value = "Khác")]
+		[EnumMember(Value = "Other")]
 		Other
 	}
 }

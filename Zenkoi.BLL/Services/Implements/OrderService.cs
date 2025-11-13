@@ -102,8 +102,16 @@ namespace Zenkoi.BLL.Services.Implements
                 });
             }
 
+            var now = DateTime.UtcNow;
+            var currentPromotion = await _promotionRepo.GetSingleAsync(new QueryBuilder<Promotion>()
+                .WithPredicate(p => p.IsActive && !p.IsDeleted &&
+                    p.ValidFrom <= now && p.ValidTo >= now)
+                .Build());
+
+            int? promotionId = currentPromotion?.Id;
+
             decimal shippingFee = createOrderDTO.ShippingFee;
-            decimal discountAmount = await CalculateDiscountAsync(createOrderDTO.PromotionId, subtotal);
+            decimal discountAmount = await CalculateDiscountAsync(promotionId, subtotal);
             var totalAmount = subtotal + shippingFee - discountAmount;
 
             var order = new Order
@@ -115,20 +123,17 @@ namespace Zenkoi.BLL.Services.Implements
                 ShippingFee = shippingFee,
                 DiscountAmount = discountAmount,
                 TotalAmount = totalAmount,
-                PromotionId = createOrderDTO.PromotionId,
+                PromotionId = promotionId,
                 OrderDetails = orderDetails
             };
 
             await _orderRepo.CreateAsync(order);
 
-            if (createOrderDTO.PromotionId.HasValue)
+            // Tăng usage count nếu có promotion
+            if (promotionId.HasValue && currentPromotion != null)
             {
-                var promotion = await _promotionRepo.GetByIdAsync(createOrderDTO.PromotionId.Value);
-                if (promotion != null)
-                {
-                    promotion.UsageCount++;
-                    await _promotionRepo.UpdateAsync(promotion);
-                }
+                currentPromotion.UsageCount++;
+                await _promotionRepo.UpdateAsync(currentPromotion);
             }
 
             await _unitOfWork.SaveChangesAsync();

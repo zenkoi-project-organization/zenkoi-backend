@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs;
 using Zenkoi.BLL.DTOs.CustomerDTOs;
+using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.Response;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Queries;
@@ -58,13 +59,19 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Get all customers
         /// </summary>
+        /// <param name="filter">Filter parameters</param>
+        /// <param name="pageIndex">Page index (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 10)</param>
         /// <returns>List of customers</returns>
         [HttpGet]
-        public async Task<ActionResult<ResponseApiDTO>> GetAllCustomers([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ResponseApiDTO>> GetAllCustomers(
+            [FromQuery] CustomerFilterRequestDTO? filter,
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _customerService.GetAllCustomersAsync(pageIndex, pageSize);
+                var result = await _customerService.GetAllCustomersAsync(filter ?? new CustomerFilterRequestDTO(), pageIndex, pageSize);
                 var response = new PagingDTO<CustomerResponseDTO>(result);
                 return Ok(new ResponseApiDTO
                 {
@@ -73,12 +80,12 @@ namespace Zenkoi.API.Controllers
                     Result = response
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return StatusCode(500, new ResponseApiDTO
                 {
                     IsSuccess = false,
-                    Message = "An error occurred while retrieving customers"
+                    Message = $"An error occurred while retrieving customers: {ex.Message}"
                 });
             }
         }

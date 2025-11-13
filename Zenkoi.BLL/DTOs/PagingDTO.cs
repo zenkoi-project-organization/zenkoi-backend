@@ -9,14 +9,14 @@ namespace Zenkoi.BLL.DTOs
 		public int TotalItems { get; set; }
 		public bool HasPreviousPage => PageIndex > 1;
 		public bool HasNextPage => PageIndex < TotalPages;
-		public PaginatedList<T> Datas { get; set; }
+		public PaginatedList<T> Data { get; set; }
 
 		public PagingDTO(PaginatedList<T> pagedEntity)
 		{
 			PageIndex = pagedEntity.PageIndex;
 			TotalPages = pagedEntity.TotalPages;
 			TotalItems = pagedEntity.TotalItems;
-			Datas = pagedEntity;
+			Data = pagedEntity;
 		}
 	}
 }

@@ -470,17 +470,16 @@ namespace Zenkoi.BLL.Services.Implements
                 });
             }
 
-            if (convertCartToOrderDTO.PromotionId.HasValue)
-            {
-                var promotion = await _promotionRepo.GetByIdAsync(convertCartToOrderDTO.PromotionId.Value);
-                if (promotion == null)
-                {
-                    throw new ArgumentException("Promotion not found");
-                }
-            }
+            var now = DateTime.UtcNow;
+            var currentPromotion = await _promotionRepo.GetSingleAsync(new QueryBuilder<Promotion>()
+                .WithPredicate(p => p.IsActive && !p.IsDeleted &&
+                    p.ValidFrom <= now && p.ValidTo >= now)
+                .Build());
+
+            int? promotionId = currentPromotion?.Id;
 
             decimal shippingFee = convertCartToOrderDTO.ShippingFee;
-            decimal discountAmount = await CalculateDiscountAsync(convertCartToOrderDTO.PromotionId, subtotal);
+            decimal discountAmount = await CalculateDiscountAsync(promotionId, subtotal);
             var totalAmount = subtotal + shippingFee - discountAmount;
 
             var order = new Order
@@ -492,20 +491,16 @@ namespace Zenkoi.BLL.Services.Implements
                 ShippingFee = shippingFee,
                 DiscountAmount = discountAmount,
                 TotalAmount = totalAmount,
-                PromotionId = convertCartToOrderDTO.PromotionId,
+                PromotionId = promotionId,
                 OrderDetails = orderDetails
             };
 
             await _unitOfWork.GetRepo<Order>().CreateAsync(order);
 
-            if (convertCartToOrderDTO.PromotionId.HasValue)
+            if (promotionId.HasValue && currentPromotion != null)
             {
-                var promotion = await _promotionRepo.GetByIdAsync(convertCartToOrderDTO.PromotionId.Value);
-                if (promotion != null)
-                {
-                    promotion.UsageCount++;
-                    await _promotionRepo.UpdateAsync(promotion);
-                }
+                currentPromotion.UsageCount++;
+                await _promotionRepo.UpdateAsync(currentPromotion);
             }
 
             foreach (var item in cart.CartItems.ToList())

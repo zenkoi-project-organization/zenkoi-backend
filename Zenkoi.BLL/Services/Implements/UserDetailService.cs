@@ -122,7 +122,49 @@ namespace Zenkoi.BLL.Services.Implements
 			res.Email = response.User.Email;
 			res.Role = response.User.Role.ToString();
 			return res;
-			
         }
+
+		public async Task<BaseResponse> UpdateAvatarAsync(UpdateAvatarDTO dto, int userId)
+		{
+			try
+			{
+				var repo = _unitOfWork.GetRepo<UserDetail>();
+				await _unitOfWork.BeginTransactionAsync();
+
+				var userDetail = await repo.GetSingleAsync(new QueryBuilder<UserDetail>()
+											.WithPredicate(x => x.ApplicationUserId == userId)
+											.Build());
+
+				if (userDetail == null)
+				{
+					// Nếu chưa có UserDetail, tạo mới
+					userDetail = new UserDetail
+					{
+						ApplicationUserId = userId,
+						AvatarURL = dto.AvatarURL
+					};
+					await repo.CreateAsync(userDetail);
+				}
+				else
+				{
+					// Nếu đã có, chỉ update AvatarURL
+					userDetail.AvatarURL = dto.AvatarURL;
+					await repo.UpdateAsync(userDetail);
+				}
+
+				var saved = await _unitOfWork.SaveAsync();
+				await _unitOfWork.CommitTransactionAsync();
+
+				if (!saved)
+					return new BaseResponse { IsSuccess = false, Message = "Không thể cập nhật avatar" };
+
+				return new BaseResponse { IsSuccess = true, Message = "Cập nhật avatar thành công" };
+			}
+			catch (Exception)
+			{
+				await _unitOfWork.RollBackAsync();
+				throw;
+			}
+		}
     }
 }
