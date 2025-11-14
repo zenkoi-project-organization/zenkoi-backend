@@ -51,6 +51,9 @@ namespace Zenkoi.DAL.Configurations
                    .IsRequired()
                    .HasDefaultValue(false);
 
+            builder.Property(p => p.Images)
+                   .HasMaxLength(1000);
+
             builder.HasQueryFilter(p => !p.IsDeleted);
 
             builder.HasIndex(p => p.Code).IsUnique();

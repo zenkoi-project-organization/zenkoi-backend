@@ -21,5 +21,6 @@ namespace Zenkoi.BLL.DTOs.PromotionDTOs
         public int? UsageLimit { get; set; }
         public int UsageCount { get; set; }
         public bool IsActive { get; set; }
+        public List<string>? Images { get; set; }
     }
 }

@@ -85,7 +85,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-             //  await TruncateAllTablesExceptMigrationHistory(context);
+               //await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -120,7 +120,7 @@ namespace Zenkoi.API.ConfigExtensions
                     LockoutEnabled = true
                 };
 
-                // 👇 Thêm tài khoản Manager mới từ JSON
+                // Thêm tài khoản Manager mới từ JSON
                 var manager2 = new ApplicationUser
                 {
                     FullName = "Huy",
