@@ -24,7 +24,7 @@ namespace Zenkoi.API.Controllers
          [FromQuery] int pageSize = 10)
         {
             var data = await _waterAlertService.GetAllWaterAlertAsync(filter, pageIndex, pageSize);
-            return GetSuccess(data); 
+            return GetPagedSuccess(data); 
         }
 
         [HttpGet("{id}")]
@@ -36,9 +36,24 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(alert);
         }
+     /*   [HttpPost]
+        public async Task<IActionResult> Create([FromBody] WaterAlertRequestDTO dto)
+        {
+            try
+            {
+                int userId = UserId; // lấy từ BaseAPIController
+                var createdAlert = await _waterAlertService.CreateAsync(userId, dto);
+                return Success(createdAlert, "Tạo cảnh báo nước thành công.");
+            }
+            catch (Exception ex)
+            {
+                return GetError(ex.Message);
+            }
+        }
+*/
 
-       
-        [HttpPut("{id}/resolve")]
+
+            [HttpPut("{id}/resolve")]
         public async Task<IActionResult> Resolve(int id)
         {
             int userId = UserId;

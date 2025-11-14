@@ -19,7 +19,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public double Age { get; set; }
         public string Health { get; set; } = "";
         public bool IsMutated { get; set; }
-        public string MutationType { get; set; }
+        public string? MutationDescription { get; set; }
         public double? MutationRate { get; set; }
         public string? Note { get; set; }
         public List<BreedingRecordDTO> BreedingHistory { get; set; } = new();

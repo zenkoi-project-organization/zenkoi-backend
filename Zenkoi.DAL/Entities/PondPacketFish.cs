@@ -17,7 +17,6 @@ namespace Zenkoi.DAL.Entities
         public int? TransferredToId { get; set; }
         public DateTime? TransferredAt { get; set; }
         public string? TransferReason { get; set; }
-
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public bool IsActive { get; set; } = true;

@@ -14,7 +14,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs
         public double PercentInbreeding { get; set; }
 
         public double PredictedMutationRate { get; set; }
-        public MutationType PredictedCommonMutationType { get; set; } = MutationType.None;
+        public string? MutationDescription { get; set; }
         public double PredictedMatchToDesiredMutationType { get; set; }
 
         public string Summary { get; set; }

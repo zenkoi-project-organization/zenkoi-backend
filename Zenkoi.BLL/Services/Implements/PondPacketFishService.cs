@@ -66,7 +66,7 @@ namespace Zenkoi.BLL.Services.Implements
             var newPackage = _mapper.Map<PondPacketFish>(dto);
             newPackage.AvailableQuantity = breed.ClassificationStage.PondQualifiedCount.Value;
             newPackage.SoldQuantity = 0;
-            newPackage.CreatedAt = DateTime.UtcNow;
+            newPackage.CreatedAt = DateTime.UtcNow;  
             newPackage.IsActive = true;
             if (dto.PondId != breed.PondId)
             {

@@ -116,7 +116,7 @@ namespace Zenkoi.API.Controllers
         [HttpPost("recommend")]
         public async Task<IActionResult> Recommend([FromBody] BreedingRequestInputDTO input)
         {
-            var allParents = await _service.GetParentsWithPerformanceAsync();
+            var allParents = await _service.GetParentsWithPerformanceAsync(input.TargetVariety);
 
             var request = new BreedingRequestDTO
             {
@@ -124,8 +124,7 @@ namespace Zenkoi.API.Controllers
                 Priority = input.Priority,
                 MinHatchRate = input.MinHatchRate,
                 MinSurvivalRate = input.MinSurvivalRate,
-                DesiredMutationRate = input.DesiredMutationRate,
-                DesiredMutationType = input.DesiredMutationType,
+                IsMutation = input.IsMutation,
                 MinHighQualifiedRate = input.MinHighQualifiedRate,
                 PotentialParents = allParents
             };

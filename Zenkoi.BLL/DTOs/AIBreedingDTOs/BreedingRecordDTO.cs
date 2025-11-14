@@ -16,7 +16,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public double? SurvivalRate { get; set; }
         public double? HighQualifiedRate { get; set; }
         public double? MutationRate { get; set; }
-        public string? CommonMutationType { get; set; }
+        public string? CommonMutationDescription { get; set; }
         public string? ResultNote { get; set; }
     }
 }

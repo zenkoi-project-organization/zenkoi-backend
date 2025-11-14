@@ -36,6 +36,15 @@ namespace Zenkoi.API.Controllers
                 return GetNotFound($"Không tìm thấy cá koi với ID {id}.");
 
             return GetSuccess(koi);
+        }    
+        [HttpGet("scan-rfid/{RFID}")]
+        public async Task<IActionResult> GetKoiFishByRFID( string RFID)
+        {
+            var koi = await _koiFishService.ScanRFID(RFID);
+            if (koi == null)
+                return GetNotFound($"Không tìm thấy cá koi với RFID {RFID}.");
+
+            return GetSuccess(koi);
         }
 
         [HttpPost]

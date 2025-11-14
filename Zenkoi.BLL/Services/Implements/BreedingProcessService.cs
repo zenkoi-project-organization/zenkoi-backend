@@ -498,22 +498,13 @@ namespace Zenkoi.BLL.Services.Implements
             if (breedings.Any(b => b.MutationRate.HasValue))
             {
                 response.AverageMutationRate = breedings.Average(b => b.MutationRate ?? 0);
-
-                // (Tùy chọn) tìm loại đột biến phổ biến nhất
-                var commonMutation = breedings
-                    .Where(b => b.CommonMutationType.HasValue && b.CommonMutationType != MutationType.None)
-                    .GroupBy(b => b.CommonMutationType)
-                    .OrderByDescending(g => g.Count())
-                    .FirstOrDefault()?.Key;
-
-                response.CommonMutationType = commonMutation ?? MutationType.None;
             }
 
             return response;
         }
 
 
-        public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync()
+        public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync(string? variety = null)
         {
             var today = DateTime.Now;
 
@@ -521,11 +512,12 @@ namespace Zenkoi.BLL.Services.Implements
             var options = new QueryOptions<KoiFish>
             {
                 Predicate = k =>
-                    k.Gender != Gender.Other &&
-                    k.HealthStatus != HealthStatus.Weak &&
-                    k.BirthDate.HasValue &&
-                    EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 2 &&
-                    EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6,
+                k.Gender != Gender.Other &&
+                k.HealthStatus != HealthStatus.Weak &&
+                k.BirthDate.HasValue &&
+                EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 2 &&
+                EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6 &&
+                (string.IsNullOrEmpty(variety) || k.Variety.VarietyName == variety),
 
                 IncludeProperties = new List<Expression<Func<KoiFish, object>>>
     {
@@ -559,7 +551,7 @@ namespace Zenkoi.BLL.Services.Implements
                     Gender = k.Gender.ToString(),
                     IsMutated = k.IsMutated,
                     MutationRate = k.MutationRate,
-                    MutationType = k.MutationType.ToString(),
+                    MutationDescription = k.MutationDescription,
                     Size = k.Size.ToString(),
                     image = k.Images[0],
                     Health = k.HealthStatus.ToString(),

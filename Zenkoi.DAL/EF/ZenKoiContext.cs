@@ -16,8 +16,10 @@ namespace Zenkoi.DAL.EF
 
 		}
 
-		#region DbSet
-		public DbSet<UserDetail> UserDetail { get; set; }
+        #region DbSet
+        public DbSet<Pattern> Patterns { get; set; }
+        public DbSet<VarietyPattern> VarietyPatterns { get; set; }
+        public DbSet<UserDetail> UserDetail { get; set; }
 		public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<KoiFish> KoiFishes { get; set; }
         public DbSet<Variety> Varieties { get; set; }

@@ -12,7 +12,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
 
         public bool MaleIsMutated { get; set; }
 
-        public MutationType MaleMutationType { get; set; } = MutationType.None;
+        public string? MaleMutationDescription { get; set; }
         public double? MaleMutationRate { get; set; }
 
         public int FemaleId { get; set; }
@@ -21,7 +21,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
 
         public bool FemaleIsMutated { get; set; }
 
-        public MutationType FemaleMutationType { get; set; } = MutationType.None;
+        public string? FemaleMutationDescription { get; set; }
 
         public double? FemaleMutationRate { get; set; }
 
@@ -29,7 +29,9 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public double PredictedFertilizationRate { get; set; }
         public double PredictedHatchRate { get; set; } 
         public double PredictedMutationRate { get; set; }
-        
+
+        public string? PredictedMutationDescription { get; set; }
+
 
         public double PredictedSurvivalRate { get; set; }
         public double PredictedHighQualifiedRate { get; set; }
