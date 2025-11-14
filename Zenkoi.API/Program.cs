@@ -25,7 +25,7 @@ namespace Zenkoi.API
     {
         public static void Main(string[] args)
         {
-            // Set EPPlus license context for non-commercial use (EPPlus 7.x)
+            // Set EPPlus license context for non-commercial use
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             var builder = WebApplication.CreateBuilder(args);

@@ -10,6 +10,7 @@ namespace Zenkoi.DAL.Configurations
         {
             builder.ToTable("PaymentTransactions");
             builder.HasKey(p => p.Id);
+            builder.Property(p => p.Id).UseIdentityColumn();
 
             builder.Property(p => p.PaymentMethod)
                 .IsRequired()
