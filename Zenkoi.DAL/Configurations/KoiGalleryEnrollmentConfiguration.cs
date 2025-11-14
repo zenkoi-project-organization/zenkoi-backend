@@ -11,6 +11,7 @@ namespace Zenkoi.DAL.Configurations
             builder.ToTable("KoiGalleryEnrollment");
 
             builder.HasKey(k => k.Id);
+            builder.Property(k => k.Id).UseIdentityColumn();
 
             builder.Property(k => k.FishIdInGallery)
                 .IsRequired()
