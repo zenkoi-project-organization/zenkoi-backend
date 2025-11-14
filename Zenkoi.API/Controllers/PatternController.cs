@@ -90,7 +90,7 @@ namespace Zenkoi.API.Controllers
         public async Task<IActionResult> GetPatternsByVariety(int varietyId)
         {
             var list = await _patternService.GetPatternsByVarietyAsync(varietyId);
-            return GetSuccess(list);
+            return GetPagedSuccess(list);
         }
 
         // 4. Lấy danh sách variety theo pattern
@@ -98,7 +98,7 @@ namespace Zenkoi.API.Controllers
         public async Task<IActionResult> GetVarietiesByPattern(int patternId)
         {
             var list = await _patternService.GetVarietiesByPatternAsync(patternId);
-            return GetSuccess(list);
+            return GetPagedSuccess(list);
         }
     }
 }

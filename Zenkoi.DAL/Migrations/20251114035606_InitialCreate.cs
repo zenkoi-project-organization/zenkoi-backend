@@ -70,9 +70,9 @@ namespace Zenkoi.DAL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    SeverityLevel = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RequiresQuarantine = table.Column<bool>(type: "bit", nullable: true),
-                    AffectsBreeding = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true)
+                    DefaultSeverity = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RequiresQuarantine = table.Column<bool>(type: "bit", nullable: true, defaultValue: false),
+                    AffectsBreeding = table.Column<bool>(type: "bit", nullable: true, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -88,12 +88,13 @@ namespace Zenkoi.DAL.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Size = table.Column<decimal>(type: "decimal(8,2)", nullable: false),
+                    FishPerPacket = table.Column<int>(type: "int", nullable: false, defaultValue: 10),
+                    PricePerPacket = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MinSize = table.Column<double>(type: "float", nullable: false),
+                    MaxSize = table.Column<double>(type: "float", nullable: false),
                     AgeMonths = table.Column<decimal>(type: "decimal(8,2)", nullable: false),
                     Images = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Video = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Videos = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -104,6 +105,21 @@ namespace Zenkoi.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Patterns",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PatternName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Patterns", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PondTypes",
                 schema: "dbo",
                 columns: table => new
@@ -111,8 +127,9 @@ namespace Zenkoi.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TypeName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    RecommendedCapacity = table.Column<int>(type: "int", nullable: true)
+                    RecommendedQuantity = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -130,8 +147,15 @@ namespace Zenkoi.DAL.Migrations
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ValidFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ValidTo = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DiscountAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    DiscountPercent = table.Column<decimal>(type: "decimal(5,2)", nullable: true)
+                    DiscountType = table.Column<int>(type: "int", nullable: false),
+                    DiscountValue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MinimumOrderAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m),
+                    MaxDiscountAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    UsageLimit = table.Column<int>(type: "int", nullable: true),
+                    UsageCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    Images = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -155,6 +179,70 @@ namespace Zenkoi.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ShippingBoxes",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    WeightCapacityLb = table.Column<int>(type: "int", nullable: false),
+                    Fee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MaxKoiCount = table.Column<int>(type: "int", nullable: true),
+                    MaxKoiSizeInch = table.Column<int>(type: "int", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShippingBoxes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ShippingDistances",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    MinDistanceKm = table.Column<int>(type: "int", nullable: false),
+                    MaxDistanceKm = table.Column<int>(type: "int", nullable: false),
+                    PricePerKm = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    BaseFee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShippingDistances", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TaskTemplates",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TaskName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    DefaultDuration = table.Column<int>(type: "int", nullable: false),
+                    NotesTask = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TaskTemplates", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Varieties",
                 schema: "dbo",
                 columns: table => new
@@ -168,6 +256,24 @@ namespace Zenkoi.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Varieties", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WeeklyScheduleTemplates",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WeeklyScheduleTemplates", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -198,10 +304,7 @@ namespace Zenkoi.DAL.Migrations
                 schema: "dbo",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ApplicationUserId = table.Column<int>(type: "int", nullable: false),
-                    ShippingAddress = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Id = table.Column<int>(type: "int", nullable: false),
                     ContactNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     TotalOrders = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     TotalSpent = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m),
@@ -213,39 +316,8 @@ namespace Zenkoi.DAL.Migrations
                 {
                     table.PrimaryKey("PK_Customers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Customers_ApplicationUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalSchema: "dbo",
-                        principalTable: "ApplicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PaymentTransactions",
-                schema: "dbo",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    PaymentMethod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    OrderId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    TransactionId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    PaymentUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    ResponseData = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaymentTransactions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PaymentTransactions_ApplicationUsers_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Customers_ApplicationUsers_Id",
+                        column: x => x.Id,
                         principalSchema: "dbo",
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
@@ -358,9 +430,11 @@ namespace Zenkoi.DAL.Migrations
                     IncidentTitle = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     Severity = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OccurredAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    ResolvedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OccurredAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ResolvedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ReportedByUserId = table.Column<int>(type: "int", nullable: false),
                     ResolvedByUserId = table.Column<int>(type: "int", nullable: true),
                     ResolutionNotes = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true)
@@ -404,9 +478,12 @@ namespace Zenkoi.DAL.Migrations
                     PondStatus = table.Column<int>(type: "int", maxLength: 50, nullable: false),
                     Location = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     CapacityLiters = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    CurrentCapacity = table.Column<double>(type: "float", nullable: true),
                     DepthMeters = table.Column<decimal>(type: "decimal(8,2)", nullable: true),
                     LengthMeters = table.Column<decimal>(type: "decimal(8,2)", nullable: true),
                     WidthMeters = table.Column<decimal>(type: "decimal(8,2)", nullable: true),
+                    MaxFishCount = table.Column<int>(type: "int", nullable: true),
+                    CurrentCount = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
                 },
                 constraints: table =>
@@ -435,11 +512,10 @@ namespace Zenkoi.DAL.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ParameterName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ParameterName = table.Column<int>(type: "int", maxLength: 100, nullable: false),
                     Unit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     MinValue = table.Column<decimal>(type: "decimal(10,4)", nullable: false),
                     MaxValue = table.Column<decimal>(type: "decimal(10,4)", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     PondTypeId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -505,6 +581,72 @@ namespace Zenkoi.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ShippingBoxRules",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ShippingBoxId = table.Column<int>(type: "int", nullable: false),
+                    RuleType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MaxCount = table.Column<int>(type: "int", nullable: true),
+                    MaxLengthCm = table.Column<int>(type: "int", nullable: true),
+                    MinLengthCm = table.Column<int>(type: "int", nullable: true),
+                    MaxWeightLb = table.Column<int>(type: "int", nullable: true),
+                    ExtraInfo = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Priority = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShippingBoxRules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ShippingBoxRules_ShippingBoxes_ShippingBoxId",
+                        column: x => x.ShippingBoxId,
+                        principalSchema: "dbo",
+                        principalTable: "ShippingBoxes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkSchedules",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TaskTemplateId = table.Column<int>(type: "int", nullable: false),
+                    ScheduledDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    StartTime = table.Column<TimeOnly>(type: "time", nullable: false),
+                    EndTime = table.Column<TimeOnly>(type: "time", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(450)", nullable: false, defaultValue: "Pending"),
+                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkSchedules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WorkSchedules_ApplicationUsers_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalSchema: "dbo",
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WorkSchedules_TaskTemplates_TaskTemplateId",
+                        column: x => x.TaskTemplateId,
+                        principalSchema: "dbo",
+                        principalTable: "TaskTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "VarietyPacketFishes",
                 schema: "dbo",
                 columns: table => new
@@ -512,8 +654,7 @@ namespace Zenkoi.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     VarietyId = table.Column<int>(type: "int", nullable: false),
-                    PacketFishId = table.Column<int>(type: "int", nullable: false),
-                    Count = table.Column<int>(type: "int", nullable: false)
+                    PacketFishId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -535,39 +676,121 @@ namespace Zenkoi.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Orders",
+                name: "VarietyPatterns",
                 schema: "dbo",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    OrderNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CustomerId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ShippingFee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    DiscountAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    PromotionId = table.Column<int>(type: "int", nullable: true)
+                    PatternId = table.Column<int>(type: "int", nullable: false),
+                    VarietyId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.PrimaryKey("PK_VarietyPatterns", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Orders_Customers_CustomerId",
+                        name: "FK_VarietyPatterns_Patterns_PatternId",
+                        column: x => x.PatternId,
+                        principalSchema: "dbo",
+                        principalTable: "Patterns",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VarietyPatterns_Varieties_VarietyId",
+                        column: x => x.VarietyId,
+                        principalSchema: "dbo",
+                        principalTable: "Varieties",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WeeklyScheduleTemplateItems",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    WeeklyScheduleTemplateId = table.Column<int>(type: "int", nullable: false),
+                    TaskTemplateId = table.Column<int>(type: "int", nullable: false),
+                    DayOfWeek = table.Column<int>(type: "int", nullable: false),
+                    StartTime = table.Column<TimeOnly>(type: "time", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WeeklyScheduleTemplateItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WeeklyScheduleTemplateItems_TaskTemplates_TaskTemplateId",
+                        column: x => x.TaskTemplateId,
+                        principalSchema: "dbo",
+                        principalTable: "TaskTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WeeklyScheduleTemplateItems_WeeklyScheduleTemplates_WeeklyScheduleTemplateId",
+                        column: x => x.WeeklyScheduleTemplateId,
+                        principalSchema: "dbo",
+                        principalTable: "WeeklyScheduleTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Carts",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CustomerId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Carts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Carts_Customers_CustomerId",
                         column: x => x.CustomerId,
                         principalSchema: "dbo",
                         principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CustomerAddresses",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CustomerId = table.Column<int>(type: "int", nullable: false),
+                    FullAddress = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    District = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Ward = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    StreetAddress = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
+                    Latitude = table.Column<decimal>(type: "decimal(9,6)", nullable: true),
+                    Longitude = table.Column<decimal>(type: "decimal(9,6)", nullable: true),
+                    DistanceFromFarmKm = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    DistanceCalculatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RecipientPhone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    IsDefault = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CustomerAddresses", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Orders_Promotions_PromotionId",
-                        column: x => x.PromotionId,
+                        name: "FK_CustomerAddresses_Customers_CustomerId",
+                        column: x => x.CustomerId,
                         principalSchema: "dbo",
-                        principalTable: "Promotions",
+                        principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -578,15 +801,11 @@ namespace Zenkoi.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     IncidentId = table.Column<int>(type: "int", nullable: false),
-                    ImpactLevel = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PondId = table.Column<int>(type: "int", nullable: false),
                     EnvironmentalChanges = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
-                    RequiresWaterChange = table.Column<bool>(type: "bit", nullable: false),
+                    RequiresWaterChange = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     FishDiedCount = table.Column<int>(type: "int", nullable: true),
                     CorrectiveActions = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
-                    PondId = table.Column<int>(type: "int", nullable: false),
-                    ReportedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "GETUTCDATE()"),
-                    ResolvedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true)
                 },
                 constraints: table =>
@@ -609,104 +828,6 @@ namespace Zenkoi.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PondPacketFishes",
-                schema: "dbo",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PondId = table.Column<int>(type: "int", nullable: false),
-                    PacketFishId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PondPacketFishes", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PondPacketFishes_PacketFishes_PacketFishId",
-                        column: x => x.PacketFishId,
-                        principalSchema: "dbo",
-                        principalTable: "PacketFishes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PondPacketFishes_Ponds_PondId",
-                        column: x => x.PondId,
-                        principalSchema: "dbo",
-                        principalTable: "Ponds",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TaskTemplates",
-                schema: "dbo",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    PondId = table.Column<int>(type: "int", nullable: true),
-                    AssignedToUserId = table.Column<int>(type: "int", nullable: false),
-                    ScheduledAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsRecurring = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    RecurrenceRule = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TaskTemplates", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_TaskTemplates_ApplicationUsers_AssignedToUserId",
-                        column: x => x.AssignedToUserId,
-                        principalSchema: "dbo",
-                        principalTable: "ApplicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_TaskTemplates_Ponds_PondId",
-                        column: x => x.PondId,
-                        principalSchema: "dbo",
-                        principalTable: "Ponds",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "WaterAlerts",
-                schema: "dbo",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PondId = table.Column<int>(type: "int", nullable: false),
-                    ParameterName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    MeasuredValue = table.Column<decimal>(type: "decimal(10,4)", nullable: false),
-                    Message = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    IsResolved = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    ResolvedByUserId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WaterAlerts", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_WaterAlerts_ApplicationUsers_ResolvedByUserId",
-                        column: x => x.ResolvedByUserId,
-                        principalSchema: "dbo",
-                        principalTable: "ApplicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_WaterAlerts_Ponds_PondId",
-                        column: x => x.PondId,
-                        principalSchema: "dbo",
-                        principalTable: "Ponds",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "WaterParameterRecords",
                 schema: "dbo",
                 columns: table => new
@@ -720,8 +841,6 @@ namespace Zenkoi.DAL.Migrations
                     AmmoniaLevel = table.Column<decimal>(type: "decimal(8,4)", nullable: true),
                     NitriteLevel = table.Column<decimal>(type: "decimal(8,4)", nullable: true),
                     NitrateLevel = table.Column<decimal>(type: "decimal(8,4)", nullable: true),
-                    Turbidity = table.Column<decimal>(type: "decimal(8,2)", nullable: true),
-                    TotalChlorines = table.Column<decimal>(type: "decimal(8,4)", nullable: true),
                     CarbonHardness = table.Column<decimal>(type: "decimal(8,2)", nullable: true),
                     WaterLevelMeters = table.Column<decimal>(type: "decimal(8,2)", nullable: true),
                     RecordedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
@@ -745,6 +864,158 @@ namespace Zenkoi.DAL.Migrations
                         principalTable: "Ponds",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PondAssignments",
+                schema: "dbo",
+                columns: table => new
+                {
+                    WorkScheduleId = table.Column<int>(type: "int", nullable: false),
+                    PondId = table.Column<int>(type: "int", nullable: false),
+                    PondId1 = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PondAssignments", x => new { x.WorkScheduleId, x.PondId });
+                    table.ForeignKey(
+                        name: "FK_PondAssignments_Ponds_PondId",
+                        column: x => x.PondId,
+                        principalSchema: "dbo",
+                        principalTable: "Ponds",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PondAssignments_Ponds_PondId1",
+                        column: x => x.PondId1,
+                        principalSchema: "dbo",
+                        principalTable: "Ponds",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PondAssignments_WorkSchedules_WorkScheduleId",
+                        column: x => x.WorkScheduleId,
+                        principalSchema: "dbo",
+                        principalTable: "WorkSchedules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StaffAssignments",
+                schema: "dbo",
+                columns: table => new
+                {
+                    WorkScheduleId = table.Column<int>(type: "int", nullable: false),
+                    StaffId = table.Column<int>(type: "int", nullable: false),
+                    CompletionNotes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StaffAssignments", x => new { x.WorkScheduleId, x.StaffId });
+                    table.ForeignKey(
+                        name: "FK_StaffAssignments_ApplicationUsers_StaffId",
+                        column: x => x.StaffId,
+                        principalSchema: "dbo",
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StaffAssignments_WorkSchedules_WorkScheduleId",
+                        column: x => x.WorkScheduleId,
+                        principalSchema: "dbo",
+                        principalTable: "WorkSchedules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Orders",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrderNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CustomerId = table.Column<int>(type: "int", nullable: false),
+                    CustomerAddressId = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ShippingFee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    DiscountAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PromotionId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Orders_CustomerAddresses_CustomerAddressId",
+                        column: x => x.CustomerAddressId,
+                        principalSchema: "dbo",
+                        principalTable: "CustomerAddresses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalSchema: "dbo",
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Promotions_PromotionId",
+                        column: x => x.PromotionId,
+                        principalSchema: "dbo",
+                        principalTable: "Promotions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WaterAlerts",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PondId = table.Column<int>(type: "int", nullable: false),
+                    ParameterName = table.Column<int>(type: "int", maxLength: 100, nullable: false),
+                    MeasuredValue = table.Column<decimal>(type: "decimal(10,4)", nullable: false),
+                    AlertType = table.Column<int>(type: "int", nullable: false),
+                    Severity = table.Column<int>(type: "int", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    ResolveAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsResolved = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    ResolvedByUserId = table.Column<int>(type: "int", nullable: true),
+                    WaterParameterRecordId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WaterAlerts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WaterAlerts_ApplicationUsers_ResolvedByUserId",
+                        column: x => x.ResolvedByUserId,
+                        principalSchema: "dbo",
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_WaterAlerts_Ponds_PondId",
+                        column: x => x.PondId,
+                        principalSchema: "dbo",
+                        principalTable: "Ponds",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_WaterAlerts_WaterParameterRecords_WaterParameterRecordId",
+                        column: x => x.WaterParameterRecordId,
+                        principalSchema: "dbo",
+                        principalTable: "WaterParameterRecords",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -785,48 +1056,42 @@ namespace Zenkoi.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WorkSchedules",
+                name: "PaymentTransactions",
                 schema: "dbo",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StaffId = table.Column<int>(type: "int", nullable: false),
-                    TaskTemplateId = table.Column<int>(type: "int", nullable: false),
-                    WorkDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    StartTime = table.Column<TimeSpan>(type: "time", nullable: true, defaultValue: new TimeSpan(0, 0, 0, 0, 0)),
-                    EndTime = table.Column<TimeSpan>(type: "time", nullable: true),
-                    CheckedInAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CheckedOutAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    ManagerNotes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    PaymentMethod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    OrderId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ActualOrderId = table.Column<int>(type: "int", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    TransactionId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "Pending"),
+                    PaymentUrl = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
+                    ResponseData = table.Column<string>(type: "NVARCHAR(MAX)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    CreatedByUserId = table.Column<int>(type: "int", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WorkSchedules", x => x.Id);
+                    table.PrimaryKey("PK_PaymentTransactions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WorkSchedules_ApplicationUsers_CreatedByUserId",
-                        column: x => x.CreatedByUserId,
+                        name: "FK_PaymentTransactions_ApplicationUsers_UserId",
+                        column: x => x.UserId,
                         principalSchema: "dbo",
                         principalTable: "ApplicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_WorkSchedules_ApplicationUsers_StaffId",
-                        column: x => x.StaffId,
-                        principalSchema: "dbo",
-                        principalTable: "ApplicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_WorkSchedules_TaskTemplates_TaskTemplateId",
-                        column: x => x.TaskTemplateId,
-                        principalSchema: "dbo",
-                        principalTable: "TaskTemplates",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PaymentTransactions_Orders_ActualOrderId",
+                        column: x => x.ActualOrderId,
+                        principalSchema: "dbo",
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -836,6 +1101,7 @@ namespace Zenkoi.DAL.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     MaleKoiId = table.Column<int>(type: "int", nullable: false),
                     FemaleKoiId = table.Column<int>(type: "int", nullable: false),
                     PondId = table.Column<int>(type: "int", nullable: true),
@@ -844,8 +1110,13 @@ namespace Zenkoi.DAL.Migrations
                     Status = table.Column<int>(type: "int", nullable: false),
                     Note = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Result = table.Column<int>(type: "int", nullable: false),
+                    TotalEggs = table.Column<int>(type: "int", nullable: true),
+                    FertilizationRate = table.Column<double>(type: "float", nullable: true),
+                    HatchingRate = table.Column<double>(type: "float", nullable: true),
+                    SurvivalRate = table.Column<double>(type: "float", nullable: true),
                     TotalFishQualified = table.Column<int>(type: "int", nullable: true),
                     TotalPackage = table.Column<int>(type: "int", nullable: true),
+                    MutationRate = table.Column<double>(type: "float", nullable: true),
                     PondId1 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -874,12 +1145,12 @@ namespace Zenkoi.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BreedingProcessId = table.Column<int>(type: "int", nullable: false),
-                    PondId = table.Column<int>(type: "int", nullable: false),
-                    TotalCount = table.Column<int>(type: "int", nullable: true),
+                    TotalCount = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     HighQualifiedCount = table.Column<int>(type: "int", nullable: true),
-                    QualifiedCount = table.Column<int>(type: "int", nullable: true),
-                    UnqualifiedCount = table.Column<int>(type: "int", nullable: true),
+                    ShowQualifiedCount = table.Column<int>(type: "int", nullable: true),
+                    PondQualifiedCount = table.Column<int>(type: "int", nullable: true),
+                    CullQualifiedCount = table.Column<int>(type: "int", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -894,13 +1165,6 @@ namespace Zenkoi.DAL.Migrations
                         principalTable: "BreedingProcesses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ClassificationStages_Ponds_PondId",
-                        column: x => x.PondId,
-                        principalSchema: "dbo",
-                        principalTable: "Ponds",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -911,13 +1175,14 @@ namespace Zenkoi.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BreedingProcessId = table.Column<int>(type: "int", nullable: false),
-                    PondId = table.Column<int>(type: "int", nullable: true),
                     Quantity = table.Column<int>(type: "int", nullable: true),
                     TotalHatchedEggs = table.Column<int>(type: "int", nullable: true),
                     FertilizationRate = table.Column<double>(type: "float", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
                     HatchingTime = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    SpawnDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    SpawnDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PondId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -945,12 +1210,12 @@ namespace Zenkoi.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BreedingProcessId = table.Column<int>(type: "int", nullable: false),
-                    PondId = table.Column<int>(type: "int", nullable: true),
                     InitialCount = table.Column<int>(type: "int", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
                     CurrentSurvivalRate = table.Column<double>(type: "float", nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PondId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -981,14 +1246,21 @@ namespace Zenkoi.DAL.Migrations
                     BreedingProcessId = table.Column<int>(type: "int", nullable: true),
                     VarietyId = table.Column<int>(type: "int", nullable: false),
                     RFID = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Size = table.Column<decimal>(type: "decimal(8,2)", nullable: true),
+                    Size = table.Column<string>(type: "nvarchar(64)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BirthDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     HealthStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ImagesVideos = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    PatternType = table.Column<int>(type: "int", nullable: false),
+                    SaleStatus = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "NotForSale"),
+                    Images = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Videos = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     SellingPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    BodyShape = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    IsMutated = table.Column<bool>(type: "bit", nullable: false),
+                    MutationDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MutationRate = table.Column<double>(type: "float", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Origin = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
@@ -1019,6 +1291,59 @@ namespace Zenkoi.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PondPacketFishes",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PondId = table.Column<int>(type: "int", nullable: false),
+                    PacketFishId = table.Column<int>(type: "int", nullable: false),
+                    BreedingProcessId = table.Column<int>(type: "int", nullable: false),
+                    AvailableQuantity = table.Column<int>(type: "int", nullable: false),
+                    SoldQuantity = table.Column<int>(type: "int", nullable: false),
+                    TransferredFromId = table.Column<int>(type: "int", nullable: true),
+                    TransferredToId = table.Column<int>(type: "int", nullable: true),
+                    TransferredAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    TransferReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PondPacketFishes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PondPacketFishes_BreedingProcesses_BreedingProcessId",
+                        column: x => x.BreedingProcessId,
+                        principalSchema: "dbo",
+                        principalTable: "BreedingProcesses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PondPacketFishes_PacketFishes_PacketFishId",
+                        column: x => x.PacketFishId,
+                        principalSchema: "dbo",
+                        principalTable: "PacketFishes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PondPacketFishes_PondPacketFishes_TransferredFromId",
+                        column: x => x.TransferredFromId,
+                        principalSchema: "dbo",
+                        principalTable: "PondPacketFishes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PondPacketFishes_Ponds_PondId",
+                        column: x => x.PondId,
+                        principalSchema: "dbo",
+                        principalTable: "Ponds",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ClassificationRecords",
                 schema: "dbo",
                 columns: table => new
@@ -1028,8 +1353,9 @@ namespace Zenkoi.DAL.Migrations
                     ClassificationStageId = table.Column<int>(type: "int", nullable: false),
                     StageNumber = table.Column<int>(type: "int", nullable: false),
                     HighQualifiedCount = table.Column<int>(type: "int", nullable: true),
-                    QualifiedCount = table.Column<int>(type: "int", nullable: true),
-                    UnqualifiedCount = table.Column<int>(type: "int", nullable: true),
+                    ShowQualifiedCount = table.Column<int>(type: "int", nullable: true),
+                    PondQualifiedCount = table.Column<int>(type: "int", nullable: true),
+                    CullQualifiedCount = table.Column<int>(type: "int", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -1053,12 +1379,12 @@ namespace Zenkoi.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     EggBatchId = table.Column<int>(type: "int", nullable: false),
-                    DayNumber = table.Column<int>(type: "int", nullable: false),
+                    DayNumber = table.Column<DateTime>(type: "datetime2", nullable: true),
                     HealthyEggs = table.Column<int>(type: "int", nullable: true),
                     RottenEggs = table.Column<int>(type: "int", nullable: true),
                     HatchedEggs = table.Column<int>(type: "int", nullable: true),
                     Success = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1080,7 +1406,7 @@ namespace Zenkoi.DAL.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FryFishId = table.Column<int>(type: "int", nullable: false),
-                    DayNumber = table.Column<int>(type: "int", nullable: false),
+                    DayNumber = table.Column<DateTime>(type: "datetime2", nullable: true),
                     SurvivalRate = table.Column<double>(type: "float", nullable: true),
                     CountAlive = table.Column<int>(type: "int", nullable: true),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -1100,6 +1426,116 @@ namespace Zenkoi.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CartItems",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CartId = table.Column<int>(type: "int", nullable: false),
+                    KoiFishId = table.Column<int>(type: "int", nullable: true),
+                    PacketFishId = table.Column<int>(type: "int", nullable: true),
+                    Quantity = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    AddedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CartItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CartItems_Carts_CartId",
+                        column: x => x.CartId,
+                        principalSchema: "dbo",
+                        principalTable: "Carts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CartItems_KoiFishes_KoiFishId",
+                        column: x => x.KoiFishId,
+                        principalSchema: "dbo",
+                        principalTable: "KoiFishes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_CartItems_PacketFishes_PacketFishId",
+                        column: x => x.PacketFishId,
+                        principalSchema: "dbo",
+                        principalTable: "PacketFishes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "KoiGalleryEnrollment",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    KoiFishId = table.Column<int>(type: "int", nullable: false),
+                    FishIdInGallery = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    NumImages = table.Column<int>(type: "int", nullable: false),
+                    EnrolledAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EnrolledBy = table.Column<int>(type: "int", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_KoiGalleryEnrollment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_KoiGalleryEnrollment_ApplicationUsers_EnrolledBy",
+                        column: x => x.EnrolledBy,
+                        principalSchema: "dbo",
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_KoiGalleryEnrollment_KoiFishes_KoiFishId",
+                        column: x => x.KoiFishId,
+                        principalSchema: "dbo",
+                        principalTable: "KoiFishes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "KoiIdentification",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    KoiFishId = table.Column<int>(type: "int", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    IdentifiedAs = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Confidence = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: false),
+                    Distance = table.Column<decimal>(type: "decimal(10,6)", precision: 10, scale: 6, nullable: false),
+                    IsUnknown = table.Column<bool>(type: "bit", nullable: false),
+                    TopPredictions = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_KoiIdentification", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_KoiIdentification_ApplicationUsers_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalSchema: "dbo",
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_KoiIdentification_KoiFishes_KoiFishId",
+                        column: x => x.KoiFishId,
+                        principalSchema: "dbo",
+                        principalTable: "KoiFishes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "KoiIncidents",
                 schema: "dbo",
                 columns: table => new
@@ -1109,7 +1545,6 @@ namespace Zenkoi.DAL.Migrations
                     IncidentId = table.Column<int>(type: "int", nullable: false),
                     KoiFishId = table.Column<int>(type: "int", nullable: false),
                     AffectedStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Severity = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SpecificSymptoms = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     RequiresTreatment = table.Column<bool>(type: "bit", nullable: false),
                     IsIsolated = table.Column<bool>(type: "bit", nullable: false),
@@ -1228,6 +1663,31 @@ namespace Zenkoi.DAL.Migrations
                 column: "PondId1");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CartItems_CartId",
+                schema: "dbo",
+                table: "CartItems",
+                column: "CartId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartItems_KoiFishId",
+                schema: "dbo",
+                table: "CartItems",
+                column: "KoiFishId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartItems_PacketFishId",
+                schema: "dbo",
+                table: "CartItems",
+                column: "PacketFishId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Carts_CustomerId",
+                schema: "dbo",
+                table: "Carts",
+                column: "CustomerId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ClassificationRecords_ClassificationStageId",
                 schema: "dbo",
                 table: "ClassificationRecords",
@@ -1241,17 +1701,10 @@ namespace Zenkoi.DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClassificationStages_PondId",
+                name: "IX_CustomerAddresses_CustomerId",
                 schema: "dbo",
-                table: "ClassificationStages",
-                column: "PondId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Customers_ApplicationUserId",
-                schema: "dbo",
-                table: "Customers",
-                column: "ApplicationUserId",
-                unique: true);
+                table: "CustomerAddresses",
+                column: "CustomerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EggBatches_BreedingProcessId",
@@ -1348,6 +1801,48 @@ namespace Zenkoi.DAL.Migrations
                 column: "VarietyId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_KoiGalleryEnrollment_EnrolledBy",
+                schema: "dbo",
+                table: "KoiGalleryEnrollment",
+                column: "EnrolledBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KoiGalleryEnrollment_FishIdInGallery",
+                schema: "dbo",
+                table: "KoiGalleryEnrollment",
+                column: "FishIdInGallery");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KoiGalleryEnrollment_KoiFishId_IsActive",
+                schema: "dbo",
+                table: "KoiGalleryEnrollment",
+                columns: new[] { "KoiFishId", "IsActive" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KoiIdentification_CreatedAt",
+                schema: "dbo",
+                table: "KoiIdentification",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KoiIdentification_CreatedBy",
+                schema: "dbo",
+                table: "KoiIdentification",
+                column: "CreatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KoiIdentification_IsUnknown",
+                schema: "dbo",
+                table: "KoiIdentification",
+                column: "IsUnknown");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KoiIdentification_KoiFishId",
+                schema: "dbo",
+                table: "KoiIdentification",
+                column: "KoiFishId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_KoiIncidents_IncidentId",
                 schema: "dbo",
                 table: "KoiIncidents",
@@ -1384,6 +1879,12 @@ namespace Zenkoi.DAL.Migrations
                 column: "CreatedAt");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_CustomerAddressId",
+                schema: "dbo",
+                table: "Orders",
+                column: "CustomerAddressId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_CustomerId",
                 schema: "dbo",
                 table: "Orders",
@@ -1401,6 +1902,18 @@ namespace Zenkoi.DAL.Migrations
                 schema: "dbo",
                 table: "Orders",
                 column: "PromotionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_Status_UpdatedAt",
+                schema: "dbo",
+                table: "Orders",
+                columns: new[] { "Status", "UpdatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_UpdatedAt",
+                schema: "dbo",
+                table: "Orders",
+                column: "UpdatedAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PacketFishes_Name",
@@ -1428,6 +1941,12 @@ namespace Zenkoi.DAL.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PaymentTransactions_ActualOrderId",
+                schema: "dbo",
+                table: "PaymentTransactions",
+                column: "ActualOrderId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PaymentTransactions_OrderId",
                 schema: "dbo",
                 table: "PaymentTransactions",
@@ -1446,6 +1965,24 @@ namespace Zenkoi.DAL.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PondAssignments_PondId",
+                schema: "dbo",
+                table: "PondAssignments",
+                column: "PondId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PondAssignments_PondId1",
+                schema: "dbo",
+                table: "PondAssignments",
+                column: "PondId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PondAssignments_WorkScheduleId",
+                schema: "dbo",
+                table: "PondAssignments",
+                column: "WorkScheduleId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PondIncidents_IncidentId",
                 schema: "dbo",
                 table: "PondIncidents",
@@ -1458,17 +1995,30 @@ namespace Zenkoi.DAL.Migrations
                 column: "PondId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PondPacketFishes_BreedingProcessId",
+                schema: "dbo",
+                table: "PondPacketFishes",
+                column: "BreedingProcessId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PondPacketFishes_PacketFishId",
                 schema: "dbo",
                 table: "PondPacketFishes",
                 column: "PacketFishId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PondPacketFishes_PondId_PacketFishId",
+                name: "IX_PondPacketFishes_PondId",
                 schema: "dbo",
                 table: "PondPacketFishes",
-                columns: new[] { "PondId", "PacketFishId" },
-                unique: true);
+                column: "PondId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PondPacketFishes_TransferredFromId",
+                schema: "dbo",
+                table: "PondPacketFishes",
+                column: "TransferredFromId",
+                unique: true,
+                filter: "[TransferredFromId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Ponds_AreaId",
@@ -1529,22 +2079,82 @@ namespace Zenkoi.DAL.Migrations
                 filter: "[NormalizedName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TaskTemplates_AssignedToUserId",
+                name: "IX_ShippingBoxes_IsActive",
                 schema: "dbo",
-                table: "TaskTemplates",
-                column: "AssignedToUserId");
+                table: "ShippingBoxes",
+                column: "IsActive");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TaskTemplates_PondId",
+                name: "IX_ShippingBoxes_Name",
                 schema: "dbo",
-                table: "TaskTemplates",
-                column: "PondId");
+                table: "ShippingBoxes",
+                column: "Name");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TaskTemplates_ScheduledAt",
+                name: "IX_ShippingBoxRules_IsActive",
+                schema: "dbo",
+                table: "ShippingBoxRules",
+                column: "IsActive");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShippingBoxRules_ShippingBoxId",
+                schema: "dbo",
+                table: "ShippingBoxRules",
+                column: "ShippingBoxId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShippingBoxRules_ShippingBoxId_Priority",
+                schema: "dbo",
+                table: "ShippingBoxRules",
+                columns: new[] { "ShippingBoxId", "Priority" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShippingDistances_IsActive",
+                schema: "dbo",
+                table: "ShippingDistances",
+                column: "IsActive");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShippingDistances_IsActive_MinDistanceKm_MaxDistanceKm",
+                schema: "dbo",
+                table: "ShippingDistances",
+                columns: new[] { "IsActive", "MinDistanceKm", "MaxDistanceKm" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShippingDistances_MinDistanceKm_MaxDistanceKm",
+                schema: "dbo",
+                table: "ShippingDistances",
+                columns: new[] { "MinDistanceKm", "MaxDistanceKm" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShippingDistances_Name",
+                schema: "dbo",
+                table: "ShippingDistances",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StaffAssignments_StaffId",
+                schema: "dbo",
+                table: "StaffAssignments",
+                column: "StaffId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StaffAssignments_WorkScheduleId",
+                schema: "dbo",
+                table: "StaffAssignments",
+                column: "WorkScheduleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskTemplates_IsDeleted",
                 schema: "dbo",
                 table: "TaskTemplates",
-                column: "ScheduledAt");
+                column: "IsDeleted");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskTemplates_TaskName",
+                schema: "dbo",
+                table: "TaskTemplates",
+                column: "TaskName");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserDetails_ApplicationUserId",
@@ -1586,6 +2196,18 @@ namespace Zenkoi.DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_VarietyPatterns_PatternId",
+                schema: "dbo",
+                table: "VarietyPatterns",
+                column: "PatternId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VarietyPatterns_VarietyId",
+                schema: "dbo",
+                table: "VarietyPatterns",
+                column: "VarietyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WaterAlerts_CreatedAt",
                 schema: "dbo",
                 table: "WaterAlerts",
@@ -1608,6 +2230,12 @@ namespace Zenkoi.DAL.Migrations
                 schema: "dbo",
                 table: "WaterAlerts",
                 column: "ResolvedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WaterAlerts_WaterParameterRecordId",
+                schema: "dbo",
+                table: "WaterAlerts",
+                column: "WaterParameterRecordId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WaterParameterRecords_PondId",
@@ -1640,28 +2268,46 @@ namespace Zenkoi.DAL.Migrations
                 column: "PondTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkSchedules_CreatedByUserId",
+                name: "IX_WeeklyScheduleTemplateItems_TaskTemplateId",
                 schema: "dbo",
-                table: "WorkSchedules",
-                column: "CreatedByUserId");
+                table: "WeeklyScheduleTemplateItems",
+                column: "TaskTemplateId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkSchedules_StaffId",
+                name: "IX_WeeklyScheduleTemplateItems_WeeklyScheduleTemplateId",
+                schema: "dbo",
+                table: "WeeklyScheduleTemplateItems",
+                column: "WeeklyScheduleTemplateId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkSchedules_CreatedBy",
                 schema: "dbo",
                 table: "WorkSchedules",
-                column: "StaffId");
+                column: "CreatedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkSchedules_ScheduledDate",
+                schema: "dbo",
+                table: "WorkSchedules",
+                column: "ScheduledDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkSchedules_ScheduledDate_Status",
+                schema: "dbo",
+                table: "WorkSchedules",
+                columns: new[] { "ScheduledDate", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkSchedules_Status",
+                schema: "dbo",
+                table: "WorkSchedules",
+                column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkSchedules_TaskTemplateId",
                 schema: "dbo",
                 table: "WorkSchedules",
                 column: "TaskTemplateId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WorkSchedules_WorkDate",
-                schema: "dbo",
-                table: "WorkSchedules",
-                column: "WorkDate");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_BreedingProcesses_KoiFishes_FemaleKoiId",
@@ -1706,6 +2352,10 @@ namespace Zenkoi.DAL.Migrations
                 schema: "dbo");
 
             migrationBuilder.DropTable(
+                name: "CartItems",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
                 name: "ClassificationRecords",
                 schema: "dbo");
 
@@ -1715,6 +2365,14 @@ namespace Zenkoi.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "IncubationDailyRecords",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "KoiGalleryEnrollment",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "KoiIdentification",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
@@ -1734,6 +2392,10 @@ namespace Zenkoi.DAL.Migrations
                 schema: "dbo");
 
             migrationBuilder.DropTable(
+                name: "PondAssignments",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
                 name: "PondIncidents",
                 schema: "dbo");
 
@@ -1743,6 +2405,18 @@ namespace Zenkoi.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "RefreshToken",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "ShippingBoxRules",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "ShippingDistances",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "StaffAssignments",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
@@ -1766,11 +2440,11 @@ namespace Zenkoi.DAL.Migrations
                 schema: "dbo");
 
             migrationBuilder.DropTable(
-                name: "WaterAlerts",
+                name: "VarietyPatterns",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
-                name: "WaterParameterRecords",
+                name: "WaterAlerts",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
@@ -1778,7 +2452,11 @@ namespace Zenkoi.DAL.Migrations
                 schema: "dbo");
 
             migrationBuilder.DropTable(
-                name: "WorkSchedules",
+                name: "WeeklyScheduleTemplateItems",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "Carts",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
@@ -1802,6 +2480,14 @@ namespace Zenkoi.DAL.Migrations
                 schema: "dbo");
 
             migrationBuilder.DropTable(
+                name: "ShippingBoxes",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "WorkSchedules",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
                 name: "Roles",
                 schema: "dbo");
 
@@ -1810,11 +2496,19 @@ namespace Zenkoi.DAL.Migrations
                 schema: "dbo");
 
             migrationBuilder.DropTable(
-                name: "TaskTemplates",
+                name: "Patterns",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
-                name: "Customers",
+                name: "WaterParameterRecords",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "WeeklyScheduleTemplates",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "CustomerAddresses",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
@@ -1823,6 +2517,14 @@ namespace Zenkoi.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "IncidentTypes",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "TaskTemplates",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "Customers",
                 schema: "dbo");
 
             migrationBuilder.DropTable(

@@ -21,7 +21,13 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<bool> AssignPatternToVarietyAsync(int varietyId, int patternId);
         Task<bool> RemovePatternFromVarietyAsync(int varietyId, int patternId);
 
-        Task<List<PatternResponseDTO>> GetPatternsByVarietyAsync(int varietyId);
-        Task<List<VarietyResponseDTO>> GetVarietiesByPatternAsync(int patternId);
+        Task<PaginatedList<PatternResponseDTO>> GetPatternsByVarietyAsync(
+              int varietyId,
+              int pageIndex = 1,
+              int pageSize = 10);
+        Task<PaginatedList<VarietyResponseDTO>> GetVarietiesByPatternAsync(
+       int patternId,
+       int pageIndex = 1,
+       int pageSize = 10);
     }
 }
