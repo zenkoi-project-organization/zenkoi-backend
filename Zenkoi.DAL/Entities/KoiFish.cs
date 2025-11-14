@@ -20,7 +20,7 @@ namespace Zenkoi.DAL.Entities
         public DateTime? BirthDate { get; set; }
         public Gender Gender { get; set; }
         public HealthStatus HealthStatus { get; set; }
-        public KoiPatternType PatternType { get; set; } = KoiPatternType.None;
+        public string? Pattern { get; set; }
         public SaleStatus SaleStatus { get; set; } = SaleStatus.NotForSale;
         public List<string>? Images { get; set; }
         public List<string>? Videos { get; set; }

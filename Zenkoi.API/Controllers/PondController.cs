@@ -55,8 +55,8 @@ namespace Zenkoi.API.Controllers
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();
-
-            var updated = await _pondService.UpdateAsync(id, dto);
+            int userId = UserId;
+            var updated = await _pondService.UpdateAsync(id, UserId,dto);
             if (updated == null)
                 return GetError("Không tìm thấy ao để cập nhật.");
 

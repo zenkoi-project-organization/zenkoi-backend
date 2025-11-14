@@ -684,7 +684,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2022, 5, 10),
                         Description = "Kohaku đực đỏ trắng rõ nét, thân thon dài, Hi đều – dòng thuần Nhật.",
                         Gender = Gender.Male,
-                        PatternType = KoiPatternType.Maruten,
+                        Pattern = "Maruten",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -708,7 +708,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2022, 8, 25),
                         Description = "Sanke đực ba màu rõ, Sumi đậm, Beni tươi – dáng cân đối.",
                         Gender = Gender.Male,
-                        PatternType = KoiPatternType.Inazuma,
+                        Pattern = "Inazuma",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -732,7 +732,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2021, 9, 15),
                         Description = "Showa đực mạnh mẽ, Sumi đen tuyền, Hi đỏ sâu – bố giống tốt.",
                         Gender = Gender.Male,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -756,7 +756,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2021, 6, 10),
                         Description = "Yamabuki Ogon đực ánh kim vàng rực rỡ, thân to khỏe.",
                         Gender = Gender.Male,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -780,7 +780,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2023, 3, 12),
                         Description = "Asagi đực trẻ, vảy xanh bạc đều, bụng Hi đỏ nhẹ – gen ổn định.",
                         Gender = Gender.Male,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -798,13 +798,13 @@ namespace Zenkoi.API.ConfigExtensions
                         MutationRate = 0
                     },
 
-                    // 🧬 6. Asagi Male (Doitsu từ Shusui)
+                    // 🧬 6. Asagi Male (Doitsu)
                     new KoiFish
                     {
                         BirthDate = new DateTime(2022, 11, 30),
                         Description = "Asagi đực Doitsu – vảy lưng xanh đậm, lưng trơn mượt.",
                         Gender = Gender.Male,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -813,7 +813,7 @@ namespace Zenkoi.API.ConfigExtensions
                         SellingPrice = 40000000m,
                         Size = 26.0,
                         Type = KoiType.High,
-                        VarietyId = 5, // Shusui quy về Asagi
+                        VarietyId = 5,
                         Origin = "Japan",
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
@@ -822,13 +822,13 @@ namespace Zenkoi.API.ConfigExtensions
                         MutationRate = 0.85
                     },
 
-                    // 🧬 7. Sanke Male (Bekko quy về Sanke)
+                    // 🧬 7. Sanke Male (Bekko)
                     new KoiFish
                     {
                         BirthDate = new DateTime(2023, 2, 15),
                         Description = "Sanke đực dạng Bekko – nền trắng, đốm đen rõ.",
                         Gender = Gender.Male,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -846,13 +846,13 @@ namespace Zenkoi.API.ConfigExtensions
                         MutationRate = 0
                     },
 
-                    // 🧬 8. Showa Male (Kumonryu quy về Showa)
+                    // 🧬 8. Showa Male (Kumonryu)
                     new KoiFish
                     {
                         BirthDate = new DateTime(2021, 7, 7),
                         Description = "Showa đực biến sắc kiểu Kumonryu – đen trắng uốn lượn.",
                         Gender = Gender.Male,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -861,7 +861,7 @@ namespace Zenkoi.API.ConfigExtensions
                         SellingPrice = 78000000m,
                         Size = 31.5,
                         Type = KoiType.Show,
-                        VarietyId = 3, // Kumonryu quy về Showa
+                        VarietyId = 3,
                         Origin = "Niigata, Japan",
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
@@ -876,7 +876,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2022, 5, 10),
                         Description = "Kohaku mái thân bầu, Hi đều, vảy bóng – sinh sản ổn định.",
                         Gender = Gender.Female,
-                        PatternType = KoiPatternType.Tancho,
+                        Pattern = "Tancho",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -900,7 +900,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2023, 7, 1),
                         Description = "Sanke mái ba màu rõ, Sumi sáng, thân tròn – gen ổn định.",
                         Gender = Gender.Female,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -924,7 +924,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2021, 8, 5),
                         Description = "Showa mái đỏ đen trắng rõ, cá mẹ tiềm năng – dòng Dainichi.",
                         Gender = Gender.Female,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -948,7 +948,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2022, 11, 20),
                         Description = "Yamabuki Ogon mái vàng kim óng ánh, thân tròn, ánh sáng mạnh.",
                         Gender = Gender.Female,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -972,7 +972,7 @@ namespace Zenkoi.API.ConfigExtensions
                         BirthDate = new DateTime(2023, 2, 15),
                         Description = "Asagi mái vảy xanh bạc đều, bụng Hi đỏ – gen ổn định.",
                         Gender = Gender.Female,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -990,13 +990,13 @@ namespace Zenkoi.API.ConfigExtensions
                         MutationRate = 0
                     },
 
-                    // 🐠 14. Asagi Female (Shusui quy về Asagi)
+                    // 🐠 14. Asagi Female (Doitsu)
                     new KoiFish
                     {
                         BirthDate = new DateTime(2023, 9, 9),
                         Description = "Asagi mái Doitsu – vảy lưng xanh, cam đỏ bụng, lai Shusui.",
                         Gender = Gender.Female,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -1014,13 +1014,13 @@ namespace Zenkoi.API.ConfigExtensions
                         MutationRate = 0.9
                     },
 
-                    // 🐠 15. Sanke Female (Goshiki quy về Sanke)
+                    // 🐠 15. Sanke Female (Goshiki)
                     new KoiFish
                     {
                         BirthDate = new DateTime(2022, 12, 5),
                         Description = "Sanke mái ánh kim nhẹ – pha kiểu Goshiki, gen ánh sáng đẹp.",
                         Gender = Gender.Female,
-                        PatternType = KoiPatternType.None,
+                        Pattern = "None",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
                         Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
@@ -1041,7 +1041,6 @@ namespace Zenkoi.API.ConfigExtensions
 
                 await context.SaveChangesAsync();
             }
-
 
             #endregion
 

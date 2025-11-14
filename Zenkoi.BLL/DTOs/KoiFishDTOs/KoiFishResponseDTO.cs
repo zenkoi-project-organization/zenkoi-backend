@@ -16,7 +16,7 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public DateTime? BirthDate { get; set; }
         public Gender Gender { get; set; }
         public HealthStatus HealthStatus { get; set; }
-        public KoiPatternType? PatternType { get; set; }
+        public string? Pattern { get; set; }
         public SaleStatus SaleStatus { get; set; }
 
         public List<string>? Images { get; set; } = new();
