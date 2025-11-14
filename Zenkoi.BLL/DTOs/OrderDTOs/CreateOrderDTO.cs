@@ -10,8 +10,6 @@ namespace Zenkoi.BLL.DTOs.OrderDTOs
         public int? CustomerAddressId { get; set; }
 
         public decimal ShippingFee { get; set; } = 0;
-
-        public int? PromotionId { get; set; }
     }
 
     public class OrderItemDTO
