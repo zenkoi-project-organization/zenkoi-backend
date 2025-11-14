@@ -13,7 +13,7 @@ namespace Zenkoi.DAL.Configurations
             
             builder.Property(ci => ci.Id)
                 .HasColumnName("Id")
-                .ValueGeneratedOnAdd();
+                .UseIdentityColumn();
                 
             builder.Property(ci => ci.CartId)
                 .HasColumnName("CartId")

@@ -115,6 +115,13 @@ namespace Zenkoi.BLL.Services.Implements
             var promotion = await _promotionRepo.GetByIdAsync(id);
             if (promotion == null) return false;
 
+            var now = DateTime.UtcNow;
+            if (promotion.IsActive && !promotion.IsDeleted &&
+                promotion.ValidFrom <= now && promotion.ValidTo >= now)
+            {
+                throw new ArgumentException("Không thể sửa promotion đang diễn ra. Vui lòng chờ promotion kết thúc hoặc vô hiệu hóa promotion trước khi chỉnh sửa.");
+            }
+
             var existingCode = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
             {
                 Predicate = p => p.Code == dto.Code && p.Id != id

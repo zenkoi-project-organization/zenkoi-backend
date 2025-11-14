@@ -10,6 +10,7 @@ namespace Zenkoi.DAL.Configurations
         {
             builder.ToTable("CustomerAddresses");
             builder.HasKey(ca => ca.Id);
+            builder.Property(ca => ca.Id).UseIdentityColumn();
 
             builder.Property(ca => ca.FullAddress)
                 .IsRequired()
