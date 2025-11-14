@@ -29,6 +29,8 @@ namespace Zenkoi.BLL.Services.Implements
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _patternRepo = _unitOfWork.GetRepo<Pattern>();
+            _varietyPatternRepo = _unitOfWork.GetRepo<VarietyPattern>();
+            _varietyRepo = _unitOfWork.GetRepo<Variety>();
         }
 
         public async Task<PaginatedList<PatternResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
@@ -141,7 +143,10 @@ namespace Zenkoi.BLL.Services.Implements
             return await _unitOfWork.SaveAsync();
         }
 
-        public async Task<List<PatternResponseDTO>> GetPatternsByVarietyAsync(int varietyId)
+        public async Task<PaginatedList<PatternResponseDTO>> GetPatternsByVarietyAsync(
+            int varietyId,
+            int pageIndex = 1,
+            int pageSize = 10)
         {
             var options = new QueryOptions<VarietyPattern>
             {
@@ -152,17 +157,28 @@ namespace Zenkoi.BLL.Services.Implements
 
             var links = await _varietyPatternRepo.GetAllAsync(options);
 
-            // Lấy Pattern từ bảng trung gian
             var patterns = links
                 .Where(x => x.Pattern != null)
                 .Select(x => x.Pattern!)
                 .Distinct()
                 .ToList();
 
-            return _mapper.Map<List<PatternResponseDTO>>(patterns);
-        }
+            var mapped = _mapper.Map<List<PatternResponseDTO>>(patterns);
 
-        public async Task<List<VarietyResponseDTO>> GetVarietiesByPatternAsync(int patternId)
+            var totalCount = mapped.Count;
+
+            var pagedItems = mapped
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PaginatedList<PatternResponseDTO>(
+                pagedItems, totalCount, pageIndex, pageSize);
+        }
+        public async Task<PaginatedList<VarietyResponseDTO>> GetVarietiesByPatternAsync(
+       int patternId,
+       int pageIndex = 1,
+       int pageSize = 10)
         {
             var options = new QueryOptions<VarietyPattern>
             {
@@ -179,7 +195,18 @@ namespace Zenkoi.BLL.Services.Implements
                 .Distinct()
                 .ToList();
 
-            return _mapper.Map<List<VarietyResponseDTO>>(varieties);
+            var mapped = _mapper.Map<List<VarietyResponseDTO>>(varieties);
+
+            var totalCount = mapped.Count;
+
+            var pagedItems = mapped
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PaginatedList<VarietyResponseDTO>(
+                pagedItems, totalCount, pageIndex, pageSize);
         }
-}
+
+    }
 }

@@ -12,8 +12,8 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    [Migration("20251104202533_ChangeFishPerPacketFishPerPacketAddStock")]
-    partial class ChangeFishPerPacketFishPerPacketAddStock
+    [Migration("20251114035606_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -294,6 +294,9 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<int>("MaleKoiId")
                         .HasColumnType("int");
+
+                    b.Property<double?>("MutationRate")
+                        .HasColumnType("float");
 
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
@@ -738,6 +741,11 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -777,6 +785,9 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IncidentTypeId");
@@ -798,9 +809,14 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AffectsBreeding")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                    b.Property<bool?>("AffectsBreeding")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("DefaultSeverity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -812,11 +828,9 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<bool?>("RequiresQuarantine")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("SeverityLevel")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.HasKey("Id");
 
@@ -873,16 +887,8 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<DateTime?>("BirthDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("BodyShape")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<int?>("BreedingProcessId")
                         .HasColumnType("int");
-
-                    b.Property<string>("ColorPattern")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -905,9 +911,21 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<bool>("IsMutated")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MutationDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("MutationRate")
+                        .HasColumnType("float");
+
                     b.Property<string>("Origin")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("PatternType")
+                        .HasColumnType("int");
 
                     b.Property<int>("PondId")
                         .HasColumnType("int");
@@ -928,7 +946,7 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<string>("Size")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -956,6 +974,103 @@ namespace Zenkoi.DAL.Migrations
                     b.HasIndex("VarietyId");
 
                     b.ToTable("KoiFishes", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.KoiGalleryEnrollment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("EnrolledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("EnrolledBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FishIdInGallery")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("KoiFishId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumImages")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnrolledBy");
+
+                    b.HasIndex("FishIdInGallery");
+
+                    b.HasIndex("KoiFishId", "IsActive");
+
+                    b.ToTable("KoiGalleryEnrollment", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.KoiIdentification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Confidence")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Distance")
+                        .HasPrecision(10, 6)
+                        .HasColumnType("decimal(10,6)");
+
+                    b.Property<string>("IdentifiedAs")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsUnknown")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("KoiFishId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TopPredictions")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("IsUnknown");
+
+                    b.HasIndex("KoiFishId");
+
+                    b.ToTable("KoiIdentification", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.KoiIncident", b =>
@@ -989,10 +1104,6 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<bool>("RequiresTreatment")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Severity")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SpecificSymptoms")
                         .HasMaxLength(1000)
@@ -1153,6 +1264,12 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<double>("MaxSize")
+                        .HasColumnType("float");
+
+                    b.Property<double>("MinSize")
+                        .HasColumnType("float");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -1160,14 +1277,6 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<decimal>("PricePerPacket")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Size")
-                        .HasColumnType("decimal(8,2)");
-
-                    b.Property<int>("StockQuantity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -1181,6 +1290,27 @@ namespace Zenkoi.DAL.Migrations
                     b.HasIndex("Name");
 
                     b.ToTable("PacketFishes", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Pattern", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PatternName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Patterns", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.Payment", b =>
@@ -1419,9 +1549,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int?>("FishDiedCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("ImpactLevel")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("IncidentId")
                         .HasColumnType("int");
 
@@ -1432,20 +1559,10 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int>("PondId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("ReportedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
                     b.Property<bool>("RequiresWaterChange")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.HasKey("Id");
 
@@ -1464,8 +1581,19 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AvailableQuantity")
+                        .HasColumnType("int");
+
                     b.Property<int>("BreedingProcessId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<int>("PacketFishId")
                         .HasColumnType("int");
@@ -1473,11 +1601,23 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int>("PondId")
                         .HasColumnType("int");
 
-                    b.Property<int>("QuantityFish")
+                    b.Property<int>("SoldQuantity")
                         .HasColumnType("int");
 
-                    b.Property<int>("QuantityPacket")
+                    b.Property<string>("TransferReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("TransferredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("TransferredFromId")
                         .HasColumnType("int");
+
+                    b.Property<int?>("TransferredToId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1485,8 +1625,11 @@ namespace Zenkoi.DAL.Migrations
 
                     b.HasIndex("PacketFishId");
 
-                    b.HasIndex("PondId", "PacketFishId")
-                        .IsUnique();
+                    b.HasIndex("PondId");
+
+                    b.HasIndex("TransferredFromId")
+                        .IsUnique()
+                        .HasFilter("[TransferredFromId] IS NOT NULL");
 
                     b.ToTable("PondPacketFishes", "dbo");
                 });
@@ -1545,6 +1688,10 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<decimal>("DiscountValue")
                         .HasColumnType("decimal(18,2)");
+
+                    b.PrimitiveCollection<string>("Images")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -1843,14 +1990,9 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<bool>("IsRecurring")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("RecurrenceRule")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<string>("NotesTask")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("TaskName")
                         .IsRequired()
@@ -1863,8 +2005,6 @@ namespace Zenkoi.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsDeleted");
-
-                    b.HasIndex("IsRecurring");
 
                     b.HasIndex("TaskName");
 
@@ -1943,9 +2083,6 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Count")
-                        .HasColumnType("int");
-
                     b.Property<int>("PacketFishId")
                         .HasColumnType("int");
 
@@ -1962,6 +2099,29 @@ namespace Zenkoi.DAL.Migrations
                     b.ToTable("VarietyPacketFishes", "dbo");
                 });
 
+            modelBuilder.Entity("Zenkoi.DAL.Entities.VarietyPattern", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("PatternId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VarietyId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PatternId");
+
+                    b.HasIndex("VarietyId");
+
+                    b.ToTable("VarietyPatterns", "dbo");
+                });
+
             modelBuilder.Entity("Zenkoi.DAL.Entities.WaterAlert", b =>
                 {
                     b.Property<int>("Id")
@@ -1969,6 +2129,9 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AlertType")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -1988,15 +2151,23 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("ParameterName")
-                        .IsRequired()
+                    b.Property<int>("ParameterName")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("int");
 
                     b.Property<int>("PondId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("ResolveAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("ResolvedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("WaterParameterRecordId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -2008,6 +2179,8 @@ namespace Zenkoi.DAL.Migrations
                     b.HasIndex("PondId");
 
                     b.HasIndex("ResolvedByUserId");
+
+                    b.HasIndex("WaterParameterRecordId");
 
                     b.ToTable("WaterAlerts", "dbo");
                 });
@@ -2084,10 +2257,9 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<decimal>("MinValue")
                         .HasColumnType("decimal(10,4)");
 
-                    b.Property<string>("ParameterName")
-                        .IsRequired()
+                    b.Property<int>("ParameterName")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("int");
 
                     b.Property<int?>("PondTypeId")
                         .HasColumnType("int");
@@ -2104,6 +2276,68 @@ namespace Zenkoi.DAL.Migrations
                     b.HasIndex("PondTypeId");
 
                     b.ToTable("WaterParameterThresholds", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WeeklyScheduleTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WeeklyScheduleTemplates", "dbo");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WeeklyScheduleTemplateItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("TaskTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WeeklyScheduleTemplateId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskTemplateId");
+
+                    b.HasIndex("WeeklyScheduleTemplateId");
+
+                    b.ToTable("WeeklyScheduleTemplateItems", "dbo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.WorkSchedule", b =>
@@ -2427,6 +2661,41 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("Variety");
                 });
 
+            modelBuilder.Entity("Zenkoi.DAL.Entities.KoiGalleryEnrollment", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "EnrolledByUser")
+                        .WithMany()
+                        .HasForeignKey("EnrolledBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Zenkoi.DAL.Entities.KoiFish", "KoiFish")
+                        .WithMany()
+                        .HasForeignKey("KoiFishId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EnrolledByUser");
+
+                    b.Navigation("KoiFish");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.KoiIdentification", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Zenkoi.DAL.Entities.KoiFish", "KoiFish")
+                        .WithMany()
+                        .HasForeignKey("KoiFishId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("KoiFish");
+                });
+
             modelBuilder.Entity("Zenkoi.DAL.Entities.KoiIncident", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.Incident", "Incident")
@@ -2596,28 +2865,35 @@ namespace Zenkoi.DAL.Migrations
             modelBuilder.Entity("Zenkoi.DAL.Entities.PondPacketFish", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.BreedingProcess", "BreedingProcess")
-                        .WithMany()
+                        .WithMany("PondPacketFishes")
                         .HasForeignKey("BreedingProcessId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Zenkoi.DAL.Entities.PacketFish", "PacketFish")
                         .WithMany("PondPacketFishes")
                         .HasForeignKey("PacketFishId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
                         .WithMany("PondPacketFishes")
                         .HasForeignKey("PondId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.PondPacketFish", "TransferredFrom")
+                        .WithOne("TransferredTo")
+                        .HasForeignKey("Zenkoi.DAL.Entities.PondPacketFish", "TransferredFromId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("BreedingProcess");
 
                     b.Navigation("PacketFish");
 
                     b.Navigation("Pond");
+
+                    b.Navigation("TransferredFrom");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.RefreshToken", b =>
@@ -2691,6 +2967,25 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("Variety");
                 });
 
+            modelBuilder.Entity("Zenkoi.DAL.Entities.VarietyPattern", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.Pattern", "Pattern")
+                        .WithMany("VarietyPatterns")
+                        .HasForeignKey("PatternId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.Variety", "Variety")
+                        .WithMany("VarietyPatterns")
+                        .HasForeignKey("VarietyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pattern");
+
+                    b.Navigation("Variety");
+                });
+
             modelBuilder.Entity("Zenkoi.DAL.Entities.WaterAlert", b =>
                 {
                     b.HasOne("Zenkoi.DAL.Entities.Pond", "Pond")
@@ -2704,9 +2999,15 @@ namespace Zenkoi.DAL.Migrations
                         .HasForeignKey("ResolvedByUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Zenkoi.DAL.Entities.WaterParameterRecord", "WaterParameterRecord")
+                        .WithMany()
+                        .HasForeignKey("WaterParameterRecordId");
+
                     b.Navigation("Pond");
 
                     b.Navigation("ResolvedBy");
+
+                    b.Navigation("WaterParameterRecord");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.WaterParameterRecord", b =>
@@ -2735,6 +3036,25 @@ namespace Zenkoi.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("PondType");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WeeklyScheduleTemplateItem", b =>
+                {
+                    b.HasOne("Zenkoi.DAL.Entities.TaskTemplate", "TaskTemplate")
+                        .WithMany()
+                        .HasForeignKey("TaskTemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zenkoi.DAL.Entities.WeeklyScheduleTemplate", "WeeklyScheduleTemplate")
+                        .WithMany("TemplateItems")
+                        .HasForeignKey("WeeklyScheduleTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TaskTemplate");
+
+                    b.Navigation("WeeklyScheduleTemplate");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.WorkSchedule", b =>
@@ -2776,6 +3096,8 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("FryFish");
 
                     b.Navigation("KoiFishes");
+
+                    b.Navigation("PondPacketFishes");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.Cart", b =>
@@ -2847,6 +3169,11 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("VarietyPacketFishes");
                 });
 
+            modelBuilder.Entity("Zenkoi.DAL.Entities.Pattern", b =>
+                {
+                    b.Navigation("VarietyPatterns");
+                });
+
             modelBuilder.Entity("Zenkoi.DAL.Entities.Pond", b =>
                 {
                     b.Navigation("BreedingProcesses");
@@ -2864,6 +3191,11 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("PondPacketFishes");
 
                     b.Navigation("WaterParameters");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.PondPacketFish", b =>
+                {
+                    b.Navigation("TransferredTo");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.PondType", b =>
@@ -2888,6 +3220,13 @@ namespace Zenkoi.DAL.Migrations
                     b.Navigation("KoiFishes");
 
                     b.Navigation("VarietyPacketFishes");
+
+                    b.Navigation("VarietyPatterns");
+                });
+
+            modelBuilder.Entity("Zenkoi.DAL.Entities.WeeklyScheduleTemplate", b =>
+                {
+                    b.Navigation("TemplateItems");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.WorkSchedule", b =>
