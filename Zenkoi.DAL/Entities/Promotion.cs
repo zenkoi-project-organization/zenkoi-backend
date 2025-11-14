@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Zenkoi.DAL.Enums;
 
@@ -19,5 +20,6 @@ namespace Zenkoi.DAL.Entities
         public int UsageCount { get; set; } = 0;
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
+        public List<string>? Images { get; set; }
     }
 }

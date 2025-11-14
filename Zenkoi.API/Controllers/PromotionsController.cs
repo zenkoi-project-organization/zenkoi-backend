@@ -81,5 +81,15 @@ namespace Zenkoi.API.Controllers
 
             return Success(deleted, "Xóa khuyến mãi thành công.");
         }
+
+        [HttpGet("current")]
+        public async Task<IActionResult> GetCurrent()
+        {
+            var promotion = await _promotionService.GetCurrentActivePromotionAsync();
+            if (promotion == null)
+                return GetNotFound("Không có khuyến mãi nào đang hoạt động.");
+
+            return GetSuccess(promotion);
+        }
     }
 }

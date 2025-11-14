@@ -120,7 +120,7 @@ namespace Zenkoi.API.ConfigExtensions
                     LockoutEnabled = true
                 };
 
-                // 👇 Thêm tài khoản Manager mới từ JSON
+                // Thêm tài khoản Manager mới từ JSON
                 var manager2 = new ApplicationUser
                 {
                     FullName = "Huy",

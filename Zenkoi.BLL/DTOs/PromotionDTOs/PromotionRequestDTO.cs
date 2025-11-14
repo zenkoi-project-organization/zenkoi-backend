@@ -38,5 +38,7 @@ namespace Zenkoi.BLL.DTOs.PromotionDTOs
 
         [Required]
         public bool IsActive { get; set; }
+
+        public List<string>? Images { get; set; }
     }
 }
