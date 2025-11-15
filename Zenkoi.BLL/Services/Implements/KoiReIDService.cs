@@ -64,8 +64,8 @@ namespace Zenkoi.BLL.Services.Implements
             // Call Python API
             var requestBody = new
             {
-                fish_id = fishId,
-                image_urls = cloudinaryUrls,
+                fishId = fishId,
+                imageUrls = cloudinaryUrls,
                 @override = overrideExisting
             };
 
@@ -162,8 +162,8 @@ namespace Zenkoi.BLL.Services.Implements
             // Call Python API
             var requestBody = new
             {
-                image_url = imageUrl,
-                top_k = topK,
+                imageUrl = imageUrl,
+                topK = topK,
                 threshold = (double)threshold
             };
 
