@@ -11,24 +11,24 @@ namespace Zenkoi.BLL.DTOs.KoiReIDDTOs
         [JsonPropertyName("message")]
         public string Message { get; set; }
 
-        [JsonPropertyName("fish_id")]
+        [JsonPropertyName("fishId")]
         public string FishId { get; set; }
 
-        [JsonPropertyName("num_images")]
+        [JsonPropertyName("numImages")]
         public int NumImages { get; set; }
 
-        [JsonPropertyName("num_urls_provided")]
+        [JsonPropertyName("numUrlsProvided")]
         public int NumUrlsProvided { get; set; }
 
-        [JsonPropertyName("num_downloaded")]
+        [JsonPropertyName("numDownloaded")]
         public int NumDownloaded { get; set; }
 
-        [JsonPropertyName("total_fish_in_gallery")]
+        [JsonPropertyName("totalFishInGallery")]
         public int TotalFishInGallery { get; set; }
     }
     public class PythonIdentifyResponseDTO
     {
-        [JsonPropertyName("fish_id")]
+        [JsonPropertyName("fishId")]
         public string FishId { get; set; }
 
         [JsonPropertyName("distance")]
@@ -37,16 +37,16 @@ namespace Zenkoi.BLL.DTOs.KoiReIDDTOs
         [JsonPropertyName("similarity")]
         public decimal Similarity { get; set; }
 
-        [JsonPropertyName("is_unknown")]
+        [JsonPropertyName("isUnknown")]
         public bool IsUnknown { get; set; }
 
-        [JsonPropertyName("top_predictions")]
+        [JsonPropertyName("topPredictions")]
         public List<PythonTopPredictionDTO> TopPredictions { get; set; }
     }
 
     public class PythonTopPredictionDTO
     {
-        [JsonPropertyName("fish_id")]
+        [JsonPropertyName("fishId")]
         public string FishId { get; set; }
 
         [JsonPropertyName("distance")]

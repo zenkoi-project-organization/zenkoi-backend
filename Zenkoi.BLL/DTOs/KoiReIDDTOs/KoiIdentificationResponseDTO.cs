@@ -21,7 +21,7 @@ namespace Zenkoi.BLL.DTOs.KoiReIDDTOs
 
     public class TopPredictionDTO
     {
-        [JsonPropertyName("fish_id")]
+        [JsonPropertyName("fishId")]
         public string FishIdInGallery { get; set; }
 
         [JsonPropertyName("distance")]

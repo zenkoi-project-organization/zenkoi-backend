@@ -286,80 +286,125 @@ namespace Zenkoi.BLL.Services.Implements
                 if (isNowResolved && !wasResolved)
                 {
                     incident.ResolvedAt = DateTime.UtcNow;
-                    incident.ResolvedByUserId = userId;
-
-                    // Auto-restore HealthStatus and PondStatus when resolving
+                    incident.ResolvedByUserId = userId;             
                     if (incident.KoiIncidents != null && incident.KoiIncidents.Any())
-                    {
-                        foreach (var koiIncident in incident.KoiIncidents)
-                        {
-                            var koiFish = await _koiFishRepo.GetByIdAsync(koiIncident.KoiFishId);
-                            if (koiFish != null && koiFish.HealthStatus != HealthStatus.Dead)
-                            {
-                                koiFish.HealthStatus = HealthStatus.Healthy;
-                                koiFish.UpdatedAt = DateTime.UtcNow;
-                                await _koiFishRepo.UpdateAsync(koiFish);
-                            }
+                    {                    
+                        var koiFishIds = incident.KoiIncidents
+                            .Where(ki => !ki.RecoveredAt.HasValue)
+                            .Select(ki => ki.KoiFishId)
+                            .Distinct()
+                            .ToList();
 
-                            koiIncident.RecoveredAt = DateTime.UtcNow;
-                            await _koiIncidentRepo.UpdateAsync(koiIncident);
+                        if (koiFishIds.Any())
+                        {
+                            var koiFishes = await _koiFishRepo.GetAllAsync(new QueryBuilder<KoiFish>()
+                                .WithTracking(true)
+                                .WithPredicate(k => koiFishIds.Contains(k.Id))
+                                .Build());
+
+                            var koiFishDict = koiFishes.ToDictionary(k => k.Id);
+
+                            foreach (var koiIncident in incident.KoiIncidents.Where(ki => !ki.RecoveredAt.HasValue))
+                            {
+                                if (koiFishDict.TryGetValue(koiIncident.KoiFishId, out var koiFish) 
+                                    && koiFish.HealthStatus != HealthStatus.Dead)
+                                {
+                                    koiFish.HealthStatus = HealthStatus.Healthy;
+                                    koiFish.UpdatedAt = DateTime.UtcNow;
+                                    await _koiFishRepo.UpdateAsync(koiFish);
+                                }
+
+                                koiIncident.RecoveredAt = DateTime.UtcNow;
+                                await _koiIncidentRepo.UpdateAsync(koiIncident);
+                            }
                         }
                     }
 
                     if (incident.PondIncidents != null && incident.PondIncidents.Any())
-                    {
-                        foreach (var pondIncident in incident.PondIncidents)
+                    {                  
+                        var pondIds = incident.PondIncidents.Select(pi => pi.PondId).Distinct().ToList();
+                        var ponds = await _pondRepo.GetAllAsync(new QueryBuilder<Pond>()
+                            .WithTracking(true)
+                            .WithPredicate(p => pondIds.Contains(p.Id))
+                            .Build());
+
+                        foreach (var pond in ponds)
                         {
-                            var pond = await _pondRepo.GetByIdAsync(pondIncident.PondId);
-                            if (pond != null)
-                            {
-                                pond.PondStatus = PondStatus.Active;
-                                await _pondRepo.UpdateAsync(pond);
-                            }
+                            pond.PondStatus = PondStatus.Active;
+                            await _pondRepo.UpdateAsync(pond);
                         }
                     }
                 }
 
-                await _incidentRepo.UpdateAsync(incident);
+                if (dto.AffectedKoiFish != null && wasResolved)
+                {
+                    throw new InvalidOperationException("Không thể cập nhật danh sách cá bị ảnh hưởng khi sự cố đã được giải quyết.");
+                }
 
-                // Update affected Koi fish
+                await _incidentRepo.UpdateAsync(incident);
+           
                 if (dto.AffectedKoiFish != null)
                 {
-                    // Remove all existing koi incidents
                     var existingKoiIncidents = await _koiIncidentRepo.GetAllAsync(new QueryBuilder<KoiIncident>()
+                        .WithTracking(true)
                         .WithPredicate(ki => ki.IncidentId == id)
                         .Build());
 
-                    foreach (var existing in existingKoiIncidents)
+                    var existingKoiIncidentsList = existingKoiIncidents.ToList();
+                    var existingKoiFishIds = existingKoiIncidentsList.Select(ki => ki.KoiFishId).ToHashSet();
+                    var newKoiFishIds = dto.AffectedKoiFish.Select(d => d.KoiFishId).ToHashSet();
+          
+                    var allKoiFishIds = dto.AffectedKoiFish.Select(d => d.KoiFishId).Distinct().ToList();
+                    var koiFishes = await _koiFishRepo.GetAllAsync(new QueryBuilder<KoiFish>()
+                        .WithPredicate(k => allKoiFishIds.Contains(k.Id))
+                        .Build());
+                    var koiFishDict = koiFishes.ToDictionary(k => k.Id);
+
+                    var toRemove = existingKoiIncidentsList.Where(ki => !newKoiFishIds.Contains(ki.KoiFishId)).ToList();
+                    foreach (var removeItem in toRemove)
                     {
-                        await _koiIncidentRepo.DeleteAsync(existing);
+                        await _koiIncidentRepo.DeleteAsync(removeItem);
                     }
 
-                    // Add new koi incidents
                     foreach (var koiDto in dto.AffectedKoiFish)
                     {
-                        var koiFish = await _koiFishRepo.GetByIdAsync(koiDto.KoiFishId);
-                        if (koiFish == null)
+                        if (!koiFishDict.TryGetValue(koiDto.KoiFishId, out var koiFish))
                         {
                             throw new ArgumentException($"Không tìm thấy cá Koi với id {koiDto.KoiFishId}.");
                         }
 
-                        var koiIncident = new KoiIncident
+                        var existingKoiIncident = existingKoiIncidentsList.FirstOrDefault(ki => ki.KoiFishId == koiDto.KoiFishId);
+
+                        if (existingKoiIncident != null)
                         {
-                            IncidentId = id,
-                            KoiFishId = koiDto.KoiFishId,
-                            AffectedStatus = koiDto.AffectedStatus,
-                            SpecificSymptoms = koiDto.SpecificSymptoms,
-                            RequiresTreatment = koiDto.RequiresTreatment,
-                            IsIsolated = koiDto.IsIsolated,
-                            AffectedFrom = koiDto.AffectedFrom,
-                            TreatmentNotes = koiDto.TreatmentNotes
-                        };
+                            existingKoiIncident.AffectedStatus = koiDto.AffectedStatus;
+                            existingKoiIncident.SpecificSymptoms = koiDto.SpecificSymptoms;
+                            existingKoiIncident.RequiresTreatment = koiDto.RequiresTreatment;
+                            existingKoiIncident.IsIsolated = koiDto.IsIsolated;
+                            existingKoiIncident.AffectedFrom = koiDto.AffectedFrom;
+                            existingKoiIncident.TreatmentNotes = koiDto.TreatmentNotes;
 
-                        await _koiIncidentRepo.CreateAsync(koiIncident);
+                            await _koiIncidentRepo.UpdateAsync(existingKoiIncident);
+                        }
+                        else
+                        {
+                            // Create new
+                            var koiIncident = new KoiIncident
+                            {
+                                IncidentId = id,
+                                KoiFishId = koiDto.KoiFishId,
+                                AffectedStatus = koiDto.AffectedStatus,
+                                SpecificSymptoms = koiDto.SpecificSymptoms,
+                                RequiresTreatment = koiDto.RequiresTreatment,
+                                IsIsolated = koiDto.IsIsolated,
+                                AffectedFrom = koiDto.AffectedFrom,
+                                TreatmentNotes = koiDto.TreatmentNotes
+                            };
 
-                        // Update KoiFish HealthStatus if not resolved
-                        if (!isNowResolved)
+                            await _koiIncidentRepo.CreateAsync(koiIncident);
+                        }
+
+                        if (!isNowResolved && koiFish.HealthStatus != HealthStatus.Dead)
                         {
                             koiFish.HealthStatus = koiDto.AffectedStatus;
                             koiFish.UpdatedAt = DateTime.UtcNow;
@@ -367,43 +412,69 @@ namespace Zenkoi.BLL.Services.Implements
                         }
                     }
                 }
-
-                // Update affected Ponds
+          
+                if (dto.AffectedPonds != null && wasResolved)
+                {
+                    throw new InvalidOperationException("Không thể cập nhật danh sách ao bị ảnh hưởng khi sự cố đã được giải quyết.");
+                }
+        
                 if (dto.AffectedPonds != null)
                 {
-                    // Remove all existing pond incidents
                     var existingPondIncidents = await _pondIncidentRepo.GetAllAsync(new QueryBuilder<PondIncident>()
+                        .WithTracking(true)
                         .WithPredicate(pi => pi.IncidentId == id)
                         .Build());
 
-                    foreach (var existing in existingPondIncidents)
+                    var existingPondIncidentsList = existingPondIncidents.ToList();
+                    var existingPondIds = existingPondIncidentsList.Select(pi => pi.PondId).ToHashSet();
+                    var newPondIds = dto.AffectedPonds.Select(d => d.PondId).ToHashSet();
+
+                    var allPondIds = dto.AffectedPonds.Select(d => d.PondId).Distinct().ToList();
+                    var ponds = await _pondRepo.GetAllAsync(new QueryBuilder<Pond>()
+                        .WithPredicate(p => allPondIds.Contains(p.Id))
+                        .Build());
+                    var pondDict = ponds.ToDictionary(p => p.Id);
+                    var toRemove = existingPondIncidentsList.Where(pi => !newPondIds.Contains(pi.PondId)).ToList();
+                    foreach (var removeItem in toRemove)
                     {
-                        await _pondIncidentRepo.DeleteAsync(existing);
+                        await _pondIncidentRepo.DeleteAsync(removeItem);
                     }
 
-                    // Add new pond incidents
                     foreach (var pondDto in dto.AffectedPonds)
                     {
-                        var pond = await _pondRepo.GetByIdAsync(pondDto.PondId);
-                        if (pond == null)
+                        if (!pondDict.TryGetValue(pondDto.PondId, out var pond))
                         {
                             throw new ArgumentException($"Không tìm thấy ao với id {pondDto.PondId}.");
                         }
 
-                        var pondIncident = new PondIncident
+                        var existingPondIncident = existingPondIncidentsList.FirstOrDefault(pi => pi.PondId == pondDto.PondId);
+
+                        if (existingPondIncident != null)
                         {
-                            IncidentId = id,
-                            PondId = pondDto.PondId,
-                            EnvironmentalChanges = pondDto.EnvironmentalChanges,
-                            RequiresWaterChange = pondDto.RequiresWaterChange,
-                            FishDiedCount = pondDto.FishDiedCount,
-                            CorrectiveActions = pondDto.CorrectiveActions,
-                            Notes = pondDto.Notes
-                        };
+                            existingPondIncident.EnvironmentalChanges = pondDto.EnvironmentalChanges;
+                            existingPondIncident.RequiresWaterChange = pondDto.RequiresWaterChange;
+                            existingPondIncident.FishDiedCount = pondDto.FishDiedCount;
+                            existingPondIncident.CorrectiveActions = pondDto.CorrectiveActions;
+                            existingPondIncident.Notes = pondDto.Notes;
 
-                        await _pondIncidentRepo.CreateAsync(pondIncident);
+                            await _pondIncidentRepo.UpdateAsync(existingPondIncident);
+                        }
+                        else
+                        {
+                            var pondIncident = new PondIncident
+                            {
+                                IncidentId = id,
+                                PondId = pondDto.PondId,
+                                EnvironmentalChanges = pondDto.EnvironmentalChanges,
+                                RequiresWaterChange = pondDto.RequiresWaterChange,
+                                FishDiedCount = pondDto.FishDiedCount,
+                                CorrectiveActions = pondDto.CorrectiveActions,
+                                Notes = pondDto.Notes
+                            };
 
-                        // Update Pond Status if not resolved
+                            await _pondIncidentRepo.CreateAsync(pondIncident);
+                        }
+
                         if (!isNowResolved)
                         {
                             pond.PondStatus = PondStatus.Maintenance;
@@ -464,41 +535,60 @@ namespace Zenkoi.BLL.Services.Implements
                     incident.ResolvedAt = DateTime.UtcNow;
                     incident.ResolvedByUserId = userId;
 
-                    // Set resolution notes if provided
                     if (!string.IsNullOrWhiteSpace(resolutionNotes))
                     {
                         incident.ResolutionNotes = resolutionNotes;
                     }
 
-                    // Restore KoiFish HealthStatus
+                    // Only restore KoiFish that haven't been recovered yet
                     if (incident.KoiIncidents != null && incident.KoiIncidents.Any())
                     {
-                        foreach (var koiIncident in incident.KoiIncidents)
-                        {
-                            var koiFish = await _koiFishRepo.GetByIdAsync(koiIncident.KoiFishId);
-                            if (koiFish != null && koiFish.HealthStatus != HealthStatus.Dead)
-                            {
-                                koiFish.HealthStatus = HealthStatus.Healthy;
-                                koiFish.UpdatedAt = DateTime.UtcNow;
-                                await _koiFishRepo.UpdateAsync(koiFish);
-                            }
+                        // Load all KoiFish at once for better performance
+                        var koiFishIds = incident.KoiIncidents
+                            .Where(ki => !ki.RecoveredAt.HasValue)
+                            .Select(ki => ki.KoiFishId)
+                            .Distinct()
+                            .ToList();
 
-                            koiIncident.RecoveredAt = DateTime.UtcNow;
-                            await _koiIncidentRepo.UpdateAsync(koiIncident);
+                        if (koiFishIds.Any())
+                        {
+                            var koiFishes = await _koiFishRepo.GetAllAsync(new QueryBuilder<KoiFish>()
+                                .WithTracking(true)
+                                .WithPredicate(k => koiFishIds.Contains(k.Id))
+                                .Build());
+
+                            var koiFishDict = koiFishes.ToDictionary(k => k.Id);
+
+                            foreach (var koiIncident in incident.KoiIncidents.Where(ki => !ki.RecoveredAt.HasValue))
+                            {
+                                if (koiFishDict.TryGetValue(koiIncident.KoiFishId, out var koiFish) 
+                                    && koiFish.HealthStatus != HealthStatus.Dead)
+                                {
+                                    koiFish.HealthStatus = HealthStatus.Healthy;
+                                    koiFish.UpdatedAt = DateTime.UtcNow;
+                                    await _koiFishRepo.UpdateAsync(koiFish);
+                                }
+
+                                koiIncident.RecoveredAt = DateTime.UtcNow;
+                                await _koiIncidentRepo.UpdateAsync(koiIncident);
+                            }
                         }
                     }
 
-                    // Restore Pond Status
+                    // Restore Pond Status when resolving
                     if (incident.PondIncidents != null && incident.PondIncidents.Any())
                     {
-                        foreach (var pondIncident in incident.PondIncidents)
+                        // Load all Ponds at once for better performance
+                        var pondIds = incident.PondIncidents.Select(pi => pi.PondId).Distinct().ToList();
+                        var ponds = await _pondRepo.GetAllAsync(new QueryBuilder<Pond>()
+                            .WithTracking(true)
+                            .WithPredicate(p => pondIds.Contains(p.Id))
+                            .Build());
+
+                        foreach (var pond in ponds)
                         {
-                            var pond = await _pondRepo.GetByIdAsync(pondIncident.PondId);
-                            if (pond != null)
-                            {
-                                pond.PondStatus = PondStatus.Active;
-                                await _pondRepo.UpdateAsync(pond);
-                            }
+                            pond.PondStatus = PondStatus.Active;
+                            await _pondRepo.UpdateAsync(pond);
                         }
                     }
                 }
@@ -762,14 +852,16 @@ namespace Zenkoi.BLL.Services.Implements
 
         private QueryBuilder<Incident> BuildIncidentQueryBuilder(bool tracked = false)
         {
-            return new QueryBuilder<Incident>()
+            var queryBuilder = new QueryBuilder<Incident>()
                 .WithTracking(tracked)
                 .WithInclude(i => i.IncidentType)
                 .WithInclude(i => i.ReportedBy)
-                .WithInclude(i => i.ResolvedBy)
                 .WithInclude(i => i.KoiIncidents)
-                .WithInclude(i => i.PondIncidents)             
-                ;
+                .WithInclude(i => i.PondIncidents);
+
+            // Only include ResolvedBy if it's not null (optional navigation)
+            // Note: EF Core will handle null navigation properties automatically
+            return queryBuilder;
         }
     }
 }
