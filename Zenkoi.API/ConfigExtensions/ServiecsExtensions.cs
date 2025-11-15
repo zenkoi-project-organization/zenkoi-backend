@@ -83,10 +83,10 @@ namespace Zenkoi.API.ConfigExtensions
             // Lấy môi trường hiện tại (Development, Production)
             var env = serviceProvider.GetRequiredService<IWebHostEnvironment>();
 
-            //if (env.IsDevelopment())
-            //{
-              await TruncateAllTablesExceptMigrationHistory(context);
-            //}
+            if (env.IsDevelopment())
+            {
+              //await TruncateAllTablesExceptMigrationHistory(context);
+            }
 
             #region Seeding Roles
             if (!context.Roles.Any())
