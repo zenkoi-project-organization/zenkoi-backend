@@ -16,5 +16,6 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         public DateTime AffectedFrom { get; set; }
         public DateTime? RecoveredAt { get; set; }
         public string? TreatmentNotes { get; set; }
+        public IncidentSimpleDTO? Incident { get; set; }
     }
 }

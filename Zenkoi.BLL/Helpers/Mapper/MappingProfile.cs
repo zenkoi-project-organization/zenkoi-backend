@@ -257,8 +257,11 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<KoiIncident, KoiIncidentResponseDTO>()
                 .ForMember(dest => dest.KoiFishRFID, opt => opt.MapFrom(src => src.KoiFish != null ? src.KoiFish.RFID : null))
                 .ForMember(dest => dest.SpecificSymptoms, opt => opt.MapFrom(src => src.SpecificSymptoms))
-                .ForMember(dest => dest.TreatmentNotes, opt => opt.MapFrom(src => src.TreatmentNotes));
+                .ForMember(dest => dest.TreatmentNotes, opt => opt.MapFrom(src => src.TreatmentNotes))
+                .ForMember(dest => dest.Incident, opt => opt.MapFrom(src => src.Incident));
             CreateMap<KoiIncidentRequestDTO, KoiIncident>();
+            CreateMap<Incident, IncidentSimpleDTO>()
+                .ForMember(dest => dest.IncidentTypeName, opt => opt.MapFrom(src => src.IncidentType != null ? src.IncidentType.Name : string.Empty));
             CreateMap<PondIncident, PondIncidentSimpleDTO>()
                 .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : string.Empty))
                 .ForMember(dest => dest.EnvironmentalChanges, opt => opt.MapFrom(src => src.EnvironmentalChanges ?? string.Empty));
