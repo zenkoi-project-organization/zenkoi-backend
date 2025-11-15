@@ -266,5 +266,26 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Lấy toàn bộ lịch sử sức khỏe của cá Koi (tất cả các sự cố liên quan đến cá)
+        /// </summary>
+        [HttpGet("koi/{koiFishId}/history")]
+        public async Task<IActionResult> GetKoiHealthHistory(int koiFishId)
+        {
+            try
+            {
+                var history = await _incidentService.GetKoiHealthHistoryAsync(koiFishId);
+                return GetSuccess(history);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return GetNotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return GetError($"Không thể lấy lịch sử sức khỏe: {ex.Message}");
+            }
+        }
+
     }
 }

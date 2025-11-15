@@ -237,8 +237,11 @@ namespace Zenkoi.BLL.Services.Implements
             try
             {
                 var incident = await _incidentRepo.GetSingleAsync(
-                    BuildIncidentQueryBuilder()
+                    new QueryBuilder<Incident>()
+                        .WithTracking(true)
                         .WithPredicate(i => i.Id == id)
+                        .WithInclude(i => i.KoiIncidents)
+                        .WithInclude(i => i.PondIncidents)
                         .Build());
 
                 if (incident == null)
@@ -253,10 +256,27 @@ namespace Zenkoi.BLL.Services.Implements
                     {
                         throw new ArgumentException($"Không tìm thấy loại sự cố với id {dto.IncidentTypeId.Value}.");
                     }
+                    incident.IncidentTypeId = dto.IncidentTypeId.Value;
                 }
+                
+                if (dto.IncidentTitle != null)
+                    incident.IncidentTitle = dto.IncidentTitle;
 
-                // Update basic incident info
-                _mapper.Map(dto, incident);
+                if (dto.Description != null)
+                    incident.Description = dto.Description;
+
+                if (dto.Severity.HasValue)
+                    incident.Severity = dto.Severity.Value;
+
+                if (dto.Status.HasValue)
+                    incident.Status = dto.Status.Value;
+
+                if (dto.OccurredAt.HasValue)
+                    incident.OccurredAt = dto.OccurredAt.Value;
+
+                if (dto.ResolutionNotes != null)
+                    incident.ResolutionNotes = dto.ResolutionNotes;
+
                 incident.UpdatedAt = DateTime.UtcNow;
 
                 // Handle status change to Resolved
@@ -722,18 +742,18 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<List<KoiIncidentResponseDTO>> GetKoiHealthHistoryAsync(int koiFishId)
         {
-            // Validate koi fish exists
+
             var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
             if (koiFish == null)
             {
                 throw new KeyNotFoundException($"Không tìm thấy cá Koi với id {koiFishId}.");
             }
 
-            // Get all koi incidents for this fish, ordered by date
             var koiIncidents = await _koiIncidentRepo.GetAllAsync(new QueryBuilder<KoiIncident>()
                 .WithPredicate(ki => ki.KoiFishId == koiFishId)
                 .WithInclude(ki => ki.KoiFish)
                 .WithInclude(ki => ki.Incident)
+                .WithInclude(ki => ki.Incident.IncidentType)
                 .WithOrderBy(q => q.OrderByDescending(ki => ki.AffectedFrom))
                 .Build());
 
