@@ -24,7 +24,7 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
 
         public KoiType? Type { get; set; }
 
-        public KoiPatternType? PatternType { get; set; }
+        public string? Pattern { get; set; }
 
         public DateTime? BirthDate { get; set; }
 
