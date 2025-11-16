@@ -48,7 +48,7 @@ namespace Zenkoi.API.Controllers
         public async Task<IActionResult> GetByBreedId(int breedId)
         {
 
-            var result = await _classificationService.GetEggBatchByBreedId(breedId);
+            var result = await _classificationService.GetClassificationStageByBreedId(breedId);
             if (result == null)
                 return GetError("Không tìm thấy lô cá tuyển chọn.");
 

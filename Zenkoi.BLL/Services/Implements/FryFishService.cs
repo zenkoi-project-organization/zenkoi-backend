@@ -58,10 +58,21 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
 
-            var pond = await _pondRepo.GetByIdAsync(dto.PondId);
+            var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == dto.PondId,
+                IncludeProperties = new List<Expression<Func<Pond, object>>>
+                {
+                    p => p.PondType,
+                }
+            });
             if (pond == null)
             {
                 throw new KeyNotFoundException("không tìm thấy hồ");
+            }
+            if (pond.PondType.Type != TypeOfPond.FryFish)
+            {
+                throw new Exception("vui lòng chọn hồ phù hợp với quy trình sinh sản");
             }
             if (!pond.PondStatus.Equals(PondStatus.Empty))
             {
@@ -70,7 +81,6 @@ namespace Zenkoi.BLL.Services.Implements
             var eggBatch = await _eggRepo.GetByIdAsync(breeding.Batch.Id);
             var eggPond = await _pondRepo.GetByIdAsync(breeding.PondId);
 
-            // chuyển hồ
             eggPond.PondStatus = PondStatus.Empty;
             breeding.PondId = dto.PondId;
             breeding.Status = BreedingStatus.FryFish;
@@ -282,7 +292,7 @@ namespace Zenkoi.BLL.Services.Implements
             var fryFish = await _fryFishRepo.GetSingleAsync(new QueryOptions<FryFish>
             {
                 Predicate = f => f.Id == id,
-                IncludeProperties = new List<System.Linq.Expressions.Expression<Func<FryFish, object>>>
+                IncludeProperties = new List<Expression<Func<FryFish, object>>>
         {
             f => f.FrySurvivalRecords
         }
@@ -297,16 +307,44 @@ namespace Zenkoi.BLL.Services.Implements
             if (fryFish.Status == FryFishStatus.Completed || fryFish.Status == FryFishStatus.Dead)
                 throw new InvalidOperationException($"Bầy cá đã {fryFish.Status}, không thể cập nhật.");
 
-            var newPond = await _pondRepo.GetByIdAsync(dto.PondId);
-            if (newPond == null)
-                throw new KeyNotFoundException("Không tìm thấy hồ mới.");
-
-            if (newPond.PondStatus == PondStatus.Maintenance || newPond.PondStatus == PondStatus.Active)
-                throw new InvalidOperationException($"Hồ hiện tại đang {newPond.PondStatus}, không thể chuyển bầy cá vào.");
-
             var breed = await _breedRepo.GetByIdAsync(fryFish.BreedingProcessId);
             if (breed == null)
                 throw new KeyNotFoundException("Không tìm thấy quy trình sinh sản.");
+
+           
+            if (dto.PondId == breed.PondId)
+            {
+                var oldInitial = fryFish.InitialCount;
+                var oldRate = fryFish.CurrentSurvivalRate;
+
+                _mapper.Map(dto, fryFish);
+                
+
+                fryFish.InitialCount ??= oldInitial;
+                fryFish.CurrentSurvivalRate ??= oldRate;
+
+                await _fryFishRepo.UpdateAsync(fryFish);
+                return await _unitOfWork.SaveAsync();
+            }
+
+           
+            var newPond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == dto.PondId,
+                IncludeProperties = new List<Expression<Func<Pond, object>>>
+        {
+            p => p.PondType
+        }
+            });
+
+            if (newPond == null)
+                throw new KeyNotFoundException("Không tìm thấy hồ mới.");
+
+            if (newPond.PondType.Type != TypeOfPond.FryFish)
+                throw new InvalidOperationException("Vui lòng chọn hồ phù hợp với quy trình.");
+
+            if (newPond.PondStatus == PondStatus.Maintenance || newPond.PondStatus == PondStatus.Active)
+                throw new InvalidOperationException($"Hồ hiện tại đang {newPond.PondStatus}, không thể chuyển bầy cá vào.");
 
             var oldPond = await _pondRepo.GetByIdAsync(breed.PondId);
             if (oldPond == null)
@@ -315,15 +353,13 @@ namespace Zenkoi.BLL.Services.Implements
             oldPond.PondStatus = PondStatus.Empty;
             newPond.PondStatus = PondStatus.Active;
 
-            var oldInitial = fryFish.InitialCount;
-            var oldRate = fryFish.CurrentSurvivalRate;
+            var oldInitial2 = fryFish.InitialCount;
+            var oldRate2 = fryFish.CurrentSurvivalRate;
 
             _mapper.Map(dto, fryFish);
 
-            fryFish.InitialCount ??= oldInitial;
-            fryFish.CurrentSurvivalRate ??= oldRate;
-
-            _mapper.Map(dto, fryFish);
+            fryFish.InitialCount ??= oldInitial2;
+            fryFish.CurrentSurvivalRate ??= oldRate2;
 
             breed.PondId = dto.PondId;
 
@@ -335,4 +371,4 @@ namespace Zenkoi.BLL.Services.Implements
             return await _unitOfWork.SaveAsync();
         }
     }
-}
+    }
