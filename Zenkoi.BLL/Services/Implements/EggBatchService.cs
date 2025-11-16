@@ -37,9 +37,18 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("không tìm thấy quy trình sinh sản");
             }
             var breedPond = await _pondRepo.GetByIdAsync(breeding.PondId);
-            var pond = await _pondRepo.GetByIdAsync(dto.PondId);
+            var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == dto.PondId , IncludeProperties = new List<Expression<Func<Pond, object>>> { 
+                p => p.PondType
+                }
+            });
             if(pond == null){
                 throw new KeyNotFoundException("không tìm thấy hồ");
+            }
+            if(pond.PondType.Type != TypeOfPond.EggBatch)
+            {
+                throw new InvalidOperationException("vui lòng chọn hồ phù hợp với quá trình");
             }
             if (!pond.PondStatus.Equals(PondStatus.Empty))
             {
@@ -230,9 +239,19 @@ namespace Zenkoi.BLL.Services.Implements
             
             if (dto.PondId != breed.PondId)
             {
-                var newPond = await _pondRepo.GetByIdAsync(dto.PondId);
+                var newPond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond> { 
+                Predicate = p => p.Id == dto.PondId,
+                    IncludeProperties = new List<Expression<Func<Pond, object>>>
+                    {
+                        p => p.PondType
+                    }
+                });
                 if (newPond == null)
                     throw new KeyNotFoundException("Không tìm thấy hồ mới.");
+                if(newPond.PondType.Type != TypeOfPond.FryFish)
+                {
+                    throw new InvalidOperationException("vui lòng chọn hồ phù hợp với quá trình");
+                }
 
                 if (newPond.PondStatus == PondStatus.Maintenance || newPond.PondStatus == PondStatus.Active)
                     throw new InvalidOperationException($"Hồ hiện tại đang {newPond.PondStatus}, không thể chuyển lô trứng vào.");
