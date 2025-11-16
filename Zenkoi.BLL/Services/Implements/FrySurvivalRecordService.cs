@@ -131,7 +131,7 @@ namespace Zenkoi.BLL.Services.Implements
                 fryFish.EndDate = null;
 
                 breed.SurvivalRate = null;
-                breed.Status = BreedingStatus.EggBatch;
+                breed.Status = BreedingStatus.FryFish;
                 breed.EndDate = null;
             }
             else
