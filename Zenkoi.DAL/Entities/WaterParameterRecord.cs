@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Zenkoi.DAL.Entities
 {
@@ -7,6 +8,7 @@ namespace Zenkoi.DAL.Entities
     {
         public int Id { get; set; }
         public int PondId { get; set; }
+        [JsonIgnore]
         public Pond Pond { get; set; }
         public double? PHLevel { get; set; }
         public double? TemperatureCelsius { get; set; }

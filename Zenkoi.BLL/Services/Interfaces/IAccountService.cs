@@ -23,5 +23,8 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<ImportStaffResultDTO> ImportStaffAccountsFromExcelAsync(Stream fileStream);
         Task<StaffAccountResponseDTO?> UpdateStaffAccountAsync(int userId, StaffAccountUpdateDTO dto);
         Task<bool> ToggleBlockUserAsync(int userId);
+
+        Task<bool> UpdatePushToken(int userId, UpdatePushTokenDTO dto);
+        Task<IEnumerable<string>> GetStaffManagerTokensAsync();
     }
 }

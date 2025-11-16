@@ -974,6 +974,41 @@ namespace Zenkoi.BLL.Services.Implements
             return dateTimeInterval.AddSeconds(utcExpireDate);
         }
 
+        public async Task<bool> UpdatePushToken(int userId ,UpdatePushTokenDTO dto)
+        {
+            var _userRepo = _unitOfWork.GetRepo<ApplicationUser>();
+            var user = await _identityService.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy tài khoản");
+            }
+            var allowedRoles = new[] { Role.FarmStaff, Role.Manager };
+
+            if (!allowedRoles.Contains(user.Role))
+            {
+                throw new InvalidOperationException("tài khoản không phải là nhân viên của trang trại");
+            }
+            user.ExpoPushToken = dto.ExpoPushToken;
+            await _userRepo.UpdateAsync(user);
+            return await _unitOfWork.SaveAsync();
+        }
+
+        public async Task<IEnumerable<string>> GetStaffManagerTokensAsync()
+        {
+            var _userRepo =  _unitOfWork.GetRepo<ApplicationUser>();
+            var users = await _userRepo.GetAllAsync(new QueryOptions<ApplicationUser>
+            {
+                Predicate = u =>
+                    u.ExpoPushToken != null &&
+                    (u.Role == Role.FarmStaff || u.Role == Role.Manager) &&
+                    u.IsDeleted == false &&
+                    u.IsBlocked == false,
+                Tracked = false
+            });
+
+            return users.Select(u => u.ExpoPushToken).ToList();
+        }
+
         #endregion
 
     }

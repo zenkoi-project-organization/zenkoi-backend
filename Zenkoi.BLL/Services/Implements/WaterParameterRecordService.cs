@@ -9,6 +9,11 @@ using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 using System.Linq.Expressions;
 using Zenkoi.DAL.Enums;
+using Newtonsoft.Json;
+using OfficeOpenXml.Packaging.Ionic.Zlib;
+using Zenkoi.BLL.WebSockets;
+using Zenkoi.BLL.DTOs.WaterAlertDTOs;
+
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -19,14 +24,21 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<WaterParameterRecord> _recordRepo;
         private readonly IRepoBase<Pond> _pondRepo;
         private readonly IRepoBase<ApplicationUser> _userRepo;
+        private readonly WebSocketConnectionManager _wsManager;
+        private readonly ExpoPushNotificationService _pushService;
+        private readonly IAccountService _accountService;
 
-        public WaterParameterRecordService(IUnitOfWork unitOfWork, IMapper mapper)
+
+        public WaterParameterRecordService(IUnitOfWork unitOfWork, IMapper mapper, WebSocketConnectionManager wsManager, ExpoPushNotificationService pushService, IAccountService accountService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _recordRepo = _unitOfWork.GetRepo<WaterParameterRecord>();
             _pondRepo = _unitOfWork.GetRepo<Pond>();
             _userRepo = _unitOfWork.GetRepo<ApplicationUser>();
+            _wsManager = wsManager;
+            _pushService = pushService;
+            _accountService = accountService;
         }
 
         public async Task<PaginatedList<WaterParameterRecordResponseDTO>> GetAllAsync(
@@ -215,40 +227,55 @@ namespace Zenkoi.BLL.Services.Implements
                 var threshold = thresholds.FirstOrDefault(t => t.ParameterName == parameter);
                 if (threshold == null) continue;
 
+                AlertType? alertType = null;
+                string message = null;
+
                 if (value < threshold.MinValue)
                 {
-                    var severity = GetSeverityLevel(threshold, value.Value);
-                    await _alertRepo.CreateAsync(new WaterAlert
-                    {
-                        PondId = entity.PondId,
-                        ParameterName = parameter,
-                        MeasuredValue = value.Value,
-                        AlertType = AlertType.Low,
-                        Severity = severity,
-                        Message = $"Giá trị {parameter} = {value} {threshold.Unit} thấp hơn ngưỡng tối thiểu {threshold.MinValue}.",
-                        CreatedAt = DateTime.UtcNow,
-                        IsResolved = false,
-                        WaterParameterRecord = entity
-                    });
+                    alertType = AlertType.Low;
+                    message = $"Giá trị {parameter} = {value} {threshold.Unit} thấp hơn ngưỡng tối thiểu {threshold.MinValue}.";
                 }
                 else if (value > threshold.MaxValue)
                 {
+                    alertType = AlertType.High;
+                    message = $"Giá trị {parameter} = {value} {threshold.Unit} vượt ngưỡng tối đa {threshold.MaxValue}.";
+                }
+
+                if (alertType != null)
+                {
                     var severity = GetSeverityLevel(threshold, value.Value);
-                    await _alertRepo.CreateAsync(new WaterAlert
+                    var alert = new WaterAlert
                     {
                         PondId = entity.PondId,
                         ParameterName = parameter,
                         MeasuredValue = value.Value,
-                        AlertType = AlertType.High,
+                        AlertType = alertType.Value,
                         Severity = severity,
-                        Message = $"Giá trị {parameter} = {value} {threshold.Unit} vượt ngưỡng tối đa {threshold.MaxValue}.",
+                        Message = message,
                         CreatedAt = DateTime.UtcNow,
                         IsResolved = false,
                         WaterParameterRecord = entity
-                    });
+                    };
+
+                    await _alertRepo.CreateAsync(alert);
+
+                    var dto = _mapper.Map<WaterAlertResponseDTO>(alert);
+                    var payload = JsonConvert.SerializeObject(dto);
+                    await _wsManager.BroadcastAsync(payload);
+
+                    var tokens = (await _accountService.GetStaffManagerTokensAsync())
+                                    .Where(t => !string.IsNullOrWhiteSpace(t));
+
+                    await _pushService.SendPushNotificationToMultipleAsync(
+                        tokens,
+                        $"Alert: {parameter} vượt ngưỡng",
+                        message,
+                        new { PondId = entity.PondId, Parameter = parameter, Value = value }
+                    );
                 }
             }
 
+           
             await _unitOfWork.SaveChangesAsync();
         }
 
