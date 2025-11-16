@@ -18,6 +18,8 @@ using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.BLL.Services.Implements;
 using Zenkoi.DAL.EF;
 using Zenkoi.DAL.Entities;
+using Zenkoi.BLL.WebSockets;
+using Zenkoi.API.Extensions;
 
 namespace Zenkoi.API
 {
@@ -30,8 +32,10 @@ namespace Zenkoi.API
 
             var builder = WebApplication.CreateBuilder(args);
 
-           /* var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-            builder.WebHost.UseUrls($"http://0.0.0.0:{port}");*/
+            /* var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+             builder.WebHost.UseUrls($"http://0.0.0.0:{port}");*/
+
+            builder.Services.AddScoped<AlertWebSocketEndpoint>();
 
             // Add services to the container.
             builder.Services.AddControllers()
@@ -132,8 +136,12 @@ namespace Zenkoi.API
                 return new PayOS(clientId, apiKey, checksumKey);
             });
 
+            builder.Services.AddSingleton<WebSocketConnectionManager>();
 
             var app = builder.Build();
+
+            app.UseWebSockets();
+            app.MapAlertWebSocket();
 
             using (var scope = app.Services.CreateScope())
             {
@@ -229,7 +237,8 @@ namespace Zenkoi.API
             }
 
             app.MapControllers();
-
+   
+            Console.WriteLine(">>> WebSocket endpoint mapped: /api/ws/alerts");
             app.Run();
         }
     }

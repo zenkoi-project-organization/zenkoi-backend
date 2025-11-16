@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs;
 using Zenkoi.BLL.DTOs.ApplicationUserDTOs;
+using Zenkoi.BLL.Services.Implements;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Enums;
 
@@ -11,13 +12,32 @@ namespace Zenkoi.API.Controllers
 	public class UsersController : BaseAPIController
 	{
 		private readonly IUserService _userService;
+		private readonly ExpoPushNotificationService _pushService;
 
-		public UsersController(IUserService userService)
+		public UsersController(IUserService userService, ExpoPushNotificationService expoPushNotificationService)
 		{
 			_userService = userService;
-		}
+            _pushService = expoPushNotificationService;
 
-	[HttpGet]
+        }
+
+
+        [HttpPost("send-notify")]
+        public async Task<IActionResult> SendTestNotify()
+        {
+            // Token giả (mock) — chỉ để kiểm tra backend gửi request tới Expo server
+            string mockToken = "ExponentPushToken[xxxxxxxxxxxxxxxxxxxx]";
+
+            await _pushService.SendAsync(
+                mockToken,
+                "🚨 Test Notification",
+                "Đây là thử nghiệm Backend Push Notification"
+            );
+
+            return Ok("Request đã gửi tới Expo server. Xem console log để thấy response.");
+        }
+
+        [HttpGet]
 	[Route("by-role")]
 	public async Task<IActionResult> GetUsersByRole([FromQuery] Role? role = null, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] bool? isBlocked = null)
 	{

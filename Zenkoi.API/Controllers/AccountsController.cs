@@ -167,9 +167,10 @@ namespace Zenkoi.API.Controllers
                     return Error("Lỗi sinh mã đăng nhập. Vui lòng thử lại sau ít phút.");
                 }
 
-                var authResult = new { 
-                    accessToken = token.AccessToken, 
-                    refreshToken = token.RefreshToken 
+                var authResult = new
+                {
+                    accessToken = token.AccessToken,
+                    refreshToken = token.RefreshToken
                 };
                 return Success(authResult, "Đăng nhập thành công.");
             }
@@ -354,9 +355,10 @@ namespace Zenkoi.API.Controllers
                 }
 
 
-                var renewResult = new { 
-                    accessToken = newToken.AccessToken, 
-                    refreshToken = newToken.RefreshToken 
+                var renewResult = new
+                {
+                    accessToken = newToken.AccessToken,
+                    refreshToken = newToken.RefreshToken
                 };
                 return SaveSuccess(renewResult);
             }
@@ -455,9 +457,10 @@ namespace Zenkoi.API.Controllers
                     var newAuthResult = await _accountService.GenerateTokenAsync(user);
                     if (newAuthResult == null) return Error("Đã có lỗi xảy ra trong quá trình sinh mã đăng nhập mới. Xin vui lòng thử lại sau ít phút.");
 
-                    var result = new { 
-                        accessToken = newAuthResult.AccessToken, 
-                        refreshToken = newAuthResult.RefreshToken 
+                    var result = new
+                    {
+                        accessToken = newAuthResult.AccessToken,
+                        refreshToken = newAuthResult.RefreshToken
                     };
                     return SaveSuccess(result);
                 }
@@ -479,30 +482,30 @@ namespace Zenkoi.API.Controllers
         {
             try
             {
-               
+
                 if (string.IsNullOrEmpty(email.Email))
                 {
                     ModelState.AddModelError("Email", "Email không được để trống.");
                     return ModelInvalid();
                 }
 
-           
+
                 var response = await _accountService.SendOTPByEmailAsync(email.Email);
                 if (!response.IsSuccess)
                 {
                     return Error(response.Message);
                 }
-              
+
                 return Success(response, "Gửi OPT thành công");
             }
             catch (Exception ex)
-            {             
+            {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);
                 Console.ResetColor();
                 return Error($"Lỗi gửi mã OTP: {ex.Message}");
             }
-        }     
+        }
 
         [HttpPost]
         [Route("verify-otp")]
@@ -555,7 +558,8 @@ namespace Zenkoi.API.Controllers
                 }
 
                 Console.WriteLine("Google authentication successful");
-                var googleAuthResult = new {
+                var googleAuthResult = new
+                {
                     accessToken = token.AccessToken,
                     refreshToken = token.RefreshToken
                 };
@@ -630,6 +634,16 @@ namespace Zenkoi.API.Controllers
                 return GetError("Không tìm thấy tài khoản.");
 
             return Success(result, "Thay đổi trạng thái tài khoản thành công.");
+        }
+
+        [Authorize]
+        [HttpPut("update-push-token")]
+        public async Task<IActionResult> UpdatePushToken([FromBody] UpdatePushTokenDTO dto)
+        {
+            int userId = UserId;
+            var result = await _accountService.UpdatePushToken(userId, dto);
+            return Success(result,"update token success");
+
         }
     }
 }

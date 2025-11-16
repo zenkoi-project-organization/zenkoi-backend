@@ -48,7 +48,7 @@ namespace Zenkoi.BLL.Services.Implements
           
             if (eggBatch.Quantity < (dto.HatchedEggs + dto.HealthyEggs ))
             {
-                throw new Exception("tổng số bạn nhập lớn hơn so với lô trứng ghi nhận");
+                throw new InvalidOperationException("tổng số bạn nhập lớn hơn so với lô trứng ghi nhận");
             } 
 
             if (eggBatch.TotalHatchedEggs ==0 && dto.HatchedEggs > 0)

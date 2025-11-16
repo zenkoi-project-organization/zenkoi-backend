@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using Zenkoi.BLL.Helpers.Mapper;
+using Zenkoi.BLL.Services.Implements;
 using Zenkoi.BLL.Services.Interfaces;
+using Zenkoi.BLL.WebSockets;
 using Zenkoi.DAL.EF;
 using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
@@ -18,6 +20,7 @@ namespace Zenkoi.API.ConfigExtensions
         public static void AddUnitOfWork(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
         }
 
         //RepoBase
@@ -34,6 +37,9 @@ namespace Zenkoi.API.ConfigExtensions
                     .AddClasses(classes => classes.Where(type => type.Namespace == $"Zenkoi.BLL.Services.Implements" && type.Name.EndsWith("Service")))
                     .AsImplementedInterfaces()
                     .WithScopedLifetime());
+            services.AddScoped<ExpoPushNotificationService>();
+            services.AddSingleton<AlertWebSocketEndpoint>();
+            services.AddSingleton<WebSocketConnectionManager>();
 
         }
 

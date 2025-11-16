@@ -10,6 +10,7 @@ namespace Zenkoi.DAL.Entities
 		public Role Role { get; set; }
 		public bool IsDeleted { get; set; }
 		public UserDetail UserDetail { get; set; }
+        public string? ExpoPushToken { get; set; }
         public bool IsBlocked { get; set; }
     }
 }
