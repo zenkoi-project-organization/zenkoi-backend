@@ -83,7 +83,8 @@ namespace Zenkoi.API.Controllers
         public async Task<IActionResult> GetAllPacketFishes(
             [FromQuery] string? search = null,
             [FromQuery] bool? isAvailable = null,
-            [FromQuery] FishSize? size = null,
+            [FromQuery] double? minSize = null,
+            [FromQuery] double? maxSize = null,
             [FromQuery] decimal? minPrice = null,
             [FromQuery] decimal? maxPrice = null,
             [FromQuery] decimal? minAgeMonths = null,
@@ -99,7 +100,8 @@ namespace Zenkoi.API.Controllers
                 {
                     Search = search,
                     IsAvailable = isAvailable,
-                    Size = size,
+                    MaxSize = maxSize,
+                    MinSize = minSize,
                     MinPrice = minPrice,
                     MaxPrice = maxPrice,
                     MinAgeMonths = minAgeMonths,
@@ -191,14 +193,20 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <param name="size">Kích thước cá</param>
         /// <returns>Danh sách gói cá theo kích thước</returns>
-        [HttpGet("by-size/{size}")]
-        public async Task<IActionResult> GetPacketFishesBySize(FishSize size,
+        [HttpGet("by-size")]
+        public async Task<IActionResult> GetPacketFishesBySize(
+        [FromQuery] double minSize,
+        [FromQuery] double maxSize,
         [FromQuery] int pageIndex = 1,
         [FromQuery] int pageSize = 10)
         {
             try
             {
-                var result = await _packetFishService.GetPacketFishesBySizeAsync(size,pageIndex,pageSize);
+                if (minSize < 0 || maxSize < 0 || minSize > maxSize)
+                {
+                    return GetError("Khoảng giá không hợp lệ");
+                }
+                var result = await _packetFishService.GetPacketFishesBySizeAsync(minSize,maxSize,pageIndex,pageSize);
                 return GetSuccess(result);
             }
             catch (Exception ex)

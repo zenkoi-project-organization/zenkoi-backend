@@ -150,6 +150,17 @@ namespace Zenkoi.BLL.Services.Implements
                 Expression<Func<PacketFish, bool>> expr = pf => pf.PricePerPacket >= filter.MinPrice.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+            if (filter.MinSize.HasValue)
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => pf.MinSize >= filter.MinSize.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
+
+            if (filter.MaxSize.HasValue)
+            {
+                Expression<Func<PacketFish, bool>> expr = pf => pf.MaxSize <= filter.MaxSize.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
 
             if (filter.MaxPrice.HasValue)
             {
@@ -273,13 +284,33 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<PaginatedList<PacketFishResponseDTO>> GetPacketFishesBySizeAsync(FishSize size, int pageIndex = 1, int pageSize = 10)
+        public async Task<PaginatedList<PacketFishResponseDTO>> GetPacketFishesBySizeAsync(
+            double? minSize, double? maxSize, int pageIndex = 1, int pageSize = 10)
         {
-            var packetFishes = await _packetFishRepo.GetAllAsync(new QueryBuilder<PacketFish>()
-                .WithPredicate(pf => pf.IsAvailable == true)
-                .WithInclude(pf => pf.VarietyPacketFishes)
-                .WithOrderBy(pf => pf.OrderByDescending(x => x.CreatedAt))
-                .Build());
+            Expression<Func<PacketFish, bool>> predicate = pf => pf.IsAvailable == true;
+
+            if (minSize.HasValue && maxSize.HasValue)
+            {
+                predicate = predicate.AndAlso(pf =>
+                    pf.MinSize <= maxSize.Value &&
+                    pf.MaxSize >= minSize.Value);
+            }
+            else if (minSize.HasValue)
+            {
+                predicate = predicate.AndAlso(pf => pf.MaxSize >= minSize.Value);
+            }
+            else if (maxSize.HasValue)
+            {
+                predicate = predicate.AndAlso(pf => pf.MinSize <= maxSize.Value);
+            }
+
+            var packetFishes = await _packetFishRepo.GetAllAsync(
+                new QueryBuilder<PacketFish>()
+                    .WithPredicate(predicate)
+                    .WithInclude(pf => pf.VarietyPacketFishes)
+                    .WithOrderBy(pf => pf.OrderByDescending(x => x.CreatedAt))
+                    .Build()
+            );
 
             foreach (var pf in packetFishes)
             {
@@ -294,15 +325,17 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
 
+          
             var mappedList = _mapper.Map<List<PacketFishResponseDTO>>(packetFishes);
 
             foreach (var dto in mappedList)
             {
-                var packetFish = packetFishes.FirstOrDefault(pf => pf.Id == dto.Id);
-                if (packetFish != null)
-                    dto.Size = packetFish.MinSize + "-" + packetFish.MaxSize;
+                var pf = packetFishes.FirstOrDefault(x => x.Id == dto.Id);
+                if (pf != null)
+                    dto.Size = pf.MinSize + "-" + pf.MaxSize;
             }
 
+ 
             var totalCount = mappedList.Count;
             var pagedItems = mappedList
                 .Skip((pageIndex - 1) * pageSize)

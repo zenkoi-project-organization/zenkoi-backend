@@ -6,7 +6,8 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
     {
         public string? Search { get; set; }
         public bool? IsAvailable { get; set; }
-        public FishSize? Size { get; set; }
+        public double? MinSize { get; set; }
+        public double? MaxSize { get; set; }
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
         public decimal? MinAgeMonths { get; set; }
