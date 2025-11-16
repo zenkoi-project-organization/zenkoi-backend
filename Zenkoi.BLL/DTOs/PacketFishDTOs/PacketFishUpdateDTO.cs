@@ -27,9 +27,6 @@ namespace Zenkoi.BLL.DTOs.PacketFishDTOs
         public decimal PricePerPacket { get; set; }
 
         [Required]
-        public FishSize Size { get; set; }
-
-        [Required]
         [MinLength(1, ErrorMessage = "At least one variety is required")]
         public List<int> VarietyIds { get; set; } = new List<int>();
 
