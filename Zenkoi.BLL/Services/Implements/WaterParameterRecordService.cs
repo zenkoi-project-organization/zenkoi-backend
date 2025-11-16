@@ -259,7 +259,19 @@ namespace Zenkoi.BLL.Services.Implements
 
                     await _alertRepo.CreateAsync(alert);
 
-                    var dto = _mapper.Map<WaterAlertResponseDTO>(alert);
+
+                    var dto = new WaterAlertWebSocketResponseDTO
+                    {
+                        PondId = alert.PondId,
+                        PondName = alert.Pond.PondName,
+                        ParameterName = alert.ParameterName.ToString(),
+                        MeasuredValue = alert.MeasuredValue,
+                        AlertType = alert.AlertType.ToString(),
+                        Severity = alert.Severity.ToString(),
+                        Message = alert.Message,
+                        CreatedAt = alert.CreatedAt,
+                        IsResolved = alert.IsResolved,
+                    };
                     var payload = JsonConvert.SerializeObject(dto);
                     await _wsManager.BroadcastAsync(payload);
 
