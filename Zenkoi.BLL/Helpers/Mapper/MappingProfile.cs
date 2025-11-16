@@ -175,8 +175,8 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<PacketFishRequestDTO, PacketFish>();
             CreateMap<PacketFishUpdateDTO, PacketFish>();
             CreateMap<VarietyPacketFish, VarietyPacketFishResponseDTO>()
-                .ForMember(dest => dest.VarietyName, opt => opt.MapFrom(src => src.Variety != null ? src.Variety.VarietyName : string.Empty))
-                .ForMember(dest => dest.PacketFishName, opt => opt.MapFrom(src => src.PacketFish != null ? src.PacketFish.Name : string.Empty));
+                .ForMember(dest => dest.VarietyName, opt => opt.MapFrom(src => src.Variety != null ? src.Variety.VarietyName : string.Empty));
+   
 
             // Customer mappings
             CreateMap<Customer, CustomerResponseDTO>()

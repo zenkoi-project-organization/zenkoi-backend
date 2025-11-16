@@ -25,7 +25,5 @@ namespace Zenkoi.BLL.DTOs.PacketFishDTOs
         public int Id { get; set; }
         public int VarietyId { get; set; }
         public string VarietyName { get; set; } = string.Empty;
-        public int PacketFishId { get; set; }
-        public string PacketFishName { get; set; } = string.Empty;
     }
 }
