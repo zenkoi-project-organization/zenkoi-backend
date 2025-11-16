@@ -617,10 +617,26 @@ namespace Zenkoi.BLL.Services.Implements
                 return new List<KoiFishResponseDTO>(); 
             }
 
-            return koiList.Select(k => _mapper.Map<KoiFishResponseDTO>(k)).ToList();
+            var result = _mapper.Map<List<KoiFishResponseDTO>>(koiList);
+
+            foreach (var koi in result)
+                FormatSizeForResponse(koi);
+            return result;
         }
 
+        private void FormatSizeForResponse(KoiFishResponseDTO koi)
+        {
+            if (double.TryParse(koi.Size?.ToString(), out double cm))
+            {
+                var inch = CmToInch(cm);
+                koi.Size = $"{Math.Round(inch, 1)} inch / {cm} cm";
+            }
+        }
 
+        public static double CmToInch(double cm)
+        {
+            return cm / 2.54;
+        }
 
     }
 }

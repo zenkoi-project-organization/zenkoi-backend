@@ -40,7 +40,7 @@ namespace Zenkoi.BLL.Services.Implements
             _breedingProcessService = breedingProcessService;
         }
 
-        // ✅ Hàm tiện ích format kích thước
+      
         private void FormatSizeForResponse(KoiFishResponseDTO koi)
         {
             if (double.TryParse(koi.Size?.ToString(), out double cm))
