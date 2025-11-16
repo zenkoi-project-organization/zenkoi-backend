@@ -290,8 +290,8 @@ public class WorkScheduleService : IWorkScheduleService
             .Include(ws => ws.StaffAssignments)
                 .ThenInclude(sa => sa.Staff)
             .ToListAsync();
-     
-        var now = DateTime.UtcNow;
+
+        var now = DateTime.Now;
         var currentDate = DateOnly.FromDateTime(now);
         var currentTime = TimeOnly.FromDateTime(now);
         bool hasUpdates = false;
