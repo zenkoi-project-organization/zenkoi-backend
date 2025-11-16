@@ -91,7 +91,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-         //     await TruncateAllTablesExceptMigrationHistory(context);
+              //await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -2500,7 +2500,7 @@ namespace Zenkoi.API.ConfigExtensions
                         IncidentTitle = "Phát hiện nấm trắng trên đàn Showa",
                         Description = "Xuất hiện đốm trắng trên da của hai cá Showa ở bể cách ly. Cần cách ly và điều trị ngay.",
                         Severity = SeverityLevel.High,
-                        Status = IncidentStatus.Investigating,
+                        Status = IncidentStatus.Reported,
                         OccurredAt = DateTime.UtcNow.AddDays(-4),
                         CreatedAt = DateTime.UtcNow.AddDays(-4),
                         ReportedByUserId = primaryReporter.Id,

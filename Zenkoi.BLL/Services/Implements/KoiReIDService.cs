@@ -64,8 +64,8 @@ namespace Zenkoi.BLL.Services.Implements
             // Call Python API
             var requestBody = new
             {
-                fish_id = fishId,
-                image_urls = cloudinaryUrls,
+                fishId = fishId,
+                imageUrls = cloudinaryUrls,
                 @override = overrideExisting
             };
 
@@ -162,8 +162,8 @@ namespace Zenkoi.BLL.Services.Implements
             // Call Python API
             var requestBody = new
             {
-                image_url = imageUrl,
-                top_k = topK,
+                imageUrl = imageUrl,
+                topK = topK,
                 threshold = (double)threshold
             };
 
@@ -180,6 +180,10 @@ namespace Zenkoi.BLL.Services.Implements
                 response.EnsureSuccessStatusCode();
 
                 var jsonString = await response.Content.ReadAsStringAsync();
+
+                // Debug: Log raw JSON từ Python API
+                Console.WriteLine($"[DEBUG] Python API Response: {jsonString}");
+
                 var pythonResponse = JsonSerializer.Deserialize<PythonIdentifyResponseDTO>(
                     jsonString,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
@@ -190,11 +194,24 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new Exception("Python API trả về response không hợp lệ.");
                 }
 
+                // Debug: Log TopPredictions sau khi deserialize
+                Console.WriteLine($"[DEBUG] TopPredictions count: {pythonResponse.TopPredictions?.Count ?? 0}");
+                if (pythonResponse.TopPredictions != null)
+                {
+                    foreach (var pred in pythonResponse.TopPredictions)
+                    {
+                        Console.WriteLine($"[DEBUG] Prediction: FishId={pred.FishId}, Distance={pred.Distance}, Similarity={pred.Similarity}");
+                    }
+                }
+
                 // Save to database
                 await _unitOfWork.BeginTransactionAsync();
 
                 try
                 {
+                    var serializedTopPredictions = JsonSerializer.Serialize(pythonResponse.TopPredictions);
+                    Console.WriteLine($"[DEBUG] Serialized TopPredictions: {serializedTopPredictions}");
+
                     var identification = new KoiIdentification
                     {
                         ImageUrl = imageUrl,
@@ -202,7 +219,7 @@ namespace Zenkoi.BLL.Services.Implements
                         Confidence = pythonResponse.Similarity,
                         Distance = pythonResponse.Distance,
                         IsUnknown = pythonResponse.IsUnknown,
-                        TopPredictions = JsonSerializer.Serialize(pythonResponse.TopPredictions),
+                        TopPredictions = serializedTopPredictions,
                         CreatedAt = DateTime.UtcNow,
                         CreatedBy = userId
                     };
@@ -352,6 +369,16 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException($"Không tìm thấy identification với id {id}.");
             }
 
+            // Debug: Log TopPredictions từ database
+            Console.WriteLine($"[DEBUG] TopPredictions from DB: {identification.TopPredictions}");
+
+            List<TopPredictionDTO>? deserializedTopPredictions = null;
+            if (!string.IsNullOrEmpty(identification.TopPredictions))
+            {
+                deserializedTopPredictions = JsonSerializer.Deserialize<List<TopPredictionDTO>>(identification.TopPredictions);
+                Console.WriteLine($"[DEBUG] Deserialized TopPredictions count: {deserializedTopPredictions?.Count ?? 0}");
+            }
+
             return new KoiIdentificationResponseDTO
             {
                 Id = identification.Id,
@@ -362,9 +389,7 @@ namespace Zenkoi.BLL.Services.Implements
                 Confidence = identification.Confidence,
                 Distance = identification.Distance,
                 IsUnknown = identification.IsUnknown,
-                TopPredictions = string.IsNullOrEmpty(identification.TopPredictions)
-                    ? null
-                    : JsonSerializer.Deserialize<List<TopPredictionDTO>>(identification.TopPredictions),
+                TopPredictions = deserializedTopPredictions,
                 CreatedAt = identification.CreatedAt,
                 CreatedByName = identification.CreatedByUser?.FullName
             };

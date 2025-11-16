@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Zenkoi.BLL.DTOs.KoiReIDDTOs
 {
@@ -20,8 +21,13 @@ namespace Zenkoi.BLL.DTOs.KoiReIDDTOs
 
     public class TopPredictionDTO
     {
-        public string FishId { get; set; }
+        [JsonPropertyName("fishId")]
+        public string FishIdInGallery { get; set; }
+
+        [JsonPropertyName("distance")]
         public decimal Distance { get; set; }
+
+        [JsonPropertyName("similarity")]
         public decimal Similarity { get; set; }
     }
 }
