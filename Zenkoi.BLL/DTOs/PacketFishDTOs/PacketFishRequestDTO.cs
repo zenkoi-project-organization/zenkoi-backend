@@ -27,9 +27,6 @@ namespace Zenkoi.BLL.DTOs.PacketFishDTOs
         public decimal PricePerPacket { get; set; }
 
         [Required]
-        public FishSize Size { get; set; }
-
-        [Required]
         public DateTime BirthDate { get; set; }
 
         [Required]
