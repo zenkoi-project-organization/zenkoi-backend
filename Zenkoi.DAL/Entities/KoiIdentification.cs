@@ -14,8 +14,6 @@ namespace Zenkoi.DAL.Entities
         public string? TopPredictions { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public int? CreatedBy { get; set; }
-
-        // Navigation properties
         public KoiFish? KoiFish { get; set; }
         public ApplicationUser? CreatedByUser { get; set; }
     }
