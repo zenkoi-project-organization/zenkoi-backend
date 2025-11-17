@@ -35,4 +35,12 @@ public interface IWorkScheduleService
         WorkScheduleFilterRequestDTO filter);
 
     Task<BulkAssignmentResultDTO> BulkAssignStaffAsync(BulkAssignStaffDTO dto);
+    Task<WorkScheduleResponseDTO> CompleteStaffAssignmentAsync(
+        int workScheduleId,
+        int staffId,
+        CompleteStaffAssignmentDTO dto);
+
+    Task<List<StaffAssignmentDetailDTO>> GetStaffAssignmentsAsync(
+        int staffId,
+        WorkScheduleFilterRequestDTO filter);
 }

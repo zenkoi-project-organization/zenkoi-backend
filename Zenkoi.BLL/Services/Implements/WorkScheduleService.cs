@@ -299,17 +299,41 @@ public class WorkScheduleService : IWorkScheduleService
         foreach (var schedule in entities)
         {
             bool isOverdue = schedule.ScheduledDate < currentDate ||
-                           (schedule.ScheduledDate == currentDate && schedule.EndTime < currentTime);
-
+                           (schedule.ScheduledDate == currentDate && schedule.EndTime < currentTime); 
+            
             if (isOverdue &&
                 schedule.Status != DAL.Enums.WorkTaskStatus.Completed &&
                 schedule.Status != DAL.Enums.WorkTaskStatus.Cancelled &&
                 schedule.Status != DAL.Enums.WorkTaskStatus.Incomplete)
             {
-                schedule.Status = DAL.Enums.WorkTaskStatus.Incomplete;
-                schedule.UpdatedAt = DateTime.UtcNow;
-                await _workScheduleRepo.UpdateAsync(schedule);
-                hasUpdates = true;
+            
+                if (schedule.StaffAssignments.Any())
+                {               
+                    bool allStaffCompleted = schedule.StaffAssignments.All(sa => sa.CompletedAt != null);
+
+                    if (allStaffCompleted)
+                    {                       
+                        schedule.Status = DAL.Enums.WorkTaskStatus.Completed;
+                        schedule.UpdatedAt = DateTime.UtcNow;
+                        await _workScheduleRepo.UpdateAsync(schedule);
+                        hasUpdates = true;
+                    }
+                    else
+                    {
+                      
+                        schedule.Status = DAL.Enums.WorkTaskStatus.Incomplete;
+                        schedule.UpdatedAt = DateTime.UtcNow;
+                        await _workScheduleRepo.UpdateAsync(schedule);
+                        hasUpdates = true;
+                    }
+                }
+                else
+                {              
+                    schedule.Status = DAL.Enums.WorkTaskStatus.Incomplete;
+                    schedule.UpdatedAt = DateTime.UtcNow;
+                    await _workScheduleRepo.UpdateAsync(schedule);
+                    hasUpdates = true;
+                }
             }
         }
 
@@ -497,5 +521,155 @@ public class WorkScheduleService : IWorkScheduleService
             result.Errors.Add($"An error occurred during bulk assignment: {ex.Message}");
             throw;
         }
+    }
+
+    public async Task<WorkScheduleResponseDTO> CompleteStaffAssignmentAsync(
+        int workScheduleId,
+        int staffId,
+        CompleteStaffAssignmentDTO dto)
+    {
+        var workSchedule = await _workScheduleRepo.Get(
+            new QueryBuilder<WorkSchedule>()
+                .WithTracking(true)
+                .WithPredicate(ws => ws.Id == workScheduleId)
+                .WithInclude(ws => ws.StaffAssignments)
+                .Build())
+            .FirstOrDefaultAsync();
+
+        if (workSchedule == null)
+            throw new ArgumentException("Work schedule not found");
+      
+        var staffAssignment = workSchedule.StaffAssignments
+            .FirstOrDefault(sa => sa.StaffId == staffId);
+
+        if (staffAssignment == null)
+            throw new ArgumentException("Staff is not assigned to this work schedule");
+
+        if (staffAssignment.CompletedAt != null)
+            throw new InvalidOperationException("This assignment has already been marked as completed");
+
+        staffAssignment.CompletedAt = DateTime.UtcNow;
+        staffAssignment.CompletionNotes = dto.CompletionNotes;
+
+        await _staffAssignmentRepo.UpdateAsync(staffAssignment);
+
+        var allStaffCompleted = workSchedule.StaffAssignments.All(sa => sa.CompletedAt != null);
+
+        if (allStaffCompleted && workSchedule.Status != DAL.Enums.WorkTaskStatus.Completed)
+        {
+            workSchedule.Status = DAL.Enums.WorkTaskStatus.Completed;
+            workSchedule.UpdatedAt = DateTime.UtcNow;
+            await _workScheduleRepo.UpdateAsync(workSchedule);
+        }
+        else if (workSchedule.Status == DAL.Enums.WorkTaskStatus.Pending)
+        {
+            workSchedule.Status = DAL.Enums.WorkTaskStatus.InProgress;
+            workSchedule.UpdatedAt = DateTime.UtcNow;
+            await _workScheduleRepo.UpdateAsync(workSchedule);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+        return await GetWorkScheduleByIdAsync(workSchedule.Id);
+    }
+
+    public async Task<List<StaffAssignmentDetailDTO>> GetStaffAssignmentsAsync(
+        int staffId,
+        WorkScheduleFilterRequestDTO filter)
+    {
+        var queryBuilder = new QueryBuilder<StaffAssignment>()
+            .WithTracking(false)
+            .WithPredicate(sa => sa.StaffId == staffId)
+            .WithInclude(sa => sa.WorkSchedule)
+            .WithInclude(sa => sa.Staff);
+
+        var query = _staffAssignmentRepo.Get(queryBuilder.Build());
+
+        query = query
+            .Include(sa => sa.WorkSchedule)
+                .ThenInclude(ws => ws.TaskTemplate)
+            .Include(sa => sa.WorkSchedule)
+                .ThenInclude(ws => ws.PondAssignments)
+                    .ThenInclude(pa => pa.Pond);
+
+        var staffAssignments = await query.ToListAsync();
+        var workScheduleIds = staffAssignments.Select(sa => sa.WorkScheduleId).Distinct().ToList();
+
+        var staffCountsQuery = await _staffAssignmentRepo.Get(
+            new QueryBuilder<StaffAssignment>()
+                .WithTracking(false)
+                .WithPredicate(sa => workScheduleIds.Contains(sa.WorkScheduleId))
+                .Build())
+            .ToListAsync();
+
+        var staffCounts = staffCountsQuery
+            .GroupBy(sa => sa.WorkScheduleId)
+            .ToDictionary(
+                g => g.Key,
+                g => new
+                {
+                    Total = g.Count(),
+                    Completed = g.Count(sa => sa.CompletedAt != null)
+                }
+            );
+
+        var filteredAssignments = staffAssignments.Where(sa =>
+        {
+            var ws = sa.WorkSchedule;
+            if (ws == null) return false;
+
+            if (filter.Status.HasValue && ws.Status != filter.Status.Value)
+                return false;
+
+            if (filter.ScheduledDateFrom.HasValue && ws.ScheduledDate < filter.ScheduledDateFrom.Value)
+                return false;
+
+            if (filter.ScheduledDateTo.HasValue && ws.ScheduledDate > filter.ScheduledDateTo.Value)
+                return false;
+
+            return true;
+        }).ToList();
+
+        var result = filteredAssignments.Select(sa =>
+        {
+            var ws = sa.WorkSchedule;
+            var taskTemplate = ws.TaskTemplate;
+
+            var counts = staffCounts.TryGetValue(sa.WorkScheduleId, out var count)
+                ? count
+                : new { Total = 0, Completed = 0 };
+
+            return new StaffAssignmentDetailDTO
+            {
+                WorkScheduleId = sa.WorkScheduleId,
+                StaffId = sa.StaffId,
+                CompletedAt = sa.CompletedAt,
+                CompletionNotes = sa.CompletionNotes,
+                IsCompleted = sa.CompletedAt != null,
+
+                ScheduledDate = ws.ScheduledDate,
+                StartTime = ws.StartTime,
+                EndTime = ws.EndTime,
+                Status = ws.Status,
+                WorkScheduleNotes = ws.Notes,
+
+                TaskTemplateId = taskTemplate?.Id ?? 0,
+                TaskName = taskTemplate?.TaskName ?? "Unknown Task",
+                TaskDescription = taskTemplate?.Description,
+                DefaultDuration = taskTemplate?.DefaultDuration ?? 0,
+                TaskNotes = taskTemplate?.NotesTask,
+
+                PondNames = ws.PondAssignments
+                    .Select(pa => pa.Pond?.PondName ?? "Unknown Pond")
+                    .ToList(),
+
+                TotalStaffAssigned = counts.Total,
+                TotalStaffCompleted = counts.Completed
+            };
+        })
+        .OrderByDescending(dto => dto.ScheduledDate)
+        .ThenByDescending(dto => dto.StartTime)
+        .ToList();
+
+        return result;
     }
 }

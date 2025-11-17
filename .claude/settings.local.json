@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(Select-String -Pattern \"error|Error\\(s\\)|Warning\\(s\\)\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
