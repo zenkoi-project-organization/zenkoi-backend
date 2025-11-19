@@ -62,6 +62,11 @@ namespace Zenkoi.BLL.Services.Implements
                 System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.PondStatus == filter.Status.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+            if (filter.IsNotMaintenance.HasValue && filter.IsNotMaintenance.Value)
+            {
+                Expression<Func<Pond, bool>> expr = p => p.PondStatus != PondStatus.Maintenance;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
 
             if (filter.AreaId.HasValue)
             {

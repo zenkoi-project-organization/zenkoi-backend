@@ -229,13 +229,13 @@ namespace Zenkoi.BLL.Services.Implements
             foreach (var p in request.PotentialParents)
             {
                 sb.AppendLine($"- ID {p.Id} | RFID: {p.RFID} | Giống: {p.Variety} | Giới tính: {p.Gender} | Kích thước: {p.Size} cm | Tuổi: {p.Age} | Sức khỏe: {p.Health}");
-                sb.AppendLine($"  🧬 Đột biến: {(p.IsMutated ? $"{p.MutationDescription} ({p.MutationRate}%)" : "Không có")}");
+                sb.AppendLine($"  🧬 Đột biến: {(p.IsMutated ? $"{p.MutationDescription} " : "Không có")}");
                 sb.AppendLine($"  🖼️ Hình ảnh: {p.image}");
                 if (p.BreedingHistory?.Any() == true)
                 {
                     foreach (var h in p.BreedingHistory)
                     {
-                        sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, MutRate={h.MutationRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
+                        sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
                     }
                 }
             }
@@ -336,15 +336,13 @@ namespace Zenkoi.BLL.Services.Implements
                 request.Male.BreedingHistory?.Any(h =>
                     h.FertilizationRate.HasValue ||
                     h.HatchRate.HasValue ||
-                    h.SurvivalRate.HasValue ||
-                    h.MutationRate.HasValue) == true;
+                    h.SurvivalRate.HasValue ) == true;
 
             bool femaleHasData = request.Female != null &&
                 request.Female.BreedingHistory?.Any(h =>
                     h.FertilizationRate.HasValue ||
                     h.HatchRate.HasValue ||
-                    h.SurvivalRate.HasValue ||
-                    h.MutationRate.HasValue) == true;
+                    h.SurvivalRate.HasValue) == true ;
 
             if (!maleHasData || !femaleHasData)
                 throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
@@ -367,13 +365,13 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("🐟 Cá đực (Male):");
             sb.AppendLine($"- ID: {request.Male.Id} | RFID: {request.Male.RFID} | Giống: {request.Male.Variety}");
             sb.AppendLine($"- Kích thước: {request.Male.Size} | Tuổi: {request.Male.Age} | Sức khỏe: {request.Male.Health}");
-            sb.AppendLine($"- Đột biến: {(request.Male.IsMutated ? $"{request.Male.MutationDescription} ({request.Male.MutationRate}%)" : "Không có")}");
+            sb.AppendLine($"- Đột biến: {(request.Male.IsMutated ? $"{request.Male.MutationDescription} " : "Không có")}");
             sb.AppendLine($"- Ảnh: {request.Male.image}");
             if (request.Male.BreedingHistory?.Any() == true)
             {
                 foreach (var h in request.Male.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, MutRate={h.MutationRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%,CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
@@ -382,13 +380,13 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("🐠 Cá cái (Female):");
             sb.AppendLine($"- ID: {request.Female.Id} | RFID: {request.Female.RFID} | Giống: {request.Female.Variety}");
             sb.AppendLine($"- Kích thước: {request.Female.Size} | Tuổi: {request.Female.Age} | Sức khỏe: {request.Female.Health}");
-            sb.AppendLine($"- Đột biến: {(request.Female.IsMutated ? $"{request.Female.MutationDescription} ({request.Female.MutationRate}%)" : "Không có")}");
+            sb.AppendLine($"- Đột biến: {(request.Female.IsMutated ? $"{request.Female.MutationDescription} " : "Không có")}");
             sb.AppendLine($"- Ảnh: {request.Female.image}");
             if (request.Female.BreedingHistory?.Any() == true)
             {
                 foreach (var h in request.Female.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, MutRate={h.MutationRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
