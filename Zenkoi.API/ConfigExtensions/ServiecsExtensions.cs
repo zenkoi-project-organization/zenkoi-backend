@@ -91,7 +91,7 @@ namespace Zenkoi.API.ConfigExtensions
 
             if (env.IsDevelopment())
             {
-              //await TruncateAllTablesExceptMigrationHistory(context);
+    //          await TruncateAllTablesExceptMigrationHistory(context);
             }
 
             #region Seeding Roles
@@ -474,12 +474,6 @@ namespace Zenkoi.API.ConfigExtensions
                 await context.Areas.AddRangeAsync(
                     new Area
                     {
-                        AreaName = "Khu A",
-                        TotalAreaSQM = 500.5,
-                        Description = "Khu nuôi cá koi cao cấp"
-                    },
-                    new Area
-                    {
                         AreaName = "Khu Nuôi Cá Bột A",
                         Description = "Khu vực khởi tạo quy trình nuôi, chuyên cho cá bột."
                     },
@@ -554,51 +548,44 @@ namespace Zenkoi.API.ConfigExtensions
                     new PondType
                     {
                         TypeName = "Ao sinh sản",
-                        Description = "Ao dành cho cá bố mẹ sinh sản",
+                        Description = "Ao dành cho cá bố mẹ sinh sản, thường có giá thể để cá đẻ trứng.",
                         Type = TypeOfPond.Paring,
-                        RecommendedQuantity = 8000
+                        RecommendedQuantity = 2
                     },
+                     new PondType
+                     {
+                         TypeName = "Ao ấp trứng",
+                         Description = "Ao mô phỏng môi trường tự nhiên, có nhiều cây thủy sinh, bùn đáy, ít can thiệp kỹ thuật, dùng để thư giãn.",
+                         Type = TypeOfPond.EggBatch,
+                         RecommendedQuantity = 8000
+                     },
                     new PondType
                     {
                         TypeName = "Ao ương cá bột",
-                        Description = "Ao ương cá con sau khi nở",
+                        Description = "Ao dùng để ương nuôi cá con mới nở (cá bột), cần nước sạch và thức ăn phù hợp.",
                         Type = TypeOfPond.FryFish,
                         RecommendedQuantity = 5000
                     },
                     new PondType
                     {
-                        TypeName = "Show Pond",
-                        Description = "Ao trưng bày, chú trọng tính thẩm mỹ và dễ quan sát cá từ trên cao. Thường có ít thực vật.",
-                        Type = TypeOfPond.BroodStock,
+                        TypeName = "Ao trưng bày",
+                        Description = "Ao được thiết kế đẹp mắt, dễ quan sát từ trên cao, ít cây thủy sinh, chú trọng thẩm mỹ.",
+                        Type = TypeOfPond.Classification,
                         RecommendedQuantity = 2500
                     },
                     new PondType
                     {
-                        TypeName = "Grow-out Pond",
-                        Description = "Ao nuôi dưỡng và phát triển cá non (tosai) hoặc cá cần tăng kích thước nhanh chóng. Yêu cầu hệ thống lọc mạnh.",
+                        TypeName = "Ao nuôi lớn",
+                        Description = "Ao nuôi cá non (tosai) hoặc cá cần tăng trưởng nhanh, yêu cầu hệ thống lọc mạnh và chất lượng nước tốt.",
                         Type = TypeOfPond.BroodStock,
                         RecommendedQuantity = 5000
                     },
                     new PondType
                     {
-                        TypeName = "Quarantine Tank",
-                        Description = "Bể/ao nhỏ dùng để cách ly cá mới hoặc cá bệnh. Cần khử trùng và kiểm soát nhiệt độ nghiêm ngặt.",
+                        TypeName = "Bể cách ly",
+                        Description = "Bể nhỏ dùng để cách ly cá mới mua hoặc cá bệnh, cần kiểm soát nhiệt độ và khử trùng nghiêm ngặt.",
                         Type = TypeOfPond.MarketPond,
                         RecommendedQuantity = 150
-                    },
-                    new PondType
-                    {
-                        TypeName = "Natural Pond",
-                        Description = "Ao tự nhiên, có nhiều cây thủy sinh và bùn đáy. Dùng cho mục đích thư giãn, ít can thiệp kỹ thuật.",
-                        Type = TypeOfPond.EggBatch,
-                        RecommendedQuantity = 8000
-                    },
-                    new PondType
-                    {
-                        TypeName = "Breeding Pond",
-                        Description = "Ao chuyên dùng để sinh sản, thường có đáy bằng và các giá thể đặc biệt để cá đẻ trứng.",
-                        Type = TypeOfPond.MarketPond,
-                        RecommendedQuantity = 1000
                     }
                 );
                 await context.SaveChangesAsync();
@@ -609,72 +596,414 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.Ponds.Any())
             {
                 await context.Ponds.AddRangeAsync(
-                     new Pond
-                     {
-                         AreaId = 1,
-                         PondTypeId = 1,
-                         PondName = "Ao Chính Fuji",
-                         PondStatus = PondStatus.Active,
-                         Location = "Cánh Đông, Khu Vườn Zen",
-                         CapacityLiters = 15000,
-                         DepthMeters = 1.8,
-                         LengthMeters = 6.0,
-                         WidthMeters = 4.0,
-                         CreatedAt = DateTime.UtcNow
-                     },
+
+                    // ===== 1. Ao sinh sản (PondTypeId = 1) – 4 hồ =====
                     new Pond
                     {
-                        AreaId = 2,
-                        PondTypeId = 3,
-                        PondName = "Bể Cách Ly",
-                        PondStatus = PondStatus.Maintenance,
-                        Location = "Nhà Lọc Kỹ Thuật",
-                        CapacityLiters = 500,
-                        DepthMeters = 0.8,
-                        LengthMeters = 1.2,
-                        WidthMeters = 1.0,
-                        CreatedAt = DateTime.UtcNow
-                    },
-                    new Pond
-                    {
-                        AreaId = 1,
-                        PondTypeId = 2,
-                        PondName = "Ao Phát Triển 1",
+                        AreaId = 3,
+                        PondTypeId = 1,
+                        PondName = "Ao Sinh Sản SS-01",
                         PondStatus = PondStatus.Active,
-                        Location = "Cánh Tây, Khu Nuôi Dưỡng",
-                        CapacityLiters = 25000,
-                        DepthMeters = 2.0,
-                        LengthMeters = 8.0,
-                        WidthMeters = 5.0,
+                        Location = "Khu C - Góc Bắc",
+                        LengthMeters = 3.5,
+                        WidthMeters = 2.5,
+                        DepthMeters = 1.0,
+                        CapacityLiters = 8750,               // 3.5 × 2.5 × 1.0 × 1000
+                        CurrentCapacity = 8200,              // ~94%
+                        MaxFishCount = 4,
+                        CurrentCount = 2,
                         CreatedAt = DateTime.UtcNow
                     },
                     new Pond
                     {
                         AreaId = 3,
-                        PondTypeId = 5,
-                        PondName = "Ao Sinh Sản 101",
-                        PondStatus = PondStatus.Empty,
-                        Location = "Khu Chuẩn Bị Cá Bố Mẹ",
-                        CapacityLiters = 4000,
-                        DepthMeters = 1.0,
+                        PondTypeId = 1,
+                        PondName = "Ao Sinh Sản SS-02",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu C - Góc Nam",
                         LengthMeters = 3.5,
-                        WidthMeters = 3.0,
+                        WidthMeters = 2.5,
+                        DepthMeters = 1.0,
+                        CapacityLiters = 8750,
+                        CurrentCapacity = 8000,              // ~91%
+                        MaxFishCount = 4,
+                        CurrentCount = 3,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 3,
+                        PondTypeId = 1,
+                        PondName = "Ao Sinh Sản SS-03",
+                        PondStatus = PondStatus.Empty,
+                        Location = "Khu C - Hàng giữa",
+                        LengthMeters = 3.5,
+                        WidthMeters = 2.5,
+                        DepthMeters = 1.0,
+                        CapacityLiters = 8750,
+                        CurrentCapacity = 0,
+                        MaxFishCount = 4,
+                        CurrentCount = 0,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 3,
+                        PondTypeId = 1,
+                        PondName = "Ao Sinh Sản SS-04",
+                        PondStatus = PondStatus.Maintenance,
+                        Location = "Khu C - Góc Tây",
+                        LengthMeters = 3.5,
+                        WidthMeters = 2.5,
+                        DepthMeters = 1.0,
+                        CapacityLiters = 8750,
+                        CurrentCapacity = 3500,              // ~40%
+                        MaxFishCount = 4,
+                        CurrentCount = 0,
+                        CreatedAt = DateTime.UtcNow
+                    },
+
+
+
+                    // ===== 2. Ao ấp trứng (PondTypeId = 2) – 4 hồ =====
+                    new Pond
+                    {
+                        AreaId = 4,
+                        PondTypeId = 2,
+                        PondName = "Ao Ấp Trứng AT-01",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu X - Phòng ấp",
+                        LengthMeters = 5.0,
+                        WidthMeters = 2.5,
+                        DepthMeters = 1.5,
+                        CapacityLiters = 18750,              // 5.0 × 2.5 × 1.5 × 1000
+                        CurrentCapacity = 17500,             // ~93%
+                        MaxFishCount = 50000,
+                        CurrentCount = 30000,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 4,
+                        PondTypeId = 2,
+                        PondName = "Ao Ấp Trứng AT-02",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu X - Hàng 1",
+                        LengthMeters = 5.0,
+                        WidthMeters = 2.5,
+                        DepthMeters = 1.5,
+                        CapacityLiters = 18750,
+                        CurrentCapacity = 17000,             // ~91%
+                        MaxFishCount = 50000,
+                        CurrentCount = 25000,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 4,
+                        PondTypeId = 2,
+                        PondName = "Ao Ấp Trứng AT-03",
+                        PondStatus = PondStatus.Maintenance,
+                        Location = "Khu X - Hàng 2",
+                        LengthMeters = 5.0,
+                        WidthMeters = 2.5,
+                        DepthMeters = 1.5,
+                        CapacityLiters = 18750,
+                        CurrentCapacity = 7500,              // ~40%
+                        MaxFishCount = 50000,
+                        CurrentCount = 0,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 4,
+                        PondTypeId = 2,
+                        PondName = "Ao Ấp Trứng AT-04",
+                        PondStatus = PondStatus.Empty,
+                        Location = "Khu X - Góc",
+                        LengthMeters = 5.0,
+                        WidthMeters = 2.5,
+                        DepthMeters = 1.5,
+                        CapacityLiters = 18750,
+                        CurrentCapacity = 0,
+                        MaxFishCount = 50000,
+                        CurrentCount = 0,
+                        CreatedAt = DateTime.UtcNow
+                    },
+
+
+
+                    // ===== 3. Ao ương cá bột (PondTypeId = 3) – 4 hồ =====
+                    new Pond
+                    {
+                        AreaId = 1,
+                        PondTypeId = 3,
+                        PondName = "Ao Ương Bột UB-01",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu A - Dãy 1",
+                        LengthMeters = 4.0,
+                        WidthMeters = 2.0,
+                        DepthMeters = 1.2,
+                        CapacityLiters = 9600,               // 4.0 × 2.0 × 1.2 × 1000
+                        CurrentCapacity = 9000,              // ~94%
+                        MaxFishCount = 20000,
+                        CurrentCount = 15000,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 1,
+                        PondTypeId = 3,
+                        PondName = "Ao Ương Bột UB-02",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu A - Dãy 2",
+                        LengthMeters = 4.0,
+                        WidthMeters = 2.0,
+                        DepthMeters = 1.2,
+                        CapacityLiters = 9600,
+                        CurrentCapacity = 8800,              // ~92%
+                        MaxFishCount = 20000,
+                        CurrentCount = 12000,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 1,
+                        PondTypeId = 3,
+                        PondName = "Ao Ương Bột UB-03",
+                        PondStatus = PondStatus.Maintenance,
+                        Location = "Khu A - Dãy 3",
+                        LengthMeters = 4.0,
+                        WidthMeters = 2.0,
+                        DepthMeters = 1.2,
+                        CapacityLiters = 9600,
+                        CurrentCapacity = 4000,              // ~42%
+                        MaxFishCount = 20000,
+                        CurrentCount = 0,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 1,
+                        PondTypeId = 3,
+                        PondName = "Ao Ương Bột UB-04",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu A - Dãy 4",
+                        LengthMeters = 4.0,
+                        WidthMeters = 2.0,
+                        DepthMeters = 1.2,
+                        CapacityLiters = 9600,
+                        CurrentCapacity = 9200,              // ~96%
+                        MaxFishCount = 20000,
+                        CurrentCount = 18000,
+                        CreatedAt = DateTime.UtcNow
+                    },
+
+
+
+                    // ===== 4. Ao trưng bày (PondTypeId = 4) – 4 hồ =====
+                    new Pond
+                    {
+                        AreaId = 4,
+                        PondTypeId = 4,
+                        PondName = "Ao Trưng Bày TB-01",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu X - Khu khách",
+                        LengthMeters = 8.0,
+                        WidthMeters = 5.0,
+                        DepthMeters = 1.6,
+                        CapacityLiters = 64000,              // 8.0 × 5.0 × 1.6 × 1000
+                        CurrentCapacity = 60000,             // ~94%
+                        MaxFishCount = 80,
+                        CurrentCount = 65,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 4,
+                        PondTypeId = 4,
+                        PondName = "Ao Trưng Bày TB-02",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu X - Góc vườn",
+                        LengthMeters = 7.0,
+                        WidthMeters = 5.0,
+                        DepthMeters = 1.5,
+                        CapacityLiters = 52500,              // 7.0 × 5.0 × 1.5 × 1000
+                        CurrentCapacity = 49000,             // ~93%
+                        MaxFishCount = 70,
+                        CurrentCount = 55,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 4,
+                        PondTypeId = 4,
+                        PondName = "Ao Trưng Bày TB-03",
+                        PondStatus = PondStatus.Maintenance,
+                        Location = "Khu X - Sân chính",
+                        LengthMeters = 8.0,
+                        WidthMeters = 5.0,
+                        DepthMeters = 1.6,
+                        CapacityLiters = 64000,
+                        CurrentCapacity = 25000,             // ~39%
+                        MaxFishCount = 80,
+                        CurrentCount = 0,
                         CreatedAt = DateTime.UtcNow
                     },
                     new Pond
                     {
                         AreaId = 2,
                         PondTypeId = 4,
-                        PondName = "Ao Thư Giãn",
-                        PondStatus = PondStatus.Maintenance,
-                        Location = "Góc Hồ Sen Lớn",
-                        CapacityLiters = 35000,
-                        DepthMeters = 2.2,
-                        LengthMeters = 10.0,
+                        PondName = "Ao Trưng Bày TB-04",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu B - Góc đẹp",
+                        LengthMeters = 6.0,
+                        WidthMeters = 4.0,
+                        DepthMeters = 1.4,
+                        CapacityLiters = 33600,              // 6.0 × 4.0 × 1.4 × 1000
+                        CurrentCapacity = 31000,             // ~92%
+                        MaxFishCount = 60,
+                        CurrentCount = 48,
+                        CreatedAt = DateTime.UtcNow
+                    },
+
+
+
+                    // ===== 5. Ao nuôi lớn (PondTypeId = 5) – 4 hồ =====
+                    new Pond
+                    {
+                        AreaId = 2,
+                        PondTypeId = 5,
+                        PondName = "Ao Nuôi Lớn NL-01",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu B - Dãy chính",
+                        LengthMeters = 8.0,
                         WidthMeters = 5.0,
+                        DepthMeters = 2.0,
+                        CapacityLiters = 80000,              // 8.0 × 5.0 × 2.0 × 1000
+                        CurrentCapacity = 75000,             // ~94%
+                        MaxFishCount = 4000,
+                        CurrentCount = 3200,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 2,
+                        PondTypeId = 5,
+                        PondName = "Ao Nuôi Lớn NL-02",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu B - Dãy phụ",
+                        LengthMeters = 8.0,
+                        WidthMeters = 5.0,
+                        DepthMeters = 2.0,
+                        CapacityLiters = 80000,
+                        CurrentCapacity = 72000,             // ~90%
+                        MaxFishCount = 4000,
+                        CurrentCount = 2800,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 2,
+                        PondTypeId = 5,
+                        PondName = "Ao Nuôi Lớn NL-03",
+                        PondStatus = PondStatus.Empty,
+                        Location = "Khu B - Góc",
+                        LengthMeters = 8.0,
+                        WidthMeters = 5.0,
+                        DepthMeters = 2.0,
+                        CapacityLiters = 80000,
+                        CurrentCapacity = 0,
+                        MaxFishCount = 4000,
+                        CurrentCount = 0,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 2,
+                        PondTypeId = 5,
+                        PondName = "Ao Nuôi Lớn NL-04",
+                        PondStatus = PondStatus.Maintenance,
+                        Location = "Khu B - Hàng cuối",
+                        LengthMeters = 8.0,
+                        WidthMeters = 5.0,
+                        DepthMeters = 2.0,
+                        CapacityLiters = 80000,
+                        CurrentCapacity = 30000,             // ~38%
+                        MaxFishCount = 4000,
+                        CurrentCount = 0,
+                        CreatedAt = DateTime.UtcNow
+                    },
+
+
+
+                    // ===== 6. Bể cách ly (PondTypeId = 6) – 4 hồ =====
+                    new Pond
+                    {
+                        AreaId = 5,
+                        PondTypeId = 6,
+                        PondName = "Bể Cách Ly CL-01",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu D - Phòng 1",
+                        LengthMeters = 1.2,
+                        WidthMeters = 1.0,
+                        DepthMeters = 0.8,
+                        CapacityLiters = 960,                // 1.2 × 1.0 × 0.8 × 1000
+                        CurrentCapacity = 850,               // ~89%
+                        MaxFishCount = 30,
+                        CurrentCount = 12,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 5,
+                        PondTypeId = 6,
+                        PondName = "Bể Cách Ly CL-02",
+                        PondStatus = PondStatus.Active,
+                        Location = "Khu D - Phòng 2",
+                        LengthMeters = 1.2,
+                        WidthMeters = 1.0,
+                        DepthMeters = 0.8,
+                        CapacityLiters = 960,
+                        CurrentCapacity = 800,               // ~83%
+                        MaxFishCount = 30,
+                        CurrentCount = 8,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 5,
+                        PondTypeId = 6,
+                        PondName = "Bể Cách Ly CL-03",
+                        PondStatus = PondStatus.Empty,
+                        Location = "Khu D - Phòng 3",
+                        LengthMeters = 1.2,
+                        WidthMeters = 1.0,
+                        DepthMeters = 0.8,
+                        CapacityLiters = 960,
+                        CurrentCapacity = 0,
+                        MaxFishCount = 30,
+                        CurrentCount = 0,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Pond
+                    {
+                        AreaId = 5,
+                        PondTypeId = 6,
+                        PondName = "Bể Cách Ly CL-04",
+                        PondStatus = PondStatus.Maintenance,
+                        Location = "Khu D - Phòng 4",
+                        LengthMeters = 1.2,
+                        WidthMeters = 1.0,
+                        DepthMeters = 0.8,
+                        CapacityLiters = 960,
+                        CurrentCapacity = 400,               // ~42%
+                        MaxFishCount = 30,
+                        CurrentCount = 0,
                         CreatedAt = DateTime.UtcNow
                     }
                 );
+
                 await context.SaveChangesAsync();
             }
             #endregion
@@ -683,17 +1012,17 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.KoiFishes.Any())
             {
                 await context.KoiFishes.AddRangeAsync(
-
-                    // 🧬 1. Kohaku Male
+                    // ================== KOHAKU (1) - 6 con ==================
+                    // KOI-0001 - Kohaku Male - Maruten
                     new KoiFish
                     {
                         BirthDate = new DateTime(2022, 5, 10),
-                        Description = "Kohaku đực đỏ trắng rõ nét, thân thon dài, Hi đều – dòng thuần Nhật.",
+                        Description = "Kohaku đực Maruten, Hi đỏ tròn trên đầu, thân thon dài, nền trắng tuyết.",
                         Gender = Gender.Male,
                         Pattern = "Maruten",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        Images = new List<string> { "https://www.nishikigoi-export.jp/wp-content/uploads/2024/02/240212-035_01-scaled.jpg" },
                         PondId = 1,
                         RFID = "KOI-0001",
                         SellingPrice = 65000000m,
@@ -708,186 +1037,18 @@ namespace Zenkoi.API.ConfigExtensions
                         MutationRate = 0
                     },
 
-                    // 🧬 2. Sanke Male
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2022, 8, 25),
-                        Description = "Sanke đực ba màu rõ, Sumi đậm, Beni tươi – dáng cân đối.",
-                        Gender = Gender.Male,
-                        Pattern = "Inazuma",
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 2,
-                        RFID = "KOI-0002",
-                        SellingPrice = 48000000m,
-                        Size = 27.2,
-                        Type = KoiType.High,
-                        VarietyId = 2,
-                        Origin = "Dainichi Koi Farm, Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = true,
-                        MutationDescription = "Ginrin ánh sáng nhẹ",
-                        MutationRate = 0.75
-                    },
-
-                    // 🧬 3. Showa Male
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2021, 9, 15),
-                        Description = "Showa đực mạnh mẽ, Sumi đen tuyền, Hi đỏ sâu – bố giống tốt.",
-                        Gender = Gender.Male,
-                        Pattern = "None",
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 3,
-                        RFID = "KOI-0003",
-                        SellingPrice = 78000000m,
-                        Size = 30.5,
-                        Type = KoiType.Show,
-                        VarietyId = 3,
-                        Origin = "Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
-                    },
-
-                    // 🧬 4. Ogon Male
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2021, 6, 10),
-                        Description = "Yamabuki Ogon đực ánh kim vàng rực rỡ, thân to khỏe.",
-                        Gender = Gender.Male,
-                        Pattern = "None",
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 4,
-                        RFID = "KOI-0004",
-                        SellingPrice = 85000000m,
-                        Size = 32.0,
-                        Type = KoiType.Show,
-                        VarietyId = 4,
-                        Origin = "Niigata, Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = true,
-                        MutationDescription = "Ogon ánh kim vàng mạnh",
-                        MutationRate = 0.9
-                    },
-
-                    // 🧬 5. Asagi Male
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2023, 3, 12),
-                        Description = "Asagi đực trẻ, vảy xanh bạc đều, bụng Hi đỏ nhẹ – gen ổn định.",
-                        Gender = Gender.Male,
-                        Pattern = "None",
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 5,
-                        RFID = "KOI-0005",
-                        SellingPrice = 22000000m,
-                        Size = 24.0,
-                        Type = KoiType.High,
-                        VarietyId = 5,
-                        Origin = "Vietnam Farm",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
-                    },
-
-                    // 🧬 6. Asagi Male (Doitsu)
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2022, 11, 30),
-                        Description = "Asagi đực Doitsu – vảy lưng xanh đậm, lưng trơn mượt.",
-                        Gender = Gender.Male,
-                        Pattern = "None",
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 2,
-                        RFID = "KOI-0006",
-                        SellingPrice = 40000000m,
-                        Size = 26.0,
-                        Type = KoiType.High,
-                        VarietyId = 5,
-                        Origin = "Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = true,
-                        MutationDescription = "Doitsu không vảy",
-                        MutationRate = 0.85
-                    },
-
-                    // 🧬 7. Sanke Male (Bekko)
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2023, 2, 15),
-                        Description = "Sanke đực dạng Bekko – nền trắng, đốm đen rõ.",
-                        Gender = Gender.Male,
-                        Pattern = "None",
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.Available,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 3,
-                        RFID = "KOI-0007",
-                        SellingPrice = 25000000m,
-                        Size = 23.5,
-                        Type = KoiType.High,
-                        VarietyId = 2,
-                        Origin = "Vietnam Farm",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
-                    },
-
-                    // 🧬 8. Showa Male (Kumonryu)
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2021, 7, 7),
-                        Description = "Showa đực biến sắc kiểu Kumonryu – đen trắng uốn lượn.",
-                        Gender = Gender.Male,
-                        Pattern = "None",
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 5,
-                        RFID = "KOI-0008",
-                        SellingPrice = 78000000m,
-                        Size = 31.5,
-                        Type = KoiType.Show,
-                        VarietyId = 3,
-                        Origin = "Niigata, Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = true,
-                        MutationDescription = "Biến sắc theo nhiệt độ",
-                        MutationRate = 0.88
-                    },
-
-                    // 🐠 9. Kohaku Female
+                    // KOI-0002 - Kohaku Female - Tancho
                     new KoiFish
                     {
                         BirthDate = new DateTime(2022, 5, 10),
-                        Description = "Kohaku mái thân bầu, Hi đều, vảy bóng – sinh sản ổn định.",
+                        Description = "Kohaku mái Tancho, chấm đỏ tròn trên đầu, thân bầu, sinh sản tốt.",
                         Gender = Gender.Female,
                         Pattern = "Tancho",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2023/01/tancho-kohaku.jpg" },
                         PondId = 1,
-                        RFID = "KOI-0009",
+                        RFID = "KOI-0002",
                         SellingPrice = 62000000m,
                         Size = 29.0,
                         Type = KoiType.Show,
@@ -900,18 +1061,139 @@ namespace Zenkoi.API.ConfigExtensions
                         MutationRate = 0
                     },
 
-                    // 🐠 10. Sanke Female
+                    // KOI-0003 - Kohaku Male - Inazuma
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 4, 18),
+                        Description = "Kohaku đực Inazuma, Hi đỏ tia chớp chạy dọc thân, nền trắng tinh.",
+                        Gender = Gender.Male,
+                        Pattern = "Inazuma",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2023/05/kohaku-inazuma.jpg" },
+                        PondId = 2,
+                        RFID = "KOI-0003",
+                        SellingPrice = 58000000m,
+                        Size = 29.0,
+                        Type = KoiType.Show,
+                        VarietyId = 1,
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // KOI-0004 - Kohaku Female - Nidan
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 7, 22),
+                        Description = "Kohaku mái Nidan, 2 mảng Hi đỏ cân đối, thân bầu, nền trắng sạch.",
+                        Gender = Gender.Female,
+                        Pattern = "Nidan",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2023/07/kohaku-nidan.jpg" },
+                        PondId = 3,
+                        RFID = "KOI-0004",
+                        SellingPrice = 61000000m,
+                        Size = 30.0,
+                        Type = KoiType.Show,
+                        VarietyId = 1,
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // KOI-0005 - Kohaku Male - Sandan
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 6, 12),
+                        Description = "Kohaku đực Sandan, 3 mảng Hi đỏ đều, thân dài, dáng chuẩn show.",
+                        Gender = Gender.Male,
+                        Pattern = "Sandan",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2022/08/kohaku-sandan.jpg" },
+                        PondId = 4,
+                        RFID = "KOI-0005",
+                        SellingPrice = 67000000m,
+                        Size = 30.5,
+                        Type = KoiType.Show,
+                        VarietyId = 1,
+                        Origin = "Dainichi Koi Farm, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Hi đỏ đậm",
+                        MutationRate = 0.8
+                    },
+
+                    // KOI-0006 - Kohaku Female - Kuchibeni
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 8, 10),
+                        Description = "Kohaku mái Kuchibeni, môi đỏ nổi bật, Hi đều, thân bầu sinh sản.",
+                        Gender = Gender.Female,
+                        Pattern = "Kuchibeni",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2024/01/kohaku-kuchibeni.jpg" },
+                        PondId = 5,
+                        RFID = "KOI-0006",
+                        SellingPrice = 70000000m,
+                        Size = 31.0,
+                        Type = KoiType.Show,
+                        VarietyId = 1,
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // ================== SANKE (2) - 6 con ==================
+                    // KOI-0007 - Sanke Male - Inazuma
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 8, 25),
+                        Description = "Sanke đực Inazuma, Sumi đen tia chớp, Hi đỏ tươi, nền trắng sạch.",
+                        Gender = Gender.Male,
+                        Pattern = "Inazuma",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://danviet.ex-cdn.com/files/f1/296231569849192448/2022/5/10/ca-koi-dat-nhat-the-gioijpg2-1652174894796.jpg" },
+                        PondId = 2,
+                        RFID = "KOI-0007",
+                        SellingPrice = 48000000m,
+                        Size = 27.2,
+                        Type = KoiType.High,
+                        VarietyId = 2,
+                        Origin = "Dainichi Koi Farm, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ginrin nhẹ",
+                        MutationRate = 0.75
+                    },
+
+                    // KOI-0008 - Sanke Female - Tsubo Sumi
                     new KoiFish
                     {
                         BirthDate = new DateTime(2023, 7, 1),
-                        Description = "Sanke mái ba màu rõ, Sumi sáng, thân tròn – gen ổn định.",
+                        Description = "Sanke mái Tsubo Sumi, chấm đen tròn đều, Hi đỏ rực, gen ổn định.",
                         Gender = Gender.Female,
-                        Pattern = "None",
+                        Pattern = "Tsubo Sumi",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 2,
-                        RFID = "KOI-0010",
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2023/04/sanke-tsubo.jpg" },
+                        PondId = 3,
+                        RFID = "KOI-0008",
                         SellingPrice = 45000000m,
                         Size = 28.5,
                         Type = KoiType.High,
@@ -920,22 +1202,143 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ginrin ánh sáng mạnh",
+                        MutationDescription = "Ginrin toàn thân",
                         MutationRate = 0.8
                     },
 
-                    // 🐠 11. Showa Female
+                    // KOI-0009 - Sanke Male - Tsubo Sumi
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 10, 5),
+                        Description = "Sanke đực Tsubo Sumi, chấm đen tròn đều, Hi đỏ đậm, dáng cân đối.",
+                        Gender = Gender.Male,
+                        Pattern = "Tsubo Sumi",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2023/06/sanke-tsubo.jpg" },
+                        PondId = 4,
+                        RFID = "KOI-0009",
+                        SellingPrice = 72000000m,
+                        Size = 31.5,
+                        Type = KoiType.Show,
+                        VarietyId = 2,
+                        Origin = "Dainichi Koi Farm, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // KOI-0010 - Sanke Female - Maruten
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 3, 30),
+                        Description = "Sanke mái Maruten, Sumi chấm đầu, Hi đỏ tròn, nền trắng sạch.",
+                        Gender = Gender.Female,
+                        Pattern = "Maruten",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2023/04/sanke-maruten.jpg" },
+                        PondId = 5,
+                        RFID = "KOI-0010",
+                        SellingPrice = 49000000m,
+                        Size = 28.0,
+                        Type = KoiType.High,
+                        VarietyId = 2,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ginrin nhẹ",
+                        MutationRate = 0.7
+                    },
+
+                    // KOI-0011 - Sanke Male - Ginrin
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 1, 10),
+                        Description = "Sanke đực Ginrin toàn thân, Sumi đen nổi, Hi đỏ rực, ánh kim mạnh.",
+                        Gender = Gender.Male,
+                        Pattern = "Ginrin",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2024/02/sanke-ginrin.jpg" },
+                        PondId = 1,
+                        RFID = "KOI-0011",
+                        SellingPrice = 81000000m,
+                        Size = 32.0,
+                        Type = KoiType.Show,
+                        VarietyId = 2,
+                        Origin = "Dainichi Koi Farm, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ginrin mạnh",
+                        MutationRate = 0.92
+                    },
+
+                    // KOI-0012 - Sanke Female - Young
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2024, 2, 20),
+                        Description = "Sanke mái non, Sumi đang lên, Hi đỏ tươi, tiềm năng cao.",
+                        Gender = Gender.Female,
+                        Pattern = "Standard",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2024/01/sanke-young.jpg" },
+                        PondId = 2,
+                        RFID = "KOI-0012",
+                        SellingPrice = 25000000m,
+                        Size = 23.0,
+                        Type = KoiType.High,
+                        VarietyId = 2,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // ================== SHOWA (3) - 6 con ==================
+                    // KOI-0013 - Showa Male
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2021, 9, 15),
+                        Description = "Showa đực mạnh mẽ, Sumi đen tuyền, Hi đỏ sâu, Moto-guro đầu.",
+                        Gender = Gender.Male,
+                        Pattern = "Standard",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://www.kodamakoifarm.com/wp-content/uploads/2025/09/x0910s045.jpg" },
+                        PondId = 3,
+                        RFID = "KOI-0013",
+                        SellingPrice = 78000000m,
+                        Size = 30.5,
+                        Type = KoiType.Show,
+                        VarietyId = 3,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // KOI-0014 - Showa Female
                     new KoiFish
                     {
                         BirthDate = new DateTime(2021, 8, 5),
-                        Description = "Showa mái đỏ đen trắng rõ, cá mẹ tiềm năng – dòng Dainichi.",
+                        Description = "Showa mái dòng Dainichi, Sumi đen bao nền, Hi đỏ nổi, mẹ giống tốt.",
                         Gender = Gender.Female,
-                        Pattern = "None",
+                        Pattern = "Hi Showa",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 3,
-                        RFID = "KOI-0011",
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2024/02/hi-showa.jpg" },
+                        PondId = 4,
+                        RFID = "KOI-0014",
                         SellingPrice = 88000000m,
                         Size = 33.0,
                         Type = KoiType.Show,
@@ -948,18 +1351,139 @@ namespace Zenkoi.API.ConfigExtensions
                         MutationRate = 0
                     },
 
-                    // 🐠 12. Ogon Female
+                    // KOI-0015 - Showa Male - Kindai
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2021, 11, 20),
+                        Description = "Showa đực Kindai, Sumi bao nền, ít Shiroji, Hi đỏ nổi bật.",
+                        Gender = Gender.Male,
+                        Pattern = "Kindai",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2024/01/showa-kindai.jpg" },
+                        PondId = 5,
+                        RFID = "KOI-0015",
+                        SellingPrice = 95000000m,
+                        Size = 34.0,
+                        Type = KoiType.Show,
+                        VarietyId = 3,
+                        Origin = "Marudo Koi Farm, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Sumi siêu đậm",
+                        MutationRate = 0.82
+                    },
+
+                    // KOI-0016 - Showa Female - Hi Showa
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2021, 12, 1),
+                        Description = "Hi Showa mái, đỏ chiếm ưu thế, Sumi viền rõ, Shiroji sáng.",
+                        Gender = Gender.Female,
+                        Pattern = "Hi Showa",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2024/02/hi-showa-female.jpg" },
+                        PondId = 1,
+                        RFID = "KOI-0016",
+                        SellingPrice = 92000000m,
+                        Size = 35.0,
+                        Type = KoiType.Show,
+                        VarietyId = 3,
+                        Origin = "Isa Koi Farm, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // KOI-0017 - Showa Male - Boke
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2021, 10, 5),
+                        Description = "Showa đực Boke, Sumi mờ nghệ thuật, Hi đỏ sâu, dáng mạnh.",
+                        Gender = Gender.Male,
+                        Pattern = "Boke",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2023/09/showa-boke.jpg" },
+                        PondId = 2,
+                        RFID = "KOI-0017",
+                        SellingPrice = 89000000m,
+                        Size = 33.5,
+                        Type = KoiType.Show,
+                        VarietyId = 3,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Boke tự nhiên",
+                        MutationRate = 0.78
+                    },
+
+                    // KOI-0018 - Showa Female - Modern
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 3, 15),
+                        Description = "Showa mái Modern, Sumi đậm, Hi đỏ lớn, dáng mạnh, dòng mới.",
+                        Gender = Gender.Female,
+                        Pattern = "Modern",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2024/03/showa-modern.jpg" },
+                        PondId = 3,
+                        RFID = "KOI-0018",
+                        SellingPrice = 98000000m,
+                        Size = 36.0,
+                        Type = KoiType.Show,
+                        VarietyId = 3,
+                        Origin = "Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // ================== OGON (4) - 6 con ==================
+                    // KOI-0019 - Ogon Male - Yamabuki
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2021, 6, 10),
+                        Description = "Yamabuki Ogon đực, vàng kim rực rỡ, thân to khỏe, ánh kim đều.",
+                        Gender = Gender.Male,
+                        Pattern = "Solid",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.NotForSale,
+                        Images = new List<string> { "https://cdn0497.cdn4s.com/media/fish/img_0095.png" },
+                        PondId = 4,
+                        RFID = "KOI-0019",
+                        SellingPrice = 85000000m,
+                        Size = 32.0,
+                        Type = KoiType.Show,
+                        VarietyId = 4,
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ánh kim vàng mạnh",
+                        MutationRate = 0.7
+                    },
+
+                    // KOI-0020 - Ogon Female - Yamabuki
                     new KoiFish
                     {
                         BirthDate = new DateTime(2022, 11, 20),
-                        Description = "Yamabuki Ogon mái vàng kim óng ánh, thân tròn, ánh sáng mạnh.",
+                        Description = "Yamabuki Ogon mái, vàng kim óng ánh, thân tròn, ánh kim đều.",
                         Gender = Gender.Female,
-                        Pattern = "None",
+                        Pattern = "Solid",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 4,
-                        RFID = "KOI-0012",
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2023/08/ogon-yamabuki.jpg" },
+                        PondId = 5,
+                        RFID = "KOI-0020",
                         SellingPrice = 52000000m,
                         Size = 30.0,
                         Type = KoiType.Show,
@@ -968,22 +1492,143 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ogon ánh kim vàng đậm",
+                        MutationDescription = "Ánh kim vàng đậm",
                         MutationRate = 0.88
                     },
 
-                    // 🐠 13. Asagi Female
+                    // KOI-0021 - Ogon Male - Platinum
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 1, 15),
+                        Description = "Platinum Ogon đực, trắng bạc ánh kim, không tỳ vết, dáng đẹp.",
+                        Gender = Gender.Male,
+                        Pattern = "Solid",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2024/01/platinum-ogon.jpg" },
+                        PondId = 1,
+                        RFID = "KOI-0021",
+                        SellingPrice = 68000000m,
+                        Size = 30.5,
+                        Type = KoiType.Show,
+                        VarietyId = 4,
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ánh kim bạch kim",
+                        MutationRate = 0.9
+                    },
+
+                    // KOI-0022 - Ogon Female - Cream
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2022, 9, 15),
+                        Description = "Cream Ogon mái, vàng kem óng ánh, thân tròn, ánh kim đều.",
+                        Gender = Gender.Female,
+                        Pattern = "Solid",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2023/07/cream-ogon.jpg" },
+                        PondId = 2,
+                        RFID = "KOI-0022",
+                        SellingPrice = 55000000m,
+                        Size = 31.0,
+                        Type = KoiType.Show,
+                        VarietyId = 4,
+                        Origin = "Niigata, Japan",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ánh kim kem",
+                        MutationRate = 0.85
+                    },
+
+                    // KOI-0023 - Ogon Male - Hariwake
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 2, 28),
+                        Description = "Hariwake đực (Ogon lai), vàng kim trên nền trắng ánh kim.",
+                        Gender = Gender.Male,
+                        Pattern = "Hariwake",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2023/09/hariwake.jpg" },
+                        PondId = 3,
+                        RFID = "KOI-0023",
+                        SellingPrice = 48000000m,
+                        Size = 29.0,
+                        Type = KoiType.High,
+                        VarietyId = 4,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = true,
+                        MutationDescription = "Ogon lai",
+                        MutationRate = 0.75
+                    },
+
+                    // KOI-0024 - Ogon Female - Young
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2024, 3, 10),
+                        Description = "Yamabuki Ogon mái non, vàng kim sáng, tiềm năng cao.",
+                        Gender = Gender.Female,
+                        Pattern = "Solid",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2024/02/ogon-young.jpg" },
+                        PondId = 4,
+                        RFID = "KOI-0024",
+                        SellingPrice = 32000000m,
+                        Size = 25.0,
+                        Type = KoiType.High,
+                        VarietyId = 4,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // ================== ASAGI (5) - 6 con ==================
+                    // KOI-0025 - Asagi Male
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 3, 12),
+                        Description = "Asagi đực, vảy lưới xanh cobalt, bụng Hi đỏ cam, viền trắng rõ.",
+                        Gender = Gender.Male,
+                        Pattern = "Standard",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://cdn0497.cdn4s.com/media/fish/img_0119.png" },
+                        PondId = 5,
+                        RFID = "KOI-0025",
+                        SellingPrice = 22000000m,
+                        Size = 24.0,
+                        Type = KoiType.High,
+                        VarietyId = 5,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // KOI-0026 - Asagi Female
                     new KoiFish
                     {
                         BirthDate = new DateTime(2023, 2, 15),
-                        Description = "Asagi mái vảy xanh bạc đều, bụng Hi đỏ – gen ổn định.",
+                        Description = "Asagi mái, vảy xanh bạc đều, bụng Hi đỏ, gen ổn định.",
                         Gender = Gender.Female,
-                        Pattern = "None",
+                        Pattern = "Standard",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 5,
-                        RFID = "KOI-0013",
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2023/06/asagi-female.jpg" },
+                        PondId = 1,
+                        RFID = "KOI-0026",
                         SellingPrice = 33000000m,
                         Size = 27.5,
                         Type = KoiType.High,
@@ -996,52 +1641,100 @@ namespace Zenkoi.API.ConfigExtensions
                         MutationRate = 0
                     },
 
-                    // 🐠 14. Asagi Female (Doitsu)
+                    // KOI-0027 - Asagi Male - Mizuho
                     new KoiFish
                     {
-                        BirthDate = new DateTime(2023, 9, 9),
-                        Description = "Asagi mái Doitsu – vảy lưng xanh, cam đỏ bụng, lai Shusui.",
-                        Gender = Gender.Female,
-                        Pattern = "None",
+                        BirthDate = new DateTime(2023, 6, 10),
+                        Description = "Asagi đực Mizuho, xanh ánh tím, viền trắng sắc, bụng đỏ cam.",
+                        Gender = Gender.Male,
+                        Pattern = "Mizuho",
                         HealthStatus = HealthStatus.Healthy,
                         SaleStatus = SaleStatus.Available,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 1,
-                        RFID = "KOI-0014",
-                        SellingPrice = 38000000m,
-                        Size = 28.0,
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2023/07/asagi-mizuho.jpg" },
+                        PondId = 2,
+                        RFID = "KOI-0027",
+                        SellingPrice = 28000000m,
+                        Size = 26.5,
+                        Type = KoiType.High,
+                        VarietyId = 5,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // KOI-0028 - Asagi Female - Konjo
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 5, 20),
+                        Description = "Asagi mái Konjo, xanh đậm ánh tím, vảy đều, bụng đỏ rực.",
+                        Gender = Gender.Female,
+                        Pattern = "Konjo",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2023/07/asagi-konjo.jpg" },
+                        PondId = 3,
+                        RFID = "KOI-0028",
+                        SellingPrice = 35000000m,
+                        Size = 27.0,
+                        Type = KoiType.High,
+                        VarietyId = 5,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // KOI-0029 - Asagi Male - Young
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2024, 1, 15),
+                        Description = "Asagi đực non, vảy xanh bắt đầu rõ, tiềm năng cao, giá tốt.",
+                        Gender = Gender.Male,
+                        Pattern = "Standard",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://kodamakoifarm.com/wp-content/uploads/2024/01/asagi-young.jpg" },
+                        PondId = 4,
+                        RFID = "KOI-0029",
+                        SellingPrice = 18000000m,
+                        Size = 22.0,
+                        Type = KoiType.High,
+                        VarietyId = 5,
+                        Origin = "Vietnam Farm",
+                        CreatedAt = DateTime.UtcNow,
+                        Videos = new List<string>(),
+                        IsMutated = false,
+                        MutationDescription = "Không có",
+                        MutationRate = 0
+                    },
+
+                    // KOI-0030 - Asagi Female - Hi Asagi
+                    new KoiFish
+                    {
+                        BirthDate = new DateTime(2023, 7, 5),
+                        Description = "Asagi mái Hi Asagi, bụng đỏ cam rực, vảy xanh đậm, gen tốt.",
+                        Gender = Gender.Female,
+                        Pattern = "Hi Asagi",
+                        HealthStatus = HealthStatus.Healthy,
+                        SaleStatus = SaleStatus.Available,
+                        Images = new List<string> { "https://nishikigoi.life/wp-content/uploads/2023/08/hi-asagi.jpg" },
+                        PondId = 5,
+                        RFID = "KOI-0030",
+                        SellingPrice = 39000000m,
+                        Size = 28.5,
                         Type = KoiType.High,
                         VarietyId = 5,
                         Origin = "Japan",
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Doitsu không vảy",
-                        MutationRate = 0.9
-                    },
-
-                    // 🐠 15. Sanke Female (Goshiki)
-                    new KoiFish
-                    {
-                        BirthDate = new DateTime(2022, 12, 5),
-                        Description = "Sanke mái ánh kim nhẹ – pha kiểu Goshiki, gen ánh sáng đẹp.",
-                        Gender = Gender.Female,
-                        Pattern = "None",
-                        HealthStatus = HealthStatus.Healthy,
-                        SaleStatus = SaleStatus.NotForSale,
-                        Images = new List<string> { "https://cdn2.fptshop.com.vn/unsafe/Uploads/images/tin-tuc/180194/Originals/ca-chep-rong-hinh-2.jpg" },
-                        PondId = 2,
-                        RFID = "KOI-0015",
-                        SellingPrice = 59000000m,
-                        Size = 31.0,
-                        Type = KoiType.Show,
-                        VarietyId = 2,
-                        Origin = "Niigata, Japan",
-                        CreatedAt = DateTime.UtcNow,
-                        Videos = new List<string>(),
-                        IsMutated = true,
-                        MutationDescription = "Ginrin ánh kim nhẹ",
-                        MutationRate = 0.86
+                        MutationDescription = "Hi đỏ mạnh",
+                        MutationRate = 0.8
                     }
                 );
 
@@ -1054,172 +1747,297 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.BreedingProcesses.Any())
             {
                 await context.BreedingProcesses.AddRangeAsync(
+                    // ============================= 1. Pairing (2 bản) =============================
                     new BreedingProcess
                     {
+                        Code = "BP-001",
                         MaleKoiId = 1,
-                        FemaleKoiId = 2,
-                        PondId = 4,
-                        StartDate = DateTime.Now,
-                        Status = BreedingStatus.Pairing,
-                        Note = "Đang ghép cặp cá đực và cái, theo dõi phản ứng.",
-                        Result = BreedingResult.Success,
-                        Code = "BP-001"
-                    },
-                    new BreedingProcess
-                    {
-                        MaleKoiId = 1,
-                        FemaleKoiId = 3,
-                        PondId = 4,
-                        StartDate = DateTime.Now.AddDays(-5),
-                        Status = BreedingStatus.Spawned,
-                        Note = "Cặp cá đã đẻ trứng, đang thu gom trứng.",
-                        Result = BreedingResult.PartialSuccess,
-                        FertilizationRate = 85,
-                        TotalEggs = 1500,
-                        Code = "BP-002"
-                    },
-                    new BreedingProcess
-                    {
-                        MaleKoiId = 1,
-                        FemaleKoiId = 3,
-                        PondId = 4,
-                        StartDate = DateTime.Now.AddDays(-10),
-                        Status = BreedingStatus.EggBatch,
-                        Note = "Trứng đang được ấp, tỷ lệ thụ tinh ổn định.",
-                        Result = BreedingResult.Unknown,
-                        FertilizationRate = 90,
-                        TotalEggs = 2000,
-                        Code = "BP-003"
-                    },
-                    new BreedingProcess
-                    {
-                        MaleKoiId = 1,
-                        FemaleKoiId = 3,
-                        PondId = 3,
-                        StartDate = DateTime.Now.AddDays(-20),
-                        Status = BreedingStatus.FryFish,
-                        Note = "Cá bột đã nở, bắt đầu cho ăn vi sinh.",
-                        Result = BreedingResult.Unknown,
-                        SurvivalRate = 75.5,
-                        FertilizationRate = 88,
-                        TotalEggs = 2500,
-                        Code = "BP-004"
-                    },
-                    new BreedingProcess
-                    {
-                        MaleKoiId = 1,
-                        FemaleKoiId = 3,
-                        PondId = 3,
-                        StartDate = DateTime.Now.AddDays(-30),
-                        Status = BreedingStatus.Classification,
-                        Note = "Phân loại cá bột theo kích thước và màu sắc.",
-                        Result = BreedingResult.PartialSuccess,
-                        TotalFishQualified = 500,
-                        TotalPackage = 5,
-                        SurvivalRate = 68.3,
-                        FertilizationRate = 90,
-                        TotalEggs = 3000,
-                        Code = "BP-005"
-                    },
-                    new BreedingProcess
-                    {
-                        MaleKoiId = 12,
-                        FemaleKoiId = 13,
-                        PondId = 3,
-                        StartDate = DateTime.Now.AddDays(-90),
-                        EndDate = DateTime.Now.AddDays(-30),
-                        Status = BreedingStatus.Complete,
-                        Note = "Hoàn tất quy trình, kết quả xuất sắc từ cặp bố mẹ bloodline cao cấp.",
-                        Result = BreedingResult.Success,
-                        TotalFishQualified = 1200,
-                        TotalPackage = 25,
-                        SurvivalRate = 88.5,
-                        FertilizationRate = 95,
-                        TotalEggs = 4000,
-                        Code = "BP-006"
-                    },
-                    new BreedingProcess
-                    {
-                        MaleKoiId = 1,
-                        FemaleKoiId = 3,
-                        PondId = 4,
-                        StartDate = DateTime.Now.AddDays(-15),
-                        EndDate = DateTime.Now.AddDays(-10),
-                        Status = BreedingStatus.Failed,
-                        Note = "Quá trình sinh sản thất bại do trứng bị nấm.",
-                        Result = BreedingResult.Failed,
-                        TotalFishQualified = 0,
-                        TotalPackage = 0,
-                        SurvivalRate = 0,
-                        FertilizationRate = 0,
-                        TotalEggs = 500,
-                        Code = "BP-007"
-                    },
-                    new BreedingProcess
-                    {
-                        MaleKoiId = 1,
-                        FemaleKoiId = 2,
-                        PondId = 4,
-                        StartDate = DateTime.Now,
-                        Status = BreedingStatus.Pairing,
-                        Note = "Ghép cặp Kohaku đực với Sanke cái để theo dõi phản ứng ban đầu.",
-                        Result = BreedingResult.Unknown,
-                        Code = "BP-008"
-                    },
-                    new BreedingProcess
-                    {
-                        MaleKoiId = 4,
-                        FemaleKoiId = 3,
-                        PondId = 3,
-                        StartDate = DateTime.Now,
-                        Status = BreedingStatus.Pairing,
-                        Note = "Bắt đầu ghép cặp Ogon đực và Showa cái, kiểm tra hành vi giao phối.",
-                        Result = BreedingResult.Unknown,
-                        Code = "BP-009"
-                    },
-                    new BreedingProcess
-                    {
-                        MaleKoiId = 5,
                         FemaleKoiId = 2,
                         PondId = 1,
                         StartDate = DateTime.Now,
+                        EndDate = null,
                         Status = BreedingStatus.Pairing,
-                        Note = "Cặp Asagi đực và Sanke cái đang được chuẩn bị nước và môi trường sinh sản.",
+                        Note = "Ghép cặp Kohaku đực x cái, đang theo dõi.",
                         Result = BreedingResult.Unknown,
-                        Code = "BP-010"
+                        TotalEggs = 0,
+                        FertilizationRate = 0,
+                        HatchingRate = null,
+                        SurvivalRate = 0,
+                        TotalFishQualified = 0,
+                        TotalPackage = 0
                     },
                     new BreedingProcess
                     {
-                        MaleKoiId = 1,
-                        FemaleKoiId = 3,
-                        PondId = 5,
-                        StartDate = DateTime.Now,
-                        Status = BreedingStatus.Pairing,
-                        Note = "Kohaku đực ghép với Showa cái trong ao thử nghiệm X.",
-                        Result = BreedingResult.Unknown,
-                        Code = "BP-011"
-                    },
-                    new BreedingProcess
-                    {
-                        MaleKoiId = 4,
-                        FemaleKoiId = 3,
+                        Code = "BP-002",
+                        MaleKoiId = 7,
+                        FemaleKoiId = 8,
                         PondId = 2,
                         StartDate = DateTime.Now,
+                        EndDate = null,
                         Status = BreedingStatus.Pairing,
-                        Note = "Cặp Ogon đực và Showa cái trong giai đoạn kiểm tra sức khỏe trước sinh sản.",
+                        Note = "Ghép cặp Sanke đực x cái, chờ phản ứng.",
                         Result = BreedingResult.Unknown,
-                        Code = "BP-012"
+                        TotalEggs = 0,
+                        FertilizationRate = 0,
+                        HatchingRate = null,
+                        SurvivalRate = 0,
+                        TotalFishQualified = 0,
+                        TotalPackage = 0
+                    },
+
+                    // ============================= 2. Spawned (2 bản) =============================
+                    new BreedingProcess
+                    {
+                        Code = "BP-003",
+                        MaleKoiId = 1,
+                        FemaleKoiId = 2,
+                        PondId = 1,
+                        StartDate = DateTime.Now.AddDays(-3),
+                        EndDate = DateTime.Now.AddDays(-3),
+                        Status = BreedingStatus.Spawned,
+                        Note = "Kohaku đã đẻ 1.500 trứng.",
+                        Result = BreedingResult.PartialSuccess,
+                        TotalEggs = 1500,
+                        FertilizationRate = 0.85,
+                        HatchingRate = null,
+                        SurvivalRate = 0,
+                        TotalFishQualified = 0,
+                        TotalPackage = 0
+                    },
+                    new BreedingProcess
+                    {
+                        Code = "BP-004",
+                        MaleKoiId = 7,
+                        FemaleKoiId = 8,
+                        PondId = 2,
+                        StartDate = DateTime.Now.AddDays(-4),
+                        EndDate = DateTime.Now.AddDays(-4),
+                        Status = BreedingStatus.Spawned,
+                        Note = "Sanke đã đẻ 1.800 trứng.",
+                        Result = BreedingResult.PartialSuccess,
+                        TotalEggs = 1800,
+                        FertilizationRate = 0.88,
+                        HatchingRate = null,
+                        SurvivalRate = 0,
+                        TotalFishQualified = 0,
+                        TotalPackage = 0
+                    },
+
+                    // ============================= 3. EggBatch (2 bản) =============================
+                    new BreedingProcess
+                    {
+                        Code = "BP-005",
+                        MaleKoiId = 1,
+                        FemaleKoiId = 2,
+                        PondId = 5,
+                        StartDate = DateTime.Now.AddDays(-7),
+                        EndDate = null,
+                        Status = BreedingStatus.EggBatch,
+                        Note = "Trứng Kohaku đang ấp, tỷ lệ thụ tinh 90%.",
+                        Result = BreedingResult.Unknown,
+                        TotalEggs = 1500,
+                        FertilizationRate = 0.90,
+                        HatchingRate = null,
+                        SurvivalRate = 0,
+                        TotalFishQualified = 0,
+                        TotalPackage = 0
+                    },
+                    new BreedingProcess
+                    {
+                        Code = "BP-006",
+                        MaleKoiId = 7,
+                        FemaleKoiId = 8,
+                        PondId = 6,
+                        StartDate = DateTime.Now.AddDays(-8),
+                        EndDate = null,
+                        Status = BreedingStatus.EggBatch,
+                        Note = "Trứng Sanke đang ấp, tỷ lệ thụ tinh 87%.",
+                        Result = BreedingResult.Unknown,
+                        TotalEggs = 1800,
+                        FertilizationRate = 0.87,
+                        HatchingRate = null,
+                        SurvivalRate = 0,
+                        TotalFishQualified = 0,
+                        TotalPackage = 0
+                    },
+
+                    // ============================= 4. FryFish (2 bản) =============================
+                    new BreedingProcess
+                    {
+                        Code = "BP-007",
+                        MaleKoiId = 1,
+                        FemaleKoiId = 2,
+                        PondId = 9,
+                        StartDate = DateTime.Now.AddDays(-15),
+                        EndDate = null,
+                        Status = BreedingStatus.FryFish,
+                        Note = "Cá bột Kohaku đã nở, đang cho ăn Artemia.",
+                        Result = BreedingResult.Unknown,
+                        TotalEggs = 1500,
+                        FertilizationRate = 0.90,
+                        HatchingRate = 0.75,
+                        SurvivalRate = 0.75,
+                        TotalFishQualified = 0,
+                        TotalPackage = 0
+                    },
+                    new BreedingProcess
+                    {
+                        Code = "BP-008",
+                        MaleKoiId = 7,
+                        FemaleKoiId = 8,
+                        PondId = 10,
+                        StartDate = DateTime.Now.AddDays(-16),
+                        EndDate = null,
+                        Status = BreedingStatus.FryFish,
+                        Note = "Cá bột Sanke đã nở, đang nuôi lớn.",
+                        Result = BreedingResult.Unknown,
+                        TotalEggs = 1800,
+                        FertilizationRate = 0.87,
+                        HatchingRate = 0.73,
+                        SurvivalRate = 0.73,
+                        TotalFishQualified = 0,
+                        TotalPackage = 0
+                    },
+
+                    // ============================= 5. Classification (2 bản) =============================
+                    new BreedingProcess
+                    {
+                        Code = "BP-009",
+                        MaleKoiId = 1,
+                        FemaleKoiId = 2,
+                        PondId = 16,
+                        StartDate = DateTime.Now.AddDays(-25),
+                        EndDate = DateTime.Now.AddDays(-20),
+                        Status = BreedingStatus.Classification,
+                        Note = "Phân loại Kohaku: chọn 300 con đẹp nhất (size 3-5cm), đóng 3 bao.",
+                        Result = BreedingResult.PartialSuccess,
+                        TotalEggs = 1500,
+                        FertilizationRate = 0.90,
+                        HatchingRate = 0.75,
+                        SurvivalRate = 0.70,
+                        TotalFishQualified = 300,
+                        TotalPackage = 3
+                    },
+                    new BreedingProcess
+                    {
+                        Code = "BP-010",
+                        MaleKoiId = 7,
+                        FemaleKoiId = 8,
+                        PondId = 17,
+                        StartDate = DateTime.Now.AddDays(-26),
+                        EndDate = DateTime.Now.AddDays(-21),
+                        Status = BreedingStatus.Classification,
+                        Note = "Phân loại Sanke: chọn 350 con pattern rõ, đóng 4 bao.",
+                        Result = BreedingResult.PartialSuccess,
+                        TotalEggs = 1800,
+                        FertilizationRate = 0.87,
+                        HatchingRate = 0.73,
+                        SurvivalRate = 0.68,
+                        TotalFishQualified = 350,
+                        TotalPackage = 4
+                    },
+
+                    // ============================= 6. QUY TRÌNH THÀNH CÔNG – BP-011 → BP-015 ĐỀU LÀ COMPLETE =============================
+                    // BP-011: Complete – Ghép cặp thành công
+                    new BreedingProcess
+                    {
+                        Code = "BP-011",
+                        MaleKoiId = 13,
+                        FemaleKoiId = 14,
+                        PondId = 1,
+                        StartDate = DateTime.Now.AddDays(-90),
+                        EndDate = DateTime.Now.AddDays(-87),
+                        Status = BreedingStatus.Complete,
+                        Note = "Ghép cặp Showa đực x cái – dòng Dainichi. Thành công, chuyển sang sinh sản.",
+                        Result = BreedingResult.Success,
+                        TotalEggs = 4000,
+                        FertilizationRate = 0.95,
+                        HatchingRate = 0.88,
+                        SurvivalRate = 0.88,
+                        TotalFishQualified = 1200,
+                        TotalPackage = 25
+                    },
+
+                    // BP-012: Complete – Đẻ trứng thành công
+                    new BreedingProcess
+                    {
+                        Code = "BP-012",
+                        MaleKoiId = 13,
+                        FemaleKoiId = 14,
+                        PondId = 1,
+                        StartDate = DateTime.Now.AddDays(-87),
+                        EndDate = DateTime.Now.AddDays(-87),
+                        Status = BreedingStatus.Complete,
+                        Note = "Showa đẻ 4.000 trứng chất lượng cao.",
+                        Result = BreedingResult.Success,
+                        TotalEggs = 4000,
+                        FertilizationRate = 0.95,
+                        HatchingRate = 0.88,
+                        SurvivalRate = 0.88,
+                        TotalFishQualified = 1200,
+                        TotalPackage = 25
+                    },
+
+                    // BP-013: Complete – Ấp trứng thành công
+                    new BreedingProcess
+                    {
+                        Code = "BP-013",
+                        MaleKoiId = 13,
+                        FemaleKoiId = 14,
+                        PondId = 5,
+                        StartDate = DateTime.Now.AddDays(-82),
+                        EndDate = DateTime.Now.AddDays(-76),
+                        Status = BreedingStatus.Complete,
+                        Note = "Trứng Showa ấp tốt, tỷ lệ thụ tinh 95%, không nấm.",
+                        Result = BreedingResult.Success,
+                        TotalEggs = 4000,
+                        FertilizationRate = 0.95,
+                        HatchingRate = 0.88,
+                        SurvivalRate = 0.88,
+                        TotalFishQualified = 1200,
+                        TotalPackage = 25
+                    },
+
+                    // BP-014: Complete – Nuôi bột thành công
+                    new BreedingProcess
+                    {
+                        Code = "BP-014",
+                        MaleKoiId = 13,
+                        FemaleKoiId = 14,
+                        PondId = 9,
+                        StartDate = DateTime.Now.AddDays(-70),
+                        EndDate = DateTime.Now.AddDays(-40),
+                        Status = BreedingStatus.Complete,
+                        Note = "Cá bột Showa phát triển tốt, tỷ lệ sống 88%.",
+                        Result = BreedingResult.Success,
+                        TotalEggs = 4000,
+                        FertilizationRate = 0.95,
+                        HatchingRate = 0.88,
+                        SurvivalRate = 0.88,
+                        TotalFishQualified = 1200,
+                        TotalPackage = 25
+                    },
+
+                    // BP-015: Complete – Toàn bộ quy trình hoàn tất
+                    new BreedingProcess
+                    {
+                        Code = "BP-015",
+                        MaleKoiId = 13,
+                        FemaleKoiId = 14,
+                        PondId = null,
+                        StartDate = DateTime.Now.AddDays(-90),
+                        EndDate = DateTime.Now.AddDays(-30),
+                        Status = BreedingStatus.Complete,
+                        Note = "HOÀN TẤT XUẤT SẮC! 1.200 con F1 Showa đạt chuẩn show",
+                        Result = BreedingResult.Success,
+                        TotalEggs = 4000,
+                        FertilizationRate = 0.95,
+                        HatchingRate = 0.88,
+                        SurvivalRate = 0.88,
+                        TotalFishQualified = 1200,
+                        TotalPackage = 25
                     }
                 );
-                await context.SaveChangesAsync();
-
-                // Update BreedingProcessId only for offspring (F1 generation) after BreedingProcess is seeded
-                // KOI-0012 and KOI-0013 are parents (referenced via MaleKoiId/FemaleKoiId), not products of BP-006
-                var koi14 = await context.KoiFishes.FirstOrDefaultAsync(k => k.RFID == "KOI-0014");
-                var koi15 = await context.KoiFishes.FirstOrDefaultAsync(k => k.RFID == "KOI-0015");
-
-                if (koi14 != null) koi14.BreedingProcessId = 6;
-                if (koi15 != null) koi15.BreedingProcessId = 6;
 
                 await context.SaveChangesAsync();
             }
@@ -1229,25 +2047,123 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.EggBatches.Any())
             {
                 await context.EggBatches.AddRangeAsync(
+                    // ============================= 1. BP-005: Kohaku - Đang ấp (EggBatch) =============================
                     new EggBatch
                     {
-                        BreedingProcessId = 1,
-                        Quantity = 5000,
-                        FertilizationRate = 0.85,
-                        Status = EggBatchStatus.Success,
-                        SpawnDate = new DateTime(2025, 2, 16),
-                        HatchingTime = new DateTime(2025, 2, 22)
+                        BreedingProcessId = 5,
+                        Quantity = 1500,
+                        TotalHatchedEggs = null, // Chưa nở
+                        FertilizationRate = 0.90,
+                        Status = EggBatchStatus.Incubating,
+                        SpawnDate = DateTime.Now.AddDays(-7),
+                        HatchingTime = DateTime.Now.AddDays(-7).AddDays(5),
+                        EndDate = null
                     },
+
+                    // ============================= 2. BP-006: Sanke - Đang ấp (EggBatch) =============================
                     new EggBatch
                     {
                         BreedingProcessId = 6,
+                        Quantity = 1800,
+                        TotalHatchedEggs = null,
+                        FertilizationRate = 0.87,
+                        Status = EggBatchStatus.Incubating,
+                        SpawnDate = DateTime.Now.AddDays(-8),
+                        HatchingTime = DateTime.Now.AddDays(-8).AddDays(6),
+                        EndDate = null
+                    },
+
+                    // ============================= 3. BP-007: Kohaku - Đã nở (FryFish) =============================
+                    new EggBatch
+                    {
+                        BreedingProcessId = 7,
+                        Quantity = 1500,
+                        TotalHatchedEggs = 1012, // 1500 × 0.90 × 0.75 (HatchingRate = 0.75)
+                        FertilizationRate = 0.90,
+                        Status = EggBatchStatus.Success,
+                        SpawnDate = DateTime.Now.AddDays(-18),
+                        HatchingTime = DateTime.Now.AddDays(-15),
+                        EndDate = DateTime.Now.AddDays(-15)
+                    },
+
+                    // ============================= 4. BP-008: Sanke - Đã nở (FryFish) =============================
+                    new EggBatch
+                    {
+                        BreedingProcessId = 8,
+                        Quantity = 1800,
+                        TotalHatchedEggs = 1143, // 1800 × 0.87 × 0.73
+                        FertilizationRate = 0.87,
+                        Status = EggBatchStatus.Success,
+                        SpawnDate = DateTime.Now.AddDays(-19),
+                        HatchingTime = DateTime.Now.AddDays(-16),
+                        EndDate = DateTime.Now.AddDays(-16)
+                    },
+
+                   
+                    new EggBatch
+                    {
+                        BreedingProcessId = 11,
                         Quantity = 4000,
+                        TotalHatchedEggs = 3344, // 4000 × 0.95 × 0.88
                         FertilizationRate = 0.95,
                         Status = EggBatchStatus.Success,
-                        SpawnDate = DateTime.Now.AddDays(-85),
-                        HatchingTime = DateTime.Now.AddDays(-79)
+                        SpawnDate = DateTime.Now.AddDays(-90),
+                        HatchingTime = DateTime.Now.AddDays(-84),
+                        EndDate = DateTime.Now.AddDays(-84)
+                    },
+
+                 
+                    new EggBatch
+                    {
+                        BreedingProcessId = 12,
+                        Quantity = 4000,
+                        TotalHatchedEggs = 3344,
+                        FertilizationRate = 0.95,
+                        Status = EggBatchStatus.Success,
+                        SpawnDate = DateTime.Now.AddDays(-87),
+                        HatchingTime = DateTime.Now.AddDays(-81),
+                        EndDate = DateTime.Now.AddDays(-81)
+                    },
+
+                  
+                    new EggBatch
+                    {
+                        BreedingProcessId = 13,
+                        Quantity = 4000,
+                        TotalHatchedEggs = 3344,
+                        FertilizationRate = 0.95,
+                        Status = EggBatchStatus.Success,
+                        SpawnDate = DateTime.Now.AddDays(-82),
+                        HatchingTime = DateTime.Now.AddDays(-76),
+                        EndDate = DateTime.Now.AddDays(-76)
+                    },
+
+                  
+                    new EggBatch
+                    {
+                        BreedingProcessId = 14,
+                        Quantity = 4000,
+                        TotalHatchedEggs = 3344,
+                        FertilizationRate = 0.95,
+                        Status = EggBatchStatus.Success,
+                        SpawnDate = DateTime.Now.AddDays(-70),
+                        HatchingTime = DateTime.Now.AddDays(-64),
+                        EndDate = DateTime.Now.AddDays(-64)
+                    },
+
+                    new EggBatch
+                    {
+                        BreedingProcessId = 15,
+                        Quantity = 4000,
+                        TotalHatchedEggs = 3344,
+                        FertilizationRate = 0.95,
+                        Status = EggBatchStatus.Success,
+                        SpawnDate = DateTime.Now.AddDays(-90),
+                        HatchingTime = DateTime.Now.AddDays(-84),
+                        EndDate = DateTime.Now.AddDays(-84)
                     }
                 );
+
                 await context.SaveChangesAsync();
             }
             #endregion
@@ -1256,23 +2172,453 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.IncubationDailyRecords.Any())
             {
                 await context.IncubationDailyRecords.AddRangeAsync(
+                    // ===================================================================
+                    // 1. EggBatchId = 1 (BP-005: Kohaku - Đang ấp) → 3 ngày → TotalEggs = 1500
+                    // ===================================================================
                     new IncubationDailyRecord
                     {
                         EggBatchId = 1,
-                        DayNumber = DateTime.Now,
-                        HealthyEggs = 4800,
-                        RottenEggs = 200,
-                        HatchedEggs = 0
+                        DayNumber = DateTime.Now.AddDays(-7),
+                        HealthyEggs = 1350,
+                        RottenEggs = 150,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-7)
+                        // 1350 + 150 + 0 = 1500
                     },
                     new IncubationDailyRecord
                     {
                         EggBatchId = 1,
-                        DayNumber = DateTime.Now,
-                        HealthyEggs = 4700,
+                        DayNumber = DateTime.Now.AddDays(-6),
+                        HealthyEggs = 1320,
+                        RottenEggs = 180,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-6)
+                        // 1320 + 180 + 0 = 1500
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 1,
+                        DayNumber = DateTime.Now.AddDays(-5),
+                        HealthyEggs = 1300,
+                        RottenEggs = 200,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-5)
+                        // 1300 + 200 + 0 = 1500
+                    },
+
+                    // ===================================================================
+                    // 2. EggBatchId = 2 (BP-006: Sanke - Đang ấp) → 2 ngày → TotalEggs = 1800
+                    // ===================================================================
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 2,
+                        DayNumber = DateTime.Now.AddDays(-8),
+                        HealthyEggs = 1566,
+                        RottenEggs = 234,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-8)
+                        // 1566 + 234 + 0 = 1800
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 2,
+                        DayNumber = DateTime.Now.AddDays(-7),
+                        HealthyEggs = 1530,
+                        RottenEggs = 270,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-7)
+                        // 1530 + 270 + 0 = 1800
+                    },
+
+                    // ===================================================================
+                    // 3. EggBatchId = 3 (BP-007: Kohaku - Đã nở) → 4 ngày → TotalEggs = 1500
+                    //    → FryFish InitialCount = 1125
+                    // ===================================================================
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 3,
+                        DayNumber = DateTime.Now.AddDays(-18),
+                        HealthyEggs = 1350,
+                        RottenEggs = 150,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-18)
+                        // 1350 + 150 + 0 = 1500
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 3,
+                        DayNumber = DateTime.Now.AddDays(-17),
+                        HealthyEggs = 1200,
+                        RottenEggs = 200,
+                        HatchedEggs = 100,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-17)
+                        // 1200 + 200 + 100 = 1500
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 3,
+                        DayNumber = DateTime.Now.AddDays(-16),
+                        HealthyEggs = 675,
                         RottenEggs = 300,
-                        HatchedEggs = 0
+                        HatchedEggs = 525,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-16)
+                        // 675 + 300 + 525 = 1500
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 3,
+                        DayNumber = DateTime.Now.AddDays(-15),
+                        HealthyEggs = 0,
+                        RottenEggs = 375,
+                        HatchedEggs = 1125,
+                        Success = true,
+                        UpdatedAt = DateTime.Now.AddDays(-15)
+                        // 0 + 375 + 1125 = 1500
+                    },
+
+                    // ===================================================================
+                    // 4. EggBatchId = 4 (BP-008: Sanke - Đã nở) → 3 ngày → TotalEggs = 1800
+                    //    → FryFish InitialCount = 1314
+                    // ===================================================================
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 4,
+                        DayNumber = DateTime.Now.AddDays(-19),
+                        HealthyEggs = 1566,
+                        RottenEggs = 234,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-19)
+                        // 1566 + 234 + 0 = 1800
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 4,
+                        DayNumber = DateTime.Now.AddDays(-18),
+                        HealthyEggs = 1380,
+                        RottenEggs = 420,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-18)
+                        // 1380 + 420 + 0 = 1800
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 4,
+                        DayNumber = DateTime.Now.AddDays(-16),
+                        HealthyEggs = 0,
+                        RottenEggs = 486,
+                        HatchedEggs = 1314,
+                        Success = true,
+                        UpdatedAt = DateTime.Now.AddDays(-16)
+                        // 0 + 486 + 1314 = 1800
+                    },
+
+                    // ===================================================================
+                    // 5. EggBatchId = 5 (Showa - Lô 1) → 5 ngày → TotalEggs = 4000
+                    //    → FryFish InitialCount = 3520
+                    // ===================================================================
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 5,
+                        DayNumber = DateTime.Now.AddDays(-90),
+                        HealthyEggs = 3800,
+                        RottenEggs = 200,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-90)
+                        // 3800 + 200 + 0 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 5,
+                        DayNumber = DateTime.Now.AddDays(-89),
+                        HealthyEggs = 3700,
+                        RottenEggs = 300,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-89)
+                        // 3700 + 300 + 0 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 5,
+                        DayNumber = DateTime.Now.AddDays(-88),
+                        HealthyEggs = 2600,
+                        RottenEggs = 400,
+                        HatchedEggs = 1000,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-88)
+                        // 2600 + 400 + 1000 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 5,
+                        DayNumber = DateTime.Now.AddDays(-86),
+                        HealthyEggs = 500,
+                        RottenEggs = 500,
+                        HatchedEggs = 3000,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-86)
+                        // 500 + 500 + 3000 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 5,
+                        DayNumber = DateTime.Now.AddDays(-84),
+                        HealthyEggs = 0,
+                        RottenEggs = 480,
+                        HatchedEggs = 3520,
+                        Success = true,
+                        UpdatedAt = DateTime.Now.AddDays(-84)
+                        // 0 + 480 + 3520 = 4000
+                    },
+
+                    // ===================================================================
+                    // 6. EggBatchId = 6 (Showa - Lô 2) → 5 ngày → TotalEggs = 4000
+                    // ===================================================================
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 6,
+                        DayNumber = DateTime.Now.AddDays(-80),
+                        HealthyEggs = 3800,
+                        RottenEggs = 200,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-80)
+                        // 3800 + 200 + 0 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 6,
+                        DayNumber = DateTime.Now.AddDays(-79),
+                        HealthyEggs = 3650,
+                        RottenEggs = 350,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-79)
+                        // 3650 + 350 + 0 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 6,
+                        DayNumber = DateTime.Now.AddDays(-78),
+                        HealthyEggs = 2400,
+                        RottenEggs = 600,
+                        HatchedEggs = 1000,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-78)
+                        // 2400 + 600 + 1000 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 6,
+                        DayNumber = DateTime.Now.AddDays(-76),
+                        HealthyEggs = 400,
+                        RottenEggs = 600,
+                        HatchedEggs = 3000,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-76)
+                        // 400 + 600 + 3000 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 6,
+                        DayNumber = DateTime.Now.AddDays(-74),
+                        HealthyEggs = 0,
+                        RottenEggs = 480,
+                        HatchedEggs = 3520,
+                        Success = true,
+                        UpdatedAt = DateTime.Now.AddDays(-74)
+                        // 0 + 480 + 3520 = 4000
+                    },
+
+                    // ===================================================================
+                    // 7. EggBatchId = 7 (Showa - Lô 3) → 5 ngày → TotalEggs = 4000
+                    // ===================================================================
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 7,
+                        DayNumber = DateTime.Now.AddDays(-70),
+                        HealthyEggs = 3800,
+                        RottenEggs = 200,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-70)
+                        // 3800 + 200 + 0 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 7,
+                        DayNumber = DateTime.Now.AddDays(-69),
+                        HealthyEggs = 3700,
+                        RottenEggs = 300,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-69)
+                        // 3700 + 300 + 0 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 7,
+                        DayNumber = DateTime.Now.AddDays(-68),
+                        HealthyEggs = 2500,
+                        RottenEggs = 500,
+                        HatchedEggs = 1000,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-68)
+                        // 2500 + 500 + 1000 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 7,
+                        DayNumber = DateTime.Now.AddDays(-66),
+                        HealthyEggs = 600,
+                        RottenEggs = 400,
+                        HatchedEggs = 3000,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-66)
+                        // 600 + 400 + 3000 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 7,
+                        DayNumber = DateTime.Now.AddDays(-64),
+                        HealthyEggs = 0,
+                        RottenEggs = 480,
+                        HatchedEggs = 3520,
+                        Success = true,
+                        UpdatedAt = DateTime.Now.AddDays(-64)
+                        // 0 + 480 + 3520 = 4000
+                    },
+
+                    // ===================================================================
+                    // 8. EggBatchId = 8 (Showa - Lô 4) → 5 ngày → TotalEggs = 4000
+                    // ===================================================================
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 8,
+                        DayNumber = DateTime.Now.AddDays(-60),
+                        HealthyEggs = 3800,
+                        RottenEggs = 200,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-60)
+                        // 3800 + 200 + 0 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 8,
+                        DayNumber = DateTime.Now.AddDays(-59),
+                        HealthyEggs = 3680,
+                        RottenEggs = 320,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-59)
+                        // 3680 + 320 + 0 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 8,
+                        DayNumber = DateTime.Now.AddDays(-58),
+                        HealthyEggs = 2550,
+                        RottenEggs = 450,
+                        HatchedEggs = 1000,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-58)
+                        // 2550 + 450 + 1000 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 8,
+                        DayNumber = DateTime.Now.AddDays(-56),
+                        HealthyEggs = 450,
+                        RottenEggs = 550,
+                        HatchedEggs = 3000,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-56)
+                        // 450 + 550 + 3000 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 8,
+                        DayNumber = DateTime.Now.AddDays(-54),
+                        HealthyEggs = 0,
+                        RottenEggs = 480,
+                        HatchedEggs = 3520,
+                        Success = true,
+                        UpdatedAt = DateTime.Now.AddDays(-54)
+                        // 0 + 480 + 3520 = 4000
+                    },
+
+                    // ===================================================================
+                    // 9. EggBatchId = 9 (Showa - Lô 5) → 5 ngày → TotalEggs = 4000
+                    // ===================================================================
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 9,
+                        DayNumber = DateTime.Now.AddDays(-50),
+                        HealthyEggs = 3800,
+                        RottenEggs = 200,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-50)
+                        // 3800 + 200 + 0 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 9,
+                        DayNumber = DateTime.Now.AddDays(-49),
+                        HealthyEggs = 3750,
+                        RottenEggs = 250,
+                        HatchedEggs = 0,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-49)
+                        // 3750 + 250 + 0 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 9,
+                        DayNumber = DateTime.Now.AddDays(-48),
+                        HealthyEggs = 2600,
+                        RottenEggs = 400,
+                        HatchedEggs = 1000,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-48)
+                        // 2600 + 400 + 1000 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 9,
+                        DayNumber = DateTime.Now.AddDays(-46),
+                        HealthyEggs = 550,
+                        RottenEggs = 450,
+                        HatchedEggs = 3000,
+                        Success = false,
+                        UpdatedAt = DateTime.Now.AddDays(-46)
+                        // 550 + 450 + 3000 = 4000
+                    },
+                    new IncubationDailyRecord
+                    {
+                        EggBatchId = 9,
+                        DayNumber = DateTime.Now.AddDays(-44),
+                        HealthyEggs = 0,
+                        RottenEggs = 480,
+                        HatchedEggs = 3520,
+                        Success = true,
+                        UpdatedAt = DateTime.Now.AddDays(-44)
+                        // 0 + 480 + 3520 = 4000
                     }
                 );
+
                 await context.SaveChangesAsync();
             }
             #endregion
@@ -1281,28 +2627,98 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.FryFishes.Any())
             {
                 await context.FryFishes.AddRangeAsync(
+                    // BP-007: Kohaku - FryFish đang nuôi
                     new FryFish
                     {
-                        BreedingProcessId = 1,
-                        InitialCount = 4500,
+                        BreedingProcessId = 7,
+                        InitialCount = 1012,   // từ EggBatch (1500 × 0.90 × 0.75)
                         Status = FryFishStatus.Growing,
-                        CurrentSurvivalRate = 0.93
+                        CurrentSurvivalRate = 0.75,
+                        StartDate = DateTime.Now.AddDays(-15),
+                        EndDate = null
+                    },
+
+                    // BP-008: Sanke - FryFish đang nuôi
+                    new FryFish
+                    {
+                        BreedingProcessId = 8,
+                        InitialCount = 1143,   // 1800 × 0.87 × 0.73
+                        Status = FryFishStatus.Growing,
+                        CurrentSurvivalRate = 0.73,
+                        StartDate = DateTime.Now.AddDays(-16),
+                        EndDate = null
+                    },
+
+                    // BP-009: Kohaku - Completed
+                    new FryFish
+                    {
+                        BreedingProcessId = 9,
+                        InitialCount = 787,     // 1500 × 0.90 × 0.75 × 0.70
+                        Status = FryFishStatus.Completed,
+                        CurrentSurvivalRate = 0.70,
+                        StartDate = DateTime.Now.AddDays(-25),
+                        EndDate = DateTime.Now.AddDays(-20)
+                    },
+
+                    // BP-010: Sanke - Completed
+                    new FryFish
+                    {
+                        BreedingProcessId = 10,
+                        InitialCount = 778,     // 1800 × 0.87 × 0.73 × 0.68
+                        Status = FryFishStatus.Completed,
+                        CurrentSurvivalRate = 0.68,
+                        StartDate = DateTime.Now.AddDays(-26),
+                        EndDate = DateTime.Now.AddDays(-21)
+                    },
+
+                    // BP-011 → BP-015: Showa (Complete)
+                    new FryFish
+                    {
+                        BreedingProcessId = 11,
+                        InitialCount = 2943,    // 3344 × 0.88
+                        Status = FryFishStatus.Completed,
+                        CurrentSurvivalRate = 0.88,
+                        StartDate = DateTime.Now.AddDays(-70),
+                        EndDate = DateTime.Now.AddDays(-40)
                     },
                     new FryFish
                     {
-                        BreedingProcessId = 2,
-                        InitialCount = 6200,
+                        BreedingProcessId = 12,
+                        InitialCount = 2943,
                         Status = FryFishStatus.Completed,
-                        CurrentSurvivalRate = 0.89
+                        CurrentSurvivalRate = 0.88,
+                        StartDate = DateTime.Now.AddDays(-70),
+                        EndDate = DateTime.Now.AddDays(-40)
                     },
                     new FryFish
                     {
-                        BreedingProcessId = 6,
-                        InitialCount = 3800,
+                        BreedingProcessId = 13,
+                        InitialCount = 2943,
                         Status = FryFishStatus.Completed,
-                        CurrentSurvivalRate = 0.885
+                        CurrentSurvivalRate = 0.88,
+                        StartDate = DateTime.Now.AddDays(-70),
+                        EndDate = DateTime.Now.AddDays(-40)
+                    },
+                    new FryFish
+                    {
+                        BreedingProcessId = 14,
+                        InitialCount = 2943,
+                        Status = FryFishStatus.Completed,
+                        CurrentSurvivalRate = 0.88,
+                        StartDate = DateTime.Now.AddDays(-70),
+                        EndDate = DateTime.Now.AddDays(-40)
+                    },
+                    new FryFish
+                    {
+                        BreedingProcessId = 15,
+                        InitialCount = 2943,
+                        Status = FryFishStatus.Completed,
+                        CurrentSurvivalRate = 0.88,
+                        StartDate = DateTime.Now.AddDays(-70),
+                        EndDate = DateTime.Now.AddDays(-40)
                     }
                 );
+
                 await context.SaveChangesAsync();
             }
             #endregion
@@ -1311,21 +2727,73 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.FrySurvivalRecords.Any())
             {
                 await context.FrySurvivalRecords.AddRangeAsync(
-                    new FrySurvivalRecord
-                    {
-                        FryFishId = 1,
-                        DayNumber = DateTime.Now,
-                        SurvivalRate = 0.95,
-                        CountAlive = 4275
-                    },
-                    new FrySurvivalRecord
-                    {
-                        FryFishId = 1,
-                        DayNumber = DateTime.Now,
-                        SurvivalRate = 0.93,
-                        CountAlive = 4185
-                    }
+
+                    // ===================== FryFishId = 1 (InitialCount = 1012) =====================
+                    new FrySurvivalRecord { FryFishId = 1, DayNumber = DateTime.Now.AddDays(-15), SurvivalRate = 1.00, CountAlive = 1012, Note = "Vừa nở 100%", Success = false },
+                    new FrySurvivalRecord { FryFishId = 1, DayNumber = DateTime.Now.AddDays(-12), SurvivalRate = 0.98, CountAlive = 991, Note = "Giảm nhẹ", Success = false },
+                    new FrySurvivalRecord { FryFishId = 1, DayNumber = DateTime.Now.AddDays(-9), SurvivalRate = 0.95, CountAlive = 961, Note = "Ổn định", Success = false },
+                    new FrySurvivalRecord { FryFishId = 1, DayNumber = DateTime.Now.AddDays(-6), SurvivalRate = 0.93, CountAlive = 941, Note = "Kiểm tra oxy", Success = false },
+                    new FrySurvivalRecord { FryFishId = 1, DayNumber = DateTime.Now.AddDays(-3), SurvivalRate = 0.91, CountAlive = 921, Note = "Chuẩn bị phân loại", Success = true },
+
+                    // ===================== FryFishId = 2 (InitialCount = 1143) =====================
+                    new FrySurvivalRecord { FryFishId = 2, DayNumber = DateTime.Now.AddDays(-16), SurvivalRate = 1.00, CountAlive = 1143, Success = false },
+                    new FrySurvivalRecord { FryFishId = 2, DayNumber = DateTime.Now.AddDays(-13), SurvivalRate = 0.97, CountAlive = 1108, Success = false },
+                    new FrySurvivalRecord { FryFishId = 2, DayNumber = DateTime.Now.AddDays(-10), SurvivalRate = 0.94, CountAlive = 1075, Success = false },
+                    new FrySurvivalRecord { FryFishId = 2, DayNumber = DateTime.Now.AddDays(-7), SurvivalRate = 0.92, CountAlive = 1051, Success = false },
+                    new FrySurvivalRecord { FryFishId = 2, DayNumber = DateTime.Now.AddDays(-4), SurvivalRate = 0.90, CountAlive = 1028, Success = true },
+
+                    // ===================== FryFishId = 3 (InitialCount = 787) =====================
+                    new FrySurvivalRecord { FryFishId = 3, DayNumber = DateTime.Now.AddDays(-20), SurvivalRate = 1.00, CountAlive = 787, Success = false },
+                    new FrySurvivalRecord { FryFishId = 3, DayNumber = DateTime.Now.AddDays(-17), SurvivalRate = 0.96, CountAlive = 756, Success = false },
+                    new FrySurvivalRecord { FryFishId = 3, DayNumber = DateTime.Now.AddDays(-14), SurvivalRate = 0.94, CountAlive = 739, Success = false },
+                    new FrySurvivalRecord { FryFishId = 3, DayNumber = DateTime.Now.AddDays(-11), SurvivalRate = 0.91, CountAlive = 716, Success = false },
+                    new FrySurvivalRecord { FryFishId = 3, DayNumber = DateTime.Now.AddDays(-8), SurvivalRate = 0.70, CountAlive = 551, Note = "Hoàn tất 300 con", Success = true },
+
+                    // ===================== FryFishId = 4 (InitialCount = 778) =====================
+                    new FrySurvivalRecord { FryFishId = 4, DayNumber = DateTime.Now.AddDays(-21), SurvivalRate = 1.00, CountAlive = 778, Success = false },
+                    new FrySurvivalRecord { FryFishId = 4, DayNumber = DateTime.Now.AddDays(-18), SurvivalRate = 0.97, CountAlive = 754, Success = false },
+                    new FrySurvivalRecord { FryFishId = 4, DayNumber = DateTime.Now.AddDays(-15), SurvivalRate = 0.94, CountAlive = 731, Success = false },
+                    new FrySurvivalRecord { FryFishId = 4, DayNumber = DateTime.Now.AddDays(-12), SurvivalRate = 0.92, CountAlive = 715, Success = false },
+                    new FrySurvivalRecord { FryFishId = 4, DayNumber = DateTime.Now.AddDays(-9), SurvivalRate = 0.68, CountAlive = 529, Note = "Hoàn tất 350 con", Success = true },
+
+                    // ===================== FryFishId = 5 → 9 (InitialCount = 2943 mỗi BP) =====================
+                    // Lặp cùng pattern
+                    // BP-011
+                    new FrySurvivalRecord { FryFishId = 5, DayNumber = DateTime.Now.AddDays(-40), SurvivalRate = 1.00, CountAlive = 2943, Success = false },
+                    new FrySurvivalRecord { FryFishId = 5, DayNumber = DateTime.Now.AddDays(-35), SurvivalRate = 0.95, CountAlive = 2795, Success = false },
+                    new FrySurvivalRecord { FryFishId = 5, DayNumber = DateTime.Now.AddDays(-30), SurvivalRate = 0.92, CountAlive = 2707, Success = false },
+                    new FrySurvivalRecord { FryFishId = 5, DayNumber = DateTime.Now.AddDays(-25), SurvivalRate = 0.89, CountAlive = 2619, Success = false },
+                    new FrySurvivalRecord { FryFishId = 5, DayNumber = DateTime.Now.AddDays(-20), SurvivalRate = 0.88, CountAlive = 2590, Success = true },
+
+                    // BP-012
+                    new FrySurvivalRecord { FryFishId = 6, DayNumber = DateTime.Now.AddDays(-32), SurvivalRate = 1.00, CountAlive = 2943, Success = false },
+                    new FrySurvivalRecord { FryFishId = 6, DayNumber = DateTime.Now.AddDays(-28), SurvivalRate = 0.96, CountAlive = 2825, Success = false },
+                    new FrySurvivalRecord { FryFishId = 6, DayNumber = DateTime.Now.AddDays(-24), SurvivalRate = 0.93, CountAlive = 2737, Success = false },
+                    new FrySurvivalRecord { FryFishId = 6, DayNumber = DateTime.Now.AddDays(-20), SurvivalRate = 0.90, CountAlive = 2648, Success = false },
+                    new FrySurvivalRecord { FryFishId = 6, DayNumber = DateTime.Now.AddDays(-16), SurvivalRate = 0.88, CountAlive = 2590, Success = true },
+
+                    // BP-013
+                    new FrySurvivalRecord { FryFishId = 7, DayNumber = DateTime.Now.AddDays(-30), SurvivalRate = 1.00, CountAlive = 2943, Success = false },
+                    new FrySurvivalRecord { FryFishId = 7, DayNumber = DateTime.Now.AddDays(-26), SurvivalRate = 0.95, CountAlive = 2795, Success = false },
+                    new FrySurvivalRecord { FryFishId = 7, DayNumber = DateTime.Now.AddDays(-22), SurvivalRate = 0.92, CountAlive = 2707, Success = false },
+                    new FrySurvivalRecord { FryFishId = 7, DayNumber = DateTime.Now.AddDays(-18), SurvivalRate = 0.89, CountAlive = 2619, Success = false },
+                    new FrySurvivalRecord { FryFishId = 7, DayNumber = DateTime.Now.AddDays(-14), SurvivalRate = 0.88, CountAlive = 2590, Success = true },
+
+                    // BP-014
+                    new FrySurvivalRecord { FryFishId = 8, DayNumber = DateTime.Now.AddDays(-30), SurvivalRate = 1.00, CountAlive = 2943, Success = false },
+                    new FrySurvivalRecord { FryFishId = 8, DayNumber = DateTime.Now.AddDays(-26), SurvivalRate = 0.95, CountAlive = 2795, Success = false },
+                    new FrySurvivalRecord { FryFishId = 8, DayNumber = DateTime.Now.AddDays(-22), SurvivalRate = 0.92, CountAlive = 2707, Success = false },
+                    new FrySurvivalRecord { FryFishId = 8, DayNumber = DateTime.Now.AddDays(-18), SurvivalRate = 0.89, CountAlive = 2619, Success = false },
+                    new FrySurvivalRecord { FryFishId = 8, DayNumber = DateTime.Now.AddDays(-14), SurvivalRate = 0.88, CountAlive = 2590, Success = true },
+
+                    // BP-015
+                    new FrySurvivalRecord { FryFishId = 9, DayNumber = DateTime.Now.AddDays(-30), SurvivalRate = 1.00, CountAlive = 2943, Success = false },
+                    new FrySurvivalRecord { FryFishId = 9, DayNumber = DateTime.Now.AddDays(-26), SurvivalRate = 0.95, CountAlive = 2795, Success = false },
+                    new FrySurvivalRecord { FryFishId = 9, DayNumber = DateTime.Now.AddDays(-22), SurvivalRate = 0.92, CountAlive = 2707, Success = false },
+                    new FrySurvivalRecord { FryFishId = 9, DayNumber = DateTime.Now.AddDays(-18), SurvivalRate = 0.89, CountAlive = 2619, Success = false },
+                    new FrySurvivalRecord { FryFishId = 9, DayNumber = DateTime.Now.AddDays(-14), SurvivalRate = 0.88, CountAlive = 2590, Success = true }
                 );
+
                 await context.SaveChangesAsync();
             }
             #endregion
@@ -1334,45 +2802,201 @@ namespace Zenkoi.API.ConfigExtensions
             if (!context.ClassificationStages.Any())
             {
                 await context.ClassificationStages.AddRangeAsync(
+
+                    // ============================
+                    // BP-009 (Kohaku Completed)
+                    // ============================
                     new ClassificationStage
                     {
-                        BreedingProcessId = 1,
-                        TotalCount = 4200,
+                        BreedingProcessId = 9,
+                        TotalCount = 843,
+                        Status = ClassificationStatus.Success,
+                        HighQualifiedCount = 300,
+                        ShowQualifiedCount = 250,
+                        PondQualifiedCount = 200,
+                        CullQualifiedCount = 93,
+                        Notes = "Hoàn tất phân loại Kohaku F1",
+                        StartDate = DateTime.Now.AddDays(-14),
+                        EndDate = DateTime.Now.AddDays(-8)
+                    },
+
+                    // ============================
+                    // BP-010 (Sanke Completed)
+                    // ============================
+                    new ClassificationStage
+                    {
+                        BreedingProcessId = 10,
+                        TotalCount = 959,
+                        Status = ClassificationStatus.Success,
+                        HighQualifiedCount = 335,
+                        ShowQualifiedCount = 287,
+                        PondQualifiedCount = 239,
+                        CullQualifiedCount = 98,
+                        Notes = "Hoàn tất phân loại Sanke F1",
+                        StartDate = DateTime.Now.AddDays(-15),
+                        EndDate = DateTime.Now.AddDays(-9)
+                    },
+
+                    // ============================
+                    // BP-011 Showa
+                    // ============================
+                    new ClassificationStage
+                    {
+                        BreedingProcessId = 11,
+                        TotalCount = 3097,
+                        Status = ClassificationStatus.Success,
+                        HighQualifiedCount = 1084,
+                        ShowQualifiedCount = 929,
+                        PondQualifiedCount = 774,
+                        CullQualifiedCount = 310,
+                        Notes = "Showa F1 – chất lượng tốt",
+                        StartDate = DateTime.Now.AddDays(-26),
+                        EndDate = DateTime.Now.AddDays(-20)
+                    },
+
+                    new ClassificationStage
+                    {
+                        BreedingProcessId = 12,
+                        TotalCount = 3097,
+                        Status = ClassificationStatus.Success,
+                        HighQualifiedCount = 1084,
+                        ShowQualifiedCount = 929,
+                        PondQualifiedCount = 774,
+                        CullQualifiedCount = 310,
+                        Notes = "Showa F1 – chất lượng tốt",
+                        StartDate = DateTime.Now.AddDays(-22),
+                        EndDate = DateTime.Now.AddDays(-16)
+                    },
+
+                    new ClassificationStage
+                    {
+                        BreedingProcessId = 13,
+                        TotalCount = 3097,
+                        Status = ClassificationStatus.Success,
+                        HighQualifiedCount = 1084,
+                        ShowQualifiedCount = 929,
+                        PondQualifiedCount = 774,
+                        CullQualifiedCount = 310,
+                        Notes = "Showa F1 – chất lượng tốt",
+                        StartDate = DateTime.Now.AddDays(-20),
+                        EndDate = DateTime.Now.AddDays(-14)
+                    },
+
+                    new ClassificationStage
+                    {
+                        BreedingProcessId = 14,
+                        TotalCount = 3097,
+                        Status = ClassificationStatus.Success,
+                        HighQualifiedCount = 1084,
+                        ShowQualifiedCount = 929,
+                        PondQualifiedCount = 774,
+                        CullQualifiedCount = 310,
+                        Notes = "Showa F1 – màu sắc ổn định",
+                        StartDate = DateTime.Now.AddDays(-20),
+                        EndDate = DateTime.Now.AddDays(-14)
+                    },
+
+                    new ClassificationStage
+                    {
+                        BreedingProcessId = 15,
+                        TotalCount = 3097,
+                        Status = ClassificationStatus.Success,
+                        HighQualifiedCount = 1084,
+                        ShowQualifiedCount = 929,
+                        PondQualifiedCount = 774,
+                        CullQualifiedCount = 310,
+                        Notes = "Showa F1 – đẹp đồng đều",
+                        StartDate = DateTime.Now.AddDays(-20),
+                        EndDate = DateTime.Now.AddDays(-14)
+                    }
+                );
+
+                await context.SaveChangesAsync();
+            }
+            #endregion
+
+            #region Seeding ClassificationRecord
+            if (!context.ClassificationRecords.Any())
+            {
+                var stages = context.ClassificationStages.ToList();
+                var records = new List<ClassificationRecord>();
+
+                foreach (var st in stages)
+                {
+                    int H = st.HighQualifiedCount ?? 0;
+                    int S = st.ShowQualifiedCount ?? 0;
+                    int P = st.PondQualifiedCount ?? 0;
+                    int C = st.CullQualifiedCount ?? 0;
+
+                    // Chia Cull thành 2 phần C1 + C2
+                    int C1 = C / 2;
+                    int C2 = C - C1;
+
+                    // ================================
+                    // Stage 1 → C1
+                    // ================================
+                    records.Add(new ClassificationRecord
+                    {
+                        ClassificationStageId = st.Id,
+                        StageNumber = 1,
                         HighQualifiedCount = 0,
                         ShowQualifiedCount = 0,
                         PondQualifiedCount = 0,
-                        Notes = "Phân loại lần đầu — nhóm cá khỏe mạnh, màu sắc rõ nét chiếm khoảng 20%.",
-                        StartDate = DateTime.Now.AddDays(-10),
-                        EndDate = DateTime.Now,
-                        Status = Zenkoi.DAL.Enums.ClassificationStatus.Preparing
-                    },
-                    new ClassificationStage
+                        CullQualifiedCount = C1,
+                        Notes = $"Lần 1 - loại lần 1 ({C1})",
+                        CreateAt = st.StartDate
+                    });
+
+                    // ================================
+                    // Stage 2 → C2
+                    // ================================
+                    records.Add(new ClassificationRecord
                     {
-                        BreedingProcessId = 2,
-                        TotalCount = 3000,
-                        HighQualifiedCount = 700,
-                        ShowQualifiedCount = 400,
-                        PondQualifiedCount = 1900,
-                        Notes = "Phân loại lần hai — chọn lọc kỹ hơn, giữ lại 35% cá có tiềm năng.",
-                        StartDate = DateTime.Now.AddDays(-5),
-                        EndDate = DateTime.Now,
-                        Status = Zenkoi.DAL.Enums.ClassificationStatus.Success
-                    },
-                    new ClassificationStage
+                        ClassificationStageId = st.Id,
+                        StageNumber = 2,
+                        HighQualifiedCount = 0,
+                        ShowQualifiedCount = 0,
+                        PondQualifiedCount = 0,
+                        CullQualifiedCount = C2,
+                        Notes = $"Lần 2 - loại lần 2 ({C2})",
+                        CreateAt = st.StartDate.AddDays(1)
+                    });
+
+                    // ================================
+                    // Stage 3 → POND
+                    // ================================
+                    records.Add(new ClassificationRecord
                     {
-                        BreedingProcessId = 6,
-                        TotalCount = 3360,
-                        HighQualifiedCount = 1200,
-                        ShowQualifiedCount = 800,
-                        PondQualifiedCount = 1360,
-                        Notes = "Phân loại hoàn tất từ BP-006 - Bloodline cao cấp, tỷ lệ High quality cao.",
-                        StartDate = DateTime.Now.AddDays(-45),
-                        EndDate = DateTime.Now.AddDays(-30),
-                        Status = Zenkoi.DAL.Enums.ClassificationStatus.Stage4
-                    }
-                );
+                        ClassificationStageId = st.Id,
+                        StageNumber = 3,
+                        HighQualifiedCount = 0,
+                        ShowQualifiedCount = 0,
+                        PondQualifiedCount = P,
+                        CullQualifiedCount = 0,
+                        Notes = $"Lần 3 - chọn Pond ({P})",
+                        CreateAt = st.StartDate.AddDays(2)
+                    });
+
+                    // ================================
+                    // Stage 4 → HIGH + SHOW (FINAL)
+                    // ================================
+                    records.Add(new ClassificationRecord
+                    {
+                        ClassificationStageId = st.Id,
+                        StageNumber = 4,
+                        HighQualifiedCount = H,
+                        ShowQualifiedCount = S,
+                        PondQualifiedCount = 0,
+                        CullQualifiedCount = 0,
+                        Notes = $"Lần 4 - chọn High+Show ({H}+{S})",
+                        CreateAt = st.EndDate
+                    });
+                }
+
+                await context.ClassificationRecords.AddRangeAsync(records);
                 await context.SaveChangesAsync();
             }
+
             #endregion
 
             #region Seeding PacketFishes

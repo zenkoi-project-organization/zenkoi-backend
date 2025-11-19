@@ -166,10 +166,20 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var _koifish = _unitOfWork.GetRepo<KoiFish>();
             var _pondRepo  = _unitOfWork.GetRepo<Pond>();
-            var pond = await _pondRepo.GetByIdAsync(dto.PondId);
+            var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
+            {
+                Predicate = p => p.Id == dto.PondId, IncludeProperties  = new List<Expression<Func<Pond, object>>>
+                {
+                    p => p.PondType
+                }
+            });
             if(pond == null)
             {
                 throw new KeyNotFoundException("không tìm thấy hồ");
+            }
+            if(pond.PondType.Type != TypeOfPond.Paring)
+            {
+                throw new InvalidOperationException("vui lòng chọn hồ đúng với quá trình");
             }
             if (!pond.PondStatus.Equals(PondStatus.Empty)){
                 throw new Exception("hiện tại hồ bạn chọn không trống");
