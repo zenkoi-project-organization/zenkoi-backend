@@ -238,28 +238,7 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
 
             var generatedSchedules = new List<WorkSchedule>();
 
-            var scheduleDates = new HashSet<DateOnly>();
-            foreach (var templateItem in template.TemplateItems)
-            {
-                int daysToAdd = ((int)templateItem.DayOfWeek - (int)startDayOfWeek + 7) % 7;
-                var scheduleDate = startDate.AddDays(daysToAdd);
-
-                if (!scheduleDates.Add(scheduleDate))
-                {
-                    continue;
-                }
-
-                var existingSchedule = await _workScheduleRepo.GetSingleAsync(new QueryOptions<WorkSchedule>
-                {
-                    Predicate = ws => ws.ScheduledDate == scheduleDate
-                });
-
-                if (existingSchedule != null)
-                {
-                    throw new InvalidOperationException($"Duplicate schedule detected: A schedule already exists for date {scheduleDate:yyyy-MM-dd}");
-                }
-            }
-
+   
             foreach (var templateItem in template.TemplateItems)
             {
                 int daysToAdd = ((int)templateItem.DayOfWeek - (int)startDayOfWeek + 7) % 7;
