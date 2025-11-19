@@ -217,4 +217,51 @@ public class WorkScheduleController : BaseAPIController
             return GetError($"Error during bulk assignment: {ex.Message}");
         }
     }
+
+    [HttpPost("{id:int}/complete-my-assignment")]
+    [Authorize]
+    public async Task<IActionResult> CompleteMyAssignment(int id, [FromBody] CompleteStaffAssignmentDTO dto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return ModelInvalid();
+
+            var result = await _workScheduleService.CompleteStaffAssignmentAsync(id, UserId, dto);
+            return SaveSuccess(result, "Assignment marked as completed successfully");
+        }
+        catch (ArgumentException ex)
+        {
+            return GetNotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return GetError(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error completing assignment: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Get current staff's assignments with full task details and completion status
+    /// Returns StaffAssignment records with WorkSchedule and TaskTemplate information
+    /// </summary>
+    [HttpGet("my-assignments")]
+    [Authorize]
+    public async Task<IActionResult> GetMyAssignments([FromQuery] WorkScheduleFilterRequestDTO? filter)
+    {
+        try
+        {
+            var result = await _workScheduleService.GetStaffAssignmentsAsync(
+                UserId,
+                filter ?? new WorkScheduleFilterRequestDTO());
+            return Success(result, "Your assignments retrieved successfully");
+        }
+        catch (Exception ex)
+        {
+            return GetError($"Error retrieving your assignments: {ex.Message}");
+        }
+    }
 }
