@@ -10,4 +10,7 @@ public class GenerateScheduleRequestDTO
 
     [Required]
     public DateOnly StartDate { get; set; }
+    public List<int> StaffIds { get; set; } = new List<int>();
+
+    public List<int> PondIds { get; set; } = new List<int>();
 }

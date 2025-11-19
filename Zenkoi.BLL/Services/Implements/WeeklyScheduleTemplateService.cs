@@ -20,6 +20,10 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
     private readonly IRepoBase<WeeklyScheduleTemplateItem> _templateItemRepo;
     private readonly IRepoBase<TaskTemplate> _taskTemplateRepo;
     private readonly IRepoBase<WorkSchedule> _workScheduleRepo;
+    private readonly IRepoBase<StaffAssignment> _staffAssignmentRepo;
+    private readonly IRepoBase<PondAssignment> _pondAssignmentRepo;
+    private readonly IRepoBase<ApplicationUser> _userRepo;
+    private readonly IRepoBase<Pond> _pondRepo;
 
     public WeeklyScheduleTemplateService(IUnitOfWork unitOfWork, IMapper mapper)
     {
@@ -29,6 +33,10 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
         _templateItemRepo = _unitOfWork.GetRepo<WeeklyScheduleTemplateItem>();
         _taskTemplateRepo = _unitOfWork.GetRepo<TaskTemplate>();
         _workScheduleRepo = _unitOfWork.GetRepo<WorkSchedule>();
+        _staffAssignmentRepo = _unitOfWork.GetRepo<StaffAssignment>();
+        _pondAssignmentRepo = _unitOfWork.GetRepo<PondAssignment>();
+        _userRepo = _unitOfWork.GetRepo<ApplicationUser>();
+        _pondRepo = _unitOfWork.GetRepo<Pond>();
     }
 
     public async Task<WeeklyScheduleTemplateResponseDTO> CreateTemplateAsync(WeeklyScheduleTemplateRequestDTO dto)
@@ -217,6 +225,21 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                 throw new KeyNotFoundException("Weekly schedule template not found");
             }
 
+           
+            foreach (var staffId in request.StaffIds)
+            {
+                var staff = await _userRepo.GetByIdAsync(staffId);
+                if (staff == null)
+                    throw new ArgumentException($"Staff with ID {staffId} not found");
+            }
+
+            foreach (var pondId in request.PondIds)
+            {
+                var pond = await _pondRepo.GetByIdAsync(pondId);
+                if (pond == null)
+                    throw new ArgumentException($"Pond with ID {pondId} not found");
+            }
+
             var taskTemplateIds = template.TemplateItems.Select(ti => ti.TaskTemplateId).Distinct().ToList();
             var taskTemplates = await _taskTemplateRepo.GetAllAsync(new QueryOptions<TaskTemplate>
             {
@@ -260,6 +283,30 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                 await _workScheduleRepo.CreateAsync(workSchedule);
                 generatedSchedules.Add(workSchedule);
             }
+       
+            await _unitOfWork.SaveChangesAsync();
+
+            foreach (var schedule in generatedSchedules)
+            {
+                foreach (var staffId in request.StaffIds)
+                {
+                    var staffAssignment = new StaffAssignment
+                    {
+                        WorkScheduleId = schedule.Id,
+                        StaffId = staffId
+                    };
+                    await _staffAssignmentRepo.CreateAsync(staffAssignment);
+                }
+                foreach (var pondId in request.PondIds)
+                {
+                    var pondAssignment = new PondAssignment
+                    {
+                        WorkScheduleId = schedule.Id,
+                        PondId = pondId
+                    };
+                    await _pondAssignmentRepo.CreateAsync(pondAssignment);
+                }
+            }
 
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
@@ -272,9 +319,26 @@ public class WeeklyScheduleTemplateService : IWeeklyScheduleTemplateService
                     Predicate = ws => ws.Id == schedule.Id,
                     IncludeProperties = new List<System.Linq.Expressions.Expression<Func<WorkSchedule, object>>>
                     {
-                        ws => ws.TaskTemplate
+                        ws => ws.TaskTemplate,
+                        ws => ws.StaffAssignments,
+                        ws => ws.PondAssignments,
+                        ws => ws.Creator
                     }
                 });
+
+                if (scheduleWithRelations != null)
+                {
+                    await _workScheduleRepo.Get(new QueryOptions<WorkSchedule>
+                    {
+                        Predicate = ws => ws.Id == schedule.Id
+                    })
+                    .Include(ws => ws.StaffAssignments)
+                        .ThenInclude(sa => sa.Staff)
+                    .Include(ws => ws.PondAssignments)
+                        .ThenInclude(pa => pa.Pond)
+                    .FirstOrDefaultAsync();
+                }
+
                 result.Add(_mapper.Map<WorkScheduleResponseDTO>(scheduleWithRelations));
             }
 
