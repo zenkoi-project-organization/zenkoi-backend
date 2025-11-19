@@ -576,7 +576,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost("staff")]
-        [Authorize(Roles = "Manager")]
+     //   [Authorize(Roles = "Manager")]
         public async Task<IActionResult> CreateStaffAccount([FromBody] StaffAccountRequestDTO dto)
         {
             if (!ModelState.IsValid)

@@ -13,26 +13,17 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public bool MaleIsMutated { get; set; }
 
         public string? MaleMutationDescription { get; set; }
-        public double? MaleMutationRate { get; set; }
 
         public int FemaleId { get; set; }
         public string FemaleRFID { get; set; }
         public string FemaleImage { get; set; }
-
         public bool FemaleIsMutated { get; set; }
-
         public string? FemaleMutationDescription { get; set; }
-
-        public double? FemaleMutationRate { get; set; }
-
         public string Reason { get; set; } = "";
         public double PredictedFertilizationRate { get; set; }
         public double PredictedHatchRate { get; set; } 
         public double PredictedMutationRate { get; set; }
-
         public string? PredictedMutationDescription { get; set; }
-
-
         public double PredictedSurvivalRate { get; set; }
         public double PredictedHighQualifiedRate { get; set; }
 

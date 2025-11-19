@@ -6,6 +6,7 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
     {
         public string? Search { get; set; }
         public PondStatus? Status { get; set; }
+        public bool? IsNotMaintenance { get; set; }
         public int? AreaId { get; set; }
         public int? PondTypeId { get; set; }
         public TypeOfPond? PondTypeEnum { get; set; }

@@ -27,7 +27,6 @@ namespace Zenkoi.DAL.Entities
         public decimal? SellingPrice { get; set; }
         public bool IsMutated { get; set; }
         public string? MutationDescription { get; set; }
-        public double? MutationRate { get; set; }
         public string? Description { get; set; }
         public string? Origin { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

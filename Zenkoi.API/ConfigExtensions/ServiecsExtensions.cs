@@ -489,11 +489,6 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Area
                     {
-                        AreaName = "Khu Thử Nghiệm X",
-                        Description = "Khu vực dành cho các quy trình thử nghiệm."
-                    },
-                    new Area
-                    {
                         AreaName = "Khu Cách Ly D",
                         Description = "Khu vực cách ly cho cá mới hoặc bị bệnh."
                     }
@@ -1033,8 +1028,8 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
+                         
                     },
 
                     // KOI-0002 - Kohaku Female - Tancho
@@ -1057,8 +1052,8 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
+                         
                     },
 
                     // KOI-0003 - Kohaku Male - Inazuma
@@ -1081,8 +1076,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
                     },
 
                     // KOI-0004 - Kohaku Female - Nidan
@@ -1105,8 +1099,8 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
+                         
                     },
 
                     // KOI-0005 - Kohaku Male - Sandan
@@ -1129,8 +1123,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Hi đỏ đậm",
-                        MutationRate = 0.8
+                        MutationDescription = "Hi đỏ đậm"
                     },
 
                     // KOI-0006 - Kohaku Female - Kuchibeni
@@ -1153,8 +1146,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
                     },
 
                     // ================== SANKE (2) - 6 con ==================
@@ -1178,8 +1170,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ginrin nhẹ",
-                        MutationRate = 0.75
+                        MutationDescription = "Ginrin nhẹ"
                     },
 
                     // KOI-0008 - Sanke Female - Tsubo Sumi
@@ -1202,8 +1193,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ginrin toàn thân",
-                        MutationRate = 0.8
+                        MutationDescription = "Ginrin toàn thân"
                     },
 
                     // KOI-0009 - Sanke Male - Tsubo Sumi
@@ -1226,8 +1216,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
                     },
 
                     // KOI-0010 - Sanke Female - Maruten
@@ -1250,8 +1239,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ginrin nhẹ",
-                        MutationRate = 0.7
+                        MutationDescription = "Ginrin nhẹ"
                     },
 
                     // KOI-0011 - Sanke Male - Ginrin
@@ -1274,8 +1262,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ginrin mạnh",
-                        MutationRate = 0.92
+                        MutationDescription = "Ginrin mạnh"
                     },
 
                     // KOI-0012 - Sanke Female - Young
@@ -1298,8 +1285,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
                     },
 
                     // ================== SHOWA (3) - 6 con ==================
@@ -1323,8 +1309,8 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
+                         
                     },
 
                     // KOI-0014 - Showa Female
@@ -1347,8 +1333,8 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
+                         
                     },
 
                     // KOI-0015 - Showa Male - Kindai
@@ -1371,8 +1357,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Sumi siêu đậm",
-                        MutationRate = 0.82
+                        MutationDescription = "Sumi siêu đậm"
                     },
 
                     // KOI-0016 - Showa Female - Hi Showa
@@ -1395,8 +1380,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
                     },
 
                     // KOI-0017 - Showa Male - Boke
@@ -1419,8 +1403,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Boke tự nhiên",
-                        MutationRate = 0.78
+                        MutationDescription = "Boke tự nhiên"
                     },
 
                     // KOI-0018 - Showa Female - Modern
@@ -1443,8 +1426,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
                     },
 
                     // ================== OGON (4) - 6 con ==================
@@ -1468,8 +1450,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ánh kim vàng mạnh",
-                        MutationRate = 0.7
+                        MutationDescription = "Ánh kim vàng mạnh"
                     },
 
                     // KOI-0020 - Ogon Female - Yamabuki
@@ -1492,8 +1473,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ánh kim vàng đậm",
-                        MutationRate = 0.88
+                        MutationDescription = "Ánh kim vàng đậm"
                     },
 
                     // KOI-0021 - Ogon Male - Platinum
@@ -1516,8 +1496,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ánh kim bạch kim",
-                        MutationRate = 0.9
+                        MutationDescription = "Ánh kim bạch kim"
                     },
 
                     // KOI-0022 - Ogon Female - Cream
@@ -1540,8 +1519,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ánh kim kem",
-                        MutationRate = 0.85
+                        MutationDescription = "Ánh kim kem"
                     },
 
                     // KOI-0023 - Ogon Male - Hariwake
@@ -1564,8 +1542,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Ogon lai",
-                        MutationRate = 0.75
+                        MutationDescription = "Ogon lai"
                     },
 
                     // KOI-0024 - Ogon Female - Young
@@ -1588,8 +1565,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"                  
                     },
 
                     // ================== ASAGI (5) - 6 con ==================
@@ -1613,8 +1589,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"  
                     },
 
                     // KOI-0026 - Asagi Female
@@ -1638,7 +1613,7 @@ namespace Zenkoi.API.ConfigExtensions
                         Videos = new List<string>(),
                         IsMutated = false,
                         MutationDescription = "Không có",
-                        MutationRate = 0
+                         
                     },
 
                     // KOI-0027 - Asagi Male - Mizuho
@@ -1661,8 +1636,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
                     },
 
                     // KOI-0028 - Asagi Female - Konjo
@@ -1685,8 +1659,8 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
+                         
                     },
 
                     // KOI-0029 - Asagi Male - Young
@@ -1709,8 +1683,8 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = false,
-                        MutationDescription = "Không có",
-                        MutationRate = 0
+                        MutationDescription = "Không có"
+                         
                     },
 
                     // KOI-0030 - Asagi Female - Hi Asagi
@@ -1733,8 +1707,7 @@ namespace Zenkoi.API.ConfigExtensions
                         CreatedAt = DateTime.UtcNow,
                         Videos = new List<string>(),
                         IsMutated = true,
-                        MutationDescription = "Hi đỏ mạnh",
-                        MutationRate = 0.8
+                        MutationDescription = "Hi đỏ mạnh"
                     }
                 );
 
