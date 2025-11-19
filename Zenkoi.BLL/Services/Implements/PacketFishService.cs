@@ -179,6 +179,12 @@ namespace Zenkoi.BLL.Services.Implements
                 Expression<Func<PacketFish, bool>> expr = pf => pf.AgeMonths <= filter.MaxAgeMonths.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+            if (filter.VarietyIds != null && filter.VarietyIds.Any())
+            {
+                Expression<Func<PacketFish, bool>> expr = pf =>
+                    pf.VarietyPacketFishes.Any(vpf => filter.VarietyIds.Contains(vpf.VarietyId));
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
 
             queryOptions.Predicate = predicate;
             queryOptions.OrderBy = pf => pf.OrderByDescending(x => x.CreatedAt);

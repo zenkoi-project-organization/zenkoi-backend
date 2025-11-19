@@ -14,5 +14,6 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
         public decimal? MaxAgeMonths { get; set; }
         public int? MinStockQuantity { get; set; }
         public int? MaxStockQuantity { get; set; }
+        public List<int>? VarietyIds { get; set; }
     }
 }
