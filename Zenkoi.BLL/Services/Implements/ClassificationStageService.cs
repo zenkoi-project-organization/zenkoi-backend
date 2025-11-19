@@ -87,6 +87,12 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new InvalidOperationException("hiện tại hồ bạn chọn không trống");
             }
+            var currentFish = breed.FryFish.CurrentSurvivalRate * breed.FryFish.InitialCount;
+            if(pond.MaxFishCount < currentFish)
+            {
+                throw new InvalidOperationException("số lượng cá vượt sức chứa của hồ");
+            }
+
             if (breed == null)
             {
                 throw new KeyNotFoundException("không tìm thấy quy trình sinh sản");
