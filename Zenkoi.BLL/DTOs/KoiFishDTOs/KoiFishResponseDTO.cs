@@ -29,7 +29,6 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public bool IsMutated { get; set; }
 
         public string? MutationDescription { get; set; }
-        public double? MutationRate { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

@@ -504,12 +504,6 @@ namespace Zenkoi.BLL.Services.Implements
                     )
             };
 
-            // 🧬 Tính trung bình tỷ lệ đột biến (nếu có)
-            if (breedings.Any(b => b.MutationRate.HasValue))
-            {
-                response.AverageMutationRate = breedings.Average(b => b.MutationRate ?? 0);
-            }
-
             return response;
         }
 
@@ -560,7 +554,6 @@ namespace Zenkoi.BLL.Services.Implements
                     Variety = k.Variety.VarietyName,
                     Gender = k.Gender.ToString(),
                     IsMutated = k.IsMutated,
-                    MutationRate = k.MutationRate,
                     MutationDescription = k.MutationDescription,
                     Size = k.Size.ToString(),
                     image = k.Images[0],

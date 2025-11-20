@@ -94,6 +94,11 @@ namespace Zenkoi.BLL.Services.Implements
                 Expression<Func<KoiFish, bool>> expr = k => k.HealthStatus == filter.Health.Value;
                 predicate = predicate == null ? expr : predicate.AndAlso(expr);
             }
+            if (filter.IsMutation.HasValue)
+            {
+                Expression<Func<KoiFish, bool>> expr = k => k.IsMutated == filter.IsMutation.Value;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
 
             if (filter.SaleStatus.HasValue)
             {
@@ -226,7 +231,7 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<KoiFishResponseDTO> CreateAsync(KoiFishRequestDTO dto)
         {
-            double mutationRate = 0;
+         
 
             var variety = await _varietyRepo.CheckExistAsync(dto.VarietyId);
             if (!variety)
@@ -267,22 +272,10 @@ namespace Zenkoi.BLL.Services.Implements
                 if (breed.Status != BreedingStatus.Complete && breed.ClassificationStage?.Status != ClassificationStatus.Stage4)
                     throw new InvalidOperationException("Quy trình sinh sản này chưa hoàn thành.");
 
-                if (breed.MaleKoi.IsMutated || breed.FemaleKoi.IsMutated)
-                {
-                    mutationRate = 70;
-                }
-                else
-                {
-                    mutationRate = 50;
-                }
-            }
-            else
-            {
-                mutationRate = 50;
             }
 
             var entity = _mapper.Map<KoiFish>(dto);
-            entity.MutationRate = mutationRate;
+           
             
             await _koiFishRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
@@ -497,7 +490,6 @@ namespace Zenkoi.BLL.Services.Implements
                 Age = Math.Round(age, 1),
                 IsMutated = koifish.IsMutated,
                 MutationDescription = koifish.MutationDescription,
-                MutationRate = koifish.MutationRate,
                 BreedingHistory = new List<BreedingRecordDTO>
                 {
                     new BreedingRecordDTO
