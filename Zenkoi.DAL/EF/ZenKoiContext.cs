@@ -63,6 +63,7 @@ namespace Zenkoi.DAL.EF
         public DbSet<WeeklyScheduleTemplateItem> WeeklyScheduleTemplateItems { get; set; }
         public DbSet<KoiIdentification> KoiIdentifications { get; set; }
         public DbSet<KoiGalleryEnrollment> KoiGalleryEnrollments { get; set; }
+        public DbSet<KoiFavorite> KoiFavorites { get; set; }
 
         #endregion
 
@@ -111,6 +112,7 @@ namespace Zenkoi.DAL.EF
             modelBuilder.ApplyConfiguration(new WeeklyScheduleTemplateItemConfiguration());
             modelBuilder.ApplyConfiguration(new KoiIdentificationConfiguration());
             modelBuilder.ApplyConfiguration(new KoiGalleryEnrollmentConfiguration());
+            modelBuilder.ApplyConfiguration(new KoiFavoriteConfiguration());
 
             modelBuilder.Entity<IdentityUserLogin<int>>(entity =>
 			{

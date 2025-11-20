@@ -74,44 +74,18 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Lấy tất cả gói cá
         /// </summary>
-        /// <param name="isAvailable">Lọc theo trạng thái có sẵn (optional)</param>
-        /// <param name="size">Lọc theo kích thước (optional)</param>
-        /// <param name="minPrice">Giá tối thiểu (optional)</param>
-        /// <param name="maxPrice">Giá tối đa (optional)</param>
+        /// <param name="filter">Bộ lọc gói cá</param>
+        /// <param name="pageIndex">Trang hiện tại</param>
+        /// <param name="pageSize">Số lượng item mỗi trang</param>
         /// <returns>Danh sách gói cá</returns>
         [HttpGet]
         public async Task<IActionResult> GetAllPacketFishes(
-            [FromQuery] string? search = null,
-            [FromQuery] bool? isAvailable = null,
-            [FromQuery] double? minSize = null,
-            [FromQuery] double? maxSize = null,
-            [FromQuery] decimal? minPrice = null,
-            [FromQuery] decimal? maxPrice = null,
-            [FromQuery] decimal? minAgeMonths = null,
-            [FromQuery] decimal? maxAgeMonths = null,
-            [FromQuery] int? minStockQuantity = null,
-            [FromQuery] int? maxStockQuantity = null,
-            [FromQuery] List<int>? varietyIds = null,
+            [FromQuery] PacketFishFilterRequestDTO filter,
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                var filter = new PacketFishFilterRequestDTO
-                {
-                    Search = search,
-                    IsAvailable = isAvailable,
-                    MaxSize = maxSize,
-                    MinSize = minSize,
-                    MinPrice = minPrice,
-                    MaxPrice = maxPrice,
-                    MinAgeMonths = minAgeMonths,
-                    MaxAgeMonths = maxAgeMonths,
-                    MinStockQuantity = minStockQuantity,
-                    MaxStockQuantity = maxStockQuantity,
-                    VarietyIds = varietyIds
-                };
-
                 var result = await _packetFishService.GetAllPacketFishesAsync(filter, pageIndex, pageSize);
                 return GetPagedSuccess(result);
             }

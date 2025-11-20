@@ -99,45 +99,19 @@ namespace Zenkoi.API.Controllers
         /// Lấy danh sách đơn hàng của khách hàng
         /// </summary>
         /// <param name="customerId">ID khách hàng</param>
-        /// <param name="search">Tìm kiếm theo mã đơn hàng</param>
-        /// <param name="status">Trạng thái đơn hàng</param>
-        /// <param name="createdFrom">Ngày tạo từ</param>
-        /// <param name="createdTo">Ngày tạo đến</param>
-        /// <param name="minTotalAmount">Tổng tiền tối thiểu</param>
-        /// <param name="maxTotalAmount">Tổng tiền tối đa</param>
-        /// <param name="hasPromotion">Có khuyến mãi hay không</param>
-        /// <param name="orderNumber">Mã đơn hàng</param>
+        /// <param name="filter">Bộ lọc đơn hàng</param>
         /// <param name="pageIndex">Trang hiện tại (mặc định: 1)</param>
         /// <param name="pageSize">Số lượng mục trên mỗi trang (mặc định: 10)</param>
         /// <returns>Danh sách đơn hàng đã phân trang</returns>
         [HttpGet("customer/{customerId:int}")]
         public async Task<IActionResult> GetOrdersByCustomerId(
             int customerId,
-            [FromQuery] string? search = null,
-            [FromQuery] OrderStatus? status = null,
-            [FromQuery] DateTime? createdFrom = null,
-            [FromQuery] DateTime? createdTo = null,
-            [FromQuery] decimal? minTotalAmount = null,
-            [FromQuery] decimal? maxTotalAmount = null,
-            [FromQuery] bool? hasPromotion = null,
-            [FromQuery] string? orderNumber = null,
+            [FromQuery] OrderFilterRequestDTO filter,
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                var filter = new OrderFilterRequestDTO
-                {
-                    Search = search,
-                    Status = status,
-                    CreatedFrom = createdFrom,
-                    CreatedTo = createdTo,
-                    MinTotalAmount = minTotalAmount,
-                    MaxTotalAmount = maxTotalAmount,
-                    HasPromotion = hasPromotion,
-                    OrderNumber = orderNumber
-                };
-
                 var result = await _orderService.GetOrdersByCustomerIdAsync(customerId, filter, pageIndex, pageSize);
                 return GetPagedSuccess(result);
             }
@@ -150,44 +124,18 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Lấy danh sách đơn hàng của user hiện tại
         /// </summary>
-        /// <param name="search">Tìm kiếm theo mã đơn hàng</param>
-        /// <param name="status">Trạng thái đơn hàng</param>
-        /// <param name="createdFrom">Ngày tạo từ</param>
-        /// <param name="createdTo">Ngày tạo đến</param>
-        /// <param name="minTotalAmount">Tổng tiền tối thiểu</param>
-        /// <param name="maxTotalAmount">Tổng tiền tối đa</param>
-        /// <param name="hasPromotion">Có khuyến mãi hay không</param>
-        /// <param name="orderNumber">Mã đơn hàng</param>
+        /// <param name="filter">Bộ lọc đơn hàng</param>
         /// <param name="pageIndex">Trang hiện tại (mặc định: 1)</param>
         /// <param name="pageSize">Số lượng mục trên mỗi trang (mặc định: 10)</param>
         /// <returns>Danh sách đơn hàng đã phân trang</returns>
         [HttpGet("customer/me")]
         public async Task<IActionResult> GetOrdersByCurrentCustomerId(
-            [FromQuery] string? search = null,
-            [FromQuery] OrderStatus? status = null,
-            [FromQuery] DateTime? createdFrom = null,
-            [FromQuery] DateTime? createdTo = null,
-            [FromQuery] decimal? minTotalAmount = null,
-            [FromQuery] decimal? maxTotalAmount = null,
-            [FromQuery] bool? hasPromotion = null,
-            [FromQuery] string? orderNumber = null,
+            [FromQuery] OrderFilterRequestDTO filter,
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                var filter = new OrderFilterRequestDTO
-                {
-                    Search = search,
-                    Status = status,
-                    CreatedFrom = createdFrom,
-                    CreatedTo = createdTo,
-                    MinTotalAmount = minTotalAmount,
-                    MaxTotalAmount = maxTotalAmount,
-                    HasPromotion = hasPromotion,
-                    OrderNumber = orderNumber
-                };
-
                 var result = await _orderService.GetOrdersByCustomerIdAsync(UserId, filter, pageIndex, pageSize);
                 return GetPagedSuccess(result);
             }
@@ -200,47 +148,18 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Lấy tất cả đơn hàng với bộ lọc và phân trang (Admin only)
         /// </summary>
-        /// <param name="search">Tìm kiếm theo mã đơn hàng hoặc tên khách hàng</param>
-        /// <param name="status">Trạng thái đơn hàng (Created = 0, Paid = 1, Confirmed = 2, Shipped = 3, Delivered = 4, Cancelled = 5, Completed = 6)</param>
-        /// <param name="customerId">ID khách hàng</param>
-        /// <param name="createdFrom">Ngày tạo từ</param>
-        /// <param name="createdTo">Ngày tạo đến</param>
-        /// <param name="minTotalAmount">Tổng tiền tối thiểu</param>
-        /// <param name="maxTotalAmount">Tổng tiền tối đa</param>
-        /// <param name="hasPromotion">Có khuyến mãi hay không</param>
-        /// <param name="orderNumber">Mã đơn hàng</param>
+        /// <param name="filter">Bộ lọc đơn hàng</param>
         /// <param name="pageIndex">Trang hiện tại (mặc định: 1)</param>
         /// <param name="pageSize">Số lượng mục trên mỗi trang (mặc định: 10)</param>
         /// <returns>Danh sách đơn hàng đã phân trang</returns>
         [HttpGet("all")]
         public async Task<IActionResult> GetAllOrders(
-            [FromQuery] string? search = null,
-            [FromQuery] OrderStatus? status = null,
-            [FromQuery] int? customerId = null,
-            [FromQuery] DateTime? createdFrom = null,
-            [FromQuery] DateTime? createdTo = null,
-            [FromQuery] decimal? minTotalAmount = null,
-            [FromQuery] decimal? maxTotalAmount = null,
-            [FromQuery] bool? hasPromotion = null,
-            [FromQuery] string? orderNumber = null,
+            [FromQuery] OrderFilterRequestDTO filter,
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                var filter = new OrderFilterRequestDTO
-                {
-                    Search = search,
-                    Status = status,
-                    CustomerId = customerId,
-                    CreatedFrom = createdFrom,
-                    CreatedTo = createdTo,
-                    MinTotalAmount = minTotalAmount,
-                    MaxTotalAmount = maxTotalAmount,
-                    HasPromotion = hasPromotion,
-                    OrderNumber = orderNumber
-                };
-
                 var result = await _orderService.GetAllOrdersAsync(filter, pageIndex, pageSize);
                 return GetPagedSuccess(result);
             }
