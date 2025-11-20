@@ -23,7 +23,22 @@ namespace Zenkoi.API.Controllers
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10)
         {
-            var result = await _koiFishService.GetAllKoiFishAsync(filter ?? new KoiFishFilterRequestDTO(), pageIndex, pageSize);
+        
+            int? userId = null;
+            try
+            {
+                userId = UserId;
+            }
+            catch
+            {
+               
+            }
+
+            var result = await _koiFishService.GetAllKoiFishAsync(
+                filter ?? new KoiFishFilterRequestDTO(),
+                pageIndex,
+                pageSize,
+                userId);
 
             return GetPagedSuccess(result);
         }

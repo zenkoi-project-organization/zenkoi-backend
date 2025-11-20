@@ -20,7 +20,6 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
         public string? Origin { get; set; }
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
-
-
+        public bool? IsFavorited { get; set; }
     }
 }

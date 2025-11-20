@@ -34,6 +34,8 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
 
+        public bool IsFavorited { get; set; }
+
         public PondBasicDTO Pond { get; set; } = new();
         public VarietyBasicDTO Variety { get; set; } = new();
         public BreedingProcessBasicDTO? BreedingProcess { get; set; }

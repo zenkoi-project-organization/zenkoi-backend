@@ -1743,6 +1743,93 @@ namespace Zenkoi.API.ConfigExtensions
 
             #endregion
 
+            #region Seeding KoiFavorites
+            if (!context.KoiFavorites.Any() && customer1 != null && customer2 != null && customer3 != null)
+            {
+                var koiFishes = await context.KoiFishes.OrderBy(k => k.Id).Take(20).ToListAsync();
+
+                if (koiFishes.Count >= 10)
+                {
+                    await context.KoiFavorites.AddRangeAsync(
+                        // Customer1 favorites
+                        new KoiFavorite
+                        {
+                            UserId = customer1.Id,
+                            KoiFishId = koiFishes[0].Id, // KOI-0001
+                            CreatedAt = DateTime.UtcNow.AddDays(-10)
+                        },
+                        new KoiFavorite
+                        {
+                            UserId = customer1.Id,
+                            KoiFishId = koiFishes[2].Id, // KOI-0003
+                            CreatedAt = DateTime.UtcNow.AddDays(-8)
+                        },
+                        new KoiFavorite
+                        {
+                            UserId = customer1.Id,
+                            KoiFishId = koiFishes[5].Id, // KOI-0006
+                            CreatedAt = DateTime.UtcNow.AddDays(-5)
+                        },
+                        new KoiFavorite
+                        {
+                            UserId = customer1.Id,
+                            KoiFishId = koiFishes[7].Id, // KOI-0008
+                            CreatedAt = DateTime.UtcNow.AddDays(-3)
+                        },
+
+                        // Customer2 favorites
+                        new KoiFavorite
+                        {
+                            UserId = customer2.Id,
+                            KoiFishId = koiFishes[1].Id, // KOI-0002
+                            CreatedAt = DateTime.UtcNow.AddDays(-12)
+                        },
+                        new KoiFavorite
+                        {
+                            UserId = customer2.Id,
+                            KoiFishId = koiFishes[4].Id, // KOI-0005
+                            CreatedAt = DateTime.UtcNow.AddDays(-7)
+                        },
+                        new KoiFavorite
+                        {
+                            UserId = customer2.Id,
+                            KoiFishId = koiFishes[6].Id, // KOI-0007
+                            CreatedAt = DateTime.UtcNow.AddDays(-4)
+                        },
+                        new KoiFavorite
+                        {
+                            UserId = customer2.Id,
+                            KoiFishId = koiFishes[9].Id, // KOI-0010
+                            CreatedAt = DateTime.UtcNow.AddDays(-2)
+                        },
+
+                        // Customer3 favorites
+                        new KoiFavorite
+                        {
+                            UserId = customer3.Id,
+                            KoiFishId = koiFishes[0].Id, // KOI-0001 (same as customer1)
+                            CreatedAt = DateTime.UtcNow.AddDays(-9)
+                        },
+                        new KoiFavorite
+                        {
+                            UserId = customer3.Id,
+                            KoiFishId = koiFishes[3].Id, // KOI-0004
+                            CreatedAt = DateTime.UtcNow.AddDays(-6)
+                        },
+                        new KoiFavorite
+                        {
+                            UserId = customer3.Id,
+                            KoiFishId = koiFishes[8].Id, // KOI-0009
+                            CreatedAt = DateTime.UtcNow.AddDays(-1)
+                        }
+                    );
+
+                    await context.SaveChangesAsync();
+                }
+            }
+
+            #endregion
+
             #region Seeding BreedingProcesses
             if (!context.BreedingProcesses.Any())
             {
