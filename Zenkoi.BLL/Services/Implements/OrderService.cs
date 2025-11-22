@@ -118,7 +118,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 CustomerId = customerId,
                 CustomerAddressId = createOrderDTO.CustomerAddressId,
-                Status = OrderStatus.PendingPayment,
+                Status = OrderStatus.Pending,
                 Subtotal = subtotal,
                 ShippingFee = shippingFee,
                 DiscountAmount = discountAmount,
