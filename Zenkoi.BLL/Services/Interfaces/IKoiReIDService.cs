@@ -6,11 +6,18 @@ using Zenkoi.DAL.Paging;
 namespace Zenkoi.BLL.Services.Interfaces
 {
     public interface IKoiReIDService
-    {    
+    {
         Task<EnrollFromCloudinaryResponseDTO> EnrollKoiFromCloudinaryAsync(
             int koiFishId,
             List<string> cloudinaryUrls,
             int userId,
+            bool overrideExisting = false);
+
+        Task<EnrollFromVideoResponseDTO> EnrollKoiFromVideoAsync(
+            int koiFishId,
+            string videoUrl,
+            int userId,
+            int numFrames = 15,
             bool overrideExisting = false);
 
         Task<KoiIdentificationResponseDTO> IdentifyKoiFromUrlAsync(
