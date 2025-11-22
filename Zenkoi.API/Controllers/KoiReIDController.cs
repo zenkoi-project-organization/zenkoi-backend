@@ -20,9 +20,6 @@ namespace Zenkoi.API.Controllers
             _koiReIDService = koiReIDService;
         }
 
-        /// <summary>
-        /// Enroll cá vào gallery từ Cloudinary URLs
-        /// </summary>
         [HttpPost("enroll")]
         public async Task<IActionResult> EnrollFromCloudinary([FromBody] EnrollFromCloudinaryRequestDTO dto)
         {
@@ -47,6 +44,34 @@ namespace Zenkoi.API.Controllers
             catch (Exception ex)
             {
                 return Error($"Lỗi khi enroll cá: {ex.Message}");
+            }
+        }
+
+        [HttpPost("enroll-from-video")]
+        public async Task<IActionResult> EnrollFromVideo([FromBody] EnrollFromVideoRequestDTO dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return ModelInvalid();
+
+                var result = await _koiReIDService.EnrollKoiFromVideoAsync(
+                    dto.KoiFishId,
+                    dto.VideoUrl,
+                    UserId,
+                    dto.NumFrames,
+                    dto.Override
+                );
+
+                return SaveSuccess(result, $"Đã enroll {result.NumFramesExtracted} frames từ video thành công.");
+            }
+            catch (ArgumentException ex)
+            {
+                return GetError(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return Error($"Lỗi khi enroll cá từ video: {ex.Message}");
             }
         }
 

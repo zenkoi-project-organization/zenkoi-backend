@@ -153,6 +153,121 @@ namespace Zenkoi.BLL.Services.Implements
             }
         }
 
+        public async Task<EnrollFromVideoResponseDTO> EnrollKoiFromVideoAsync(
+            int koiFishId,
+            string videoUrl,
+            int userId,
+            int numFrames = 15,
+            bool overrideExisting = false)
+        {        
+            var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
+            if (koiFish == null)
+            {
+                throw new ArgumentException($"Không tìm thấy cá Koi với id {koiFishId}.");
+            }
+            var user = await _userRepo.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException($"Không tìm thấy user với id {userId}.");
+            }
+
+            var fishId = $"koi_{koiFishId}";
+            var requestBody = new
+            {
+                fishId = fishId,
+                videoUrl = videoUrl,
+                numFrames = numFrames,
+                @override = overrideExisting
+            };
+
+            var jsonContent = JsonSerializer.Serialize(requestBody);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await _httpClient.PostAsync(
+                    $"{_pythonApiBaseUrl}/gallery/enroll-from-cloudinary-video",
+                    content
+                );
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Python API trả về lỗi: {response.StatusCode} - {errorContent}");
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var pythonResponse = JsonSerializer.Deserialize<PythonEnrollFromVideoResponse>(
+                    responseContent,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                );
+
+                if (pythonResponse == null || !pythonResponse.Success)
+                {
+                    throw new Exception("Python API trả về kết quả không hợp lệ.");
+                }
+
+                await _unitOfWork.BeginTransactionAsync();
+                try
+                {
+                    if (overrideExisting)
+                    {
+                        var oldEnrollments = await _enrollmentRepo.GetAllAsync(
+                            new QueryBuilder<KoiGalleryEnrollment>()
+                                .WithPredicate(e => e.KoiFishId == koiFishId && e.IsActive)
+                                .Build()
+                        );
+
+                        foreach (var old in oldEnrollments)
+                        {
+                            old.IsActive = false;
+                            old.UpdatedAt = DateTime.UtcNow;
+                            await _enrollmentRepo.UpdateAsync(old);
+                        }
+                    }
+
+                    var enrollment = new KoiGalleryEnrollment
+                    {
+                        KoiFishId = koiFishId,
+                        FishIdInGallery = fishId,
+                        NumImages = pythonResponse.NumFramesExtracted,
+                        EnrolledAt = DateTime.UtcNow,
+                        EnrolledBy = userId,
+                        IsActive = true
+                    };
+
+                    await _enrollmentRepo.CreateAsync(enrollment);
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitTransactionAsync();
+
+                    return new EnrollFromVideoResponseDTO
+                    {
+                        Success = true,
+                        FishId = pythonResponse.FishId,
+                        NumFramesExtracted = pythonResponse.NumFramesExtracted,
+                        NumValidEmbeddings = pythonResponse.NumValidEmbeddings,
+                        FrameUrls = pythonResponse.FrameUrls,
+                        TotalFishInGallery = pythonResponse.TotalFishInGallery,
+                        VideoUrl = pythonResponse.VideoUrl,
+                        ExtractedPublicId = pythonResponse.ExtractedPublicId,
+                        EnrollmentId = enrollment.Id,
+                        KoiFishId = koiFishId,
+                        EnrolledAt = enrollment.EnrolledAt,
+                        EnrolledBy = user.FullName ?? user.UserName ?? string.Empty
+                    };
+                }
+                catch
+                {
+                    await _unitOfWork.RollBackAsync();
+                    throw;
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new Exception($"Không thể kết nối đến Python API: {ex.Message}", ex);
+            }
+        }
+
         public async Task<KoiIdentificationResponseDTO> IdentifyKoiFromUrlAsync(
             string imageUrl,
             int userId,
