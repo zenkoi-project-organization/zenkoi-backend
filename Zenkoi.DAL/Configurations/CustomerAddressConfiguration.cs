@@ -19,9 +19,6 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(ca => ca.City)
                 .HasMaxLength(100);
 
-            builder.Property(ca => ca.District)
-                .HasMaxLength(100);
-
             builder.Property(ca => ca.Ward)
                 .HasMaxLength(100);
 
