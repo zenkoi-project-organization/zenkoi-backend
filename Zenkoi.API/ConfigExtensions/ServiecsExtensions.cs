@@ -590,12 +590,23 @@ namespace Zenkoi.API.ConfigExtensions
             #region Seeding Ponds
             if (!context.Ponds.Any())
             {
+                // Fetch actual Area IDs from database
+                var areaA = await context.Areas.FirstOrDefaultAsync(a => a.AreaName == "Khu Nuôi Cá Bột A");
+                var areaB = await context.Areas.FirstOrDefaultAsync(a => a.AreaName == "Khu Nuôi Cá Giống B");
+                var areaC = await context.Areas.FirstOrDefaultAsync(a => a.AreaName == "Khu Nuôi Cá Hậu Bị C");
+                var areaD = await context.Areas.FirstOrDefaultAsync(a => a.AreaName == "Khu Cách Ly D");
+
+                if (areaA == null || areaB == null || areaC == null || areaD == null)
+                {
+                    throw new Exception("Areas must be seeded before Ponds");
+                }
+
                 await context.Ponds.AddRangeAsync(
 
                     // ===== 1. Ao sinh sản (PondTypeId = 1) – 4 hồ =====
                     new Pond
                     {
-                        AreaId = 3,
+                        AreaId = areaC.Id,
                         PondTypeId = 1,
                         PondName = "Ao Sinh Sản SS-01",
                         PondStatus = PondStatus.Active,
@@ -611,7 +622,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 3,
+                        AreaId = areaC.Id,
                         PondTypeId = 1,
                         PondName = "Ao Sinh Sản SS-02",
                         PondStatus = PondStatus.Active,
@@ -627,7 +638,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 3,
+                        AreaId = areaC.Id,
                         PondTypeId = 1,
                         PondName = "Ao Sinh Sản SS-03",
                         PondStatus = PondStatus.Empty,
@@ -643,7 +654,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 3,
+                        AreaId = areaC.Id,
                         PondTypeId = 1,
                         PondName = "Ao Sinh Sản SS-04",
                         PondStatus = PondStatus.Maintenance,
@@ -663,7 +674,7 @@ namespace Zenkoi.API.ConfigExtensions
                     // ===== 2. Ao ấp trứng (PondTypeId = 2) – 4 hồ =====
                     new Pond
                     {
-                        AreaId = 4,
+                        AreaId = areaD.Id,
                         PondTypeId = 2,
                         PondName = "Ao Ấp Trứng AT-01",
                         PondStatus = PondStatus.Active,
@@ -679,7 +690,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 4,
+                        AreaId = areaD.Id,
                         PondTypeId = 2,
                         PondName = "Ao Ấp Trứng AT-02",
                         PondStatus = PondStatus.Active,
@@ -695,7 +706,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 4,
+                        AreaId = areaD.Id,
                         PondTypeId = 2,
                         PondName = "Ao Ấp Trứng AT-03",
                         PondStatus = PondStatus.Maintenance,
@@ -711,7 +722,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 4,
+                        AreaId = areaD.Id,
                         PondTypeId = 2,
                         PondName = "Ao Ấp Trứng AT-04",
                         PondStatus = PondStatus.Empty,
@@ -731,7 +742,7 @@ namespace Zenkoi.API.ConfigExtensions
                     // ===== 3. Ao ương cá bột (PondTypeId = 3) – 4 hồ =====
                     new Pond
                     {
-                        AreaId = 1,
+                        AreaId = areaA.Id,
                         PondTypeId = 3,
                         PondName = "Ao Ương Bột UB-01",
                         PondStatus = PondStatus.Active,
@@ -747,7 +758,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 1,
+                        AreaId = areaA.Id,
                         PondTypeId = 3,
                         PondName = "Ao Ương Bột UB-02",
                         PondStatus = PondStatus.Active,
@@ -763,7 +774,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 1,
+                        AreaId = areaA.Id,
                         PondTypeId = 3,
                         PondName = "Ao Ương Bột UB-03",
                         PondStatus = PondStatus.Maintenance,
@@ -779,7 +790,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 1,
+                        AreaId = areaA.Id,
                         PondTypeId = 3,
                         PondName = "Ao Ương Bột UB-04",
                         PondStatus = PondStatus.Active,
@@ -799,7 +810,7 @@ namespace Zenkoi.API.ConfigExtensions
                     // ===== 4. Ao trưng bày (PondTypeId = 4) – 4 hồ =====
                     new Pond
                     {
-                        AreaId = 4,
+                        AreaId = areaD.Id,
                         PondTypeId = 4,
                         PondName = "Ao Trưng Bày TB-01",
                         PondStatus = PondStatus.Active,
@@ -815,7 +826,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 4,
+                        AreaId = areaD.Id,
                         PondTypeId = 4,
                         PondName = "Ao Trưng Bày TB-02",
                         PondStatus = PondStatus.Active,
@@ -831,7 +842,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 4,
+                        AreaId = areaD.Id,
                         PondTypeId = 4,
                         PondName = "Ao Trưng Bày TB-03",
                         PondStatus = PondStatus.Maintenance,
@@ -847,7 +858,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 2,
+                        AreaId = areaB.Id,
                         PondTypeId = 4,
                         PondName = "Ao Trưng Bày TB-04",
                         PondStatus = PondStatus.Active,
@@ -867,7 +878,7 @@ namespace Zenkoi.API.ConfigExtensions
                     // ===== 5. Ao nuôi lớn (PondTypeId = 5) – 4 hồ =====
                     new Pond
                     {
-                        AreaId = 2,
+                        AreaId = areaB.Id,
                         PondTypeId = 5,
                         PondName = "Ao Nuôi Lớn NL-01",
                         PondStatus = PondStatus.Active,
@@ -883,7 +894,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 2,
+                        AreaId = areaB.Id,
                         PondTypeId = 5,
                         PondName = "Ao Nuôi Lớn NL-02",
                         PondStatus = PondStatus.Active,
@@ -899,7 +910,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 2,
+                        AreaId = areaB.Id,
                         PondTypeId = 5,
                         PondName = "Ao Nuôi Lớn NL-03",
                         PondStatus = PondStatus.Empty,
@@ -915,7 +926,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 2,
+                        AreaId = areaB.Id,
                         PondTypeId = 5,
                         PondName = "Ao Nuôi Lớn NL-04",
                         PondStatus = PondStatus.Maintenance,
@@ -935,7 +946,7 @@ namespace Zenkoi.API.ConfigExtensions
                     // ===== 6. Bể cách ly (PondTypeId = 6) – 4 hồ =====
                     new Pond
                     {
-                        AreaId = 5,
+                        AreaId = areaD.Id,
                         PondTypeId = 6,
                         PondName = "Bể Cách Ly CL-01",
                         PondStatus = PondStatus.Active,
@@ -951,7 +962,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 5,
+                        AreaId = areaD.Id,
                         PondTypeId = 6,
                         PondName = "Bể Cách Ly CL-02",
                         PondStatus = PondStatus.Active,
@@ -967,7 +978,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 5,
+                        AreaId = areaD.Id,
                         PondTypeId = 6,
                         PondName = "Bể Cách Ly CL-03",
                         PondStatus = PondStatus.Empty,
@@ -983,7 +994,7 @@ namespace Zenkoi.API.ConfigExtensions
                     },
                     new Pond
                     {
-                        AreaId = 5,
+                        AreaId = areaD.Id,
                         PondTypeId = 6,
                         PondName = "Bể Cách Ly CL-04",
                         PondStatus = PondStatus.Maintenance,
@@ -3278,7 +3289,7 @@ namespace Zenkoi.API.ConfigExtensions
                     {
                         CartId = 2,
                         KoiFishId = 2,
-                        Quantity = 2,
+                        Quantity = 1,
                         AddedAt = DateTime.UtcNow.AddHours(-5),
                         UpdatedAt = DateTime.UtcNow.AddHours(-5)
                     },
