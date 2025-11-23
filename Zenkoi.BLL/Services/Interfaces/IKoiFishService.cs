@@ -12,7 +12,7 @@ namespace Zenkoi.BLL.Services.Interfaces
 {
     public interface IKoiFishService
     {
-        Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(KoiFishFilterRequestDTO filter, int pageIndex = 1,int pageSize = 10);
+        Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(KoiFishFilterRequestDTO filter, int pageIndex = 1,int pageSize = 10, int? userId = null);
         Task<KoiFishResponseDTO?> GetByIdAsync(int id);
         Task<KoiFishResponseDTO?> ScanRFID(string RFID);
         Task<BreedingParentDTO> GetAnalysisAsync(int id);

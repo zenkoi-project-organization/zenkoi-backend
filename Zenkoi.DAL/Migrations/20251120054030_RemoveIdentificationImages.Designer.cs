@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251120054030_RemoveIdentificationImages")]
+    partial class RemoveIdentificationImages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -876,33 +879,6 @@ namespace Zenkoi.DAL.Migrations
                     b.ToTable("IncubationDailyRecords", "dbo");
                 });
 
-            modelBuilder.Entity("Zenkoi.DAL.Entities.KoiFavorite", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("KoiFishId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("KoiFishId");
-
-                    b.HasIndex("UserId", "KoiFishId")
-                        .IsUnique();
-
-                    b.ToTable("KoiFavorites", "dbo");
-                });
-
             modelBuilder.Entity("Zenkoi.DAL.Entities.KoiFish", b =>
                 {
                     b.Property<int>("Id")
@@ -941,11 +917,11 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<bool>("IsMutated")
                         .HasColumnType("bit");
 
-                    b.Property<int>("KoiBreedingStatus")
-                        .HasColumnType("int");
-
                     b.Property<string>("MutationDescription")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("MutationRate")
+                        .HasColumnType("float");
 
                     b.Property<string>("Origin")
                         .HasMaxLength(1000)
@@ -2660,25 +2636,6 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("EggBatch");
-                });
-
-            modelBuilder.Entity("Zenkoi.DAL.Entities.KoiFavorite", b =>
-                {
-                    b.HasOne("Zenkoi.DAL.Entities.KoiFish", "KoiFish")
-                        .WithMany()
-                        .HasForeignKey("KoiFishId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Zenkoi.DAL.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("KoiFish");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Zenkoi.DAL.Entities.KoiFish", b =>

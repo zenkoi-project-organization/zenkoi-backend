@@ -28,6 +28,7 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<Pond> _pondRepo;
         private readonly IBreedingProcessService _breedingProcessService;
         private readonly IRepoBase<BreedingProcess> _breedRepo;
+        private readonly IRepoBase<KoiFavorite> _koiFavoriteRepo;
 
         public KoiFishService(IUnitOfWork unitOfWork, IMapper mapper, IBreedingProcessService breedingProcessService)
         {
@@ -37,6 +38,7 @@ namespace Zenkoi.BLL.Services.Implements
             _varietyRepo = _unitOfWork.GetRepo<Variety>();
             _pondRepo = _unitOfWork.GetRepo<Pond>();
             _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+            _koiFavoriteRepo = _unitOfWork.GetRepo<KoiFavorite>();
             _breedingProcessService = breedingProcessService;
         }
 
@@ -53,7 +55,8 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(
             KoiFishFilterRequestDTO filter,
             int pageIndex = 1,
-            int pageSize = 10)
+            int pageSize = 10,
+            int? userId = null)
         {
             var queryOptions = new QueryOptions<KoiFish>
             {
@@ -149,11 +152,52 @@ namespace Zenkoi.BLL.Services.Implements
             queryOptions.Predicate = predicate;
 
             var koiList = await _koiFishRepo.GetAllAsync(queryOptions);
+
+            bool needSave = false;
+
+            foreach (var koi in koiList)
+            {
+                var newStatus = CalculateBreedingStatus(koi);
+
+                if (newStatus != koi.KoiBreedingStatus)
+                {
+                    koi.KoiBreedingStatus = newStatus;
+                    _koiFishRepo.UpdateAsync(koi);
+                    needSave = true;
+                }
+            }
+
+            if (needSave)
+                await _unitOfWork.SaveAsync();
+
             var mapped = _mapper.Map<List<KoiFishResponseDTO>>(koiList);
 
-            // ✅ Format size cho toàn bộ danh sách
             foreach (var koi in mapped)
                 FormatSizeForResponse(koi);
+
+            // Set IsFavorited flag nếu user đã đăng nhập
+            HashSet<int> favoriteKoiIds = new HashSet<int>();
+            if (userId.HasValue)
+            {
+                var koiIds = mapped.Select(k => k.Id).ToList();
+                var userFavorites = await _koiFavoriteRepo.GetAllAsync(new QueryOptions<KoiFavorite>
+                {
+                    Predicate = f => f.UserId == userId.Value && koiIds.Contains(f.KoiFishId),
+                    Tracked = false
+                });
+
+                favoriteKoiIds = userFavorites.Select(f => f.KoiFishId).ToHashSet();
+
+                foreach (var koi in mapped)
+                {
+                    koi.IsFavorited = favoriteKoiIds.Contains(koi.Id);
+                }
+            }
+
+            if (filter.IsFavorited.HasValue)
+            {
+                mapped = mapped.Where(k => k.IsFavorited == filter.IsFavorited.Value).ToList();
+            }
 
             var totalCount = mapped.Count;
             var paged = mapped
@@ -478,11 +522,27 @@ namespace Zenkoi.BLL.Services.Implements
             };
         }
 
+
         public static double CmToInch(double cm)
         {
             return cm / 2.54;
         }
+        public int GetAgeInMonths(DateTime birthDate)
+        {
+            var today = DateTime.UtcNow;
+            return ((today.Year - birthDate.Year) * 12) + today.Month - birthDate.Month;
+        }
+        public KoiBreedingStatus CalculateBreedingStatus(KoiFish fish)
+        {
+            var ageMonths = GetAgeInMonths(fish.BirthDate.Value);
 
-       
+            // Nếu dưới 24 tháng → luôn là NotMature
+            if (ageMonths < 24)
+                return KoiBreedingStatus.NotMature;
+
+            // Nếu đủ 24 tháng trở lên → để staff tự quản lý trạng thái
+            return fish.KoiBreedingStatus;
+        }
+
     }
 }

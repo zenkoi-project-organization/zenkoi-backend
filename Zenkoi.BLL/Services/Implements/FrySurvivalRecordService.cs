@@ -43,7 +43,10 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new KeyNotFoundException("không tìm thấy quy trình sinh sản ");
             }
-          
+            if(fryfish.InitialCount < dto.CountAlive)
+            {
+                throw new InvalidOperationException("số lượng cá sống đang lớn hơn tổng của bầy");
+            }
             if(dto.CountAlive == 0)
             {
                 fryfish.CurrentSurvivalRate = 0;
