@@ -59,7 +59,6 @@ namespace Zenkoi.API.Controllers
                     dto.KoiFishId,
                     dto.VideoUrl,
                     UserId,
-                    dto.NumFrames,
                     dto.Override
                 );
 
@@ -88,9 +87,7 @@ namespace Zenkoi.API.Controllers
 
                 var result = await _koiReIDService.IdentifyKoiFromUrlAsync(
                     dto.ImageUrl,
-                    UserId,
-                    dto.TopK,
-                    dto.Threshold
+                    UserId
                 );
 
                 if (result.IsUnknown)
