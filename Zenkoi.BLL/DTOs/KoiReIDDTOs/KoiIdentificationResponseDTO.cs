@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Zenkoi.BLL.DTOs.KoiFishDTOs;
 
 namespace Zenkoi.BLL.DTOs.KoiReIDDTOs
 {
     public class KoiIdentificationResponseDTO
     {
         public int Id { get; set; }
-        public int? KoiFishId { get; set; }
-        public string? KoiFishRFID { get; set; }
+        public KoiFishResponseDTO? KoiFish { get; set; }
         public string ImageUrl { get; set; }
         public string IdentifiedAs { get; set; }
         public decimal Confidence { get; set; }
@@ -29,5 +29,7 @@ namespace Zenkoi.BLL.DTOs.KoiReIDDTOs
 
         [JsonPropertyName("similarity")]
         public decimal Similarity { get; set; }
+
+        public KoiFishResponseDTO? KoiFish { get; set; }
     }
 }
