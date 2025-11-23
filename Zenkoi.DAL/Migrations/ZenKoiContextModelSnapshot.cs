@@ -937,6 +937,9 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<bool>("IsMutated")
                         .HasColumnType("bit");
 
+                    b.Property<int>("KoiBreedingStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("MutationDescription")
                         .HasColumnType("nvarchar(max)");
 

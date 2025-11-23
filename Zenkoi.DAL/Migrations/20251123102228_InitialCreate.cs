@@ -24,6 +24,7 @@ namespace Zenkoi.DAL.Migrations
                     FullName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Role = table.Column<int>(type: "int", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    ExpoPushToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsBlocked = table.Column<bool>(type: "bit", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -768,7 +769,6 @@ namespace Zenkoi.DAL.Migrations
                     CustomerId = table.Column<int>(type: "int", nullable: false),
                     FullAddress = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    District = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Ward = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     StreetAddress = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
                     Latitude = table.Column<decimal>(type: "decimal(9,6)", nullable: true),
@@ -1251,14 +1251,14 @@ namespace Zenkoi.DAL.Migrations
                     BirthDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     HealthStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PatternType = table.Column<int>(type: "int", nullable: false),
+                    Pattern = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SaleStatus = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "NotForSale"),
+                    KoiBreedingStatus = table.Column<int>(type: "int", nullable: false),
                     Images = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Videos = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     SellingPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     IsMutated = table.Column<bool>(type: "bit", nullable: false),
                     MutationDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    MutationRate = table.Column<double>(type: "float", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Origin = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
@@ -1463,6 +1463,36 @@ namespace Zenkoi.DAL.Migrations
                         principalTable: "PacketFishes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "KoiFavorites",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    KoiFishId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_KoiFavorites", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_KoiFavorites_ApplicationUsers_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "dbo",
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_KoiFavorites_KoiFishes_KoiFishId",
+                        column: x => x.KoiFishId,
+                        principalSchema: "dbo",
+                        principalTable: "KoiFishes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -1774,6 +1804,19 @@ namespace Zenkoi.DAL.Migrations
                 schema: "dbo",
                 table: "IncubationDailyRecords",
                 column: "EggBatchId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KoiFavorites_KoiFishId",
+                schema: "dbo",
+                table: "KoiFavorites",
+                column: "KoiFishId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_KoiFavorites_UserId_KoiFishId",
+                schema: "dbo",
+                table: "KoiFavorites",
+                columns: new[] { "UserId", "KoiFishId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_KoiFishes_BreedingProcessId",
@@ -2365,6 +2408,10 @@ namespace Zenkoi.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "IncubationDailyRecords",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "KoiFavorites",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
