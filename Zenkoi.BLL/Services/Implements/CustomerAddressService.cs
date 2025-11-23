@@ -177,9 +177,6 @@ namespace Zenkoi.BLL.Services.Implements
             if (updateDTO.City != null)
                 address.City = updateDTO.City;
 
-            if (updateDTO.District != null)
-                address.District = updateDTO.District;
-
             if (updateDTO.Ward != null)
                 address.Ward = updateDTO.Ward;
 

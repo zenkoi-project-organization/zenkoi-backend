@@ -31,6 +31,7 @@ using Zenkoi.BLL.DTOs.CustomerAddressDTOs;
 using Zenkoi.BLL.DTOs.WeeklyScheduleTemplateDTOs;
 using Zenkoi.BLL.DTOs.IncidentDTOs;
 using Zenkoi.BLL.DTOs.IncidentTypeDTOs;
+using Zenkoi.BLL.DTOs.PaymentTransactionDTOs;
 
 namespace Zenkoi.BLL.Helpers.Mapper
 {
@@ -277,6 +278,11 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<IncidentTypeUpdateRequestDTO, IncidentType>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
+            CreateMap<PaymentTransaction, PaymentTransactionResponseDTO>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
+                    src.User != null ? (src.User.FullName ?? src.User.UserName) : string.Empty))
+                .ForMember(dest => dest.UserEmail, opt => opt.MapFrom(src =>
+                    src.User != null ? src.User.Email : string.Empty));
         }
     }
 }

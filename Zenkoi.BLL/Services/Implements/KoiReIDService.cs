@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.KoiReIDDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
@@ -139,6 +140,121 @@ namespace Zenkoi.BLL.Services.Implements
                         NumDownloaded = pythonResponse.NumDownloaded,
                         TotalFishInGallery = pythonResponse.TotalFishInGallery,
                         EnrollmentId = enrollment.Id
+                    };
+                }
+                catch
+                {
+                    await _unitOfWork.RollBackAsync();
+                    throw;
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new Exception($"Không thể kết nối đến Python API: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<EnrollFromVideoResponseDTO> EnrollKoiFromVideoAsync(
+            int koiFishId,
+            string videoUrl,
+            int userId,
+            int numFrames = 15,
+            bool overrideExisting = false)
+        {        
+            var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
+            if (koiFish == null)
+            {
+                throw new ArgumentException($"Không tìm thấy cá Koi với id {koiFishId}.");
+            }
+            var user = await _userRepo.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException($"Không tìm thấy user với id {userId}.");
+            }
+
+            var fishId = $"koi_{koiFish.RFID}";
+            var requestBody = new
+            {
+                fishId = fishId,
+                videoUrl = videoUrl,
+                numFrames = numFrames,
+                @override = overrideExisting
+            };
+
+            var jsonContent = JsonSerializer.Serialize(requestBody);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await _httpClient.PostAsync(
+                    $"{_pythonApiBaseUrl}/gallery/enroll-from-cloudinary-video",
+                    content
+                );
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Python API trả về lỗi: {response.StatusCode} - {errorContent}");
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var pythonResponse = JsonSerializer.Deserialize<PythonEnrollFromVideoResponse>(
+                    responseContent,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                );
+
+                if (pythonResponse == null || !pythonResponse.Success)
+                {
+                    throw new Exception("Python API trả về kết quả không hợp lệ.");
+                }
+
+                await _unitOfWork.BeginTransactionAsync();
+                try
+                {
+                    if (overrideExisting)
+                    {
+                        var oldEnrollments = await _enrollmentRepo.GetAllAsync(
+                            new QueryBuilder<KoiGalleryEnrollment>()
+                                .WithPredicate(e => e.KoiFishId == koiFishId && e.IsActive)
+                                .Build()
+                        );
+
+                        foreach (var old in oldEnrollments)
+                        {
+                            old.IsActive = false;
+                            old.UpdatedAt = DateTime.UtcNow;
+                            await _enrollmentRepo.UpdateAsync(old);
+                        }
+                    }
+
+                    var enrollment = new KoiGalleryEnrollment
+                    {
+                        KoiFishId = koiFishId,
+                        FishIdInGallery = fishId,
+                        NumImages = pythonResponse.NumFramesExtracted,
+                        EnrolledAt = DateTime.UtcNow,
+                        EnrolledBy = userId,
+                        IsActive = true
+                    };
+
+                    await _enrollmentRepo.CreateAsync(enrollment);
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitTransactionAsync();
+
+                    return new EnrollFromVideoResponseDTO
+                    {
+                        Success = true,
+                        FishId = pythonResponse.FishId,
+                        NumFramesExtracted = pythonResponse.NumFramesExtracted,
+                        NumValidEmbeddings = pythonResponse.NumValidEmbeddings,
+                        FrameUrls = pythonResponse.FrameUrls,
+                        TotalFishInGallery = pythonResponse.TotalFishInGallery,
+                        VideoUrl = pythonResponse.VideoUrl,
+                        ExtractedPublicId = pythonResponse.ExtractedPublicId,
+                        EnrollmentId = enrollment.Id,
+                        KoiFishId = koiFishId,
+                        EnrolledAt = enrollment.EnrolledAt,
+                        EnrolledBy = user.FullName ?? user.UserName ?? string.Empty
                     };
                 }
                 catch
@@ -328,22 +444,49 @@ namespace Zenkoi.BLL.Services.Implements
             var query = _identificationRepo.Get(queryBuilder.Build());
             var pagedIdentifications = await PaginatedList<KoiIdentification>.CreateAsync(query, pageIndex, pageSize);
 
-            var resultDto = pagedIdentifications.Select(i => new KoiIdentificationResponseDTO
+            var resultDto = new List<KoiIdentificationResponseDTO>();
+
+            foreach (var i in pagedIdentifications)
             {
-                Id = i.Id,
-                KoiFishId = i.KoiFishId,
-                KoiFishRFID = i.KoiFish?.RFID,
-                ImageUrl = i.ImageUrl,
-                IdentifiedAs = i.IdentifiedAs,
-                Confidence = i.Confidence,
-                Distance = i.Distance,
-                IsUnknown = i.IsUnknown,
-                TopPredictions = string.IsNullOrEmpty(i.TopPredictions)
-                    ? null
-                    : JsonSerializer.Deserialize<List<TopPredictionDTO>>(i.TopPredictions),
-                CreatedAt = i.CreatedAt,
-                CreatedByName = i.CreatedByUser?.FullName
-            }).ToList();
+                // Load full KoiFish with related entities if it exists
+                KoiFish? fullKoiFish = null;
+                if (i.KoiFishId.HasValue)
+                {
+                    fullKoiFish = await _koiFishRepo.GetSingleAsync(
+                        new QueryBuilder<KoiFish>()
+                            .WithPredicate(k => k.Id == i.KoiFishId.Value)
+                            .WithInclude(k => k.Pond)
+                            .WithInclude(k => k.Variety)
+                            .WithInclude(k => k.BreedingProcess)
+                            .WithTracking(false)
+                            .Build()
+                    );
+                }
+
+                List<TopPredictionDTO>? topPredictions = null;
+                if (!string.IsNullOrEmpty(i.TopPredictions))
+                {
+                    topPredictions = JsonSerializer.Deserialize<List<TopPredictionDTO>>(i.TopPredictions);
+                    if (topPredictions != null && topPredictions.Any())
+                    {
+                        await MapKoiFishToTopPredictionsAsync(topPredictions);
+                    }
+                }
+
+                resultDto.Add(new KoiIdentificationResponseDTO
+                {
+                    Id = i.Id,
+                    KoiFish = fullKoiFish != null ? _mapper.Map<KoiFishResponseDTO>(fullKoiFish) : null,
+                    ImageUrl = i.ImageUrl,
+                    IdentifiedAs = i.IdentifiedAs,
+                    Confidence = i.Confidence,
+                    Distance = i.Distance,
+                    IsUnknown = i.IsUnknown,
+                    TopPredictions = topPredictions,
+                    CreatedAt = i.CreatedAt,
+                    CreatedByName = i.CreatedByUser?.FullName
+                });
+            }
 
             return new PaginatedList<KoiIdentificationResponseDTO>(
                 resultDto,
@@ -369,6 +512,21 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException($"Không tìm thấy identification với id {id}.");
             }
 
+            // Load full KoiFish with related entities if it exists
+            KoiFish? fullKoiFish = null;
+            if (identification.KoiFishId.HasValue)
+            {
+                fullKoiFish = await _koiFishRepo.GetSingleAsync(
+                    new QueryBuilder<KoiFish>()
+                        .WithPredicate(k => k.Id == identification.KoiFishId.Value)
+                        .WithInclude(k => k.Pond)
+                        .WithInclude(k => k.Variety)
+                        .WithInclude(k => k.BreedingProcess)
+                        .WithTracking(false)
+                        .Build()
+                );
+            }
+
             // Debug: Log TopPredictions từ database
             Console.WriteLine($"[DEBUG] TopPredictions from DB: {identification.TopPredictions}");
 
@@ -377,13 +535,18 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 deserializedTopPredictions = JsonSerializer.Deserialize<List<TopPredictionDTO>>(identification.TopPredictions);
                 Console.WriteLine($"[DEBUG] Deserialized TopPredictions count: {deserializedTopPredictions?.Count ?? 0}");
+
+                // Map KoiFish for each top prediction
+                if (deserializedTopPredictions != null && deserializedTopPredictions.Any())
+                {
+                    await MapKoiFishToTopPredictionsAsync(deserializedTopPredictions);
+                }
             }
 
             return new KoiIdentificationResponseDTO
             {
                 Id = identification.Id,
-                KoiFishId = identification.KoiFishId,
-                KoiFishRFID = identification.KoiFish?.RFID,
+                KoiFish = fullKoiFish != null ? _mapper.Map<KoiFishResponseDTO>(fullKoiFish) : null,
                 ImageUrl = identification.ImageUrl,
                 IdentifiedAs = identification.IdentifiedAs,
                 Confidence = identification.Confidence,
@@ -410,6 +573,39 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.SaveChangesAsync();
 
             return true;
+        }
+
+        private async Task MapKoiFishToTopPredictionsAsync(List<TopPredictionDTO> topPredictions)
+        {
+            foreach (var prediction in topPredictions)
+            {
+                // Find enrollment by FishIdInGallery to get KoiFishId
+                var enrollment = await _enrollmentRepo.GetSingleAsync(
+                    new QueryBuilder<KoiGalleryEnrollment>()
+                        .WithPredicate(e => e.FishIdInGallery == prediction.FishIdInGallery && e.IsActive)
+                        .WithTracking(false)
+                        .Build()
+                );
+
+                if (enrollment != null && enrollment.KoiFishId > 0)
+                {
+                    // Load full KoiFish with related entities
+                    var koiFish = await _koiFishRepo.GetSingleAsync(
+                        new QueryBuilder<KoiFish>()
+                            .WithPredicate(k => k.Id == enrollment.KoiFishId)
+                            .WithInclude(k => k.Pond)
+                            .WithInclude(k => k.Variety)
+                            .WithInclude(k => k.BreedingProcess)
+                            .WithTracking(false)
+                            .Build()
+                    );
+
+                    if (koiFish != null)
+                    {
+                        prediction.KoiFish = _mapper.Map<KoiFishResponseDTO>(koiFish);
+                    }
+                }
+            }
         }
     }
 }

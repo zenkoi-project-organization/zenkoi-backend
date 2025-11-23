@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251120174424_AddChangeInKoiFavorite")]
+    partial class AddChangeInKoiFavorite
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -566,6 +569,10 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<decimal?>("DistanceFromFarmKm")
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<string>("District")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("FullAddress")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -936,9 +943,6 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<bool>("IsMutated")
                         .HasColumnType("bit");
-
-                    b.Property<int>("KoiBreedingStatus")
-                        .HasColumnType("int");
 
                     b.Property<string>("MutationDescription")
                         .HasColumnType("nvarchar(max)");

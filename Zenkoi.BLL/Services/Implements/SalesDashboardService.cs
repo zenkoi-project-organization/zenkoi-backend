@@ -127,13 +127,12 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<SalesQuickInfoDTO> GetQuickInfoAsync()
         {
             var pendingOrders = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
-                .WithPredicate(o => o.Status == OrderStatus.PendingPayment || 
-                                    o.Status == OrderStatus.Paid ||
-                                    o.Status == OrderStatus.Confirmed)
+                .WithPredicate(o => o.Status == OrderStatus.Pending ||
+                                    o.Status == OrderStatus.Processing)
                 .Build());
 
             var completedOrders = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
-                .WithPredicate(o => o.Status == OrderStatus.Completed)
+                .WithPredicate(o => o.Status == OrderStatus.Delivered)
                 .Build());
 
             var orderDetails = await _orderDetailRepo.GetAllAsync(new QueryBuilder<OrderDetail>()

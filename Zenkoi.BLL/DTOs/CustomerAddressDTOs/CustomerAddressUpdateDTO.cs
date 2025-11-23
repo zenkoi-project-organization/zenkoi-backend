@@ -10,9 +10,6 @@ namespace Zenkoi.BLL.DTOs.CustomerAddressDTOs
         [StringLength(100, ErrorMessage = "City cannot exceed 100 characters")]
         public string? City { get; set; }
 
-        [StringLength(100, ErrorMessage = "District cannot exceed 100 characters")]
-        public string? District { get; set; }
-
         [StringLength(100, ErrorMessage = "Ward cannot exceed 100 characters")]
         public string? Ward { get; set; }
 

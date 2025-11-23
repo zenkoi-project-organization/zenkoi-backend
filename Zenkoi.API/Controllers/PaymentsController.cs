@@ -149,7 +149,7 @@ namespace Zenkoi.API.Controllers
 
                     await _orderService.UpdateOrderStatusAsync(
                         paymentTransaction.ActualOrderId ?? orderId,
-                        new UpdateOrderStatusDTO { Status = OrderStatus.Paid }
+                        new UpdateOrderStatusDTO { Status = OrderStatus.Processing }
                     );
 
                     var payment = new Payment
@@ -177,7 +177,7 @@ namespace Zenkoi.API.Controllers
 
                     await _orderService.UpdateOrderStatusAsync(
                         paymentTransaction.ActualOrderId ?? orderId,
-                        new UpdateOrderStatusDTO { Status = OrderStatus.PendingPayment }
+                        new UpdateOrderStatusDTO { Status = OrderStatus.Pending }
                     );
 
                     await _unitOfWork.SaveChangesAsync();

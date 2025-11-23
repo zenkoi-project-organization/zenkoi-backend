@@ -83,7 +83,7 @@ namespace Zenkoi.BLL.Services.BackgroundServices
                             order.OrderNumber,
                             timeShipped.TotalHours);
 
-                        order.Status = OrderStatus.Completed;
+                        order.Status = OrderStatus.Delivered;
                         order.UpdatedAt = DateTime.UtcNow;
 
                         await orderRepo.UpdateAsync(order);
