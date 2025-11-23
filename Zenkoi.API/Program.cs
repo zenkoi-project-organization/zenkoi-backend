@@ -148,7 +148,7 @@ namespace Zenkoi.API
                 var services = scope.ServiceProvider;
                 try
                 {
-                    services.SeedData().Wait();
+                //    services.SeedData().Wait();
                 }
                 catch (Exception ex)
                 {
