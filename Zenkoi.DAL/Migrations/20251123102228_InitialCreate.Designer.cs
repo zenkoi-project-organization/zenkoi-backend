@@ -12,8 +12,8 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    [Migration("20251122111417_RemoveDistrictFromCustomerAddress")]
-    partial class RemoveDistrictFromCustomerAddress
+    [Migration("20251123102228_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -939,6 +939,9 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<bool>("IsMutated")
                         .HasColumnType("bit");
+
+                    b.Property<int>("KoiBreedingStatus")
+                        .HasColumnType("int");
 
                     b.Property<string>("MutationDescription")
                         .HasColumnType("nvarchar(max)");

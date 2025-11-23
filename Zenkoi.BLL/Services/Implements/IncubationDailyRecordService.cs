@@ -45,6 +45,12 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException($"Lô trứng đã {eggBatch.Status}");
             }
             var breed = await _breedRepo.GetByIdAsync(eggBatch.BreedingProcessId);
+           if (dto.HealthyEggs > eggBatch.Quantity)
+            throw new InvalidOperationException("Số lượng trứng khỏe không được lớn hơn tổng số trứng.");
+
+            if (dto.HatchedEggs > eggBatch.Quantity)
+            throw new InvalidOperationException("Số lượng trứng nở không được lớn hơn số lượng trứng khỏe.");
+
           
             if (eggBatch.Quantity < (dto.HatchedEggs + dto.HealthyEggs ))
             {

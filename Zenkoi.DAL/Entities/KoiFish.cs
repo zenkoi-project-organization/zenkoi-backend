@@ -22,6 +22,7 @@ namespace Zenkoi.DAL.Entities
         public HealthStatus HealthStatus { get; set; }
         public string? Pattern { get; set; }
         public SaleStatus SaleStatus { get; set; } = SaleStatus.NotForSale;
+        public KoiBreedingStatus KoiBreedingStatus { get; set; } = KoiBreedingStatus.NotMature;
         public List<string>? Images { get; set; }
         public List<string>? Videos { get; set; }
         public decimal? SellingPrice { get; set; }
