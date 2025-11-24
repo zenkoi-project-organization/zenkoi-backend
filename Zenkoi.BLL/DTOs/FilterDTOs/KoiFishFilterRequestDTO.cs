@@ -11,6 +11,7 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
     {
         public string? Search { get; set; }
         public Gender? Gender { get; set; }
+        public bool IsBreeding { get; set; }
         public HealthStatus? Health { get; set; }
         public int? VarietyId { get; set; }
         public double? MinSize { get; set; }
