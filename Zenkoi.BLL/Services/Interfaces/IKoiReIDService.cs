@@ -17,14 +17,11 @@ namespace Zenkoi.BLL.Services.Interfaces
             int koiFishId,
             string videoUrl,
             int userId,
-            int numFrames = 15,
             bool overrideExisting = false);
 
         Task<KoiIdentificationResponseDTO> IdentifyKoiFromUrlAsync(
             string imageUrl,
-            int userId,
-            int topK = 5,
-            decimal threshold = 0.15m);
+            int userId);
 
         Task<PaginatedList<KoiGalleryEnrollmentResponseDTO>> GetEnrollmentsAsync(
             int? koiFishId = null,

@@ -21,6 +21,10 @@ namespace Zenkoi.BLL.Services.Implements
 {
     public class KoiReIDService : IKoiReIDService
     {
+        private const int NUM_FRAMES = 30;
+        private const int TOP_K = 5;
+        private const decimal THRESHOLD = 0.3m;
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IRepoBase<KoiIdentification> _identificationRepo;
@@ -60,7 +64,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             // Generate fish_id
-            var fishId = $"koi_{koiFishId}";
+            var fishId = $"{koiFish.RFID}";
 
             // Call Python API
             var requestBody = new
@@ -158,9 +162,8 @@ namespace Zenkoi.BLL.Services.Implements
             int koiFishId,
             string videoUrl,
             int userId,
-            int numFrames = 15,
             bool overrideExisting = false)
-        {        
+        {
             var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
             if (koiFish == null)
             {
@@ -172,12 +175,12 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException($"Không tìm thấy user với id {userId}.");
             }
 
-            var fishId = $"koi_{koiFish.RFID}";
+            var fishId = $"{koiFish.RFID}";
             var requestBody = new
             {
                 fishId = fishId,
                 videoUrl = videoUrl,
-                numFrames = numFrames,
+                numFrames = NUM_FRAMES,
                 @override = overrideExisting
             };
 
@@ -271,16 +274,14 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<KoiIdentificationResponseDTO> IdentifyKoiFromUrlAsync(
             string imageUrl,
-            int userId,
-            int topK = 5,
-            decimal threshold = 0.15m)
+            int userId)
         {
             // Call Python API
             var requestBody = new
             {
                 imageUrl = imageUrl,
-                topK = topK,
-                threshold = (double)threshold
+                topK = TOP_K,
+                threshold = (double)THRESHOLD
             };
 
             var jsonContent = JsonSerializer.Serialize(requestBody);
