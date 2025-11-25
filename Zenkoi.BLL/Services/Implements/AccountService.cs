@@ -261,62 +261,7 @@ namespace Zenkoi.BLL.Services.Implements
 
 
 
-        public async Task<BaseResponse> SendEmailConfirmation(ApplicationUser user)
-        {
-            try
-            {
-                var emailConfirmationToken = await _identityService.GenerateEmailConfirmationTokenAsync(user);
-                var encodedEmailToken = HttpUtility.UrlEncode(emailConfirmationToken);
-                var confirmationLink = $"https://localhost:7166/api/Accounts/verify-email?token={encodedEmailToken}&email={user.Email}";
-                var message = new EmailDTO
-                (
-                    new string[] { user.Email! },
-                    "Confirmation Email Link!",
-                    $@"
-<p>- Hệ thống nhận thấy bạn vừa đăng kí với Email: {user.Email}.</p>
-<p>- Vui lòng truy cập vào link này để xác thực tài khoản: {confirmationLink!}</p>"
-				);
-				_emailService.SendEmail(message);
-				return new BaseResponse { IsSuccess = true, Message = "Tài khoản của bạn chưa được xác thực. Vui lòng xác thực email của bạn để tiếp tục đăng nhập." };
-			}
-			catch (Exception)
-			{
-				throw;
-			}
-		}
 
-		public async Task<BaseResponse> SendOTP2FA(ApplicationUser user, string password)
-		{
-			try
-			{
-				await _identityService.SignOutAsync();
-				await _identityService.PasswordSignInAsync(user, password, true, true);
-				var otp = await _identityService.GenerateTwoFactorTokenAsync(user, "Email");
-				var message = new EmailDTO
-						(
-							new string[] { user.Email },
-							"OTP Confirmation",
-							$@"
-<p>- Mã OTP là riêng tư và <b>tuyệt đối không chia sẽ nó cho bất kì ai khác</b>.</p>
-<p>- Đây là mã OTP của bạn: {otp}</p>"
-						);
-				_emailService.SendEmail(message);
-				return new BaseResponse
-				{
-					IsSuccess = true,
-					Message = $"Mã OTP đã được gửi đến Email: {user.Email}"
-				};
-			}
-			catch (Exception)
-			{
-				throw;
-			}
-		}
-
-		public Task<AuthenResultDTO> SignInAsync(AuthenDTO authenDTO)
-		{
-			throw new NotImplementedException();
-		}
 
 		public async Task<BaseResponse> SignOutAsync(SignOutDTO signOutDTO)
 		{
@@ -372,12 +317,12 @@ namespace Zenkoi.BLL.Services.Implements
 				await _unitOfWork.BeginTransactionAsync();
 				var user = new ApplicationUser
 				{
-					Role = accRequest.Role,
+					Role = Role.Customer,
 					Email = accRequest.Email,
 					UserName = accRequest.UserName,
 					PhoneNumber = accRequest.PhoneNumber,
 					FullName = accRequest.FullName,
-
+					EmailConfirmed = false
 				};
 
 				var createResult = await _identityService.CreateAsync(user, accRequest.Password);
@@ -388,17 +333,8 @@ namespace Zenkoi.BLL.Services.Implements
 					throw new Exception(errorMessage);
 				}
 
-				if (!Enum.IsDefined(typeof(Role), accRequest.Role))
-				{
-					throw new ArgumentException("Role không hợp lệ.");
-				}
-
-				await _identityService.AddToRoleAsync(user, accRequest.Role.ToString());
-
-                if (accRequest.Role == Role.Customer)
-                {
-                    await _customerService.CreateCustomerProfileAsync(user.Id);
-                }
+				await _identityService.AddToRoleAsync(user, Role.Customer.ToString());
+                await _customerService.CreateCustomerProfileAsync(user.Id);
 
 				var userDetailRepo = _unitOfWork.GetRepo<UserDetail>();
 				var userDetail = new UserDetail
@@ -410,9 +346,9 @@ namespace Zenkoi.BLL.Services.Implements
 
                 await _unitOfWork.SaveChangesAsync();
 				await _unitOfWork.CommitTransactionAsync();
-				
-					Console.WriteLine($"[ERROR] Không thể gửi email xác thực: {ex.Message}");
-			
+
+				await SendOTPByEmailAsync(user.Email);
+
 				return new AccountViewDTO
 				{
 					Id = user.Id.ToString(),
@@ -546,15 +482,28 @@ namespace Zenkoi.BLL.Services.Implements
 				Console.WriteLine($"OTP token generated: {otpToken}");
 
 				var emailContent = $@"
-            <p>Xin chào,</p>
-            <p>Mã OTP của bạn là: <strong>{otpToken}</strong></p>
-            <p>Mã OTP này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.</p>
-            <p>Trân trọng,</p>";
+				<div style=""font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: auto; border: 1px solid #d1e7f5; border-radius: 12px; padding: 28px; background: #ffffff; box-shadow: 0 4px 16px rgba(0,0,0,0.05);"">
+				  <h2 style=""color: #3498db; text-align: center; margin-bottom: 20px;"">🐟 Xác thực Email - ZenKoi</h2>
+				  <p style=""color: #2d3436;"">Xin chào <b>{user.FullName ?? user.Email}</b>,</p>
+				  <p style=""color: #2d3436;"">Đây là mã OTP để xác thực email của bạn:</p>
+
+				  <div style=""text-align: center; margin: 28px 0; padding: 20px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 8px; border: 2px dashed #3498db;"">
+					<div style=""font-size: 32px; font-weight: 700; color: #2980b9; letter-spacing: 8px; font-family: 'Courier New', monospace;"">{otpToken}</div>
+				  </div>
+
+				  <p style=""color: #e74c3c; font-size: 14px; text-align: center; font-weight: 600;"">⚠️ Mã OTP có hiệu lực trong 5 phút</p>
+				  <p style=""color: #95a5a6; font-size: 14px; text-align: center;"">Vui lòng <b>KHÔNG chia sẻ</b> mã này với bất kỳ ai.</p>
+				  <p style=""color: #95a5a6; font-size: 14px; text-align: center;"">Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p>
+
+				  <hr style=""border: none; border-top: 1px solid #ecf0f1; margin: 28px 0;""/>
+
+				  <p style=""font-size: 12px; color: #b2bec3; text-align: center;"">🐟 Cảm ơn bạn đã tin tưởng ZenKoi<br/>&copy; Đội ngũ ZenKoi</p>
+				</div>";
 
 				var emailDTO = new EmailDTO
 				(
 					new string[] { email },
-					"Mã OTP xác thực",
+					"Mã OTP xác thực - ZenKoi",
 					emailContent
 				);
 
@@ -591,12 +540,60 @@ namespace Zenkoi.BLL.Services.Implements
 			}
 		}
 
-		public async Task<bool> VerifyOTPByEmailAsync(string email, string code)
+		public async Task<BaseResponse> ConfirmEmailByOTPAsync(string email, string otp)
 		{
-			var user = await _identityService.GetByEmailAsync(email);
-			if (user == null) return false;
-			var isValid = await _identityService.VerifyTwoFactorTokenAsync(user, "Email", code);
-			return isValid;
+			try
+			{
+				var user = await _identityService.GetByEmailAsync(email);
+				if (user == null)
+				{
+					return new BaseResponse
+					{
+						IsSuccess = false,
+						Message = "Không tìm thấy tài khoản với email này."
+					};
+				}
+
+				if (user.EmailConfirmed)
+				{
+					return new BaseResponse
+					{
+						IsSuccess = true,
+						Message = "Email đã được xác thực trước đó."
+					};
+				}
+
+				// Verify OTP
+				var isValid = await _identityService.VerifyTwoFactorTokenAsync(user, "Email", otp);
+				if (!isValid)
+				{
+					return new BaseResponse
+					{
+						IsSuccess = false,
+						Message = "Mã OTP không hợp lệ hoặc đã hết hạn."
+					};
+				}
+
+				// Confirm email
+				user.EmailConfirmed = true;
+				var userRepo = _unitOfWork.GetRepo<ApplicationUser>();
+				await userRepo.UpdateAsync(user);
+				await _unitOfWork.SaveChangesAsync();
+
+				return new BaseResponse
+				{
+					IsSuccess = true,
+					Message = "Xác thực email thành công! Bạn có thể đăng nhập ngay bây giờ."
+				};
+			}
+			catch (Exception ex)
+			{
+				return new BaseResponse
+				{
+					IsSuccess = false,
+					Message = $"Lỗi xác thực email: {ex.Message}"
+				};
+			}
 		}
 		
 		public async Task<AuthenResultDTO> SignInWithGoogleAsync(GoogleAuthDTO dto)
@@ -1009,6 +1006,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             return users.Select(u => u.ExpoPushToken).ToList();
         }
+    
 
         #endregion
 

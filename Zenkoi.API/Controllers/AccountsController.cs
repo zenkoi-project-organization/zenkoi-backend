@@ -59,7 +59,7 @@ namespace Zenkoi.API.Controllers
                     return Error("Đăng kí KHÔNG thành công");
                 }
 
-                return Success(response, "Đăng kí tài khoản thành công.");
+                return Success(response, "Đăng ký tài khoản thành công! Vui lòng kiểm tra email để lấy mã OTP xác thực tài khoản.");
             }
             catch (Exception ex)
             {
@@ -70,25 +70,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("verify-email")]
-        public async Task<IActionResult> ConfirmEmailAsync(string token, string email)
-        {
-            var user = await _identityService.GetByEmailAsync(email);
-            if (user == null)
-            {
-                return GetNotFound("Không tìm thấy Email người dùng trong hệ thống.");
-            }
-            var decodedEmailToken = HttpUtility.UrlDecode(token);
-            var response = await _identityService.ConfirmEmailAsync(user, decodedEmailToken.Replace(" ", "+"));
-
-            if (!response.Succeeded)
-            {
-                return Error($"Xác thực email thất bại: {GetIdentityErrorMessage(response)}");
-            }
-
-            return Success(response, "Xác thực tài khoản thành công.");
-        }
 
         [HttpPost]
         [Route("authen")]
@@ -100,29 +81,6 @@ namespace Zenkoi.API.Controllers
                 {
                     return ModelInvalid();
                 }
-
-                //var adminEmail = _configuration["Admin:email"];
-                //if (authenDTO.UserNameOrEmail.Equals(adminEmail))
-                //{
-                //    var admin = await _identityService.GetByEmailAsync(adminEmail);
-                //    if (admin != null && admin.IsBlocked)
-                //    {
-                //        return GetUnAuthorized("Tài khoản của bạn đã bị chặn. Vui lòng liên hệ quản trị viên.");
-                //    }
-                //    var adminPass = await _identityService.CheckPasswordAsync(admin, authenDTO.Password);
-                //    if (!adminPass)
-                //    {
-                //        ModelState.AddModelError("Password", "Mật khẩu không đúng.");
-                //        return ModelInvalid();
-                //    }
-
-                //    var adminToken = await _accountService.GenerateTokenAsync(admin);
-                //    if (adminToken == null)
-                //    {
-                //        return GetUnAuthorized("Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại sau ít phút");
-                //    }
-                //    return Success(adminToken, "Chào mừng đến với tài khoản Admin.");
-                //}
 
                 var user = await _identityService.GetByEmailOrUserNameAsync(authenDTO.UserNameOrEmail);
                 if (user == null)
@@ -136,24 +94,18 @@ namespace Zenkoi.API.Controllers
                     return GetUnAuthorized("Tài khoản của bạn đã bị chặn. Vui lòng liên hệ quản trị viên.");
                 }
 
+                // Kiểm tra email confirmed cho Customer
+                if (user.Role == DAL.Enums.Role.Customer && !user.EmailConfirmed)
+                {
+                    return GetUnAuthorized("Vui lòng xác thực email trước khi đăng nhập. Kiểm tra hộp thư để lấy mã OTP.");
+                }
+
                 var password = await _identityService.CheckPasswordAsync(user, authenDTO.Password);
                 if (!password)
                 {
                     ModelState.AddModelError("Password", "Mật khẩu không đúng.");
                     return ModelInvalid();
                 }
-
-                //if (!(await _identityService.IsEmailConfirmedAsync(user)))
-                //{
-                //    var sendEmail = await _accountService.SendEmailConfirmation(user);
-                //    return GetUnAuthorized(sendEmail.Message);
-                //}
-
-                //if (user.TwoFactorEnabled)
-                //{
-                //    var sendOTP = await _accountService.SendOTP2FA(user, authenDTO.Password);
-                //    return GetSuccess(sendOTP);
-                //}
 
                 var response = await _identityService.PasswordSignInAsync(user, authenDTO.Password, true, true);
                 if (response.IsLockedOut)
@@ -183,118 +135,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        //[HttpPost]
-        //[Route("authen2fa")]
-        //public async Task<IActionResult> SignIn2FaAsync([FromBody] Authen2FaDTO authen2FaDTO)
-        //{
-        //    try
-        //    {
-        //        if (!ModelState.IsValid)
-        //        {
-        //            return ModelInvalid();
-        //        }
-        //        var user = await _identityService.GetByEmailAsync(authen2FaDTO.Email);
-        //        if (user == null)
-        //        {
-        //            ModelState.AddModelError("Email", "Email không đúng.");
-        //            return ModelInvalid();
-        //        }
-
-        //        var signIn = await _identityService.TwoFactorSignInAsync("Email", authen2FaDTO.Code, false, false);
-        //        if (!signIn.Succeeded)
-        //        {
-        //            return GetUnAuthorized($"Mã OTP {authen2FaDTO.Code} không hợp lệ.");
-        //        }
-
-        //        var token = await _accountService.GenerateTokenAsync(user);
-        //        if (token == null)
-        //        {
-        //            return GetUnAuthorized("Không thể sinh mã đăng nhập. Vui lòng thử lại sau ít phút.");
-        //        }
-
-        //        return Success(token, "Đăng nhập thành công.");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.ForegroundColor = ConsoleColor.Red;
-        //        Console.WriteLine(ex.Message);
-        //        Console.ResetColor();
-        //        return Error("Đã có lỗi xảy ra trong quá trình đăng nhập. Vui lòng thử lại sau ít phút.");
-        //    }
-        //}
-
-        //[Authorize]
-        //[HttpPost]
-        //[Route("enable-2fa")]
-        //public async Task<IActionResult> EnableTwoFactorAuthentication([FromBody] AuthenDTO authenDTO)
-        //{
-        //    try
-        //    {
-        //        if (!ModelState.IsValid)
-        //        {
-        //            return ModelInvalid();
-        //        }
-
-        //        var user = await _identityService.GetByIdAsync(UserId);
-        //        if (user == null)
-        //        {
-        //            return GetUnAuthorized("Bạn cần đăng nhập để thực hiện tính năng này.");
-        //        }
-
-        //        if (user.TwoFactorEnabled)
-        //        {
-        //            return Success(new { TwoFactorEnable = user.TwoFactorEnabled }, "Bạn đã kích hoạt tính năng này rồi");
-        //        }
-
-        //        var result = await _identityService.SetTwoFactorEnabledAsync(user, true);
-        //        if (result.Succeeded)
-        //        {
-        //            var sendOTP = await _accountService.SendOTP2FA(user, authenDTO.Password);
-        //            return GetSuccess(sendOTP);
-        //        }
-
-        //        return Error("Xác thực 2 yếu tố không thành công. Vui lòng thử lại sau");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.ForegroundColor = ConsoleColor.Red;
-        //        Console.WriteLine(ex.Message);
-        //        Console.ResetColor();
-        //        return Error("Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại sau ít phút");
-        //    }
-        //}
-
-        //[Authorize]
-        //[HttpPost]
-        //[Route("disable-2fa")]
-        //public async Task<IActionResult> DisableTwoFactorAuthentication([FromBody] AuthenDTO authenDTO)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return ModelInvalid();
-        //    }
-
-        //    var user = await _identityService.GetByIdAsync(UserId);
-        //    if (user == null)
-        //    {
-        //        return GetUnAuthorized("Không tìm thấy người dùng.");
-        //    }
-
-        //    // Xác minh mật khẩu trước khi tắt 2FA
-        //    var checkPassword = await _identityService.CheckPasswordSignInAsync(user, authenDTO.Password, false);
-        //    if (!checkPassword.Succeeded)
-        //    {
-        //        ModelState.AddModelError("Password", "Mật khẩu không đúng");
-        //    }
-
-        //    // Tắt 2FA
-        //    var result = await _identityService.SetTwoFactorEnabledAsync(user, false);
-        //    if (result.Succeeded)
-        //    {
-        //        return SaveSuccess("Tắt xác thực 2 yếu tố thành công.");
-        //    }
-
-        //}
 
         [Authorize]
         [HttpPost]
@@ -507,12 +347,18 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+
         [HttpPost]
-        [Route("verify-otp")]
-        public async Task<IActionResult> VerifyOtpAsync([FromBody] VerifyOtpDTO dto)
+        [Route("confirm-email-by-otp")]
+        public async Task<IActionResult> ConfirmEmailByOTPAsync([FromBody] VerifyOtpDTO dto)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return ModelInvalid();
+                }
+
                 if (string.IsNullOrEmpty(dto.Email))
                 {
                     ModelState.AddModelError("Email", "Email không được để trống.");
@@ -524,15 +370,21 @@ namespace Zenkoi.API.Controllers
                     return ModelInvalid();
                 }
 
-                var isValid = await _accountService.VerifyOTPByEmailAsync(dto.Email, dto.Code);
-                return Success(new { isValid }, "Xác thực OTP");
+                var response = await _accountService.ConfirmEmailByOTPAsync(dto.Email, dto.Code);
+
+                if (!response.IsSuccess)
+                {
+                    return Error(response.Message);
+                }
+
+                return Success(null, response.Message);
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.ToString());
                 Console.ResetColor();
-                return Error($"Lỗi xác thực mã OTP: {ex.Message}");
+                return Error($"Lỗi xác thực email: {ex.Message}");
             }
         }
 
