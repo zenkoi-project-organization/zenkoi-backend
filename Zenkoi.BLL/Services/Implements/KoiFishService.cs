@@ -298,8 +298,9 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var entity = _mapper.Map<KoiFish>(dto);
-           
-            
+            pond.PondStatus = PondStatus.Active;
+
+            await _pondRepo.UpdateAsync(pond);
             await _koiFishRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 
