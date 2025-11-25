@@ -24,9 +24,6 @@ namespace Zenkoi.BLL.DTOs.AccountDTOs
 		[Required(ErrorMessage = "Số điện thoại không được để trống")]
 		[Phone(ErrorMessage = "Số điện thoại không đúng định dạng")]
 		public string PhoneNumber { get; set; }
-
-		[Required(ErrorMessage = "Role không được để trống")]
-		public Role Role { get; set; }
 	
 	}
 }
