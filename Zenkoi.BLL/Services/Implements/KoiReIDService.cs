@@ -24,6 +24,7 @@ namespace Zenkoi.BLL.Services.Implements
         private const int NUM_FRAMES = 30;
         private const int TOP_K = 5;
         private const decimal THRESHOLD = 0.3m;
+        private const decimal MIN_SIMILARITY_PERCENT = 75m;
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -470,7 +471,14 @@ namespace Zenkoi.BLL.Services.Implements
                     topPredictions = JsonSerializer.Deserialize<List<TopPredictionDTO>>(i.TopPredictions);
                     if (topPredictions != null && topPredictions.Any())
                     {
-                        await MapKoiFishToTopPredictionsAsync(topPredictions);
+                        topPredictions = topPredictions
+                            .Where(p => p.Similarity >= MIN_SIMILARITY_PERCENT)
+                            .Take(TOP_K)
+                            .ToList();
+                        if (topPredictions.Any())
+                        {
+                            await MapKoiFishToTopPredictionsAsync(topPredictions);
+                        }
                     }
                 }
 
@@ -528,19 +536,22 @@ namespace Zenkoi.BLL.Services.Implements
                 );
             }
 
-            // Debug: Log TopPredictions từ database
-            Console.WriteLine($"[DEBUG] TopPredictions from DB: {identification.TopPredictions}");
 
             List<TopPredictionDTO>? deserializedTopPredictions = null;
             if (!string.IsNullOrEmpty(identification.TopPredictions))
             {
                 deserializedTopPredictions = JsonSerializer.Deserialize<List<TopPredictionDTO>>(identification.TopPredictions);
-                Console.WriteLine($"[DEBUG] Deserialized TopPredictions count: {deserializedTopPredictions?.Count ?? 0}");
-
-                // Map KoiFish for each top prediction
+        
                 if (deserializedTopPredictions != null && deserializedTopPredictions.Any())
                 {
-                    await MapKoiFishToTopPredictionsAsync(deserializedTopPredictions);
+                    deserializedTopPredictions = deserializedTopPredictions
+                        .Where(p => p.Similarity >= MIN_SIMILARITY_PERCENT)
+                        .Take(TOP_K)
+                        .ToList();
+                    if (deserializedTopPredictions.Any())
+                    {
+                        await MapKoiFishToTopPredictionsAsync(deserializedTopPredictions);
+                    }
                 }
             }
 

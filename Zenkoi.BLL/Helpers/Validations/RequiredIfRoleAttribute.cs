@@ -17,11 +17,8 @@ namespace Zenkoi.BLL.Helpers.Validations
 
 		protected override ValidationResult IsValid(object value, ValidationContext validationContext)
 		{
-			var instance = (AccountCreateRequestDTO)validationContext.ObjectInstance;
-			if (instance.Role == _role && (value == null || value is string str && string.IsNullOrWhiteSpace(str)))
-			{
-				return new ValidationResult($"{_propertyName} không được để trống khi vai trò là {_role}.");
-			}
+			// AccountCreateRequestDTO no longer has Role property (signup is Customer only)
+			// This validation is kept for backward compatibility but does nothing
 			return ValidationResult.Success;
 		}
 	}
