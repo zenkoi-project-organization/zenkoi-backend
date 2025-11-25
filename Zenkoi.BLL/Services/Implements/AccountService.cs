@@ -411,6 +411,7 @@ namespace Zenkoi.BLL.Services.Implements
                 await _unitOfWork.SaveChangesAsync();
 				await _unitOfWork.CommitTransactionAsync();
 				
+					Console.WriteLine($"[ERROR] Không thể gửi email xác thực: {ex.Message}");
 			
 				return new AccountViewDTO
 				{
