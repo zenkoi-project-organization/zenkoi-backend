@@ -1,199 +1,84 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Net.payOS.Types;
-using Zenkoi.BLL.DTOs.OrderDTOs;
 using Zenkoi.BLL.DTOs.PayOSDTOs;
 using Zenkoi.BLL.DTOs.VnPayDTOs;
-using Zenkoi.BLL.Services.Implements;
 using Zenkoi.BLL.Services.Interfaces;
-using Zenkoi.DAL.Entities;
-using Zenkoi.DAL.Enums;
-using Zenkoi.DAL.Queries;
-using Zenkoi.DAL.UnitOfWork;
 
 namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     public class PaymentsController : BaseAPIController
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPayOSService _payOSService;
         private readonly IConfiguration _configuration;
         private readonly IVnPayService _vnPayService;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IOrderService _orderService;
+        private readonly IPaymentService _paymentService;
 
-        public PaymentsController(IHttpContextAccessor httpContextAccessor, IPayOSService payOSService, IConfiguration configuration, IVnPayService vnPayService, IUnitOfWork unitOfWork, IOrderService orderService)
+        public PaymentsController(IPayOSService payOSService, IConfiguration configuration, IVnPayService vnPayService, IPaymentService paymentService)
         {
-            _httpContextAccessor = httpContextAccessor;
             _payOSService = payOSService;
             _configuration = configuration;
             _vnPayService = vnPayService;
-            _unitOfWork = unitOfWork;
-            _orderService = orderService;
+            _paymentService = paymentService;
         }
 
-        //[HttpGet("response-payment")]
-        //public async Task<IActionResult> PaymentResponse()
-        //{
-        //    try
-        //    {
-        //        var vnpayRes = _vnPayService.PaymentExcute(Request.Query);
-
-        //        if (!int.TryParse(vnpayRes.OrderId, out var transactionId))
-        //        {
-        //            throw new Exception("OrderId từ VnPay không hợp lệ.");
-        //        }
-
-        //        // Tìm và cập nhật trạng thái thanh toán
-        //        var queryOptions = new QueryOptions<PaymentTransaction>
-        //        {
-        //            Predicate = pt => pt.OrderId == vnpayRes.OrderId
-        //        };
-        //        var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(queryOptions);
-
-        //        if (paymentTransaction != null)
-        //        {
-        //            paymentTransaction.Status = vnpayRes.IsSuccess ? "Success" : "Failed";
-        //            paymentTransaction.TransactionId = vnpayRes.TransactionId.ToString();
-        //            paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
-        //            paymentTransaction.UpdatedAt = DateTime.UtcNow;
-
-        //            await _unitOfWork.SaveChangesAsync();
-        //        }
-
-        //        if (!vnpayRes.IsSuccess)
-        //        {
-        //            // Thanh toán VnPay thất bại: trả thông tin lỗi
-        //            return SaveError("Thanh toán không thành công: " + vnpayRes.VnPayResponseCode);
-        //        }
-
-        //        return SaveSuccess(vnpayRes);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.ForegroundColor = ConsoleColor.Red;
-        //        Console.WriteLine(ex.Message);
-        //        Console.ResetColor();
-        //        return Error($"Lỗi xử lý thanh toán: {ex.Message}");
-        //    }
-        //}
-
         [HttpGet("vnpay-return")]
+        [AllowAnonymous]
         public async Task<IActionResult> VnPayReturn()
         {
+            var feURL = _configuration["FrontendURL"];
+            var result = await _vnPayService.ProcessVnPayReturnAsync(Request.Query);
+
+            if (result.IsSuccess)
+            {
+                return Redirect($"{feURL}/payment-success/{result.OrderId}?method=VnPay&amount={result.Amount}");
+            }
+            else
+            {
+                var errorMessage = string.IsNullOrEmpty(result.ErrorMessage) ? "Payment+failed" : result.ErrorMessage.Replace(" ", "+");
+                return Redirect($"{feURL}/payment-failure/{result.OrderId}?method=VnPay&code={result.ErrorCode}&message={errorMessage}");
+            }
+        }
+
+        [HttpGet("payos-return")]
+        [AllowAnonymous]
+        public async Task<IActionResult> PayOSReturn([FromQuery] int orderCode, [FromQuery] string? status, [FromQuery] bool? cancel)
+        {
+            var feURL = _configuration["FrontendURL"];
+
             try
             {
-                var vnpayRes = _vnPayService.PaymentExcute(Request.Query);
-                var feURL = _configuration["FrontendURL"];         
-
-                if (!vnpayRes.IsSuccess)
+                // Nếu user cancel thanh toán
+                if (cancel == true || status == "CANCELLED")
                 {
-                    return Redirect($"{feURL}/checkout/failure?code=97&message=Invalid+signature");
+                    var cancelResult = await _paymentService.CheckPaymentStatusByOrderCodeAsync(orderCode);
+                    return Redirect($"{feURL}/payment-failure/{cancelResult.OrderId ?? 0}?method=PayOS&code=CANCELLED&message=Payment+cancelled");
                 }
 
-                if (!int.TryParse(vnpayRes.OrderId, out var orderId))
+                if (status == "PAID")
+                {            
+                    await _payOSService.ProcessPaymentReturnAsync(orderCode);
+                }
+
+                var result = await _paymentService.CheckPaymentStatusByOrderCodeAsync(orderCode);
+
+                if (result.IsSuccess && result.OrderId.HasValue)
                 {
-                    return Redirect($"{feURL}/checkout/failure?code=01&message=Invalid+order");
+                    return Redirect($"{feURL}/payment-success/{result.OrderId}?method=PayOS&amount={result.Amount}");
                 }
-
-                // Get the most recent PaymentTransaction for this order (in case of retries)
-                var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
-                    new QueryBuilder<PaymentTransaction>()
-                    .WithPredicate(pt => (pt.OrderId == vnpayRes.OrderId || pt.ActualOrderId == orderId) &&
-                                        pt.PaymentMethod == "VnPay")
-                    .WithOrderBy(q => q.OrderByDescending(pt => pt.CreatedAt))
-                    .WithTracking(true)
-                    .Build());
-
-                if (paymentTransaction == null)
-                {               
-                    return Redirect($"{feURL}/checkout/failure?code=01&message=Transaction+not+found");
-                }
-
-                if (paymentTransaction.Status == "Success")
+                else if (result.Status == "Pending")
                 {
-
-                    return Redirect($"{feURL}/checkout/success?orderId={orderId}&amount={vnpayRes.Amount}");
-                }
-
-                if (paymentTransaction.Status == "Failed")
-                {
-                    return Redirect($"{feURL}/checkout/failure?code={vnpayRes.VnPayResponseCode}&orderId={orderId}");
-                }
-
-                var order = await _orderService.GetOrderByIdAsync(paymentTransaction.ActualOrderId ?? orderId);
-                if (order == null)
-                {
-                    return Redirect($"{feURL}/checkout/failure?code=01&message=Order+not+found");
-                }
-
-                if (Math.Abs(order.TotalAmount - (decimal)vnpayRes.Amount) > 0.01m)
-                {                 
-
-                    paymentTransaction.Status = "Failed";
-                    paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
-                    paymentTransaction.UpdatedAt = DateTime.UtcNow;
-                    await _unitOfWork.SaveChangesAsync();
-
-                    return Redirect($"{feURL}/checkout/failure?code=04&message=Invalid+amount");
-                }
-
-                if (vnpayRes.VnPayResponseCode == "00")
-                {
-                    paymentTransaction.Status = "Success";
-                    paymentTransaction.TransactionId = vnpayRes.TransactionId.ToString();
-                    paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
-                    paymentTransaction.UpdatedAt = DateTime.UtcNow;
-
-                    await _orderService.UpdateOrderStatusAsync(
-                        paymentTransaction.ActualOrderId ?? orderId,
-                        new UpdateOrderStatusDTO { Status = OrderStatus.Processing }
-                    );
-
-                    var payment = new Payment
-                    {
-                        OrderId = paymentTransaction.ActualOrderId ?? orderId,
-                        Method = PaymentMethod.VNPAY,
-                        Amount = order.TotalAmount,
-                        PaidAt = DateTime.UtcNow,
-                        TransactionId = vnpayRes.TransactionId.ToString(),
-                        Gateway = "VnPay",
-                        UserId = paymentTransaction.UserId
-                    };
-                    await _unitOfWork.GetRepo<Payment>().CreateAsync(payment);
-
-                    await _unitOfWork.SaveChangesAsync();
-
-                    return Redirect($"{feURL}/checkout/success?orderId={orderId}&amount={vnpayRes.Amount}");
+                    return Redirect($"{feURL}/payment-pending/{result.OrderId ?? 0}?method=PayOS&orderCode={orderCode}");
                 }
                 else
                 {
-                    paymentTransaction.Status = "Failed";
-                    paymentTransaction.TransactionId = vnpayRes.TransactionId.ToString();
-                    paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
-                    paymentTransaction.UpdatedAt = DateTime.UtcNow;
-
-                    await _orderService.UpdateOrderStatusAsync(
-                        paymentTransaction.ActualOrderId ?? orderId,
-                        new UpdateOrderStatusDTO { Status = OrderStatus.Pending }
-                    );
-
-                    await _unitOfWork.SaveChangesAsync();
-
-                    return Redirect($"{feURL}/checkout/failure?code={vnpayRes.VnPayResponseCode}&orderId={orderId}");
+                    return Redirect($"{feURL}/payment-failure/{result.OrderId ?? 0}?method=PayOS&code=FAILED&message=Payment+failed");
                 }
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"VnPay Return Error: {ex.Message}");
-                Console.WriteLine($"StackTrace: {ex.StackTrace}");
-                Console.ResetColor();
-
-                var feURL = _configuration["FrontendURL"];
-                return Redirect($"{feURL}/checkout/failure?message={ex.Message}");
+                return Redirect($"{feURL}/payment-failure/0?method=PayOS&code=ERROR&message={ex.Message.Replace(" ", "+")}");
             }
         }
 
@@ -203,37 +88,9 @@ namespace Zenkoi.API.Controllers
             if (!ModelState.IsValid) return ModelInvalid();
 
             try
-            {              
-             
-                var feURL = _configuration["FronendURL"];
-
-                PaymentData paymentData = new PaymentData(
-                    orderCode: request.OrderCode,
-                    amount: request.Amount,
-                    description: request.Description,
-                    items: request.Items,
-                    cancelUrl: $"{feURL}/payment-cancel",
-                    returnUrl: $"{feURL}/payment-success"
-                );
-
-                CreatePaymentResult createPayment = await _payOSService.CreatePaymentLinkAsync(paymentData);
-
-                var paymentTransaction = new PaymentTransaction
-                {
-                    UserId = UserId,
-                    PaymentMethod = "PayOS",
-                    OrderId = request.OrderCode.ToString(),
-                    Amount = request.Amount,
-                    Description = request.Description,
-                    Status = "Pending",
-                    PaymentUrl = createPayment.checkoutUrl,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
-                await _unitOfWork.SaveChangesAsync();
-
-                return GetSuccess(createPayment.checkoutUrl);
+            {
+                var paymentUrl = await _paymentService.CreatePayOSPaymentLinkAsync(UserId, request);
+                return GetSuccess(paymentUrl);
             }
             catch (Exception ex)
             {
@@ -256,38 +113,11 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost("payos/webhook")]
+        [AllowAnonymous]
         public async Task<IActionResult> HandleWebhook([FromBody] WebhookType payload)
         {
-            try
-            {
-                var webhookData = _payOSService.VerifyPaymentWebhookData(payload);
-                if (webhookData == null)
-                {
-                    return Ok(new PayOSWebhookResponse(-1, "fail", null));
-                }
-
-                var webhookQueryOptions = new QueryOptions<PaymentTransaction>
-                {
-                    Predicate = pt => pt.OrderId == webhookData.orderCode.ToString()
-                };
-                var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(webhookQueryOptions);
-
-                if (paymentTransaction != null)
-                {                  
-                    paymentTransaction.Status = "Success";
-                    paymentTransaction.TransactionId = webhookData.orderCode.ToString();
-                    paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(webhookData);
-                    paymentTransaction.UpdatedAt = DateTime.UtcNow;
-
-                    await _unitOfWork.SaveChangesAsync();
-                }
-
-                return Ok(new PayOSWebhookResponse(0, "Ok", null));
-            }
-            catch (Exception)
-            {
-                return Ok(new PayOSWebhookResponse(-1, "fail", null));
-            }
+            var result = await _payOSService.ProcessWebhookAsync(payload);
+            return Ok(result);
         }
 
         [HttpPost("vnpay/create-payment-url")]
@@ -297,25 +127,7 @@ namespace Zenkoi.API.Controllers
 
             try
             {
-                var userId = UserId;
-                
-                var paymentUrl = await _vnPayService.CreatePaymentUrlAsync(userId, HttpContext, request);
-
-                var paymentTransaction = new PaymentTransaction
-                {
-                    UserId = userId,
-                    PaymentMethod = "VnPay",
-                    OrderId = request.OrderId?.ToString() ?? Guid.NewGuid().ToString(),
-                    Amount = (decimal)request.Amount,
-                    Description = request.Description,
-                    Status = "Pending",
-                    PaymentUrl = paymentUrl,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
-                await _unitOfWork.SaveChangesAsync();
-
+                var paymentUrl = await _paymentService.CreateVnPayPaymentUrlAsync(UserId, request);
                 return GetSuccess(paymentUrl);
             }
             catch (Exception ex)
@@ -330,27 +142,19 @@ namespace Zenkoi.API.Controllers
         {
             try
             {
-                var userId = UserId;
-                var queryOptions = new QueryOptions<PaymentTransaction>
+                var paymentHistory = await _paymentService.GetPaymentHistoryAsync(UserId);
+
+                var result = paymentHistory.Select(pt => new
                 {
-                    Predicate = pt => pt.UserId == userId
-                };
-                
-                var paymentHistory = await _unitOfWork.PaymentTransactions.GetAllAsync(queryOptions);
-                
-                var result = paymentHistory
-                    .OrderByDescending(pt => pt.CreatedAt)
-                    .Select(pt => new
-                    {
-                        pt.Id,
-                        pt.PaymentMethod,
-                        pt.OrderId,
-                        pt.Amount,
-                        pt.Description,
-                        pt.Status,
-                        pt.CreatedAt,
-                        pt.UpdatedAt
-                    });
+                    pt.Id,
+                    pt.PaymentMethod,
+                    pt.OrderId,
+                    pt.Amount,
+                    pt.Description,
+                    pt.Status,
+                    pt.CreatedAt,
+                    pt.UpdatedAt
+                });
 
                 return GetSuccess(result);
             }
@@ -365,11 +169,7 @@ namespace Zenkoi.API.Controllers
         {
             try
             {
-                var statusQueryOptions = new QueryOptions<PaymentTransaction>
-                {
-                    Predicate = pt => pt.OrderId == orderId
-                };
-                var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(statusQueryOptions);
+                var paymentTransaction = await _paymentService.GetPaymentStatusAsync(orderId);
 
                 if (paymentTransaction == null)
                 {
@@ -384,6 +184,21 @@ namespace Zenkoi.API.Controllers
                     paymentTransaction.CreatedAt,
                     paymentTransaction.UpdatedAt
                 });
+            }
+            catch (Exception ex)
+            {
+                return Error(ex.Message);
+            }
+        }
+
+        [HttpGet("check-status/{orderCode:int}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckPaymentStatusByOrderCode(int orderCode)
+        {
+            try
+            {
+                var result = await _paymentService.CheckPaymentStatusByOrderCodeAsync(orderCode);
+                return GetSuccess(result);
             }
             catch (Exception ex)
             {

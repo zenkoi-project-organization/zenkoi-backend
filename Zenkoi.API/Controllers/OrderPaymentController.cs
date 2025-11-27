@@ -36,28 +36,30 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Xử lý callback sau khi thanh toán thành công
-        /// </summary>
-        [HttpPost("payment-callback/{orderId:int}")]
-        public async Task<IActionResult> PaymentCallback(int orderId, [FromQuery] string status)
-        {
-            try
-            {
-                var success = await _paymentService.ProcessPaymentCallbackAsync(orderId, status);
+     
 
-                if (success)
-                {
-                    return GetSuccess(new { message = "Payment completed successfully" });
-                }
+        ///// <summary>
+        ///// Xử lý callback sau khi thanh toán thành công (DEPRECATED - không dùng)
+        ///// </summary>
+        //[HttpPost("payment-callback/{orderId:int}")]
+        //public async Task<IActionResult> PaymentCallback(int orderId, [FromQuery] string status)
+        //{
+        //    try
+        //    {
+        //        var success = await _paymentService.ProcessPaymentCallbackAsync(orderId, status);
 
-                return GetError("Payment not completed or already processed");
-            }
-            catch (Exception ex)
-            {
-                return GetError($"Error processing callback: {ex.Message}");
-            }
-        }
+        //        if (success)
+        //        {
+        //            return GetSuccess(new { message = "Payment completed successfully" });
+        //        }
+
+        //        return GetError("Payment not completed or already processed");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return GetError($"Error processing callback: {ex.Message}");
+        //    }
+        //}
     }
 }
 
