@@ -18,5 +18,6 @@ namespace Zenkoi.BLL.DTOs.PayOSDTOs
 
         [Required(ErrorMessage = "Items không được để trống.")]
         public List<ItemData> Items { get; set; } = new List<ItemData>();
+        public int? ActualOrderId { get; set; }
     }
 }

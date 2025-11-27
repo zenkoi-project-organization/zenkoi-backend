@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Net.payOS.Types;
 using Zenkoi.BLL.DTOs.OrderDTOs;
 using Zenkoi.BLL.DTOs.PaymentDTOs;
+using Zenkoi.BLL.DTOs.PayOSDTOs;
 using Zenkoi.BLL.DTOs.VnPayDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
@@ -67,7 +68,7 @@ namespace Zenkoi.BLL.Services.Implements
 
         private async Task<PaymentResponseDTO> CreatePayOSPaymentAsync(OrderResponseDTO order, Customer? customer)
         {
-            var feURL = _configuration["FronendURL"];
+            var feURL = _configuration["FrontendURL"];
 
             var existingTransactions = await _unitOfWork.PaymentTransactions.GetAllAsync(
                 new QueryBuilder<PaymentTransaction>()
@@ -105,18 +106,26 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.SaveChangesAsync();
 
             var orderCode = paymentTransaction.Id;
+   
+            var description = $"DH {order.OrderNumber}";
+            if (description.Length > 25)
+            {
+                description = description.Substring(0, 25);
+            }
+
+            var beURL = _configuration["BackendURL"] ?? "https://localhost:7087";
 
             var paymentData = new PaymentData(
                 orderCode: orderCode,
                 amount: (int)order.TotalAmount,
-                description: $"Thanh toán đơn hàng {order.OrderNumber}",
+                description: description,
                 items: order.OrderDetails.Select(od => new ItemData(
                     name: od.KoiFish?.RFID ?? od.PacketFish?.Name ?? "Product",
                     quantity: od.Quantity,
                     price: (int)od.UnitPrice
                 )).ToList(),
                 cancelUrl: $"{feURL}/payment-cancel",
-                returnUrl: $"{feURL}/payment-success/{order.Id}"
+                returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
             );
 
             var createPayment = await _payOSService.CreatePaymentLinkAsync(paymentData);
@@ -251,6 +260,129 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             return false;
+        }
+
+        public async Task<string> CreatePayOSPaymentLinkAsync(int userId, PayOSPaymentRequestDTO request)
+        {
+            var feURL = _configuration["FrontendURL"];
+            var beURL = _configuration["BaseURL"] ?? "https://localhost:7087";
+          
+            var paymentTransaction = new PaymentTransaction
+            {
+                UserId = userId,
+                PaymentMethod = "PayOS",
+                OrderId = "", 
+                ActualOrderId = request.ActualOrderId,
+                Amount = request.Amount,
+                Description = request.Description,
+                Status = "Pending",
+                PaymentUrl = "",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
+            await _unitOfWork.SaveChangesAsync();
+
+            var orderCode = paymentTransaction.Id;
+
+            PaymentData paymentData = new PaymentData(
+                orderCode: orderCode,
+                amount: request.Amount,
+                description: request.Description,
+                items: request.Items,
+                cancelUrl: $"{feURL}/payment-cancel",
+                returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
+            );
+
+            CreatePaymentResult createPayment = await _payOSService.CreatePaymentLinkAsync(paymentData);
+
+            paymentTransaction.OrderId = orderCode.ToString();
+            paymentTransaction.PaymentUrl = createPayment.checkoutUrl;
+            await _unitOfWork.PaymentTransactions.UpdateAsync(paymentTransaction);
+            await _unitOfWork.SaveChangesAsync();
+
+            return createPayment.checkoutUrl;
+        }
+
+        public async Task<string> CreateVnPayPaymentUrlAsync(int userId, VnPayRequestDTO request)
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null)
+            {
+                throw new Exception("HTTP context not available");
+            }
+
+            var paymentTransaction = new PaymentTransaction
+            {
+                UserId = userId,
+                PaymentMethod = "VnPay",
+                OrderId = "",
+                ActualOrderId = request.OrderId.HasValue ? (int)request.OrderId.Value : null,
+                Amount = (decimal)request.Amount,
+                Description = request.Description,
+                Status = "Pending",
+                PaymentUrl = "",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
+            await _unitOfWork.SaveChangesAsync();
+
+            var txnRef = paymentTransaction.Id;
+            request.OrderId = txnRef;
+
+            var paymentUrl = await _vnPayService.CreatePaymentUrlAsync(userId, httpContext, request);
+
+            paymentTransaction.OrderId = txnRef.ToString();
+            paymentTransaction.PaymentUrl = paymentUrl;
+            await _unitOfWork.PaymentTransactions.UpdateAsync(paymentTransaction);
+            await _unitOfWork.SaveChangesAsync();
+
+            return paymentUrl;
+        }
+
+        public async Task<IEnumerable<PaymentTransaction>> GetPaymentHistoryAsync(int userId)
+        {
+            var paymentHistory = await _unitOfWork.PaymentTransactions.GetAllAsync(
+                new QueryBuilder<PaymentTransaction>()
+                .WithPredicate(pt => pt.UserId == userId)
+                .WithOrderBy(q => q.OrderByDescending(pt => pt.CreatedAt))
+                .Build());
+
+            return paymentHistory;
+        }
+
+        public async Task<PaymentTransaction?> GetPaymentStatusAsync(string orderId)
+        {
+            return await _unitOfWork.PaymentTransactions.GetSingleAsync(
+                new QueryBuilder<PaymentTransaction>()
+                .WithPredicate(pt => pt.OrderId == orderId)
+                .Build());
+        }
+
+        public async Task<PaymentStatusResponseDTO> CheckPaymentStatusByOrderCodeAsync(int orderCode)
+        {
+            var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+                new QueryBuilder<PaymentTransaction>()
+                .WithPredicate(pt => pt.Id == orderCode)
+                .Build());
+
+            if (paymentTransaction == null)
+            {
+                throw new Exception("Payment transaction not found");
+            }
+
+            return new PaymentStatusResponseDTO
+            {
+                IsSuccess = paymentTransaction.Status == "Success",
+                Status = paymentTransaction.Status,
+                OrderId = paymentTransaction.ActualOrderId,
+                Amount = paymentTransaction.Amount,
+                PaymentMethod = paymentTransaction.PaymentMethod,
+                TransactionId = paymentTransaction.TransactionId,
+                CreatedAt = paymentTransaction.CreatedAt,
+                UpdatedAt = paymentTransaction.UpdatedAt
+            };
         }
     }
 }

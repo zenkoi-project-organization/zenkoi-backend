@@ -17,8 +17,6 @@ namespace Zenkoi.BLL.Helpers.Validations
 
 		protected override ValidationResult IsValid(object value, ValidationContext validationContext)
 		{
-			// AccountCreateRequestDTO no longer has Role property (signup is Customer only)
-			// This validation is kept for backward compatibility but does nothing
 			return ValidationResult.Success;
 		}
 	}
