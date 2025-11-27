@@ -329,9 +329,6 @@ namespace Zenkoi.BLL.Services.Implements
             return sb.ToString();
         }
 
-
-
-
         private string BuildPairAnalysisPrompt(AIPairAnalysisRequestDTO request)
         {
             bool maleHasData = request.Male != null &&
@@ -346,8 +343,8 @@ namespace Zenkoi.BLL.Services.Implements
                     h.HatchRate.HasValue ||
                     h.SurvivalRate.HasValue) == true ;
 
-//            if (!maleHasData || !femaleHasData)
-  //              throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
+           if (!maleHasData || !femaleHasData)
+                throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
 
             var sb = new StringBuilder();
 
