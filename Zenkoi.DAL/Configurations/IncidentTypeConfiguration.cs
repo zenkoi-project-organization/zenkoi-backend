@@ -23,9 +23,6 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasConversion<string>();
 
-            builder.Property(it => it.RequiresQuarantine)
-                .HasDefaultValue(false);
-
             builder.Property(it => it.AffectsBreeding)
                 .HasDefaultValue(false);
 

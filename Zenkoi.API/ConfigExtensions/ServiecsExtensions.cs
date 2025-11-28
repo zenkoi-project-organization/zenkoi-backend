@@ -4137,7 +4137,6 @@ namespace Zenkoi.API.ConfigExtensions
                         Name = "Bệnh nấm trắng",
                         Description = "Các biểu hiện nấm trắng xuất hiện trên thân hoặc mang của cá.",
                         DefaultSeverity = SeverityLevel.High,
-                        RequiresQuarantine = true,
                         AffectsBreeding = true
                     },
                     new IncidentType
@@ -4145,7 +4144,6 @@ namespace Zenkoi.API.ConfigExtensions
                         Name = "Sự cố chất lượng nước",
                         Description = "Thông số nước vượt ngưỡng an toàn cần xử lý.",
                         DefaultSeverity = SeverityLevel.Medium,
-                        RequiresQuarantine = false,
                         AffectsBreeding = false
                     },
                     new IncidentType
@@ -4153,7 +4151,6 @@ namespace Zenkoi.API.ConfigExtensions
                         Name = "Chấn thương trong ao",
                         Description = "Cá bị trầy xước hoặc chấn thương do thiết bị hoặc va chạm.",
                         DefaultSeverity = SeverityLevel.Low,
-                        RequiresQuarantine = false,
                         AffectsBreeding = false
                     }
                 );
