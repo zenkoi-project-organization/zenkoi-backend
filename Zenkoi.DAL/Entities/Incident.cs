@@ -12,7 +12,6 @@ namespace Zenkoi.DAL.Entities
         public IncidentType IncidentType { get; set; }
         public string IncidentTitle { get; set; }
         public string Description { get; set; }
-        public SeverityLevel Severity { get; set; } = SeverityLevel.Medium;
         public IncidentStatus Status { get; set; } = IncidentStatus.Reported;
         public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

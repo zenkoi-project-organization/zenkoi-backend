@@ -244,7 +244,7 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<WeeklyScheduleTemplateItemDTO, WeeklyScheduleTemplateItem>();
 
             CreateMap<Incident, IncidentResponseDTO>()
-                .ForMember(dest => dest.IncidentTypeName, opt => opt.MapFrom(src => src.IncidentType != null ? src.IncidentType.Name : string.Empty))
+                .ForMember(dest => dest.IncidentType, opt => opt.MapFrom(src => src.IncidentType))
                 .ForMember(dest => dest.ReportedByUserName, opt => opt.MapFrom(src => src.ReportedBy != null ? src.ReportedBy.FullName : string.Empty))
                 .ForMember(dest => dest.ResolvedByUserName, opt => opt.MapFrom(src => src.ResolvedBy != null ? src.ResolvedBy.FullName : null))
                 .ForMember(dest => dest.KoiIncidents, opt => opt.MapFrom(src => src.KoiIncidents ?? new List<KoiIncident>()))
@@ -267,7 +267,7 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<UpdateKoiIncidentRequestDTO, KoiIncident>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Incident, IncidentSimpleDTO>()
-                .ForMember(dest => dest.IncidentTypeName, opt => opt.MapFrom(src => src.IncidentType != null ? src.IncidentType.Name : string.Empty));
+                .ForMember(dest => dest.IncidentType, opt => opt.MapFrom(src => src.IncidentType));
             CreateMap<PondIncident, PondIncidentSimpleDTO>()
                 .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond != null ? src.Pond.PondName : string.Empty))
                 .ForMember(dest => dest.EnvironmentalChanges, opt => opt.MapFrom(src => src.EnvironmentalChanges ?? string.Empty));

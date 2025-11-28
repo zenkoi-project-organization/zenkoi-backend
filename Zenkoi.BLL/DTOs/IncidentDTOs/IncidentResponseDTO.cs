@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Zenkoi.BLL.DTOs.IncidentTypeDTOs;
 using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.IncidentDTOs
@@ -7,11 +8,9 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
     public class IncidentResponseDTO
     {
         public int Id { get; set; }
-        public int IncidentTypeId { get; set; }
-        public string IncidentTypeName { get; set; }
+        public IncidentTypeResponseDTO IncidentType { get; set; }
         public string IncidentTitle { get; set; }
         public string Description { get; set; }
-        public SeverityLevel Severity { get; set; }
         public IncidentStatus Status { get; set; }
         public DateTime OccurredAt { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -50,11 +49,9 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
     public class IncidentSimpleDTO
     {
         public int Id { get; set; }
-        public int IncidentTypeId { get; set; }
-        public string IncidentTypeName { get; set; }
+        public IncidentTypeResponseDTO IncidentType { get; set; }
         public string IncidentTitle { get; set; }
         public string Description { get; set; }
-        public SeverityLevel Severity { get; set; }
         public IncidentStatus Status { get; set; }
         public DateTime OccurredAt { get; set; }
         public DateTime CreatedAt { get; set; }

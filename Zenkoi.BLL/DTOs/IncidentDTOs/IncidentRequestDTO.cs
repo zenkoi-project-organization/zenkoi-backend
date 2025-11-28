@@ -14,7 +14,6 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         [Required]
         [MaxLength(2000)]
         public string Description { get; set; }
-        public SeverityLevel Severity { get; set; } = SeverityLevel.Medium;
         public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
     }
 }
