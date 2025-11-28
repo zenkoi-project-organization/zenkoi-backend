@@ -12,7 +12,6 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         public string? IncidentTitle { get; set; }
         [MaxLength(2000)]
         public string? Description { get; set; }
-        public SeverityLevel? Severity { get; set; }
         public IncidentStatus? Status { get; set; }
         public DateTime? OccurredAt { get; set; }
         [MaxLength(2000)]

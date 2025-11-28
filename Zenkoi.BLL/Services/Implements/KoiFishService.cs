@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace Zenkoi.BLL.Services.Implements
             _breedingProcessService = breedingProcessService;
         }
 
-      
+
         private void FormatSizeForResponse(KoiFishResponseDTO koi)
         {
             if (double.TryParse(koi.Size?.ToString(), out double cm))
@@ -58,100 +59,80 @@ namespace Zenkoi.BLL.Services.Implements
             int pageSize = 10,
             int? userId = null)
         {
-            var queryOptions = new QueryOptions<KoiFish>
-            {
-                IncludeProperties = new List<Expression<Func<KoiFish, object>>>
-                {
-                    v => v.Variety,
-                    p => p.Pond,
-                }
-            };
-
-            Expression<Func<KoiFish, bool>>? predicate = null;
+            var queryBuilder = new QueryBuilder<KoiFish>()
+                .WithTracking(false)
+                .WithInclude(v => v.Variety)
+                .WithInclude(p => p.Pond)
+                .WithOrderBy(q => q.OrderByDescending(k => k.Id));
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
                 string searchLower = filter.Search.ToLower();
-
-                Expression<Func<KoiFish, bool>> expr = k =>
+                queryBuilder.WithPredicate(k =>
                     (k.Origin != null && k.Origin.ToLower().Contains(searchLower)) ||
                     (k.RFID != null && k.RFID.ToLower().Contains(searchLower)) ||
                     (k.Description != null && k.Description.ToLower().Contains(searchLower)) ||
                     (k.Pond != null && k.Pond.PondName != null && k.Pond.PondName.ToLower().Contains(searchLower)) ||
-                    (k.Variety != null && k.Variety.VarietyName != null && k.Variety.VarietyName.ToLower().Contains(searchLower));
-
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                    (k.Variety != null && k.Variety.VarietyName != null && k.Variety.VarietyName.ToLower().Contains(searchLower)));
             }
 
             if (filter.Gender.HasValue)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.Gender == filter.Gender.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.Gender == filter.Gender.Value);
             }
 
             if (filter.Health.HasValue)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.HealthStatus == filter.Health.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.HealthStatus == filter.Health.Value);
             }
+
             if (filter.IsMutation.HasValue)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.IsMutated == filter.IsMutation.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.IsMutated == filter.IsMutation.Value);
             }
 
             if (filter.SaleStatus.HasValue)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.SaleStatus == filter.SaleStatus.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.SaleStatus == filter.SaleStatus.Value);
             }
 
             if (filter.VarietyId.HasValue)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.VarietyId == filter.VarietyId.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.VarietyId == filter.VarietyId.Value);
             }
 
             if (filter.PondId.HasValue)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.PondId == filter.PondId.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.PondId == filter.PondId.Value);
             }
 
             if (!string.IsNullOrEmpty(filter.Origin))
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.Origin == filter.Origin;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.Origin == filter.Origin);
             }
 
             if (filter.MinPrice.HasValue)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.SellingPrice >= filter.MinPrice.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.SellingPrice >= filter.MinPrice.Value);
             }
 
             if (filter.MaxPrice.HasValue)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.SellingPrice <= filter.MaxPrice.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.SellingPrice <= filter.MaxPrice.Value);
             }
 
             if (filter.MinSize.HasValue)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.Size.HasValue && k.Size.Value >= filter.MinSize.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.Size.HasValue && k.Size.Value >= filter.MinSize.Value);
             }
 
             if (filter.MaxSize.HasValue)
             {
-                var max = (decimal)filter.MaxSize.Value + 0.0001m ;
-                Expression<Func<KoiFish, bool>> expr = k => k.Size.HasValue && k.Size.Value <= filter.MaxSize.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.Size.HasValue && k.Size.Value <= filter.MaxSize.Value);
             }
 
-            queryOptions.Predicate = predicate;
-
-            var koiList = await _koiFishRepo.GetAllAsync(queryOptions);
+            var query = _koiFishRepo.Get(queryBuilder.Build());
+            var koiList = await query.ToListAsync();
 
             bool needSave = false;
 
@@ -249,7 +230,7 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<KoiFishResponseDTO> CreateAsync(KoiFishRequestDTO dto)
         {
-         
+
 
             var variety = await _varietyRepo.CheckExistAsync(dto.VarietyId);
             if (!variety)
@@ -293,8 +274,8 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var entity = _mapper.Map<KoiFish>(dto);
-           
-            
+
+
             await _koiFishRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 

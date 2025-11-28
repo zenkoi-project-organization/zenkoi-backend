@@ -58,11 +58,6 @@ namespace Zenkoi.BLL.Services.Implements
                 queryBuilder.WithPredicate(i => i.IncidentTypeId == filter.IncidentTypeId.Value);
             }
 
-            if (filter.Severity.HasValue)
-            {
-                queryBuilder.WithPredicate(i => i.Severity == filter.Severity.Value);
-            }
-
             if (filter.Status.HasValue)
             {
                 queryBuilder.WithPredicate(i => i.Status == filter.Status.Value);
@@ -136,7 +131,6 @@ namespace Zenkoi.BLL.Services.Implements
                 }
 
                 var incident = _mapper.Map<Incident>(dto);
-                incident.Severity = dto.Severity ?? incidentType.DefaultSeverity;
                 incident.ReportedByUserId = userId;
 
                 await _incidentRepo.CreateAsync(incident);
