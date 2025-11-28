@@ -120,78 +120,64 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<PaginatedList<PacketFishResponseDTO>> GetAllPacketFishesAsync(PacketFishFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var queryOptions = new QueryOptions<PacketFish>
-            {
-                IncludeProperties = new List<Expression<Func<PacketFish, object>>>
-                {
-                    pf => pf.VarietyPacketFishes,
-                    pf => pf.PondPacketFishes
-                }
-            };
-
-            Expression<Func<PacketFish, bool>>? predicate = null;
+            var queryBuilder = new QueryBuilder<PacketFish>()
+                .WithTracking(false)
+                .WithInclude(pf => pf.VarietyPacketFishes)
+                .WithInclude(pf => pf.PondPacketFishes)
+                .WithOrderBy(pf => pf.OrderByDescending(x => x.CreatedAt));
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
-                Expression<Func<PacketFish, bool>> expr = pf =>
+                queryBuilder.WithPredicate(pf =>
                     pf.Name.Contains(filter.Search) ||
-                    (pf.Description != null && pf.Description.Contains(filter.Search));
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                    (pf.Description != null && pf.Description.Contains(filter.Search)));
             }
 
             if (filter.IsAvailable.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.IsAvailable == filter.IsAvailable.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(pf => pf.IsAvailable == filter.IsAvailable.Value);
             }
 
             if (filter.MinPrice.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.PricePerPacket >= filter.MinPrice.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(pf => pf.PricePerPacket >= filter.MinPrice.Value);
             }
+
             if (filter.MinSize.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.MinSize >= filter.MinSize.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(pf => pf.MinSize >= filter.MinSize.Value);
             }
 
             if (filter.MaxSize.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.MaxSize <= filter.MaxSize.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(pf => pf.MaxSize <= filter.MaxSize.Value);
             }
 
             if (filter.MaxPrice.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.PricePerPacket <= filter.MaxPrice.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(pf => pf.PricePerPacket <= filter.MaxPrice.Value);
             }
 
             if (filter.MinAgeMonths.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.AgeMonths >= filter.MinAgeMonths.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(pf => pf.AgeMonths >= filter.MinAgeMonths.Value);
             }
 
             if (filter.MaxAgeMonths.HasValue)
             {
-                Expression<Func<PacketFish, bool>> expr = pf => pf.AgeMonths <= filter.MaxAgeMonths.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(pf => pf.AgeMonths <= filter.MaxAgeMonths.Value);
             }
+
             if (filter.VarietyIds != null && filter.VarietyIds.Any())
             {
-                Expression<Func<PacketFish, bool>> expr = pf =>
-                    pf.VarietyPacketFishes.Any(vpf => filter.VarietyIds.Contains(vpf.VarietyId));
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(pf =>
+                    pf.VarietyPacketFishes.Any(vpf => filter.VarietyIds.Contains(vpf.VarietyId)));
             }
 
-            queryOptions.Predicate = predicate;
-            queryOptions.OrderBy = pf => pf.OrderByDescending(x => x.CreatedAt);
+            var query = _packetFishRepo.Get(queryBuilder.Build());
+            var paginatedPacketFishes = await PaginatedList<PacketFish>.CreateAsync(query, pageIndex, pageSize);
 
-            var packetFishes = await _packetFishRepo.GetAllAsync(queryOptions);
-
-            foreach (var pf in packetFishes)
+            foreach (var pf in paginatedPacketFishes)
             {
                 foreach (var vpf in pf.VarietyPacketFishes)
                 {
@@ -204,11 +190,11 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
 
-            var mappedList = _mapper.Map<List<PacketFishResponseDTO>>(packetFishes);
+            var mappedList = _mapper.Map<List<PacketFishResponseDTO>>(paginatedPacketFishes);
 
             foreach (var dto in mappedList)
             {
-                var packetFish = packetFishes.FirstOrDefault(pf => pf.Id == dto.Id);
+                var packetFish = paginatedPacketFishes.FirstOrDefault(pf => pf.Id == dto.Id);
                 if (packetFish != null)
                 {
                     if (packetFish.PondPacketFishes != null)
@@ -221,13 +207,11 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
 
-            var totalCount = mappedList.Count;
-            var pagedItems = mappedList
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            return new PaginatedList<PacketFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
+            return new PaginatedList<PacketFishResponseDTO>(
+                mappedList,
+                paginatedPacketFishes.TotalItems,
+                paginatedPacketFishes.PageIndex,
+                pageSize);
         }
 
         public async Task<PacketFishResponseDTO> UpdatePacketFishAsync(int id, PacketFishUpdateDTO packetFishUpdateDTO)
@@ -293,30 +277,29 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PaginatedList<PacketFishResponseDTO>> GetPacketFishesBySizeAsync(
             double? minSize, double? maxSize, int pageIndex = 1, int pageSize = 10)
         {
-            Expression<Func<PacketFish, bool>> predicate = pf => pf.IsAvailable == true;
+            var queryBuilder = new QueryBuilder<PacketFish>()
+                .WithTracking(false)
+                .WithInclude(pf => pf.VarietyPacketFishes)
+                .WithOrderBy(pf => pf.OrderByDescending(x => x.CreatedAt));
+
+            queryBuilder.WithPredicate(pf => pf.IsAvailable == true);
 
             if (minSize.HasValue && maxSize.HasValue)
             {
-                predicate = predicate.AndAlso(pf =>
+                queryBuilder.WithPredicate(pf =>
                     pf.MinSize <= maxSize.Value &&
                     pf.MaxSize >= minSize.Value);
             }
             else if (minSize.HasValue)
             {
-                predicate = predicate.AndAlso(pf => pf.MaxSize >= minSize.Value);
+                queryBuilder.WithPredicate(pf => pf.MaxSize >= minSize.Value);
             }
             else if (maxSize.HasValue)
             {
-                predicate = predicate.AndAlso(pf => pf.MinSize <= maxSize.Value);
+                queryBuilder.WithPredicate(pf => pf.MinSize <= maxSize.Value);
             }
 
-            var packetFishes = await _packetFishRepo.GetAllAsync(
-                new QueryBuilder<PacketFish>()
-                    .WithPredicate(predicate)
-                    .WithInclude(pf => pf.VarietyPacketFishes)
-                    .WithOrderBy(pf => pf.OrderByDescending(x => x.CreatedAt))
-                    .Build()
-            );
+            var packetFishes = await _packetFishRepo.GetAllAsync(queryBuilder.Build());
 
             foreach (var pf in packetFishes)
             {

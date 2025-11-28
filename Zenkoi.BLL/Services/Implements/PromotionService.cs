@@ -30,47 +30,40 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<PaginatedList<PromotionResponseDTO>> GetAllAsync(PromotionFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var queryOptions = new QueryOptions<Promotion>();
-
-            Expression<Func<Promotion, bool>>? predicate = null;
+            var queryBuilder = new QueryBuilder<Promotion>()
+                .WithTracking(false)
+                .WithOrderBy(q => q.OrderByDescending(p => p.Id));
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
-                Expression<Func<Promotion, bool>> expr = p => p.Code.Contains(filter.Search) || (p.Description != null && p.Description.Contains(filter.Search));
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.Code.Contains(filter.Search) || (p.Description != null && p.Description.Contains(filter.Search)));
             }
 
             if (filter.IsActive.HasValue)
             {
-                Expression<Func<Promotion, bool>> expr = p => p.IsActive == filter.IsActive.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.IsActive == filter.IsActive.Value);
             }
 
             if (filter.DiscountType.HasValue)
             {
-                Expression<Func<Promotion, bool>> expr = p => p.DiscountType == filter.DiscountType.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.DiscountType == filter.DiscountType.Value);
             }
 
             if (filter.AvailableOnDate.HasValue)
             {
                 var date = filter.AvailableOnDate.Value.Date;
-                Expression<Func<Promotion, bool>> expr = p => p.ValidFrom.Date <= date && p.ValidTo.Date >= date;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.ValidFrom.Date <= date && p.ValidTo.Date >= date);
             }
 
-            queryOptions.Predicate = predicate;
+            var query = _promotionRepo.Get(queryBuilder.Build());
+            var paginatedPromotions = await PaginatedList<Promotion>.CreateAsync(query, pageIndex, pageSize);
+            var resultDto = _mapper.Map<List<PromotionResponseDTO>>(paginatedPromotions);
 
-            var promotions = await _promotionRepo.GetAllAsync(queryOptions);
-            var mappedList = _mapper.Map<List<PromotionResponseDTO>>(promotions);
-
-            var totalCount = mappedList.Count;
-            var pagedItems = mappedList
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            return new PaginatedList<PromotionResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
+            return new PaginatedList<PromotionResponseDTO>(
+                resultDto,
+                paginatedPromotions.TotalItems,
+                paginatedPromotions.PageIndex,
+                pageSize);
         }
         public async Task<PromotionResponseDTO?> GetByIdAsync(int id)
         {

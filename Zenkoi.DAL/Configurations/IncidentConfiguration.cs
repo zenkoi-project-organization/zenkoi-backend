@@ -23,10 +23,6 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasMaxLength(2000);
 
-            builder.Property(i => i.Severity)
-                .IsRequired()
-                .HasConversion<string>();
-
             builder.Property(i => i.OccurredAt)
                 .IsRequired()
                 .HasDefaultValueSql("GETUTCDATE()");

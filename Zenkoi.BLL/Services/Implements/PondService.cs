@@ -55,87 +55,76 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.PondName.Contains(filter.Search) || p.Location.Contains(filter.Search);
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                var keyword = filter.Search.Trim();
+                queryBuilder.WithPredicate(p => p.PondName.Contains(keyword) || p.Location.Contains(keyword));
             }
 
             if (filter.Status.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.PondStatus == filter.Status.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.PondStatus == filter.Status.Value);
             }
+
             if (filter.IsNotMaintenance.HasValue && filter.IsNotMaintenance.Value)
             {
-                Expression<Func<Pond, bool>> expr = p => p.PondStatus != PondStatus.Maintenance;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.PondStatus != PondStatus.Maintenance);
             }
 
             if (filter.AreaId.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.AreaId == filter.AreaId.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.AreaId == filter.AreaId.Value);
             }
+
             if (filter.Available.HasValue && filter.Available.Value)
             {
-                System.Linq.Expressions.Expression<Func<Pond, bool>> expr = p => p.PondStatus == PondStatus.Empty;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.PondStatus == PondStatus.Empty);
             }
+
             if (filter.PondTypeId.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.PondTypeId == filter.PondTypeId.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.PondTypeId == filter.PondTypeId.Value);
             }
+
             if (filter.PondTypeEnum.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr =
-                    p => p.PondType.Type == filter.PondTypeEnum.Value;
-
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.PondType.Type == filter.PondTypeEnum.Value);
             }
 
             if (filter.MinCapacityLiters.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.CapacityLiters >= filter.MinCapacityLiters.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.CapacityLiters >= filter.MinCapacityLiters.Value);
             }
 
             if (filter.MaxCapacityLiters.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.CapacityLiters <= filter.MaxCapacityLiters.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.CapacityLiters <= filter.MaxCapacityLiters.Value);
             }
 
             if (filter.MinDepthMeters.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.DepthMeters >= filter.MinDepthMeters.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.DepthMeters >= filter.MinDepthMeters.Value);
             }
 
             if (filter.MaxDepthMeters.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.DepthMeters <= filter.MaxDepthMeters.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.DepthMeters <= filter.MaxDepthMeters.Value);
             }
 
             if (filter.CreatedFrom.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.CreatedAt >= filter.CreatedFrom.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.CreatedAt >= filter.CreatedFrom.Value);
             }
 
             if (filter.CreatedTo.HasValue)
             {
-                System.Linq.Expressions.Expression<System.Func<Pond, bool>> expr = p => p.CreatedAt <= filter.CreatedTo.Value;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(p => p.CreatedAt <= filter.CreatedTo.Value);
             }
 
             queryOptions.Predicate = predicate;
 
             var ponds = await _pondRepo.GetAllAsync(queryOptions);
-
             var mappedList = _mapper.Map<List<PondResponseDTO>>(ponds);
 
-            foreach (var pondEntity in ponds)
+            foreach (var pondEntity in paginatedEntities)
             {
                 var dtoItem = mappedList.First(p => p.Id == pondEntity.Id);
 
@@ -153,7 +142,6 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var totalCount = mappedList.Count;
-
             var pagedItems = mappedList
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
