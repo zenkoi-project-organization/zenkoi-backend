@@ -50,7 +50,15 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             };
 
-             Expression<Func<Pond, bool>>? predicate = null;
+            var queryBuilder = new QueryBuilder<Pond>()
+            .WithTracking(false)
+            .WithInclude(p => p.Area)
+            .WithInclude(p => p.PondType)
+            .WithInclude(p => p.WaterParameters)
+            .WithInclude(p => p.KoiFishes)
+            .WithInclude(p => p.PondPacketFishes);
+
+            Expression<Func<Pond, bool>>? predicate = null;
             
 
             if (!string.IsNullOrEmpty(filter.Search))
@@ -124,7 +132,7 @@ namespace Zenkoi.BLL.Services.Implements
             var ponds = await _pondRepo.GetAllAsync(queryOptions);
             var mappedList = _mapper.Map<List<PondResponseDTO>>(ponds);
 
-            foreach (var pondEntity in paginatedEntities)
+            foreach (var pondEntity in ponds)
             {
                 var dtoItem = mappedList.First(p => p.Id == pondEntity.Id);
 
