@@ -41,15 +41,17 @@ namespace Zenkoi.BLL.Services.Implements
             var queryOptions = new QueryOptions<Pond>
             {
                 IncludeProperties = new List<Expression<Func<Pond, object>>>
-        {
-            a => a.Area,
-            b => b.PondType,
-            c => c.WaterParameters 
-        }
+                {
+                    a => a.Area,
+                    b => b.PondType,
+                    c => c.WaterParameters,
+                    d => d.KoiFishes,             
+                    e => e.PondPacketFishes       
+                }
             };
 
-
-            System.Linq.Expressions.Expression<System.Func<Pond, bool>>? predicate = null;
+             Expression<Func<Pond, bool>>? predicate = null;
+            
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
@@ -130,12 +132,19 @@ namespace Zenkoi.BLL.Services.Implements
             queryOptions.Predicate = predicate;
 
             var ponds = await _pondRepo.GetAllAsync(queryOptions);
+
             var mappedList = _mapper.Map<List<PondResponseDTO>>(ponds);
 
             foreach (var pondEntity in ponds)
             {
                 var dtoItem = mappedList.First(p => p.Id == pondEntity.Id);
 
+                // 🔥 Add logic to update fish counts
+                dtoItem.CurrentCount =
+                    (pondEntity.KoiFishes?.Count ?? 0)
+                    + (pondEntity.PondPacketFishes?.Sum(x => x.AvailableQuantity) ?? 0);
+
+                // Get latest water parameter
                 var latestRecord = pondEntity.WaterParameters
                     .OrderByDescending(w => w.RecordedAt)
                     .FirstOrDefault();
@@ -144,6 +153,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var totalCount = mappedList.Count;
+
             var pagedItems = mappedList
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
@@ -152,26 +162,39 @@ namespace Zenkoi.BLL.Services.Implements
             return new PaginatedList<PondResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
 
+
         public async Task<PondResponseDTO?> GetByIdAsync(int id)
         {
-            var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond> { 
-            Predicate = p => p.Id == id, IncludeProperties = new List<Expression<Func<Pond, object>>>
+            var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
             {
-                p => p.Area,
-                p => p.PondType,
-                p => p.WaterParameters 
-            }
+                Predicate = p => p.Id == id,
+                IncludeProperties = new List<Expression<Func<Pond, object>>>
+        {
+            p => p.Area,
+            p => p.PondType,
+            p => p.WaterParameters,
+            p => p.KoiFishes,          
+            p => p.PondPacketFishes    
+        }
             });
 
-            var latestWaterParam = pond.WaterParameters
-            .OrderByDescending(w => w.RecordedAt)  
-            .FirstOrDefault();
+            if (pond == null) return null;
 
-            var resut =  _mapper.Map<PondResponseDTO>(pond);
-            var record = _mapper.Map<WaterRecordDTO>(latestWaterParam);
-            resut.record = record;
-            return resut;
+            var latestWaterParam = pond.WaterParameters
+                .OrderByDescending(w => w.RecordedAt)
+                .FirstOrDefault();
+
+            var result = _mapper.Map<PondResponseDTO>(pond);
+            result.record = _mapper.Map<WaterRecordDTO>(latestWaterParam);
+
+            // 🔥 Auto-update fish count
+            result.CurrentCount =
+                (pond.KoiFishes?.Count ?? 0)
+                + (pond.PondPacketFishes?.Sum(x => x.AvailableQuantity) ?? 0);
+
+            return result;
         }
+
 
         public async Task<PondResponseDTO> CreateAsync(int userId, PondRequestDTO dto)
         {
