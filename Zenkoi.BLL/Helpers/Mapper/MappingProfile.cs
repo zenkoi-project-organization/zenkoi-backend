@@ -250,6 +250,9 @@ namespace Zenkoi.BLL.Helpers.Mapper
                 .ForMember(dest => dest.KoiIncidents, opt => opt.MapFrom(src => src.KoiIncidents ?? new List<KoiIncident>()))
                 .ForMember(dest => dest.PondIncidents, opt => opt.MapFrom(src => src.PondIncidents ?? new List<PondIncident>()));
             CreateMap<IncidentRequestDTO, Incident>();
+            CreateMap<CreateIncidentWithDetailsDTO, Incident>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => IncidentStatus.Reported))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
             CreateMap<IncidentUpdateRequestDTO, Incident>()
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<KoiIncident, KoiIncidentSimpleDTO>()
@@ -261,6 +264,8 @@ namespace Zenkoi.BLL.Helpers.Mapper
                 .ForMember(dest => dest.TreatmentNotes, opt => opt.MapFrom(src => src.TreatmentNotes))
                 .ForMember(dest => dest.Incident, opt => opt.MapFrom(src => src.Incident));
             CreateMap<KoiIncidentRequestDTO, KoiIncident>();
+            CreateMap<UpdateKoiIncidentRequestDTO, KoiIncident>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Incident, IncidentSimpleDTO>()
                 .ForMember(dest => dest.IncidentTypeName, opt => opt.MapFrom(src => src.IncidentType != null ? src.IncidentType.Name : string.Empty));
             CreateMap<PondIncident, PondIncidentSimpleDTO>()
@@ -272,6 +277,8 @@ namespace Zenkoi.BLL.Helpers.Mapper
                 .ForMember(dest => dest.CorrectiveActions, opt => opt.MapFrom(src => src.CorrectiveActions))
                 .ForMember(dest => dest.Notes, opt => opt.MapFrom(src => src.Notes));
             CreateMap<PondIncidentRequestDTO, PondIncident>();
+            CreateMap<UpdatePondIncidentRequestDTO, PondIncident>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<IncidentType, IncidentTypeResponseDTO>().ReverseMap();
             CreateMap<IncidentTypeRequestDTO, IncidentType>();
