@@ -207,7 +207,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             // 🧠 Giới thiệu & hướng dẫn cơ bản
             sb.AppendLine("Bạn là **Smart Koi Breeder**, chuyên gia di truyền và phân tích phối giống cá Koi.");
-            sb.AppendLine("Dựa trên dữ liệu thực tế được cung cấp, hãy **chọn ra 3–5 cặp cá đực và cá cái tối ưu nhất** để đạt mục tiêu phối giống.");
+  
             sb.AppendLine();
             sb.AppendLine("⚠️ Quy tắc bắt buộc:");
             sb.AppendLine("❗Không được tạo, giả định hoặc thêm bất kỳ cá nào không có trong danh sách đầu vào.");
@@ -219,6 +219,8 @@ namespace Zenkoi.BLL.Services.Implements
 
             // 🎯 Mục tiêu phối giống
             sb.AppendLine("🎯 Mục tiêu phối giống:");
+            sb.AppendLine("Chúng tôi cần chọn những cặp cá có khả năng phối giống tối ưu để đạt được giống mục tiêu.");
+            sb.AppendLine("Hãy chú trọng vào những yếu tố quan trọng như di truyền , tỷ lệ sinh sản, và các đặc tính di truyền có thể ảnh hưởng đến chất lượng cá con.");
             sb.AppendLine($"- Giống mục tiêu: {request.TargetVariety}");
             sb.AppendLine($"- Ưu tiên: {request.Priority}");
             sb.AppendLine($"- Ngưỡng yêu cầu: HatchRate ≥ {request.MinHatchRate}%, SurvivalRate ≥ {request.MinSurvivalRate}%, HighQualifiedRate ≥ {request.MinHighQualifiedRate}%");
@@ -327,9 +329,6 @@ namespace Zenkoi.BLL.Services.Implements
             return sb.ToString();
         }
 
-
-
-
         private string BuildPairAnalysisPrompt(AIPairAnalysisRequestDTO request)
         {
             bool maleHasData = request.Male != null &&
@@ -344,8 +343,8 @@ namespace Zenkoi.BLL.Services.Implements
                     h.HatchRate.HasValue ||
                     h.SurvivalRate.HasValue) == true ;
 
-//            if (!maleHasData || !femaleHasData)
-  //              throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
+           if (!maleHasData || !femaleHasData)
+                throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
 
             var sb = new StringBuilder();
 

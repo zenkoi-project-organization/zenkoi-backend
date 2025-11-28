@@ -197,6 +197,8 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception("vui lòng chọn đúng một cặp cá koi (cá trống và cá mái)");
             }
+            malekoi.KoiBreedingStatus = KoiBreedingStatus.Spawning;
+            femalekoi.KoiBreedingStatus = KoiBreedingStatus.Spawning;
             pond.PondStatus = PondStatus.Active;
             var entity = _mapper.Map<BreedingProcess>(dto);
             entity.StartDate = DateTime.UtcNow;
@@ -426,6 +428,7 @@ namespace Zenkoi.BLL.Services.Implements
            
         public async Task<bool> UpdateStatus(int id)
         {
+            var _koifish = _unitOfWork.GetRepo<KoiFish>();
             var breed = await _breedRepo.GetByIdAsync(id);
             if (breed == null)
             {
@@ -435,6 +438,10 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception($"vui lòng cập nhật với breeding với status {BreedingStatus.Pairing}");
             }
+            var malekoi = await _koifish.GetByIdAsync(breed.MaleKoiId);
+            var female = await _koifish.GetByIdAsync(breed.FemaleKoiId);
+            malekoi.KoiBreedingStatus = KoiBreedingStatus.Ready;
+            female.KoiBreedingStatus = KoiBreedingStatus.Ready;
             breed.Status = BreedingStatus.Spawned;
             await _breedRepo.UpdateAsync(breed);
             return await _unitOfWork.SaveAsync();
