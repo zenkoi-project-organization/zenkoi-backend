@@ -129,25 +129,15 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                // Validate incident type
-                var incidentTypeExists = await _incidentTypeRepo.CheckExistAsync(dto.IncidentTypeId);
-                if (!incidentTypeExists)
+                var incidentType = await _incidentTypeRepo.GetByIdAsync(dto.IncidentTypeId);
+                if (incidentType == null)
                 {
                     throw new ArgumentException($"Không tìm thấy loại sự cố với id {dto.IncidentTypeId}.");
                 }
 
-                // Create incident
-                var incident = new Incident
-                {
-                    IncidentTypeId = dto.IncidentTypeId,
-                    IncidentTitle = dto.IncidentTitle,
-                    Description = dto.Description,
-                    Severity = dto.Severity,
-                    OccurredAt = dto.OccurredAt,
-                    ReportedByUserId = userId,
-                    Status = IncidentStatus.Reported,
-                    CreatedAt = DateTime.UtcNow
-                };
+                var incident = _mapper.Map<Incident>(dto);
+                incident.Severity = dto.Severity ?? incidentType.DefaultSeverity;
+                incident.ReportedByUserId = userId;
 
                 await _incidentRepo.CreateAsync(incident);
                 await _unitOfWork.SaveChangesAsync();
@@ -163,17 +153,8 @@ namespace Zenkoi.BLL.Services.Implements
                             throw new ArgumentException($"Không tìm thấy cá Koi với id {koiDto.KoiFishId}.");
                         }
 
-                        var koiIncident = new KoiIncident
-                        {
-                            IncidentId = incident.Id,
-                            KoiFishId = koiDto.KoiFishId,
-                            AffectedStatus = koiDto.AffectedStatus,
-                            SpecificSymptoms = koiDto.SpecificSymptoms,
-                            RequiresTreatment = koiDto.RequiresTreatment,
-                            IsIsolated = koiDto.IsIsolated,
-                            AffectedFrom = koiDto.AffectedFrom,
-                            TreatmentNotes = koiDto.TreatmentNotes
-                        };
+                        var koiIncident = _mapper.Map<KoiIncident>(koiDto);
+                        koiIncident.IncidentId = incident.Id;
 
                         await _koiIncidentRepo.CreateAsync(koiIncident);
 
@@ -184,7 +165,6 @@ namespace Zenkoi.BLL.Services.Implements
                     }
                 }
 
-                // Add affected Ponds
                 if (dto.AffectedPonds != null && dto.AffectedPonds.Any())
                 {
                     foreach (var pondDto in dto.AffectedPonds)
@@ -195,20 +175,11 @@ namespace Zenkoi.BLL.Services.Implements
                             throw new ArgumentException($"Không tìm thấy ao với id {pondDto.PondId}.");
                         }
 
-                        var pondIncident = new PondIncident
-                        {
-                            IncidentId = incident.Id,
-                            PondId = pondDto.PondId,
-                            EnvironmentalChanges = pondDto.EnvironmentalChanges,
-                            RequiresWaterChange = pondDto.RequiresWaterChange,
-                            FishDiedCount = pondDto.FishDiedCount,
-                            CorrectiveActions = pondDto.CorrectiveActions,
-                            Notes = pondDto.Notes
-                        };
+                        var pondIncident = _mapper.Map<PondIncident>(pondDto);
+                        pondIncident.IncidentId = incident.Id;
 
                         await _pondIncidentRepo.CreateAsync(pondIncident);
 
-                        // Update Pond Status to Maintenance
                         pond.PondStatus = PondStatus.Maintenance;
                         await _pondRepo.UpdateAsync(pond);
                     }
@@ -256,30 +227,11 @@ namespace Zenkoi.BLL.Services.Implements
                     {
                         throw new ArgumentException($"Không tìm thấy loại sự cố với id {dto.IncidentTypeId.Value}.");
                     }
-                    incident.IncidentTypeId = dto.IncidentTypeId.Value;
                 }
-                
-                if (dto.IncidentTitle != null)
-                    incident.IncidentTitle = dto.IncidentTitle;
 
-                if (dto.Description != null)
-                    incident.Description = dto.Description;
-
-                if (dto.Severity.HasValue)
-                    incident.Severity = dto.Severity.Value;
-
-                if (dto.Status.HasValue)
-                    incident.Status = dto.Status.Value;
-
-                if (dto.OccurredAt.HasValue)
-                    incident.OccurredAt = dto.OccurredAt.Value;
-
-                if (dto.ResolutionNotes != null)
-                    incident.ResolutionNotes = dto.ResolutionNotes;
-
+                _mapper.Map(dto, incident);
                 incident.UpdatedAt = DateTime.UtcNow;
 
-                // Handle status change to Resolved
                 bool wasResolved = incident.Status == IncidentStatus.Resolved;
                 bool isNowResolved = dto.Status.HasValue && dto.Status.Value == IncidentStatus.Resolved;
 
@@ -377,30 +329,13 @@ namespace Zenkoi.BLL.Services.Implements
 
                         if (existingKoiIncident != null)
                         {
-                            existingKoiIncident.AffectedStatus = koiDto.AffectedStatus;
-                            existingKoiIncident.SpecificSymptoms = koiDto.SpecificSymptoms;
-                            existingKoiIncident.RequiresTreatment = koiDto.RequiresTreatment;
-                            existingKoiIncident.IsIsolated = koiDto.IsIsolated;
-                            existingKoiIncident.AffectedFrom = koiDto.AffectedFrom;
-                            existingKoiIncident.TreatmentNotes = koiDto.TreatmentNotes;
-
+                            _mapper.Map(koiDto, existingKoiIncident);
                             await _koiIncidentRepo.UpdateAsync(existingKoiIncident);
                         }
                         else
                         {
-                            // Create new
-                            var koiIncident = new KoiIncident
-                            {
-                                IncidentId = id,
-                                KoiFishId = koiDto.KoiFishId,
-                                AffectedStatus = koiDto.AffectedStatus,
-                                SpecificSymptoms = koiDto.SpecificSymptoms,
-                                RequiresTreatment = koiDto.RequiresTreatment,
-                                IsIsolated = koiDto.IsIsolated,
-                                AffectedFrom = koiDto.AffectedFrom,
-                                TreatmentNotes = koiDto.TreatmentNotes
-                            };
-
+                            var koiIncident = _mapper.Map<KoiIncident>(koiDto);
+                            koiIncident.IncidentId = id;
                             await _koiIncidentRepo.CreateAsync(koiIncident);
                         }
 
@@ -451,27 +386,13 @@ namespace Zenkoi.BLL.Services.Implements
 
                         if (existingPondIncident != null)
                         {
-                            existingPondIncident.EnvironmentalChanges = pondDto.EnvironmentalChanges;
-                            existingPondIncident.RequiresWaterChange = pondDto.RequiresWaterChange;
-                            existingPondIncident.FishDiedCount = pondDto.FishDiedCount;
-                            existingPondIncident.CorrectiveActions = pondDto.CorrectiveActions;
-                            existingPondIncident.Notes = pondDto.Notes;
-
+                            _mapper.Map(pondDto, existingPondIncident);
                             await _pondIncidentRepo.UpdateAsync(existingPondIncident);
                         }
                         else
                         {
-                            var pondIncident = new PondIncident
-                            {
-                                IncidentId = id,
-                                PondId = pondDto.PondId,
-                                EnvironmentalChanges = pondDto.EnvironmentalChanges,
-                                RequiresWaterChange = pondDto.RequiresWaterChange,
-                                FishDiedCount = pondDto.FishDiedCount,
-                                CorrectiveActions = pondDto.CorrectiveActions,
-                                Notes = pondDto.Notes
-                            };
-
+                            var pondIncident = _mapper.Map<PondIncident>(pondDto);
+                            pondIncident.IncidentId = id;
                             await _pondIncidentRepo.CreateAsync(pondIncident);
                         }
 
@@ -529,7 +450,6 @@ namespace Zenkoi.BLL.Services.Implements
                 incident.Status = status;
                 incident.UpdatedAt = DateTime.UtcNow;
 
-                // Auto-restore health status when resolving
                 if (isNowResolved && !wasResolved)
                 {
                     incident.ResolvedAt = DateTime.UtcNow;
@@ -540,10 +460,8 @@ namespace Zenkoi.BLL.Services.Implements
                         incident.ResolutionNotes = resolutionNotes;
                     }
 
-                    // Only restore KoiFish that haven't been recovered yet
                     if (incident.KoiIncidents != null && incident.KoiIncidents.Any())
                     {
-                        // Load all KoiFish at once for better performance
                         var koiFishIds = incident.KoiIncidents
                             .Where(ki => !ki.RecoveredAt.HasValue)
                             .Select(ki => ki.KoiFishId)
@@ -575,10 +493,8 @@ namespace Zenkoi.BLL.Services.Implements
                         }
                     }
 
-                    // Restore Pond Status when resolving
                     if (incident.PondIncidents != null && incident.PondIncidents.Any())
                     {
-                        // Load all Ponds at once for better performance
                         var pondIds = incident.PondIncidents.Select(pi => pi.PondId).Distinct().ToList();
                         var ponds = await _pondRepo.GetAllAsync(new QueryBuilder<Pond>()
                             .WithTracking(true)
@@ -616,36 +532,22 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                // Validate incident exists
                 var incident = await _incidentRepo.GetByIdAsync(incidentId);
                 if (incident == null)
                 {
                     throw new KeyNotFoundException($"Không tìm thấy sự cố với id {incidentId}.");
                 }
-
-                // Validate koi fish exists
                 var koiFish = await _koiFishRepo.GetByIdAsync(dto.KoiFishId);
                 if (koiFish == null)
                 {
                     throw new ArgumentException($"Không tìm thấy cá Koi với id {dto.KoiFishId}.");
                 }
 
-                // Create koi incident
-                var koiIncident = new KoiIncident
-                {
-                    IncidentId = incidentId,
-                    KoiFishId = dto.KoiFishId,
-                    AffectedStatus = dto.AffectedStatus,
-                    SpecificSymptoms = dto.SpecificSymptoms,
-                    RequiresTreatment = dto.RequiresTreatment,
-                    IsIsolated = dto.IsIsolated,
-                    AffectedFrom = dto.AffectedFrom,
-                    TreatmentNotes = dto.TreatmentNotes
-                };
+                var koiIncident = _mapper.Map<KoiIncident>(dto);
+                koiIncident.IncidentId = incidentId;
 
                 await _koiIncidentRepo.CreateAsync(koiIncident);
 
-                // Update KoiFish HealthStatus
                 koiFish.HealthStatus = dto.AffectedStatus;
                 koiFish.UpdatedAt = DateTime.UtcNow;
                 await _koiFishRepo.UpdateAsync(koiFish);
@@ -672,35 +574,20 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                // Validate incident exists
                 var incident = await _incidentRepo.GetByIdAsync(incidentId);
                 if (incident == null)
                 {
                     throw new KeyNotFoundException($"Không tìm thấy sự cố với id {incidentId}.");
                 }
-
-                // Validate pond exists
                 var pond = await _pondRepo.GetByIdAsync(dto.PondId);
                 if (pond == null)
                 {
                     throw new ArgumentException($"Không tìm thấy ao với id {dto.PondId}.");
                 }
-
-                // Create pond incident
-                var pondIncident = new PondIncident
-                {
-                    IncidentId = incidentId,
-                    PondId = dto.PondId,
-                    EnvironmentalChanges = dto.EnvironmentalChanges,
-                    RequiresWaterChange = dto.RequiresWaterChange,
-                    FishDiedCount = dto.FishDiedCount,
-                    CorrectiveActions = dto.CorrectiveActions,
-                    Notes = dto.Notes
-                };
+                var pondIncident = _mapper.Map<PondIncident>(dto);
+                pondIncident.IncidentId = incidentId;
 
                 await _pondIncidentRepo.CreateAsync(pondIncident);
-
-                // Update Pond Status to Maintenance
                 pond.PondStatus = PondStatus.Maintenance;
                 await _pondRepo.UpdateAsync(pond);
 
@@ -726,7 +613,6 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                // Get koi incident
                 var koiIncident = await _koiIncidentRepo.GetSingleAsync(new QueryBuilder<KoiIncident>()
                     .WithPredicate(ki => ki.Id == koiIncidentId)
                     .WithInclude(ki => ki.KoiFish)
@@ -736,13 +622,9 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     throw new KeyNotFoundException($"Không tìm thấy KoiIncident với id {koiIncidentId}.");
                 }
-
-                // Update koi incident
+       
                 if (dto.AffectedStatus.HasValue)
                 {
-                    koiIncident.AffectedStatus = dto.AffectedStatus.Value;
-
-                    // Update KoiFish HealthStatus
                     var koiFish = await _koiFishRepo.GetByIdAsync(koiIncident.KoiFishId);
                     if (koiFish != null)
                     {
@@ -752,21 +634,8 @@ namespace Zenkoi.BLL.Services.Implements
                     }
                 }
 
-                if (dto.SpecificSymptoms != null)
-                    koiIncident.SpecificSymptoms = dto.SpecificSymptoms;
 
-                if (dto.RequiresTreatment.HasValue)
-                    koiIncident.RequiresTreatment = dto.RequiresTreatment.Value;
-
-                if (dto.IsIsolated.HasValue)
-                    koiIncident.IsIsolated = dto.IsIsolated.Value;
-
-                if (dto.TreatmentNotes != null)
-                    koiIncident.TreatmentNotes = dto.TreatmentNotes;
-
-                if (dto.RecoveredAt.HasValue)
-                    koiIncident.RecoveredAt = dto.RecoveredAt.Value;
-
+                _mapper.Map(dto, koiIncident);
                 await _koiIncidentRepo.UpdateAsync(koiIncident);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
@@ -790,7 +659,6 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                // Get pond incident
                 var pondIncident = await _pondIncidentRepo.GetSingleAsync(new QueryBuilder<PondIncident>()
                     .WithPredicate(pi => pi.Id == pondIncidentId)
                     .WithInclude(pi => pi.Pond)
@@ -801,22 +669,8 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new KeyNotFoundException($"Không tìm thấy PondIncident với id {pondIncidentId}.");
                 }
 
-                // Update pond incident
-                if (dto.EnvironmentalChanges != null)
-                    pondIncident.EnvironmentalChanges = dto.EnvironmentalChanges;
 
-                if (dto.RequiresWaterChange.HasValue)
-                    pondIncident.RequiresWaterChange = dto.RequiresWaterChange.Value;
-
-                if (dto.FishDiedCount.HasValue)
-                    pondIncident.FishDiedCount = dto.FishDiedCount.Value;
-
-                if (dto.CorrectiveActions != null)
-                    pondIncident.CorrectiveActions = dto.CorrectiveActions;
-
-                if (dto.Notes != null)
-                    pondIncident.Notes = dto.Notes;
-
+                _mapper.Map(dto, pondIncident);
                 await _pondIncidentRepo.UpdateAsync(pondIncident);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
@@ -858,9 +712,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(i => i.ReportedBy)
                 .WithInclude(i => i.KoiIncidents)
                 .WithInclude(i => i.PondIncidents);
-
-            // Only include ResolvedBy if it's not null (optional navigation)
-            // Note: EF Core will handle null navigation properties automatically
+    
             return queryBuilder;
         }
     }

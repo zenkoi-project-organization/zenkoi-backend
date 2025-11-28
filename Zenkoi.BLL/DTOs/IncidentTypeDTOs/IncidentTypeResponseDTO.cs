@@ -8,7 +8,6 @@ namespace Zenkoi.BLL.DTOs.IncidentTypeDTOs
         public string Name { get; set; }
         public string? Description { get; set; }
         public SeverityLevel DefaultSeverity { get; set; }
-        public bool? RequiresQuarantine { get; set; }
         public bool? AffectsBreeding { get; set; }
     }
 }

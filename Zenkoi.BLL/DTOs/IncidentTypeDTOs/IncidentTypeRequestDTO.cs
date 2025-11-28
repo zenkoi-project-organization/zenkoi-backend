@@ -15,8 +15,6 @@ namespace Zenkoi.BLL.DTOs.IncidentTypeDTOs
         [Required]
         public SeverityLevel DefaultSeverity { get; set; }
 
-        public bool? RequiresQuarantine { get; set; }
-
         public bool? AffectsBreeding { get; set; }
     }
 }

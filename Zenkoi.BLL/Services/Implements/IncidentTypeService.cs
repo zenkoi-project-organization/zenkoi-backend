@@ -45,11 +45,6 @@ namespace Zenkoi.BLL.Services.Implements
                     (it.Description != null && it.Description.Contains(keyword)));
             }
 
-            if (filter.RequiresQuarantine.HasValue)
-            {
-                queryBuilder.WithPredicate(it => it.RequiresQuarantine == filter.RequiresQuarantine.Value);
-            }
-
             if (filter.AffectsBreeding.HasValue)
             {
                 queryBuilder.WithPredicate(it => it.AffectsBreeding == filter.AffectsBreeding.Value);
