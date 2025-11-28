@@ -108,7 +108,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (!string.IsNullOrEmpty(filter.Origin))
             {
-                queryBuilder.WithPredicate(k => k.Origin == filter.Origin);
+                queryBuilder.WithPredicate(k => k.Origin != null && k.Origin.Contains(filter.Origin));
             }
 
             if (filter.MinPrice.HasValue)

@@ -4,6 +4,7 @@ using Zenkoi.BLL.DTOs.CustomerDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
@@ -173,7 +174,9 @@ namespace Zenkoi.BLL.Services.Implements
                 .Build());
 
             customer.TotalOrders = orders.Count();
-            customer.TotalSpent = orders.Sum(o => o.TotalAmount);
+            customer.TotalSpent = orders
+                .Where(o => o.Status == OrderStatus.Delivered)
+                .Sum(o => o.TotalAmount);
             customer.UpdatedAt = DateTime.UtcNow;
 
             await _customerRepo.UpdateAsync(customer);

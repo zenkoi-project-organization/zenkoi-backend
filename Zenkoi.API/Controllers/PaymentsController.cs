@@ -32,12 +32,12 @@ namespace Zenkoi.API.Controllers
 
             if (result.IsSuccess)
             {
-                return Redirect($"{feURL}/payment-success/{result.OrderId}?method=VnPay&amount={result.Amount}");
+                return Redirect($"{feURL}/checkout/success/{result.OrderId}?method=VnPay&amount={result.Amount}");
             }
             else
             {
                 var errorMessage = string.IsNullOrEmpty(result.ErrorMessage) ? "Payment+failed" : result.ErrorMessage.Replace(" ", "+");
-                return Redirect($"{feURL}/payment-failure/{result.OrderId}?method=VnPay&code={result.ErrorCode}&message={errorMessage}");
+                return Redirect($"{feURL}/checkout/failure/{result.OrderId}?method=VnPay&code={result.ErrorCode}&message={errorMessage}");
             }
         }
 
@@ -49,15 +49,14 @@ namespace Zenkoi.API.Controllers
 
             try
             {
-                // Nếu user cancel thanh toán
                 if (cancel == true || status == "CANCELLED")
                 {
                     var cancelResult = await _paymentService.CheckPaymentStatusByOrderCodeAsync(orderCode);
-                    return Redirect($"{feURL}/payment-failure/{cancelResult.OrderId ?? 0}?method=PayOS&code=CANCELLED&message=Payment+cancelled");
+                    return Redirect($"{feURL}/checkout/failure/{cancelResult.OrderId ?? 0}?method=PayOS&code=CANCELLED&message=Payment+cancelled");
                 }
 
                 if (status == "PAID")
-                {            
+                {
                     await _payOSService.ProcessPaymentReturnAsync(orderCode);
                 }
 
@@ -65,20 +64,20 @@ namespace Zenkoi.API.Controllers
 
                 if (result.IsSuccess && result.OrderId.HasValue)
                 {
-                    return Redirect($"{feURL}/payment-success/{result.OrderId}?method=PayOS&amount={result.Amount}");
+                    return Redirect($"{feURL}/checkout/success/{result.OrderId}?method=PayOS&amount={result.Amount}");
                 }
                 else if (result.Status == "Pending")
                 {
-                    return Redirect($"{feURL}/payment-pending/{result.OrderId ?? 0}?method=PayOS&orderCode={orderCode}");
+                    return Redirect($"{feURL}/checkout/pending/{result.OrderId ?? 0}?method=PayOS&orderCode={orderCode}");
                 }
                 else
                 {
-                    return Redirect($"{feURL}/payment-failure/{result.OrderId ?? 0}?method=PayOS&code=FAILED&message=Payment+failed");
+                    return Redirect($"{feURL}/checkout/failure/{result.OrderId ?? 0}?method=PayOS&code=FAILED&message=Payment+failed");
                 }
             }
             catch (Exception ex)
             {
-                return Redirect($"{feURL}/payment-failure/0?method=PayOS&code=ERROR&message={ex.Message.Replace(" ", "+")}");
+                return Redirect($"{feURL}/checkout/failure/0?method=PayOS&code=ERROR&message={ex.Message.Replace(" ", "+")}");
             }
         }
 

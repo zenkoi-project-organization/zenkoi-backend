@@ -50,7 +50,9 @@ namespace Zenkoi.BLL.Services.Implements
             if (!string.IsNullOrEmpty(filter.Search))
             {
                 var keyword = filter.Search.Trim();
-                queryBuilder.WithPredicate(p => p.PondName.Contains(keyword) || p.Location.Contains(keyword));
+                queryBuilder.WithPredicate(p =>
+                    (p.PondName != null && p.PondName.Contains(keyword)) ||
+                    (p.Location != null && p.Location.Contains(keyword)));
             }
 
             if (filter.Status.HasValue)

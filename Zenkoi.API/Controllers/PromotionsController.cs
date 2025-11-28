@@ -86,9 +86,6 @@ namespace Zenkoi.API.Controllers
         public async Task<IActionResult> GetCurrent()
         {
             var promotion = await _promotionService.GetCurrentActivePromotionAsync();
-            if (promotion == null)
-                return GetNotFound("Không có khuyến mãi nào đang hoạt động.");
-
             return GetSuccess(promotion);
         }
     }

@@ -16,6 +16,8 @@ namespace Zenkoi.DAL.Entities
         
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]
         public int Quantity { get; set; } = 1;
+        public decimal UnitPrice { get; set; }
+
         public DateTime AddedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }

@@ -18,7 +18,6 @@ namespace Zenkoi.BLL.DTOs.CartDTOs
     public class ConvertCartToOrderDTO
     {
         public int? CustomerAddressId { get; set; }
-
         public decimal ShippingFee { get; set; } = 0;
     }
 }
@@ -33,6 +32,7 @@ namespace Zenkoi.BLL.DTOs.CartDTOs
         public KoiFishResponseDTO KoiFish { get; set; }
         public PacketFishResponseDTO PacketFish { get; set; }
         public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
         public decimal ItemTotalPrice { get; set; }
         public DateTime AddedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

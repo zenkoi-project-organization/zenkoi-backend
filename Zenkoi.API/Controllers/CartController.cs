@@ -150,7 +150,10 @@ namespace Zenkoi.API.Controllers
         /// <returns>Kết quả xóa</returns>
         [HttpDelete("customer/{customerId:int}")]
         public async Task<IActionResult> ClearCart(int customerId)
-        {
+        {      
+            if (customerId != UserId)
+                return Forbid();
+
             try
             {
                 var result = await _cartService.ClearCartAsync(customerId);
