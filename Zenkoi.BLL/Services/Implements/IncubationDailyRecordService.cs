@@ -67,7 +67,7 @@ namespace Zenkoi.BLL.Services.Implements
             record.RottenEggs = eggBatch.Quantity - (dto.HatchedEggs + dto.HealthyEggs);
             await _incubationDailyRepo.CreateAsync(record);
             eggBatch.TotalHatchedEggs += dto.HatchedEggs;
-            eggBatch.FertilizationRate = (double)dto.HealthyEggs / eggBatch.Quantity * 100;
+            eggBatch.FertilizationRate = (double)(dto.HealthyEggs + dto.HatchedEggs) / eggBatch.Quantity * 100;
             breed.FertilizationRate = eggBatch.FertilizationRate;
             if (record.Success)
             {

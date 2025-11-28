@@ -95,6 +95,11 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 queryBuilder.WithPredicate(k => k.SaleStatus == filter.SaleStatus.Value);
             }
+            if (filter.IsBreeding)
+            {
+                Expression<Func<KoiFish, bool>> expr = k => k.KoiBreedingStatus == KoiBreedingStatus.Ready;
+                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+            }
 
             if (filter.VarietyId.HasValue)
             {
@@ -239,11 +244,17 @@ namespace Zenkoi.BLL.Services.Implements
             var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
             {
                 Predicate = p => p.Id == dto.PondId,
-                IncludeProperties = new List<Expression<Func<Pond, object>>> { p => p.KoiFishes }
+                IncludeProperties = new List<Expression<Func<Pond, object>>> { p => p.KoiFishes,
+                p => p.PondType}
             });
 
             if (pond == null)
                 throw new Exception($"Không tìm thấy pond với id {dto.PondId}");
+
+            if (pond.PondType.Type == TypeOfPond.Paring || pond.PondType.Type == TypeOfPond.EggBatch || pond.PondType.Type == TypeOfPond.FryFish)
+            {
+                throw new InvalidOperationException("vui lòng chọn hồ dành cho cá trưởng thành");
+            }
 
             if (pond.PondStatus == PondStatus.Maintenance)
                 throw new InvalidOperationException("Hồ hiện tại đang bảo trì, vui lòng chọn hồ khác.");
@@ -274,8 +285,10 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var entity = _mapper.Map<KoiFish>(dto);
+            pond.PondStatus = PondStatus.Active;
+            pond.CurrentCount += 1;
 
-
+            await _pondRepo.UpdateAsync(pond);
             await _koiFishRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 
