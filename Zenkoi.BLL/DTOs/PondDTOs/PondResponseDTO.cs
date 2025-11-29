@@ -20,6 +20,7 @@ namespace Zenkoi.BLL.DTOs.PondDTOs
         public double? DepthMeters { get; set; }
         public double? LengthMeters { get; set; }
         public double? WidthMeters { get; set; }
+        public bool IsDeleted { get; set; } 
 
         public DateTime CreatedAt { get; set; }
 
@@ -32,7 +33,6 @@ namespace Zenkoi.BLL.DTOs.PondDTOs
 
         public WaterRecordDTO record {  get; set; }
 
-        // Optionally include related data
-      //  public ICollection<KoiFishBasicDTO>? KoiFishes { get; set; }
+      
     }
 }

@@ -77,10 +77,10 @@ namespace Zenkoi.API.Controllers
         }
 
         // 2. Gỡ pattern khỏi variety
-        [HttpDelete("remove")]
-        public async Task<IActionResult> RemovePattern([FromBody] AssignPatternDTO dto)
+        [HttpDelete("remove/{varietyId}/{patternId}")]
+        public async Task<IActionResult> RemovePattern(int varietyId, int patternId)
         {
-            var ok = await _patternService.RemovePatternFromVarietyAsync(dto.VarietyId, dto.PatternId);
+            var ok = await _patternService.RemovePatternFromVarietyAsync(varietyId, patternId);
             return ok ? Success(ok, "Xóa pattern khỏi variety thành công.")
                       : GetError("Không tìm thấy liên kết để xóa.");
         }

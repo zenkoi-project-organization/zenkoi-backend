@@ -32,7 +32,9 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<bool> CompleteClassification(int id)
         {
-            var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+           var _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
+           var _pondRepo = _unitOfWork.GetRepo<Pond>();
+            
            var classìication = await _classRepo.GetByIdAsync(id);
             if(classìication == null)
             {
@@ -47,6 +49,9 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new InvalidOperationException("quá trình sinh sản đã thất bại hoặc hủy nên không thể update");
             }
+            var pond = await _pondRepo.GetByIdAsync(breed.PondId);
+            pond.PondStatus = PondStatus.Empty;
+            breed.PondId = null;
             breed.Status = BreedingStatus.Complete;
             classìication.Status = ClassificationStatus.Success;
             await _breedRepo.UpdateAsync(breed);

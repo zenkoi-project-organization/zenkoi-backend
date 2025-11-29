@@ -39,7 +39,6 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PaginatedList<PondResponseDTO>> GetAllPondsAsync(PondFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
             var queryBuilder = new QueryBuilder<Pond>()
-                .WithPredicate(p => !p.IsDeleted)
                 .WithTracking(false)
                 .WithInclude(p => p.Area)
                 .WithInclude(p => p.PondType)
@@ -54,6 +53,7 @@ namespace Zenkoi.BLL.Services.Implements
             var paginatedPonds = await PaginatedList<Pond>.CreateAsync(query, pageIndex, pageSize);
 
             var resultDto = _mapper.Map<List<PondResponseDTO>>(paginatedPonds);
+
             for (int i = 0; i < paginatedPonds.Count; i++)
             {
                 var pondEntity = paginatedPonds[i];
@@ -63,8 +63,8 @@ namespace Zenkoi.BLL.Services.Implements
                     (pondEntity.KoiFishes?.Count ?? 0) +
                     (pondEntity.PondPacketFishes?.Sum(x => x.AvailableQuantity) ?? 0);
 
-                var latestRecord = pondEntity.WaterParameters
-                    ?.OrderByDescending(w => w.RecordedAt)
+                var latestRecord = pondEntity.WaterParameters?
+                    .OrderByDescending(w => w.RecordedAt)
                     .FirstOrDefault();
 
                 dtoItem.record = _mapper.Map<WaterRecordDTO>(latestRecord);
@@ -81,6 +81,12 @@ namespace Zenkoi.BLL.Services.Implements
         {
             if (filter == null)
                 return;
+
+            // 🔥 Filter hồ đã xóa hoặc chưa xóa
+            if (filter.isDeleted)
+                queryBuilder.WithPredicate(p => p.IsDeleted == true);
+            else
+                queryBuilder.WithPredicate(p => p.IsDeleted == false);
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
@@ -128,7 +134,6 @@ namespace Zenkoi.BLL.Services.Implements
         }
 
 
-
         public async Task<PondResponseDTO?> GetByIdAsync(int id)
         {
             var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
@@ -139,12 +144,27 @@ namespace Zenkoi.BLL.Services.Implements
             p => p.Area,
             p => p.PondType,
             p => p.WaterParameters,
-            p => p.KoiFishes,          
-            p => p.PondPacketFishes    
+            p => p.KoiFishes,
+            p => p.PondPacketFishes
         }
             });
 
-            if (pond == null) return null;
+            if (pond == null)
+                return null;
+
+         
+            var actualCurrentCount =
+                (pond.KoiFishes?.Count ?? 0) +
+                (pond.PondPacketFishes?.Sum(x => x.AvailableQuantity) ?? 0);
+
+ 
+            if (pond.CurrentCount != actualCurrentCount)
+            {
+                pond.CurrentCount = actualCurrentCount;
+
+                await _pondRepo.UpdateAsync(pond);     
+                await _unitOfWork.SaveChangesAsync();    
+            }
 
             var latestWaterParam = pond.WaterParameters
                 .OrderByDescending(w => w.RecordedAt)
@@ -153,10 +173,7 @@ namespace Zenkoi.BLL.Services.Implements
             var result = _mapper.Map<PondResponseDTO>(pond);
             result.record = _mapper.Map<WaterRecordDTO>(latestWaterParam);
 
-            // 🔥 Auto-update fish count
-            result.CurrentCount =
-                (pond.KoiFishes?.Count ?? 0)
-                + (pond.PondPacketFishes?.Sum(x => x.AvailableQuantity) ?? 0);
+            result.CurrentCount = actualCurrentCount;
 
             return result;
         }
@@ -261,9 +278,18 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<bool> DeleteAsync(int id)
         {
             var pond = await _pondRepo.GetByIdAsync(id);
-            if (pond == null) return false;
+            if (pond == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy hồ ");
+            }
+            if(pond.PondStatus == PondStatus.Active)
+            {
+                throw new InvalidOperationException("hiện tại hồ đang hoạt động không thể xóa");
+            }
+            pond.IsDeleted = true;
+            pond.DeletedAt = DateTime.Now;
 
-            await _pondRepo.DeleteAsync(pond);
+            await _pondRepo.UpdateAsync(pond);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
