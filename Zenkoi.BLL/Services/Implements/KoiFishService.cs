@@ -97,7 +97,9 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (filter.IsBreeding)
             {
-                queryBuilder.WithPredicate(k => k.KoiBreedingStatus == KoiBreedingStatus.Ready);
+                queryBuilder.WithPredicate(k =>
+                    k.KoiBreedingStatus == KoiBreedingStatus.Ready
+                );
             }
 
             if (filter.VarietyId.HasValue)
