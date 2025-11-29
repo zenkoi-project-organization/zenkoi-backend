@@ -75,7 +75,8 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("Không tìm thấy khoảng cách vận chuyển");
             }
 
-            distance.IsActive = false;
+            distance.IsDeleted = true;
+            distance.DeletedAt = DateTime.UtcNow;
             distance.UpdatedAt = DateTime.UtcNow;
 
             await _shippingDistanceRepo.UpdateAsync(distance);

@@ -13,8 +13,13 @@ namespace Zenkoi.DAL.Entities
         public string VarietyName { get; set; }
 
         public string Characteristic { get; set; }
-   
+
         public string OriginCountry { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
         public ICollection<KoiFish> KoiFishes { get; set; }
 

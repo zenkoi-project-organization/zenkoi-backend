@@ -85,15 +85,18 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException("Ngày bắt đầu phải trước ngày kết thúc.");
             }
 
-            var overlappingPromotion = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
+            if (dto.IsActive)
             {
-                Predicate = p => p.IsActive && !p.IsDeleted &&
-                    ((p.ValidFrom <= dto.ValidTo && p.ValidTo >= dto.ValidFrom) ||
-                     (dto.ValidFrom <= p.ValidTo && dto.ValidTo >= p.ValidFrom))
-            });
-            if (overlappingPromotion)
-            {
-                throw new ArgumentException("Đã tồn tại một promotion active trong khoảng thời gian này. Chỉ có thể có một promotion hoạt động tại một thời điểm.");
+                var overlappingPromotion = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
+                {
+                    Predicate = p => p.IsActive && !p.IsDeleted &&
+                        ((p.ValidFrom <= dto.ValidTo && p.ValidTo >= dto.ValidFrom) ||
+                         (dto.ValidFrom <= p.ValidTo && dto.ValidTo >= p.ValidFrom))
+                });
+                if (overlappingPromotion)
+                {
+                    throw new ArgumentException("Đã tồn tại một promotion active trong khoảng thời gian này. Chỉ có thể có một promotion hoạt động tại một thời điểm.");
+                }
             }
 
             var entity = _mapper.Map<Promotion>(dto);
@@ -128,16 +131,19 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException("Ngày bắt đầu phải trước ngày kết thúc.");
             }
 
-            // Kiểm tra xem đã có promotion nào active khác trong khoảng thời gian này chưa
-            var overlappingPromotion = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
+            if (dto.IsActive)
             {
-                Predicate = p => p.IsActive && !p.IsDeleted && p.Id != id &&
-                    ((p.ValidFrom <= dto.ValidTo && p.ValidTo >= dto.ValidFrom) ||
-                     (dto.ValidFrom <= p.ValidTo && dto.ValidTo >= p.ValidFrom))
-            });
-            if (overlappingPromotion)
-            {
-                throw new ArgumentException("Đã tồn tại một promotion active khác trong khoảng thời gian này. Chỉ có thể có một promotion hoạt động tại một thời điểm.");
+                // Kiểm tra xem đã có promotion nào active khác trong khoảng thời gian này chưa
+                var overlappingPromotion = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
+                {
+                    Predicate = p => p.IsActive && !p.IsDeleted && p.Id != id &&
+                        ((p.ValidFrom <= dto.ValidTo && p.ValidTo >= dto.ValidFrom) ||
+                         (dto.ValidFrom <= p.ValidTo && dto.ValidTo >= p.ValidFrom))
+                });
+                if (overlappingPromotion)
+                {
+                    throw new ArgumentException("Đã tồn tại một promotion active khác trong khoảng thời gian này. Chỉ có thể có một promotion hoạt động tại một thời điểm.");
+                }
             }
 
             _mapper.Map(dto, promotion);

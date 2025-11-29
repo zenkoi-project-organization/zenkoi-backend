@@ -80,10 +80,10 @@ namespace Zenkoi.BLL.Services.Implements
 
             // Customer Count
             var allCustomers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>().Build());
-            var currentCustomers = allCustomers.Count(c => c.IsActive);
+            var currentCustomers = allCustomers.Count(c => !c.IsDeleted);
             
             var newCustomersThisMonth = allCustomers.Count(c => 
-                c.CreatedAt >= startOfMonth && c.IsActive);
+                c.CreatedAt >= startOfMonth && !c.IsDeleted);
             var newCustomerPercent = currentCustomers > 0 
                 ? (double)(newCustomersThisMonth / (double)currentCustomers * 100) 
                 : 0;

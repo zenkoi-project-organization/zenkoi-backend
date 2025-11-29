@@ -39,9 +39,9 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired(false)
                 .HasMaxLength(500);
 
-            builder.Property(sd => sd.IsActive)
+            builder.Property(sd => sd.IsDeleted)
                 .IsRequired()
-                .HasDefaultValue(true);
+                .HasDefaultValue(false);
 
             builder.Property(sd => sd.CreatedAt)
                 .IsRequired()
@@ -51,9 +51,9 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired(false);
 
             builder.HasIndex(sd => sd.Name);
-            builder.HasIndex(sd => sd.IsActive);
+            builder.HasIndex(sd => sd.IsDeleted);
             builder.HasIndex(sd => new { sd.MinDistanceKm, sd.MaxDistanceKm });
-            builder.HasIndex(sd => new { sd.IsActive, sd.MinDistanceKm, sd.MaxDistanceKm });
+            builder.HasIndex(sd => new { sd.IsDeleted, sd.MinDistanceKm, sd.MaxDistanceKm });
         }
     }
 }

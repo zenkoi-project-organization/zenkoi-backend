@@ -42,6 +42,8 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(c => c.Customer)
                 .WithInclude(c => c.Customer.ApplicationUser)
                 .WithInclude(c => c.CartItems)
+                .WithInclude("CartItems.KoiFish")
+                .WithInclude("CartItems.PacketFish")
                 .Build());
 
             if (cart == null)
@@ -49,46 +51,17 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException("Cart not found");
             }
 
-            if (cart.CartItems != null && cart.CartItems.Any())
-            {
-                foreach (var item in cart.CartItems)
-                {
-                    if (item.KoiFishId.HasValue)
-                    {
-                        item.KoiFish = await _koiFishRepo.GetByIdAsync(item.KoiFishId.Value);
-                    }
-                    if (item.PacketFishId.HasValue)
-                    {
-                        item.PacketFish = await _packetFishRepo.GetByIdAsync(item.PacketFishId.Value);
-                    }
-                }
-            }
-
             var cartResponse = _mapper.Map<CartResponseDTO>(cart);
 
-            cartResponse.TotalPrice = cart.CartItems.Sum(ci =>
-            {
-                if (ci.KoiFishId.HasValue && ci.KoiFish != null)
-                {
-                    return (ci.KoiFish.SellingPrice ?? 0) * ci.Quantity;
-                }
-                else if (ci.PacketFishId.HasValue && ci.PacketFish != null)
-                {
-                    return ci.PacketFish.PricePerPacket * ci.Quantity;
-                }
-                return 0;
-            });
-      
+            // Use stored UnitPrice for consistency
+            cartResponse.TotalPrice = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity);
+
             foreach (var item in cartResponse.CartItems)
             {
-                if (item.KoiFish != null)
-                {
-                    item.ItemTotalPrice = (item.KoiFish.SellingPrice ?? 0) * item.Quantity;
-                }
-                else if (item.PacketFish != null)
-                {
-                    item.ItemTotalPrice = item.PacketFish.PricePerPacket * item.Quantity;
-                }
+                // Use stored UnitPrice instead of current price
+                item.ItemTotalPrice = item.UnitPrice * item.Quantity;
+
+                // UnitPrice already calculated above, no need to recalculate
             }
 
             return cartResponse;
@@ -107,6 +80,8 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(c => c.Customer)
                 .WithInclude(c => c.Customer.ApplicationUser)
                 .WithInclude(c => c.CartItems)
+                .WithInclude("CartItems.KoiFish")
+                .WithInclude("CartItems.PacketFish")
                 .Build());
 
             if (cart == null)
@@ -119,21 +94,6 @@ namespace Zenkoi.BLL.Services.Implements
                 };
                 await _cartRepo.CreateAsync(cart);
                 await _unitOfWork.SaveChangesAsync();
-            }
-        
-            if (cart.CartItems != null && cart.CartItems.Any())
-            {
-                foreach (var item in cart.CartItems)
-                {
-                    if (item.KoiFishId.HasValue)
-                    {
-                        item.KoiFish = await _koiFishRepo.GetByIdAsync(item.KoiFishId.Value);
-                    }
-                    if (item.PacketFishId.HasValue)
-                    {
-                        item.PacketFish = await _packetFishRepo.GetByIdAsync(item.PacketFishId.Value);
-                    }
-                }
             }
 
             var cartResponse = _mapper.Map<CartResponseDTO>(cart);
@@ -231,9 +191,12 @@ namespace Zenkoi.BLL.Services.Implements
             }
             else
             {
+                KoiFish? koiFish = null;
+                PacketFish? packetFish = null;
+
                 if (addCartItemDTO.KoiFishId.HasValue)
                 {
-                    var koiFish = await _koiFishRepo.GetByIdAsync(addCartItemDTO.KoiFishId.Value);
+                    koiFish = await _koiFishRepo.GetByIdAsync(addCartItemDTO.KoiFishId.Value);
                     if (koiFish == null)
                     {
                         throw new ArgumentException($"KoiFish with ID {addCartItemDTO.KoiFishId} not found");
@@ -246,7 +209,11 @@ namespace Zenkoi.BLL.Services.Implements
                 }
                 else if (addCartItemDTO.PacketFishId.HasValue)
                 {
-                    var packetFish = await _packetFishRepo.GetByIdAsync(addCartItemDTO.PacketFishId.Value);
+                    packetFish = await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
+                        .WithPredicate(pf => pf.Id == addCartItemDTO.PacketFishId.Value)
+                        .WithInclude(pf => pf.PondPacketFishes)
+                        .Build());
+
                     if (packetFish == null)
                     {
                         throw new ArgumentException($"PacketFish with ID {addCartItemDTO.PacketFishId} not found");
@@ -256,6 +223,26 @@ namespace Zenkoi.BLL.Services.Implements
                     {
                         throw new ArgumentException($"PacketFish with ID {addCartItemDTO.PacketFishId} is not available");
                     }
+                    var totalAvailable = packetFish.PondPacketFishes
+                        .Where(ppf => ppf.IsActive)
+                        .Sum(ppf => ppf.AvailableQuantity);
+
+                    if (totalAvailable < addCartItemDTO.Quantity)
+                    {
+                        throw new InvalidOperationException(
+                            $"Insufficient stock for PacketFish '{packetFish.Name}'. " +
+                            $"Requested: {addCartItemDTO.Quantity}, Available: {totalAvailable}");
+                    }
+                }
+
+                decimal unitPrice = 0;
+                if (addCartItemDTO.KoiFishId.HasValue && koiFish != null)
+                {
+                    unitPrice = koiFish.SellingPrice ?? 0;
+                }
+                else if (addCartItemDTO.PacketFishId.HasValue && packetFish != null)
+                {
+                    unitPrice = packetFish.PricePerPacket;
                 }
 
                 var cartItem = new CartItem
@@ -264,6 +251,7 @@ namespace Zenkoi.BLL.Services.Implements
                     KoiFishId = addCartItemDTO.KoiFishId,
                     PacketFishId = addCartItemDTO.PacketFishId,
                     Quantity = addCartItemDTO.Quantity,
+                    UnitPrice = unitPrice,
                     AddedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -405,11 +393,15 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<OrderResponseDTO> ConvertCartToOrderAsync(ConvertCartToOrderDTO convertCartToOrderDTO, int customerId)
         {
-            var cart = await _cartRepo.GetSingleAsync(new QueryBuilder<Cart>()
-                .WithPredicate(c => c.CustomerId == customerId)
-                .WithInclude(c => c.Customer)
-                .WithInclude(c => c.CartItems)
-                .Build());
+            // Wrap entire checkout process in a transaction to ensure atomicity
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var cart = await _cartRepo.GetSingleAsync(new QueryBuilder<Cart>()
+                    .WithPredicate(c => c.CustomerId == customerId)
+                    .WithInclude(c => c.Customer)
+                    .WithInclude(c => c.CartItems)
+                    .Build());
 
             if (cart == null)
             {
@@ -426,10 +418,43 @@ namespace Zenkoi.BLL.Services.Implements
                 if (item.KoiFishId.HasValue)
                 {
                     item.KoiFish = await _koiFishRepo.GetByIdAsync(item.KoiFishId.Value);
+                    if (item.KoiFish == null)
+                    {
+                        throw new InvalidOperationException($"KoiFish with ID {item.KoiFishId} not found");
+                    }
+                    if (item.KoiFish.SaleStatus != SaleStatus.Available)
+                    {
+                        throw new InvalidOperationException(
+                            $"KoiFish with RFID '{item.KoiFish.RFID}' is no longer available for sale");
+                    }
                 }
                 if (item.PacketFishId.HasValue)
                 {
-                    item.PacketFish = await _packetFishRepo.GetByIdAsync(item.PacketFishId.Value);
+                    item.PacketFish = await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
+                        .WithPredicate(pf => pf.Id == item.PacketFishId.Value)
+                        .WithInclude(pf => pf.PondPacketFishes)
+                        .Build());
+
+                    if (item.PacketFish == null)
+                    {
+                        throw new InvalidOperationException($"PacketFish with ID {item.PacketFishId} not found");
+                    }
+                    if (!item.PacketFish.IsAvailable)
+                    {
+                        throw new InvalidOperationException(
+                            $"PacketFish '{item.PacketFish.Name}' is no longer available");
+                    }
+
+                    var totalAvailable = item.PacketFish.PondPacketFishes
+                        .Where(ppf => ppf.IsActive)
+                        .Sum(ppf => ppf.AvailableQuantity);
+
+                    if (totalAvailable < item.Quantity)
+                    {
+                        throw new InvalidOperationException(
+                            $"Insufficient stock for PacketFish '{item.PacketFish.Name}'. " +
+                            $"Requested: {item.Quantity}, Available: {totalAvailable}");
+                    }
                 }
             }
 
@@ -521,22 +546,30 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(o => o.OrderDetails)
                 .Build());
 
-            if (createdOrder != null && createdOrder.OrderDetails.Any())
-            {
-                foreach (var detail in createdOrder.OrderDetails)
+                if (createdOrder != null && createdOrder.OrderDetails.Any())
                 {
-                    if (detail.KoiFishId.HasValue)
+                    foreach (var detail in createdOrder.OrderDetails)
                     {
-                        detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
-                    }
-                    if (detail.PacketFishId.HasValue)
-                    {
-                        detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
+                        if (detail.KoiFishId.HasValue)
+                        {
+                            detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
+                        }
+                        if (detail.PacketFishId.HasValue)
+                        {
+                            detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
+                        }
                     }
                 }
-            }
 
-            return _mapper.Map<OrderResponseDTO>(createdOrder);
+                await _unitOfWork.CommitTransactionAsync();
+
+                return _mapper.Map<OrderResponseDTO>(createdOrder);
+            }
+            catch
+            {
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
         }
 
         private async Task<decimal> CalculateDiscountAsync(int? promotionId, decimal subtotal)
@@ -580,5 +613,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             return Math.Min(discountAmount, subtotal);
         }
+
     }
 }

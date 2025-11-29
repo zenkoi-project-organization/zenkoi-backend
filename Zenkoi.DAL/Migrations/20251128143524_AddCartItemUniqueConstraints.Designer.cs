@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251128143524_AddCartItemUniqueConstraints")]
+    partial class AddCartItemUniqueConstraints
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -254,25 +257,13 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<decimal?>("TotalAreaSQM")
                         .HasColumnType("decimal(10,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -414,10 +405,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasDefaultValue(1)
                         .HasColumnName("Quantity");
 
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("UnitPrice");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("UpdatedAt");
@@ -539,13 +526,10 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsDeleted")
+                    b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasDefaultValue(true);
 
                     b.Property<int>("TotalOrders")
                         .ValueGeneratedOnAdd()
@@ -585,9 +569,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime?>("DistanceCalculatedAt")
                         .HasColumnType("datetime2");
 
@@ -599,12 +580,12 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<bool>("IsDefault")
+                    b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasDefaultValue(true);
 
-                    b.Property<bool>("IsDeleted")
+                    b.Property<bool>("IsDefault")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
@@ -834,30 +815,18 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("DefaultSeverity")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -949,9 +918,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -967,9 +933,6 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<string>("Images")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("IsMutated")
                         .HasColumnType("bit");
@@ -1306,9 +1269,6 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -1326,9 +1286,6 @@ namespace Zenkoi.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<double>("MaxSize")
                         .HasColumnType("float");
@@ -1366,25 +1323,13 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("PatternName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1546,14 +1491,8 @@ namespace Zenkoi.DAL.Migrations
                     b.Property<int?>("CurrentCount")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<decimal?>("DepthMeters")
                         .HasColumnType("decimal(8,2)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<decimal?>("LengthMeters")
                         .HasColumnType("decimal(8,2)");
@@ -1577,9 +1516,6 @@ namespace Zenkoi.DAL.Migrations
 
                     b.Property<int>("PondTypeId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<decimal?>("WidthMeters")
                         .HasColumnType("decimal(8,2)");
@@ -1729,19 +1665,10 @@ namespace Zenkoi.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<int?>("RecommendedQuantity")
                         .HasColumnType("int");
@@ -1753,9 +1680,6 @@ namespace Zenkoi.DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1888,16 +1812,13 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<decimal>("Fee")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<bool>("IsDeleted")
+                    b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasDefaultValue(true);
 
                     b.Property<int?>("MaxKoiCount")
                         .HasColumnType("int");
@@ -1923,7 +1844,7 @@ namespace Zenkoi.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IsDeleted");
+                    b.HasIndex("IsActive");
 
                     b.HasIndex("Name");
 
@@ -2004,17 +1925,14 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<bool>("IsDeleted")
+                    b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasDefaultValue(true);
 
                     b.Property<int>("MaxDistanceKm")
                         .HasColumnType("int");
@@ -2035,13 +1953,13 @@ namespace Zenkoi.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IsDeleted");
+                    b.HasIndex("IsActive");
 
                     b.HasIndex("Name");
 
                     b.HasIndex("MinDistanceKm", "MaxDistanceKm");
 
-                    b.HasIndex("IsDeleted", "MinDistanceKm", "MaxDistanceKm");
+                    b.HasIndex("IsActive", "MinDistanceKm", "MaxDistanceKm");
 
                     b.ToTable("ShippingDistances", "dbo");
                 });
@@ -2162,22 +2080,10 @@ namespace Zenkoi.DAL.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<string>("OriginCountry")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("VarietyName")
                         .IsRequired()

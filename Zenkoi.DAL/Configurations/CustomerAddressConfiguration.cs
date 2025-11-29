@@ -41,9 +41,9 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasDefaultValue(false);
 
-            builder.Property(ca => ca.IsActive)
+            builder.Property(ca => ca.IsDeleted)
                 .IsRequired()
-                .HasDefaultValue(true);
+                .HasDefaultValue(false);
 
             builder.Property(ca => ca.CreatedAt)
                 .IsRequired()
