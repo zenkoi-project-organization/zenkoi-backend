@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.PaymentTransactionDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
@@ -127,9 +128,9 @@ namespace Zenkoi.BLL.Services.Implements
                 queryBuilder.WithPredicate(t => t.PaymentMethod == filter.PaymentMethod);
             }
 
-            if (!string.IsNullOrWhiteSpace(filter.Status))
+            if (filter.Status.HasValue)
             {
-                queryBuilder.WithPredicate(t => t.Status == filter.Status);
+                queryBuilder.WithPredicate(t => t.Status == filter.Status.Value);
             }
 
             if (filter.FromDate.HasValue)
@@ -177,9 +178,9 @@ namespace Zenkoi.BLL.Services.Implements
                 queryBuilder.WithPredicate(t => t.PaymentMethod == filter.PaymentMethod);
             }
 
-            if (!string.IsNullOrWhiteSpace(filter.Status))
+            if (filter.Status.HasValue)
             {
-                queryBuilder.WithPredicate(t => t.Status == filter.Status);
+                queryBuilder.WithPredicate(t => t.Status == filter.Status.Value);
             }
 
             if (filter.FromDate.HasValue)

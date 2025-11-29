@@ -15,6 +15,7 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
         public double? MaxCapacityLiters { get; set; }
         public double? MinDepthMeters { get; set; }
         public double? MaxDepthMeters { get; set; }
+        public bool isDeleted { get; set; }
         public DateTime? CreatedFrom { get; set; }
         public DateTime? CreatedTo { get; set; }
     }

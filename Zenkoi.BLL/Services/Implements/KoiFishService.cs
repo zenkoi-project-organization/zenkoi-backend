@@ -60,6 +60,7 @@ namespace Zenkoi.BLL.Services.Implements
             int? userId = null)
         {
             var queryBuilder = new QueryBuilder<KoiFish>()
+                .WithPredicate(k => !k.IsDeleted)
                 .WithTracking(false)
                 .WithInclude(v => v.Variety)
                 .WithInclude(p => p.Pond)
@@ -97,9 +98,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (filter.IsBreeding)
             {
-                queryBuilder.WithPredicate(k =>
-                    k.KoiBreedingStatus == KoiBreedingStatus.Ready
-                );
+                queryBuilder.WithPredicate(k => k.KoiBreedingStatus == KoiBreedingStatus.Ready);
             }
 
             if (filter.VarietyId.HasValue)

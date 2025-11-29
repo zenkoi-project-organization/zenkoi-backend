@@ -38,115 +38,100 @@ namespace Zenkoi.BLL.Services.Implements
         }
         public async Task<PaginatedList<PondResponseDTO>> GetAllPondsAsync(PondFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
-            var queryOptions = new QueryOptions<Pond>
-            {
-                IncludeProperties = new List<Expression<Func<Pond, object>>>
-        {
-            a => a.Area,
-            b => b.PondType,
-            c => c.WaterParameters,
-            d => d.KoiFishes,
-            e => e.PondPacketFishes
-        }
-            };
-
             var queryBuilder = new QueryBuilder<Pond>()
                 .WithTracking(false)
                 .WithInclude(p => p.Area)
                 .WithInclude(p => p.PondType)
                 .WithInclude(p => p.WaterParameters)
                 .WithInclude(p => p.KoiFishes)
-                .WithInclude(p => p.PondPacketFishes);
+                .WithInclude(p => p.PondPacketFishes)
+                .WithOrderBy(q => q.OrderByDescending(p => p.CreatedAt));
 
-            // 👇 List chứa các điều kiện predicate
-            var predicates = new List<Expression<Func<Pond, bool>>>();
+            ApplyPondFilters(queryBuilder, filter);
 
+            var query = _pondRepo.Get(queryBuilder.Build());
+            var paginatedPonds = await PaginatedList<Pond>.CreateAsync(query, pageIndex, pageSize);
 
-            // =======================
-            // ADD FILTER CONDITIONS
-            // =======================
-            if (!string.IsNullOrEmpty(filter.Search))
+            var resultDto = _mapper.Map<List<PondResponseDTO>>(paginatedPonds);
+
+            for (int i = 0; i < paginatedPonds.Count; i++)
             {
-                var keyword = filter.Search.Trim();
-                predicates.Add(p =>
-                    (p.PondName != null && p.PondName.Contains(keyword)) ||
-                    (p.Location != null && p.Location.Contains(keyword)));
-            }
+                var pondEntity = paginatedPonds[i];
+                var dtoItem = resultDto[i];
 
-            if (filter.Status.HasValue)
-                predicates.Add(p => p.PondStatus == filter.Status.Value);
-
-            if (filter.IsNotMaintenance == true)
-                predicates.Add(p => p.PondStatus != PondStatus.Maintenance);
-
-            if (filter.AreaId.HasValue)
-                predicates.Add(p => p.AreaId == filter.AreaId.Value);
-
-            if (filter.Available == true)
-                predicates.Add(p => p.PondStatus == PondStatus.Empty);
-
-            if (filter.PondTypeId.HasValue)
-                predicates.Add(p => p.PondTypeId == filter.PondTypeId.Value);
-
-            if (filter.PondTypeEnum.HasValue)
-                predicates.Add(p => p.PondType.Type == filter.PondTypeEnum.Value);
-
-            if (filter.MinCapacityLiters.HasValue)
-                predicates.Add(p => p.CapacityLiters >= filter.MinCapacityLiters.Value);
-
-            if (filter.MaxCapacityLiters.HasValue)
-                predicates.Add(p => p.CapacityLiters <= filter.MaxCapacityLiters.Value);
-
-            if (filter.MinDepthMeters.HasValue)
-                predicates.Add(p => p.DepthMeters >= filter.MinDepthMeters.Value);
-
-            if (filter.MaxDepthMeters.HasValue)
-                predicates.Add(p => p.DepthMeters <= filter.MaxDepthMeters.Value);
-
-            if (filter.CreatedFrom.HasValue)
-                predicates.Add(p => p.CreatedAt >= filter.CreatedFrom.Value);
-
-            if (filter.CreatedTo.HasValue)
-                predicates.Add(p => p.CreatedAt <= filter.CreatedTo.Value);
-
-            Expression<Func<Pond, bool>>? predicate = null;
-
-            if (predicates.Any())
-            {
-                predicate = predicates.Aggregate((current, next) =>
-                    current.AndAlso(next)); // extension method
-            }
-
-            queryOptions.Predicate = predicate;
-
-            var ponds = await _pondRepo.GetAllAsync(queryOptions);
-
-            var mappedList = _mapper.Map<List<PondResponseDTO>>(ponds);
-
-            foreach (var pondEntity in ponds)
-            {
-                var dtoItem = mappedList.First(p => p.Id == pondEntity.Id);
-                if (pondEntity.PondType.Type == TypeOfPond.MarketPond || pondEntity.PondType.Type == TypeOfPond.Quarantine) ;
                 dtoItem.CurrentCount =
                     (pondEntity.KoiFishes?.Count ?? 0) +
                     (pondEntity.PondPacketFishes?.Sum(x => x.AvailableQuantity) ?? 0);
 
-                var latestRecord = pondEntity.WaterParameters
+                var latestRecord = pondEntity.WaterParameters?
                     .OrderByDescending(w => w.RecordedAt)
                     .FirstOrDefault();
 
                 dtoItem.record = _mapper.Map<WaterRecordDTO>(latestRecord);
             }
 
-            var totalCount = mappedList.Count;
-            var pagedItems = mappedList
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            return new PaginatedList<PondResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
+            return new PaginatedList<PondResponseDTO>(
+                resultDto,
+                paginatedPonds.TotalItems,
+                paginatedPonds.PageIndex,
+                pageSize);
         }
 
+        private void ApplyPondFilters(QueryBuilder<Pond> queryBuilder, PondFilterRequestDTO filter)
+        {
+            if (filter == null)
+                return;
+
+            // 🔥 Filter hồ đã xóa hoặc chưa xóa
+            if (filter.isDeleted)
+                queryBuilder.WithPredicate(p => p.IsDeleted == true);
+            else
+                queryBuilder.WithPredicate(p => p.IsDeleted == false);
+
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                var keyword = filter.Search.Trim();
+                queryBuilder.WithPredicate(p =>
+                    (p.PondName != null && p.PondName.Contains(keyword)) ||
+                    (p.Location != null && p.Location.Contains(keyword)));
+            }
+
+            if (filter.Status.HasValue)
+                queryBuilder.WithPredicate(p => p.PondStatus == filter.Status.Value);
+
+            if (filter.IsNotMaintenance == true)
+                queryBuilder.WithPredicate(p => p.PondStatus != PondStatus.Maintenance);
+
+            if (filter.AreaId.HasValue)
+                queryBuilder.WithPredicate(p => p.AreaId == filter.AreaId.Value);
+
+            if (filter.Available == true)
+                queryBuilder.WithPredicate(p => p.PondStatus == PondStatus.Empty);
+
+            if (filter.PondTypeId.HasValue)
+                queryBuilder.WithPredicate(p => p.PondTypeId == filter.PondTypeId.Value);
+
+            if (filter.PondTypeEnum.HasValue)
+                queryBuilder.WithPredicate(p => p.PondType.Type == filter.PondTypeEnum.Value);
+
+            if (filter.MinCapacityLiters.HasValue)
+                queryBuilder.WithPredicate(p => p.CapacityLiters >= filter.MinCapacityLiters.Value);
+
+            if (filter.MaxCapacityLiters.HasValue)
+                queryBuilder.WithPredicate(p => p.CapacityLiters <= filter.MaxCapacityLiters.Value);
+
+            if (filter.MinDepthMeters.HasValue)
+                queryBuilder.WithPredicate(p => p.DepthMeters >= filter.MinDepthMeters.Value);
+
+            if (filter.MaxDepthMeters.HasValue)
+                queryBuilder.WithPredicate(p => p.DepthMeters <= filter.MaxDepthMeters.Value);
+
+            if (filter.CreatedFrom.HasValue)
+                queryBuilder.WithPredicate(p => p.CreatedAt >= filter.CreatedFrom.Value);
+
+            if (filter.CreatedTo.HasValue)
+                queryBuilder.WithPredicate(p => p.CreatedAt <= filter.CreatedTo.Value);
+        }
 
 
         public async Task<PondResponseDTO?> GetByIdAsync(int id)
@@ -167,16 +152,12 @@ namespace Zenkoi.BLL.Services.Implements
             if (pond == null)
                 return null;
 
-            // =============================
-            // 🔥 Tính lại CurrentCount thực tế
-            // =============================
+         
             var actualCurrentCount =
                 (pond.KoiFishes?.Count ?? 0) +
                 (pond.PondPacketFishes?.Sum(x => x.AvailableQuantity) ?? 0);
 
-            // =============================
-            // 🔥 Nếu khác DB → cập nhật Database
-            // =============================
+ 
             if (pond.CurrentCount != actualCurrentCount)
             {
                 pond.CurrentCount = actualCurrentCount;
@@ -297,9 +278,18 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<bool> DeleteAsync(int id)
         {
             var pond = await _pondRepo.GetByIdAsync(id);
-            if (pond == null) return false;
+            if (pond == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy hồ ");
+            }
+            if(pond.PondStatus == PondStatus.Active)
+            {
+                throw new InvalidOperationException("hiện tại hồ đang hoạt động không thể xóa");
+            }
+            pond.IsDeleted = true;
+            pond.DeletedAt = DateTime.Now;
 
-            await _pondRepo.DeleteAsync(pond);
+            await _pondRepo.UpdateAsync(pond);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }

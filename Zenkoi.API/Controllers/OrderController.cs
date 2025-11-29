@@ -24,32 +24,6 @@ namespace Zenkoi.API.Controllers
         }
 
         /// <summary>
-        /// Tạo đơn hàng mới
-        /// </summary>
-        /// <param name="createOrderDTO">Thông tin đơn hàng</param>
-        /// <returns>Đơn hàng đã tạo</returns>
-        [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDTO createOrderDTO)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return ModelInvalid();
-
-                var result = await _orderService.CreateOrderAsync(createOrderDTO, UserId);
-                return SaveSuccess(result, "Tạo đơn hàng thành công");
-            }
-            catch (ArgumentException ex)
-            {
-                return GetError(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return GetError($"Lỗi khi tạo đơn hàng: {ex.Message}");
-            }
-        }
-
-        /// <summary>
         /// Lấy đơn hàng theo ID
         /// </summary>
         /// <param name="id">ID đơn hàng</param>

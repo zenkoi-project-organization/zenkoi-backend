@@ -31,7 +31,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var queryOptions = new QueryOptions<PondType>();
 
-            System.Linq.Expressions.Expression<System.Func<PondType, bool>>? predicate = null;
+            System.Linq.Expressions.Expression<System.Func<PondType, bool>>? predicate = pt => !pt.IsDeleted;
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
