@@ -476,8 +476,9 @@ namespace Zenkoi.BLL.Services.Implements
             var options = new QueryOptions<BreedingProcess>
             {
                 Predicate = bp =>
-                    (bp.MaleKoiId == koiFishId || bp.FemaleKoiId == koiFishId) &&
-                    (bp.Status == BreedingStatus.Complete || bp.Status == BreedingStatus.Failed),
+                    (bp.MaleKoiId == koiFishId || bp.FemaleKoiId == koiFishId) ,
+                    //&&
+                    //(bp.Status == BreedingStatus.Complete || bp.Status == BreedingStatus.Failed),
                 Tracked = false
             };
 

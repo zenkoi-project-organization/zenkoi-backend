@@ -109,10 +109,6 @@ namespace Zenkoi.BLL.Services.Implements
             if (filter.CreatedTo.HasValue)
                 predicates.Add(p => p.CreatedAt <= filter.CreatedTo.Value);
 
-
-            // ===========================
-            // COMBINE PREDICATES
-            // ===========================
             Expression<Func<Pond, bool>>? predicate = null;
 
             if (predicates.Any())
@@ -123,20 +119,14 @@ namespace Zenkoi.BLL.Services.Implements
 
             queryOptions.Predicate = predicate;
 
-            // ===========================
-            // QUERY DB
-            // ===========================
             var ponds = await _pondRepo.GetAllAsync(queryOptions);
 
             var mappedList = _mapper.Map<List<PondResponseDTO>>(ponds);
 
-            // ===========================
-            // UPDATE DTO FIELDS
-            // ===========================
             foreach (var pondEntity in ponds)
             {
                 var dtoItem = mappedList.First(p => p.Id == pondEntity.Id);
-
+                if (pondEntity.PondType.Type == TypeOfPond.MarketPond || pondEntity.PondType.Type == TypeOfPond.Quarantine) ;
                 dtoItem.CurrentCount =
                     (pondEntity.KoiFishes?.Count ?? 0) +
                     (pondEntity.PondPacketFishes?.Sum(x => x.AvailableQuantity) ?? 0);
@@ -148,9 +138,6 @@ namespace Zenkoi.BLL.Services.Implements
                 dtoItem.record = _mapper.Map<WaterRecordDTO>(latestRecord);
             }
 
-            // ===========================
-            // PAGINATION
-            // ===========================
             var totalCount = mappedList.Count;
             var pagedItems = mappedList
                 .Skip((pageIndex - 1) * pageSize)
@@ -172,12 +159,31 @@ namespace Zenkoi.BLL.Services.Implements
             p => p.Area,
             p => p.PondType,
             p => p.WaterParameters,
-            p => p.KoiFishes,          
-            p => p.PondPacketFishes    
+            p => p.KoiFishes,
+            p => p.PondPacketFishes
         }
             });
 
-            if (pond == null) return null;
+            if (pond == null)
+                return null;
+
+            // =============================
+            // 🔥 Tính lại CurrentCount thực tế
+            // =============================
+            var actualCurrentCount =
+                (pond.KoiFishes?.Count ?? 0) +
+                (pond.PondPacketFishes?.Sum(x => x.AvailableQuantity) ?? 0);
+
+            // =============================
+            // 🔥 Nếu khác DB → cập nhật Database
+            // =============================
+            if (pond.CurrentCount != actualCurrentCount)
+            {
+                pond.CurrentCount = actualCurrentCount;
+
+                await _pondRepo.UpdateAsync(pond);     
+                await _unitOfWork.SaveChangesAsync();    
+            }
 
             var latestWaterParam = pond.WaterParameters
                 .OrderByDescending(w => w.RecordedAt)
@@ -186,10 +192,7 @@ namespace Zenkoi.BLL.Services.Implements
             var result = _mapper.Map<PondResponseDTO>(pond);
             result.record = _mapper.Map<WaterRecordDTO>(latestWaterParam);
 
-            // 🔥 Auto-update fish count
-            result.CurrentCount =
-                (pond.KoiFishes?.Count ?? 0)
-                + (pond.PondPacketFishes?.Sum(x => x.AvailableQuantity) ?? 0);
+            result.CurrentCount = actualCurrentCount;
 
             return result;
         }

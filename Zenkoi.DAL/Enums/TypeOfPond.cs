@@ -11,9 +11,10 @@ namespace Zenkoi.DAL.Enums
         Paring,
         EggBatch,
         FryFish,
-        Classification,
-        MarketPond,
-        BroodStock,
-        Quarantine
+        Classification, 
+        MarketPond,  // hồ nuôi cá bán 
+        GrowOut,   // Hồ nuôi cá lớn 
+        BroodStock,  // Hồ nuôi cá bố mẹ 
+        Quarantine   // Hồ cách ly
     }
 }
