@@ -1,4 +1,5 @@
 using System;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.PaymentTransactionDTOs
 {
@@ -6,7 +7,7 @@ namespace Zenkoi.BLL.DTOs.PaymentTransactionDTOs
     {
         public int? UserId { get; set; }
         public string? PaymentMethod { get; set; }
-        public string? Status { get; set; }
+        public PaymentTransactionStatus? Status { get; set; }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public decimal? MinAmount { get; set; }

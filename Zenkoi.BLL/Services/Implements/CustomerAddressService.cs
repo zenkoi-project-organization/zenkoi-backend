@@ -101,7 +101,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<IEnumerable<CustomerAddressResponseDTO>> GetAllCustomerAddressesAsync()
         {
             var addresses = await _customerAddressRepo.GetAllAsync(new QueryBuilder<CustomerAddress>()
-                .WithPredicate(a => a.IsDeleted == true) 
+                .WithPredicate(a => !a.IsDeleted)
                 .WithInclude(a => a.Customer)
                 .WithInclude(a => a.Customer.ApplicationUser)
                 .WithOrderBy(a => a.OrderByDescending(x => x.CreatedAt))
@@ -124,7 +124,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<IEnumerable<CustomerAddressResponseDTO>> GetAddressesByCustomerIdAsync(int customerId)
         {
             var addresses = await _customerAddressRepo.GetAllAsync(new QueryBuilder<CustomerAddress>()
-                .WithPredicate(a => a.CustomerId == customerId && a.IsDeleted == true)
+                .WithPredicate(a => a.CustomerId == customerId && !a.IsDeleted)
                 .WithInclude(a => a.Customer)
                 .WithInclude(a => a.Customer.ApplicationUser)
                 .WithOrderBy(a => a.OrderByDescending(x => x.IsDefault).ThenByDescending(x => x.CreatedAt))

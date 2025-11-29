@@ -8,7 +8,6 @@ namespace Zenkoi.BLL.Services.Interfaces
 {
     public interface IOrderService
     {
-        Task<OrderResponseDTO> CreateOrderAsync(CreateOrderDTO createOrderDTO, int customerId);
         Task<OrderResponseDTO> GetOrderByIdAsync(int id);
         Task<OrderResponseDTO> GetOrderByOrderNumberAsync(string orderNumber);
         Task<PaginatedList<OrderResponseDTO>> GetOrdersByCustomerIdAsync(int customerId, OrderFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);

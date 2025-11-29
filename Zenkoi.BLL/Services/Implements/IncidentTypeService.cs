@@ -34,6 +34,7 @@ namespace Zenkoi.BLL.Services.Implements
             filter ??= new IncidentTypeFilterRequestDTO();
 
             var queryBuilder = new QueryBuilder<IncidentType>()
+                .WithPredicate(it => !it.IsDeleted)
                 .WithTracking(false)
                 .WithOrderBy(q => q.OrderByDescending(it => it.Id));
 

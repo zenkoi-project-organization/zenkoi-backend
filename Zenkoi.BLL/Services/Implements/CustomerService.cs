@@ -53,7 +53,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<CustomerResponseDTO> GetCustomerByIdAsync(int id)
         {
             var customer = await _customerRepo.GetSingleAsync(new QueryBuilder<Customer>()
-                .WithPredicate(c => c.Id == id)
+                .WithPredicate(c => c.Id == id && !c.IsDeleted)
                 .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(5))
                 .Build());
@@ -69,7 +69,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<CustomerResponseDTO> GetCustomerByUserIdAsync(int userId)
         {
             var customer = await _customerRepo.GetSingleAsync(new QueryBuilder<Customer>()
-                .WithPredicate(c => c.Id == userId)
+                .WithPredicate(c => c.Id == userId && !c.IsDeleted)
                 .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(5))
                 .Build());
@@ -85,6 +85,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PaginatedList<CustomerResponseDTO>> GetAllCustomersAsync(CustomerFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
             var queryBuilder = new QueryBuilder<Customer>()
+                .WithPredicate(c => !c.IsDeleted)
                 .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(3))
                 .WithTracking(false);
@@ -203,7 +204,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (filter.IsActive.HasValue)
             {
-                queryBuilder.WithPredicate(c => c.IsDeleted == filter.IsActive.Value);
+                queryBuilder.WithPredicate(c => c.IsDeleted == !filter.IsActive.Value);
             }
 
             if (filter.MinTotalSpent.HasValue)

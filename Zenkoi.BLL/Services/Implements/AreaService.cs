@@ -31,7 +31,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var queryOptions = new QueryOptions<Area>();
 
-            Expression<Func<Area, bool>>? predicate = null;
+            Expression<Func<Area, bool>>? predicate = a => !a.IsDeleted;
 
             if (!string.IsNullOrEmpty(filter.Search))
             {

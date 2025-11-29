@@ -32,11 +32,18 @@ namespace Zenkoi.DAL.Configurations
 
             builder.Property(p => p.Status)
                 .IsRequired()
+                .HasConversion<string>()
                 .HasMaxLength(20)
-                .HasDefaultValue("Pending");
+                .HasDefaultValue(Enums.PaymentTransactionStatus.Pending);
+
+            builder.Property(p => p.IdempotencyKey)
+                .HasMaxLength(200);
 
             builder.Property(p => p.PaymentUrl)
                 .HasMaxLength(2048);
+
+            builder.Property(p => p.RowVersion)
+                .IsRowVersion();
 
             builder.Property(p => p.ResponseData)
                 .HasColumnType("NVARCHAR(MAX)");
@@ -59,6 +66,9 @@ namespace Zenkoi.DAL.Configurations
             builder.HasIndex(p => p.TransactionId);
             builder.HasIndex(p => p.UserId);
             builder.HasIndex(p => p.ActualOrderId);
+
+            // Index for fast lookup by IdempotencyKey
+            builder.HasIndex(p => p.IdempotencyKey);
         }
     }
 }

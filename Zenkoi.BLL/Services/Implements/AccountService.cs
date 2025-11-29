@@ -908,6 +908,10 @@ namespace Zenkoi.BLL.Services.Implements
             if (user == null)
                 return null;
 
+            // Manager không được phép update tài khoản Manager khác
+            if (user.Role == Role.Manager)
+                return null;
+
             if (user.Role != Role.FarmStaff && user.Role != Role.SaleStaff)
                 return null;
 
@@ -935,6 +939,10 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var user = await _identityService.GetByIdAsync(userId);
             if (user == null)
+                return false;
+
+            // Manager không được phép block/unblock tài khoản Manager khác
+            if (user.Role == Role.Manager)
                 return false;
 
             user.IsBlocked = !user.IsBlocked;

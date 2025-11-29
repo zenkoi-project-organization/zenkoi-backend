@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.DAL.Entities
 {
@@ -18,7 +19,7 @@ namespace Zenkoi.DAL.Entities
         [Required]
         [StringLength(100)]
         public string OrderId { get; set; }
-      
+
         public int? ActualOrderId { get; set; }
         public Order? ActualOrder { get; set; }
 
@@ -31,8 +32,13 @@ namespace Zenkoi.DAL.Entities
         [StringLength(100)]
         public string? TransactionId { get; set; }
 
-        [StringLength(20)]
-        public string Status { get; set; } = "Pending"; 
+        [Required]
+        public PaymentTransactionStatus Status { get; set; } = PaymentTransactionStatus.Pending;
+
+        /// Idempotency key để tránh xử lý duplicate payment
+        /// Format: {ActualOrderId}_{TransactionId}
+        [StringLength(200)]
+        public string? IdempotencyKey { get; set; }
 
         [StringLength(2048)]
         public string? PaymentUrl { get; set; }
@@ -42,6 +48,12 @@ namespace Zenkoi.DAL.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
+
+        /// <summary>
+        /// Row version for optimistic concurrency control
+        /// </summary>
+        [Timestamp]
+        public byte[]? RowVersion { get; set; }
 
         [ForeignKey("UserId")]
         public virtual ApplicationUser User { get; set; }

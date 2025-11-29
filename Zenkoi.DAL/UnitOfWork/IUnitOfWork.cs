@@ -9,6 +9,7 @@ namespace Zenkoi.DAL.UnitOfWork
         IRepoBase<PaymentTransaction> PaymentTransactions { get; }
 		Task SaveChangesAsync();
 		Task BeginTransactionAsync();
+		Task BeginTransactionAsync(System.Data.IsolationLevel isolationLevel);
 		Task CommitTransactionAsync();
 		Task RollBackAsync();
 		Task<bool> SaveAsync();

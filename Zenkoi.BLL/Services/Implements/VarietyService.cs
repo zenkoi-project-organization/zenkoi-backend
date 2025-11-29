@@ -32,7 +32,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var queryOptions = new QueryOptions<Variety>();
 
-            Expression<Func<Variety, bool>>? predicate = null;
+            Expression<Func<Variety, bool>>? predicate = v => !v.IsDeleted;
 
             if (!string.IsNullOrEmpty(filter.Search))
             {

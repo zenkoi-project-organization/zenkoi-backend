@@ -121,6 +121,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PaginatedList<PacketFishResponseDTO>> GetAllPacketFishesAsync(PacketFishFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
             var queryBuilder = new QueryBuilder<PacketFish>()
+                .WithPredicate(pf => !pf.IsDeleted)
                 .WithTracking(false)
                 .WithInclude(pf => pf.VarietyPacketFishes)
                 .WithInclude(pf => pf.PondPacketFishes)

@@ -7,6 +7,9 @@ using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.UnitOfWork;
+using System.Data;
+using Microsoft.EntityFrameworkCore;
+using static Zenkoi.DAL.Enums.PaymentTransactionStatus;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -83,48 +86,74 @@ namespace Zenkoi.BLL.Services.Implements
 				Console.WriteLine($"[PayOS Webhook] OrderCode: {webhookData.orderCode}, Amount: {webhookData.amount}");
 				Console.ResetColor();
 
-				var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
-					new QueryBuilder<PaymentTransaction>()
-					.WithPredicate(pt => pt.OrderId == webhookData.orderCode.ToString())
-					.WithTracking(true)
-					.Build());
+				// Begin transaction with Serializable isolation level to prevent race conditions
+				await _unitOfWork.BeginTransactionAsync(IsolationLevel.Serializable);
 
-				if (paymentTransaction == null)
-				{
-					Console.ForegroundColor = ConsoleColor.Red;
-					Console.WriteLine($"[PayOS Webhook] Transaction not found for OrderId: {webhookData.orderCode}");
-					Console.ResetColor();
-					return new PayOSWebhookResponse(-1, "fail", "Transaction not found");
-				}
-
-				Console.ForegroundColor = ConsoleColor.Green;
-				Console.WriteLine($"[PayOS Webhook] Found transaction ID: {paymentTransaction.Id}, Status: {paymentTransaction.Status}");
-				Console.ResetColor();
-
-				// Nếu đã xử lý thành công rồi, trả về OK
-				if (paymentTransaction.Status == "Success")
-				{
-					return new PayOSWebhookResponse(0, "Ok", null);
-				}
-
-				// Get actual Order ID
-				var actualOrderId = paymentTransaction.ActualOrderId;
-				if (actualOrderId == null)
-				{
-					return new PayOSWebhookResponse(-1, "fail", "Order ID not found");
-				}
-
-				var order = await _orderService.GetOrderByIdAsync(actualOrderId.Value);
-				if (order == null)
-				{
-					return new PayOSWebhookResponse(-1, "fail", "Order not found");
-				}
-
-				// Bắt đầu transaction để đảm bảo tính nhất quán
-				await _unitOfWork.BeginTransactionAsync();
 				try
 				{
-					paymentTransaction.Status = "Success";
+					var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+						new QueryBuilder<PaymentTransaction>()
+						.WithPredicate(pt => pt.OrderId == webhookData.orderCode.ToString())
+						.WithTracking(true)
+						.Build());
+
+					if (paymentTransaction == null)
+					{
+						await _unitOfWork.RollBackAsync();
+						Console.ForegroundColor = ConsoleColor.Red;
+						Console.WriteLine($"[PayOS Webhook] Transaction not found for OrderId: {webhookData.orderCode}");
+						Console.ResetColor();
+						return new PayOSWebhookResponse(-1, "fail", "Transaction not found");
+					}
+
+					Console.ForegroundColor = ConsoleColor.Green;
+					Console.WriteLine($"[PayOS Webhook] Found transaction ID: {paymentTransaction.Id}, Status: {paymentTransaction.Status}");
+					Console.ResetColor();
+
+					// Idempotency check - if already processed, return OK
+					if (paymentTransaction.Status == Success)
+					{
+						await _unitOfWork.RollBackAsync();
+						Console.ForegroundColor = ConsoleColor.Yellow;
+						Console.WriteLine($"[PayOS Webhook] Payment already processed, returning OK");
+						Console.ResetColor();
+						return new PayOSWebhookResponse(0, "Ok", null);
+					}
+
+					// Check for duplicate using IdempotencyKey
+					var idempotencyKey = $"{paymentTransaction.ActualOrderId}_{webhookData.orderCode}";
+					var existingSuccessPayment = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+						new QueryBuilder<PaymentTransaction>()
+						.WithPredicate(pt => pt.IdempotencyKey == idempotencyKey && pt.Status == Success)
+						.Build());
+
+					if (existingSuccessPayment != null)
+					{
+						await _unitOfWork.RollBackAsync();
+						Console.ForegroundColor = ConsoleColor.Yellow;
+						Console.WriteLine($"[PayOS Webhook] Payment with idempotency key {idempotencyKey} already exists");
+						Console.ResetColor();
+						return new PayOSWebhookResponse(0, "Ok", "Already processed");
+					}
+
+					// Get actual Order ID
+					var actualOrderId = paymentTransaction.ActualOrderId;
+					if (actualOrderId == null)
+					{
+						await _unitOfWork.RollBackAsync();
+						return new PayOSWebhookResponse(-1, "fail", "Order ID not found");
+					}
+
+					var order = await _orderService.GetOrderByIdAsync(actualOrderId.Value);
+					if (order == null)
+					{
+						await _unitOfWork.RollBackAsync();
+						return new PayOSWebhookResponse(-1, "fail", "Order not found");
+					}
+
+					// Update payment transaction
+					paymentTransaction.Status = Success;
+					paymentTransaction.IdempotencyKey = idempotencyKey;
 					paymentTransaction.TransactionId = webhookData.orderCode.ToString();
 					paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(webhookData);
 					paymentTransaction.UpdatedAt = DateTime.UtcNow;
@@ -157,6 +186,14 @@ namespace Zenkoi.BLL.Services.Implements
 
 					return new PayOSWebhookResponse(0, "Ok", null);
 				}
+				catch (DbUpdateConcurrencyException)
+				{
+					await _unitOfWork.RollBackAsync();
+					Console.ForegroundColor = ConsoleColor.Yellow;
+					Console.WriteLine($"[PayOS Webhook] Concurrency conflict - payment already processed by another request");
+					Console.ResetColor();
+					return new PayOSWebhookResponse(0, "Ok", "Already processed by another request");
+				}
 				catch (Exception)
 				{
 					await _unitOfWork.RollBackAsync();
@@ -165,6 +202,9 @@ namespace Zenkoi.BLL.Services.Implements
 			}
 			catch (Exception ex)
 			{
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine($"[PayOS Webhook] Error: {ex.Message}");
+				Console.ResetColor();
 				return new PayOSWebhookResponse(-1, "fail", ex.Message);
 			}
 		}
@@ -173,48 +213,72 @@ namespace Zenkoi.BLL.Services.Implements
 		{
 			try
 			{
+				// Begin transaction with Serializable isolation level
+				await _unitOfWork.BeginTransactionAsync(IsolationLevel.Serializable);
 
-				var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
-					new QueryBuilder<PaymentTransaction>()
-					.WithPredicate(pt => pt.Id == orderCode && pt.PaymentMethod == "PayOS")
-					.WithTracking(true)
-					.Build());
-
-				if (paymentTransaction == null)
-				{
-					throw new Exception($"PaymentTransaction not found for orderCode: {orderCode}");
-				}
-
-				if (paymentTransaction.Status == "Success")
-				{
-					Console.ForegroundColor = ConsoleColor.Yellow;
-					Console.WriteLine($"[PayOS Return] Payment already processed");
-					Console.ResetColor();
-					return;
-				}
-
-				var actualOrderId = paymentTransaction.ActualOrderId;
-				if (actualOrderId == null)
-				{
-					throw new Exception("Order ID not found in PaymentTransaction");
-				}
-
-				var order = await _orderService.GetOrderByIdAsync(actualOrderId.Value);
-				if (order == null)
-				{
-					throw new Exception($"Order not found: {actualOrderId}");
-				}
-
-				var paymentInfo = await GetPaymentLinkInformationAsync(orderCode);
-				if (paymentInfo.status != "PAID")
-				{
-					throw new Exception($"Payment not confirmed by PayOS. Status: {paymentInfo.status}");
-				}
-
-				await _unitOfWork.BeginTransactionAsync();
 				try
 				{
-					paymentTransaction.Status = "Success";
+					var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+						new QueryBuilder<PaymentTransaction>()
+						.WithPredicate(pt => pt.Id == orderCode && pt.PaymentMethod == "PayOS")
+						.WithTracking(true)
+						.Build());
+
+					if (paymentTransaction == null)
+					{
+						await _unitOfWork.RollBackAsync();
+						throw new Exception($"PaymentTransaction not found for orderCode: {orderCode}");
+					}
+
+					// Idempotency check
+					if (paymentTransaction.Status == Success)
+					{
+						await _unitOfWork.RollBackAsync();
+						Console.ForegroundColor = ConsoleColor.Yellow;
+						Console.WriteLine($"[PayOS Return] Payment already processed");
+						Console.ResetColor();
+						return;
+					}
+
+					var actualOrderId = paymentTransaction.ActualOrderId;
+					if (actualOrderId == null)
+					{
+						await _unitOfWork.RollBackAsync();
+						throw new Exception("Order ID not found in PaymentTransaction");
+					}
+
+					// Check IdempotencyKey
+					var idempotencyKey = $"{actualOrderId}_{orderCode}";
+					var existingSuccessPayment = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+						new QueryBuilder<PaymentTransaction>()
+						.WithPredicate(pt => pt.IdempotencyKey == idempotencyKey && pt.Status == Success)
+						.Build());
+
+					if (existingSuccessPayment != null)
+					{
+						await _unitOfWork.RollBackAsync();
+						Console.ForegroundColor = ConsoleColor.Yellow;
+						Console.WriteLine($"[PayOS Return] Payment already processed via webhook");
+						Console.ResetColor();
+						return;
+					}
+
+					var order = await _orderService.GetOrderByIdAsync(actualOrderId.Value);
+					if (order == null)
+					{
+						await _unitOfWork.RollBackAsync();
+						throw new Exception($"Order not found: {actualOrderId}");
+					}
+
+					var paymentInfo = await GetPaymentLinkInformationAsync(orderCode);
+					if (paymentInfo.status != "PAID")
+					{
+						await _unitOfWork.RollBackAsync();
+						throw new Exception($"Payment not confirmed by PayOS. Status: {paymentInfo.status}");
+					}
+
+					paymentTransaction.Status = Success;
+					paymentTransaction.IdempotencyKey = idempotencyKey;
 					paymentTransaction.TransactionId = orderCode.ToString();
 					paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(paymentInfo);
 					paymentTransaction.UpdatedAt = DateTime.UtcNow;
@@ -238,7 +302,18 @@ namespace Zenkoi.BLL.Services.Implements
 
 					await _unitOfWork.SaveChangesAsync();
 					await _unitOfWork.CommitTransactionAsync();
-	
+
+					Console.ForegroundColor = ConsoleColor.Green;
+					Console.WriteLine($"[PayOS Return] Payment processed successfully");
+					Console.ResetColor();
+				}
+				catch (DbUpdateConcurrencyException)
+				{
+					await _unitOfWork.RollBackAsync();
+					Console.ForegroundColor = ConsoleColor.Yellow;
+					Console.WriteLine($"[PayOS Return] Concurrency conflict - payment already processed");
+					Console.ResetColor();
+					return;
 				}
 				catch (Exception)
 				{
@@ -248,6 +323,9 @@ namespace Zenkoi.BLL.Services.Implements
 			}
 			catch (Exception ex)
 			{
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine($"[PayOS Return] Error: {ex.Message}");
+				Console.ResetColor();
 				throw;
 			}
 		}
