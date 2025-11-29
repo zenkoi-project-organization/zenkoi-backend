@@ -127,9 +127,9 @@ namespace Zenkoi.BLL.Services.Implements
                 queryBuilder.WithPredicate(p => p.CreatedAt <= filter.CreatedTo.Value);
             }
 
-            queryOptions.Predicate = predicate;
+            var queryOptionsFinal = queryBuilder.Build();
+            var ponds = await _pondRepo.GetAllAsync(queryOptionsFinal);
 
-            var ponds = await _pondRepo.GetAllAsync(queryOptions);
             var mappedList = _mapper.Map<List<PondResponseDTO>>(ponds);
 
             foreach (var pondEntity in ponds)
