@@ -28,6 +28,6 @@ namespace Zenkoi.BLL.DTOs.CustomerAddressDTOs
 
         public bool? IsDefault { get; set; }
 
-        public bool? IsActive { get; set; }
+        public bool? IsDeleted { get; set; }
     }
 }

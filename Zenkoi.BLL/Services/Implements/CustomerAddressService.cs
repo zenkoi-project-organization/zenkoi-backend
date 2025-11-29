@@ -45,7 +45,7 @@ namespace Zenkoi.BLL.Services.Implements
             var customerAddress = _mapper.Map<CustomerAddress>(requestDTO);
             customerAddress.CustomerId = customerId; 
             customerAddress.CreatedAt = DateTime.UtcNow;
-            customerAddress.IsActive = true;
+            customerAddress.IsDeleted = false;
 
             if (requestDTO.IsDefault)
             {
@@ -101,7 +101,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<IEnumerable<CustomerAddressResponseDTO>> GetAllCustomerAddressesAsync()
         {
             var addresses = await _customerAddressRepo.GetAllAsync(new QueryBuilder<CustomerAddress>()
-                .WithPredicate(a => a.IsActive == true) 
+                .WithPredicate(a => a.IsDeleted == true) 
                 .WithInclude(a => a.Customer)
                 .WithInclude(a => a.Customer.ApplicationUser)
                 .WithOrderBy(a => a.OrderByDescending(x => x.CreatedAt))
@@ -124,7 +124,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<IEnumerable<CustomerAddressResponseDTO>> GetAddressesByCustomerIdAsync(int customerId)
         {
             var addresses = await _customerAddressRepo.GetAllAsync(new QueryBuilder<CustomerAddress>()
-                .WithPredicate(a => a.CustomerId == customerId && a.IsActive == true)
+                .WithPredicate(a => a.CustomerId == customerId && a.IsDeleted == true)
                 .WithInclude(a => a.Customer)
                 .WithInclude(a => a.Customer.ApplicationUser)
                 .WithOrderBy(a => a.OrderByDescending(x => x.IsDefault).ThenByDescending(x => x.CreatedAt))
@@ -147,7 +147,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<CustomerAddressResponseDTO> GetDefaultAddressByCustomerIdAsync(int customerId)
         {
             var address = await _customerAddressRepo.GetSingleAsync(new QueryBuilder<CustomerAddress>()
-                .WithPredicate(a => a.CustomerId == customerId && a.IsDefault == true && a.IsActive == true)
+                .WithPredicate(a => a.CustomerId == customerId && a.IsDefault == true && a.IsDeleted == true)
                 .WithInclude(a => a.Customer)
                 .WithInclude(a => a.Customer.ApplicationUser)
                 .Build());
@@ -202,8 +202,8 @@ namespace Zenkoi.BLL.Services.Implements
                 address.IsDefault = updateDTO.IsDefault.Value;
             }
 
-            if (updateDTO.IsActive.HasValue)
-                address.IsActive = updateDTO.IsActive.Value;
+            if (updateDTO.IsDeleted.HasValue)
+                address.IsDeleted = updateDTO.IsDeleted.Value;
 
             address.UpdatedAt = DateTime.UtcNow;
          
@@ -243,7 +243,7 @@ namespace Zenkoi.BLL.Services.Implements
                 return false;
             }
 
-            address.IsActive = false;
+            address.IsDeleted = true;
             address.UpdatedAt = DateTime.UtcNow;
 
             await _customerAddressRepo.UpdateAsync(address);
@@ -263,7 +263,7 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException("Address not found or does not belong to this customer");
             }
 
-            if (!address.IsActive)
+            if (!address.IsDeleted)
             {
                 throw new ArgumentException("Cannot set inactive address as default");
             }

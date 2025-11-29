@@ -32,9 +32,9 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(sb => sb.Notes)
                 .HasMaxLength(500);
 
-            builder.Property(sb => sb.IsActive)
+            builder.Property(sb => sb.IsDeleted)
                 .IsRequired()
-                .HasDefaultValue(true);
+                .HasDefaultValue(false);
 
             builder.Property(sb => sb.CreatedAt)
                 .IsRequired()
@@ -49,7 +49,7 @@ namespace Zenkoi.DAL.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasIndex(sb => sb.Name);
-            builder.HasIndex(sb => sb.IsActive);
+            builder.HasIndex(sb => sb.IsDeleted);
         }
     }
 }

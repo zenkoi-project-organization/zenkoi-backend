@@ -144,7 +144,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var queryOptions = new QueryOptions<ShippingBox>
             {
-                Predicate = b => b.IsActive == true,
+                Predicate = b => b.IsDeleted == false,
                 OrderBy = q => q.OrderBy(b => b.Fee)
             };
 
@@ -179,7 +179,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var queryOptions = new QueryOptions<ShippingDistance>
             {
-                Predicate = d => d.IsActive == true &&
+                Predicate = d => d.IsDeleted == false &&
                                  d.MinDistanceKm <= (int)distanceKm &&
                                  d.MaxDistanceKm >= (int)distanceKm
             };
@@ -190,7 +190,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 var fallbackOptions = new QueryOptions<ShippingDistance>
                 {
-                    Predicate = d => d.IsActive == true,
+                    Predicate = d => d.IsDeleted == false,
                     OrderBy = q => q.OrderByDescending(d => d.MaxDistanceKm)
                 };
 

@@ -26,7 +26,10 @@ namespace Zenkoi.DAL.Entities
         public double? WidthMeters { get; set; }
         public int? MaxFishCount { get; set; }
         public int? CurrentCount { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
         public PondType PondType { get; set; }
         public Area Area { get; set; }

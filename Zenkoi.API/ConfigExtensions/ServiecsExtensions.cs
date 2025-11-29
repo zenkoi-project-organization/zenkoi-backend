@@ -339,7 +339,7 @@ namespace Zenkoi.API.ConfigExtensions
                             ContactNumber = "0987654321",
                             TotalOrders = 2,
                             TotalSpent = 15000000,
-                            IsActive = true,
+                            IsDeleted = false,
                             CreatedAt = DateTime.UtcNow
                         },
                         new Customer
@@ -348,7 +348,7 @@ namespace Zenkoi.API.ConfigExtensions
                             ContactNumber = "0912345678",
                             TotalOrders = 1,
                             TotalSpent = 12000000,
-                            IsActive = true,
+                            IsDeleted = false,
                             CreatedAt = DateTime.UtcNow
                         },
                         new Customer
@@ -357,7 +357,7 @@ namespace Zenkoi.API.ConfigExtensions
                             ContactNumber = "0901234567",
                             TotalOrders = 0,
                             TotalSpent = 0,
-                            IsActive = true,
+                            IsDeleted = false,
                             CreatedAt = DateTime.UtcNow
                         }
                     );
@@ -383,7 +383,7 @@ namespace Zenkoi.API.ConfigExtensions
                             Longitude = 106.7009m,
                             RecipientPhone = "0987654321",
                             IsDefault = true,
-                            IsActive = true,
+                            IsDeleted = false,
                             CreatedAt = DateTime.UtcNow
                         },
                         new CustomerAddress
@@ -397,7 +397,7 @@ namespace Zenkoi.API.ConfigExtensions
                             Longitude = 106.7010m,
                             RecipientPhone = "0987654321",
                             IsDefault = false,
-                            IsActive = true,
+                            IsDeleted = false,
                             CreatedAt = DateTime.UtcNow
                         },
                         new CustomerAddress
@@ -411,7 +411,7 @@ namespace Zenkoi.API.ConfigExtensions
                             Longitude = 106.6983m,
                             RecipientPhone = "0912345678",
                             IsDefault = true,
-                            IsActive = true,
+                            IsDeleted = false,
                             CreatedAt = DateTime.UtcNow
                         },
                         new CustomerAddress
@@ -425,7 +425,7 @@ namespace Zenkoi.API.ConfigExtensions
                             Longitude = 106.6879m,
                             RecipientPhone = "0912345678",
                             IsDefault = false,
-                            IsActive = true,
+                            IsDeleted = false,
                             CreatedAt = DateTime.UtcNow
                         },
                         new CustomerAddress
@@ -439,7 +439,7 @@ namespace Zenkoi.API.ConfigExtensions
                             Longitude = 106.6759m,
                             RecipientPhone = "0901234567",
                             IsDefault = true,
-                            IsActive = true,
+                            IsDeleted = false,
                             CreatedAt = DateTime.UtcNow
                         },
                         new CustomerAddress
@@ -453,7 +453,8 @@ namespace Zenkoi.API.ConfigExtensions
                             Longitude = 106.6532m,
                             RecipientPhone = "0901234567",
                             IsDefault = false,
-                            IsActive = false,
+                            IsDeleted = true,
+                            DeletedAt = DateTime.UtcNow,
                             CreatedAt = DateTime.UtcNow
                         }
                     );
@@ -4327,7 +4328,7 @@ namespace Zenkoi.API.ConfigExtensions
                         MaxKoiCount = 5,
                         MaxKoiSizeInch = 6,
                         Notes = "Up to 5 tosai (koi under 1 year old and about 6 in. long)",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
                     new ShippingBox
@@ -4338,7 +4339,7 @@ namespace Zenkoi.API.ConfigExtensions
                         MaxKoiCount = 3,
                         MaxKoiSizeInch = 16,
                         Notes = "Up to three (3) koi 16 in. or less",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
                     new ShippingBox
@@ -4349,7 +4350,7 @@ namespace Zenkoi.API.ConfigExtensions
                         MaxKoiCount = 4,
                         MaxKoiSizeInch = 16,
                         Notes = "Up to four (4) koi 16 in. or less",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
                     new ShippingBox
@@ -4360,7 +4361,7 @@ namespace Zenkoi.API.ConfigExtensions
                         MaxKoiCount = 1,
                         MaxKoiSizeInch = 25,
                         Notes = "1 Koi (25.59 inch, 65cm or less)",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
                     new ShippingBox
@@ -4371,7 +4372,7 @@ namespace Zenkoi.API.ConfigExtensions
                         MaxKoiCount = null,
                         MaxKoiSizeInch = null,
                         Notes = "At the farm manager's discretion",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     }
                 );
@@ -4453,7 +4454,7 @@ namespace Zenkoi.API.ConfigExtensions
                         PricePerKm = 5000m,
                         BaseFee = 30000m,
                         Description = "Giao hàng trong nội thành, bán kính 10km",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
                     new ShippingDistance
@@ -4464,7 +4465,7 @@ namespace Zenkoi.API.ConfigExtensions
                         PricePerKm = 7000m,
                         BaseFee = 50000m,
                         Description = "Giao hàng ngoại thành, từ 11-30km",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
                     new ShippingDistance
@@ -4475,7 +4476,7 @@ namespace Zenkoi.API.ConfigExtensions
                         PricePerKm = 10000m,
                         BaseFee = 100000m,
                         Description = "Giao hàng ngoại thành xa, từ 31-60km",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
                     new ShippingDistance
@@ -4486,7 +4487,7 @@ namespace Zenkoi.API.ConfigExtensions
                         PricePerKm = 15000m,
                         BaseFee = 200000m,
                         Description = "Giao hàng tỉnh lân cận, từ 61-150km",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
                     new ShippingDistance
@@ -4497,7 +4498,7 @@ namespace Zenkoi.API.ConfigExtensions
                         PricePerKm = 20000m,
                         BaseFee = 500000m,
                         Description = "Giao hàng liên tỉnh, từ 151-500km",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     },
                     new ShippingDistance
@@ -4508,7 +4509,7 @@ namespace Zenkoi.API.ConfigExtensions
                         PricePerKm = 25000m,
                         BaseFee = 1000000m,
                         Description = "Giao hàng liên tỉnh xa, trên 500km",
-                        IsActive = true,
+                        IsDeleted = false,
                         CreatedAt = DateTime.UtcNow
                     }
                 );

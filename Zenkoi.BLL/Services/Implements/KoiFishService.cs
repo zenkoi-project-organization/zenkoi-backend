@@ -97,8 +97,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (filter.IsBreeding)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.KoiBreedingStatus == KoiBreedingStatus.Ready;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.KoiBreedingStatus == KoiBreedingStatus.Ready);
             }
 
             if (filter.VarietyId.HasValue)
