@@ -97,8 +97,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (filter.IsBreeding)
             {
-                Expression<Func<KoiFish, bool>> expr = k => k.KoiBreedingStatus == KoiBreedingStatus.Ready;
-                predicate = predicate == null ? expr : predicate.AndAlso(expr);
+                queryBuilder.WithPredicate(k => k.KoiBreedingStatus == KoiBreedingStatus.Ready);
             }
 
             if (filter.VarietyId.HasValue)
@@ -113,7 +112,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (!string.IsNullOrEmpty(filter.Origin))
             {
-                queryBuilder.WithPredicate(k => k.Origin == filter.Origin);
+                queryBuilder.WithPredicate(k => k.Origin != null && k.Origin.Contains(filter.Origin));
             }
 
             if (filter.MinPrice.HasValue)

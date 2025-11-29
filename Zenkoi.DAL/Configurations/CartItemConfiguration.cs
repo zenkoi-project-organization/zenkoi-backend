@@ -29,7 +29,12 @@ namespace Zenkoi.DAL.Configurations
                 .HasColumnName("Quantity")
                 .IsRequired()
                 .HasDefaultValue(1);
-                
+
+            builder.Property(ci => ci.UnitPrice)
+                .HasColumnName("UnitPrice")
+                .IsRequired()
+                .HasColumnType("decimal(18,2)");
+
             builder.Property(ci => ci.AddedAt)
                 .HasColumnName("AddedAt")
                 .IsRequired();
@@ -37,8 +42,14 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(ci => ci.UpdatedAt)
                 .HasColumnName("UpdatedAt")
                 .IsRequired();
-            
-            // Relationships
+            builder.HasIndex(ci => new { ci.CartId, ci.KoiFishId })
+                .IsUnique()
+                .HasFilter("[KoiFishId] IS NOT NULL");
+
+            builder.HasIndex(ci => new { ci.CartId, ci.PacketFishId })
+                .IsUnique()
+                .HasFilter("[PacketFishId] IS NOT NULL");
+
             builder.HasOne(ci => ci.Cart)
                 .WithMany(c => c.CartItems)
                 .HasForeignKey(ci => ci.CartId)

@@ -110,6 +110,9 @@ namespace Zenkoi.API.Controllers
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10)
         {
+            if (customerId != UserId && !User.IsInRole("Admin") && !User.IsInRole("Manager"))
+                return Forbid();
+
             try
             {
                 var result = await _orderService.GetOrdersByCustomerIdAsync(customerId, filter, pageIndex, pageSize);
@@ -153,6 +156,7 @@ namespace Zenkoi.API.Controllers
         /// <param name="pageSize">Số lượng mục trên mỗi trang (mặc định: 10)</param>
         /// <returns>Danh sách đơn hàng đã phân trang</returns>
         [HttpGet("all")]
+        [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetAllOrders(
             [FromQuery] OrderFilterRequestDTO filter,
             [FromQuery] int pageIndex = 1,

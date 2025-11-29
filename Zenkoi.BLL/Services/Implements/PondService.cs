@@ -45,86 +45,97 @@ namespace Zenkoi.BLL.Services.Implements
                     a => a.Area,
                     b => b.PondType,
                     c => c.WaterParameters,
-                    d => d.KoiFishes,             
-                    e => e.PondPacketFishes       
+                    d => d.KoiFishes,
+                    e => e.PondPacketFishes
                 }
             };
 
-             Expression<Func<Pond, bool>>? predicate = null;
-            
+            var predicates = new List<Expression<Func<Pond, bool>>>();
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
                 var keyword = filter.Search.Trim();
-                queryBuilder.WithPredicate(p => p.PondName.Contains(keyword) || p.Location.Contains(keyword));
+                predicates.Add(p =>
+                    (p.PondName != null && p.PondName.Contains(keyword)) ||
+                    (p.Location != null && p.Location.Contains(keyword)));
             }
 
             if (filter.Status.HasValue)
             {
-                queryBuilder.WithPredicate(p => p.PondStatus == filter.Status.Value);
+                predicates.Add(p => p.PondStatus == filter.Status.Value);
             }
 
             if (filter.IsNotMaintenance.HasValue && filter.IsNotMaintenance.Value)
             {
-                queryBuilder.WithPredicate(p => p.PondStatus != PondStatus.Maintenance);
+                predicates.Add(p => p.PondStatus != PondStatus.Maintenance);
             }
 
             if (filter.AreaId.HasValue)
             {
-                queryBuilder.WithPredicate(p => p.AreaId == filter.AreaId.Value);
+                predicates.Add(p => p.AreaId == filter.AreaId.Value);
             }
 
             if (filter.Available.HasValue && filter.Available.Value)
             {
-                queryBuilder.WithPredicate(p => p.PondStatus == PondStatus.Empty);
+                predicates.Add(p => p.PondStatus == PondStatus.Empty);
             }
 
             if (filter.PondTypeId.HasValue)
             {
-                queryBuilder.WithPredicate(p => p.PondTypeId == filter.PondTypeId.Value);
+                predicates.Add(p => p.PondTypeId == filter.PondTypeId.Value);
             }
 
             if (filter.PondTypeEnum.HasValue)
             {
-                queryBuilder.WithPredicate(p => p.PondType.Type == filter.PondTypeEnum.Value);
+                predicates.Add(p => p.PondType.Type == filter.PondTypeEnum.Value);
             }
 
             if (filter.MinCapacityLiters.HasValue)
             {
-                queryBuilder.WithPredicate(p => p.CapacityLiters >= filter.MinCapacityLiters.Value);
+                predicates.Add(p => p.CapacityLiters >= filter.MinCapacityLiters.Value);
             }
 
             if (filter.MaxCapacityLiters.HasValue)
             {
-                queryBuilder.WithPredicate(p => p.CapacityLiters <= filter.MaxCapacityLiters.Value);
+                predicates.Add(p => p.CapacityLiters <= filter.MaxCapacityLiters.Value);
             }
 
             if (filter.MinDepthMeters.HasValue)
             {
-                queryBuilder.WithPredicate(p => p.DepthMeters >= filter.MinDepthMeters.Value);
+                predicates.Add(p => p.DepthMeters >= filter.MinDepthMeters.Value);
             }
 
             if (filter.MaxDepthMeters.HasValue)
             {
-                queryBuilder.WithPredicate(p => p.DepthMeters <= filter.MaxDepthMeters.Value);
+                predicates.Add(p => p.DepthMeters <= filter.MaxDepthMeters.Value);
             }
 
             if (filter.CreatedFrom.HasValue)
             {
-                queryBuilder.WithPredicate(p => p.CreatedAt >= filter.CreatedFrom.Value);
+                predicates.Add(p => p.CreatedAt >= filter.CreatedFrom.Value);
             }
 
             if (filter.CreatedTo.HasValue)
             {
-                queryBuilder.WithPredicate(p => p.CreatedAt <= filter.CreatedTo.Value);
+                predicates.Add(p => p.CreatedAt <= filter.CreatedTo.Value);
             }
 
-            queryOptions.Predicate = predicate;
+            if (predicates.Any())
+            {
+                queryOptions.Predicate = predicates.Aggregate((current, next) =>
+                {
+                    var parameter = Expression.Parameter(typeof(Pond), "p");
+                    var left = Expression.Invoke(current, parameter);
+                    var right = Expression.Invoke(next, parameter);
+                    var body = Expression.AndAlso(left, right);
+                    return Expression.Lambda<Func<Pond, bool>>(body, parameter);
+                });
+            }
 
             var ponds = await _pondRepo.GetAllAsync(queryOptions);
             var mappedList = _mapper.Map<List<PondResponseDTO>>(ponds);
 
-            foreach (var pondEntity in paginatedEntities)
+            foreach (var pondEntity in ponds)
             {
                 var dtoItem = mappedList.First(p => p.Id == pondEntity.Id);
 

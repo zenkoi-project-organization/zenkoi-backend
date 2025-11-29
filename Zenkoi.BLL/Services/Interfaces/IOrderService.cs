@@ -15,5 +15,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<PaginatedList<OrderResponseDTO>> GetAllOrdersAsync(OrderFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10);
         Task<OrderResponseDTO> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO updateOrderStatusDTO);
         Task<bool> DeleteOrderAsync(int id);
+        Task UpdateInventoryAfterPaymentSuccessAsync(int orderId);
     }
 }

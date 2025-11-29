@@ -11,9 +11,13 @@ namespace Zenkoi.DAL.Entities
     {
         public int Id { get; set; }
         public string TypeName { get; set; }
-        public TypeOfPond Type {  get; set; } 
+        public TypeOfPond Type {  get; set; }
         public string Description { get; set; }
         public int? RecommendedQuantity { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
         // Navigation
         public ICollection<Pond> Ponds { get; set; }

@@ -28,7 +28,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var queryOptions = new QueryOptions<ShippingBox>
             {
-                Predicate = b => b.IsActive == true
+                Predicate = b => !b.IsDeleted
             };
             var boxes = await _shippingBoxRepo.GetAllAsync(queryOptions);
 
@@ -52,7 +52,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<ShippingBoxResponseDTO> GetByIdAsync(int id)
         {
             var box = await _shippingBoxRepo.GetByIdAsync(id);
-            if (box == null || !box.IsActive)
+            if (box == null || box.IsDeleted)
             {
                 throw new KeyNotFoundException("Không tìm thấy hộp vận chuyển");
             }
@@ -145,7 +145,8 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("Không tìm thấy hộp vận chuyển");
             }
 
-            box.IsActive = false;
+            box.IsDeleted = true;
+            box.DeletedAt = DateTime.UtcNow;
             box.UpdatedAt = DateTime.UtcNow;
 
             await _shippingBoxRepo.UpdateAsync(box);

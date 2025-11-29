@@ -124,7 +124,7 @@ namespace Zenkoi.BLL.Services.Implements
                     quantity: od.Quantity,
                     price: (int)od.UnitPrice
                 )).ToList(),
-                cancelUrl: $"{feURL}/payment-cancel",
+                cancelUrl: $"{feURL}/checkout/failure",
                 returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
             );
 
@@ -254,6 +254,8 @@ namespace Zenkoi.BLL.Services.Implements
                     Status = OrderStatus.Processing
                 });
 
+                await _orderService.UpdateInventoryAfterPaymentSuccessAsync(orderId);
+
                 await _unitOfWork.SaveChangesAsync();
 
                 return true;
@@ -290,7 +292,7 @@ namespace Zenkoi.BLL.Services.Implements
                 amount: request.Amount,
                 description: request.Description,
                 items: request.Items,
-                cancelUrl: $"{feURL}/payment-cancel",
+                cancelUrl: $"{feURL}/checkout/failure",
                 returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
             );
 

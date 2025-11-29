@@ -37,6 +37,12 @@ namespace Zenkoi.DAL.Queries
 			return this;
 		}
 
+		public QueryBuilder<T> WithInclude(params string[] includeStrings)
+		{
+			_options.IncludeStrings.AddRange(includeStrings);
+			return this;
+		}
+
 		public QueryOptions<T> Build()
 		{
 			return _options;

@@ -32,9 +32,9 @@ namespace Zenkoi.DAL.Configurations
                 .HasColumnType("decimal(18,2)")
                 .HasDefaultValue(0);
 
-            builder.Property(c => c.IsActive)
+            builder.Property(c => c.IsDeleted)
                 .IsRequired()
-                .HasDefaultValue(true);
+                .HasDefaultValue(false);
 
             builder.Property(c => c.CreatedAt)
                 .IsRequired()

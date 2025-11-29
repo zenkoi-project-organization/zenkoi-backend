@@ -129,7 +129,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             await _orderRepo.CreateAsync(order);
 
-            // Tăng usage count nếu có promotion
+            // Increment promotion usage count if promotion was applied
             if (promotionId.HasValue && currentPromotion != null)
             {
                 currentPromotion.UsageCount++;
@@ -238,6 +238,8 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(o => o.Customer.ApplicationUser)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
+                .WithInclude("OrderDetails.KoiFish")
+                .WithInclude("OrderDetails.PacketFish")
                 .WithOrderBy(o => o.OrderByDescending(x => x.CreatedAt));
 
             queryBuilder.WithPredicate(o => o.CustomerId == customerId);
@@ -246,8 +248,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             var query = _orderRepo.Get(queryBuilder.Build());
             var paginatedOrders = await PaginatedList<Order>.CreateAsync(query, pageIndex, pageSize);
-
-            await LoadOrderDetailsAsync(paginatedOrders);
 
             var resultDto = _mapper.Map<List<OrderResponseDTO>>(paginatedOrders);
 
@@ -266,14 +266,14 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(o => o.Customer.ApplicationUser)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
+                .WithInclude("OrderDetails.KoiFish")
+                .WithInclude("OrderDetails.PacketFish")
                 .WithOrderBy(o => o.OrderByDescending(x => x.CreatedAt));
 
             ApplyOrderFilters(queryBuilder, filter);
 
             var query = _orderRepo.Get(queryBuilder.Build());
             var paginatedOrders = await PaginatedList<Order>.CreateAsync(query, pageIndex, pageSize);
-
-            await LoadOrderDetailsAsync(paginatedOrders);
 
             var resultDto = _mapper.Map<List<OrderResponseDTO>>(paginatedOrders);
 
@@ -292,12 +292,53 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException("Order not found");
             }
 
+            if (!IsValidStatusTransition(order.Status, updateOrderStatusDTO.Status))
+            {
+                throw new InvalidOperationException(
+                    $"Cannot transition from {order.Status} to {updateOrderStatusDTO.Status}");
+            }
+
             order.Status = updateOrderStatusDTO.Status;
             order.UpdatedAt = DateTime.UtcNow;
             await _orderRepo.UpdateAsync(order);
             await _unitOfWork.SaveChangesAsync();
 
             return await GetOrderByIdAsync(id);
+        }
+
+
+        private bool IsValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus)
+        {
+            var validTransitions = new Dictionary<OrderStatus, List<OrderStatus>>
+                {
+                    // 1. Từ Pending: Hủy hoặc Thanh toán xong
+                    { OrderStatus.Pending, new List<OrderStatus> { OrderStatus.Processing, OrderStatus.Cancelled } },
+
+                    // 2. Từ Processing: Chuẩn bị xong (Shipped) hoặc Lỗi không giao được (UnShiping)
+                    { OrderStatus.Processing, new List<OrderStatus> { OrderStatus.Shipped, OrderStatus.UnShiping } },
+
+                    // 3. Từ UnShiping: Chỉ có đường đi Hoàn tiền
+                    { OrderStatus.UnShiping, new List<OrderStatus> { OrderStatus.Refund } },
+
+                    // 4. Từ Shipped: Giao thành công hoặc Khách từ chối
+                    { OrderStatus.Shipped, new List<OrderStatus> { OrderStatus.Delivered, OrderStatus.Rejected } },
+
+                    // 5. Từ Rejected: Khách từ chối -> Hoàn tiền
+                    { OrderStatus.Rejected, new List<OrderStatus> { OrderStatus.Refund } },
+
+                    // 6. Các trạng thái kết thúc (End State)
+                    { OrderStatus.Delivered, new List<OrderStatus>() },
+                    { OrderStatus.Cancelled, new List<OrderStatus>() },
+                    { OrderStatus.Refund, new List<OrderStatus>() }
+                };
+
+            // Kiểm tra logic
+            if (!validTransitions.ContainsKey(currentStatus))
+            {
+                return false;
+            }
+
+            return validTransitions[currentStatus].Contains(newStatus);
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
@@ -320,11 +361,12 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
+                var searchLower = filter.Search.ToLower();
                 queryBuilder.WithPredicate(o =>
-                    o.OrderNumber.Contains(filter.Search) ||
+                    o.OrderNumber.ToLower().Contains(searchLower) ||
                     (o.Customer != null &&
                      o.Customer.ApplicationUser != null &&
-                     o.Customer.ApplicationUser.FullName.Contains(filter.Search)));
+                     o.Customer.ApplicationUser.FullName.ToLower().Contains(searchLower)));
             }
 
             if (filter.Status.HasValue)
@@ -368,25 +410,64 @@ namespace Zenkoi.BLL.Services.Implements
             }
         }
 
-        private async Task LoadOrderDetailsAsync(IEnumerable<Order> orders)
+        public async Task UpdateInventoryAfterPaymentSuccessAsync(int orderId)
         {
-            foreach (var order in orders)
+            var order = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
+                .WithPredicate(o => o.Id == orderId)
+                .WithInclude(o => o.OrderDetails)
+                .Build());
+
+            if (order == null)
             {
-                if (order.OrderDetails != null && order.OrderDetails.Any())
+                throw new ArgumentException($"Order with ID {orderId} not found");
+            }
+            foreach (var orderDetail in order.OrderDetails)
+            {
+                if (orderDetail.KoiFishId.HasValue)
                 {
-                    foreach (var detail in order.OrderDetails)
+                    var koiFish = await _koiFishRepo.GetByIdAsync(orderDetail.KoiFishId.Value);
+                    if (koiFish != null)
                     {
-                        if (detail.KoiFishId.HasValue)
+                        koiFish.SaleStatus = SaleStatus.Sold;
+                        await _koiFishRepo.UpdateAsync(koiFish);
+                    }
+                }
+
+                if (orderDetail.PacketFishId.HasValue)
+                {
+                    var packetFish = await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
+                        .WithPredicate(pf => pf.Id == orderDetail.PacketFishId.Value)
+                        .WithInclude(pf => pf.PondPacketFishes)
+                        .Build());
+
+                    if (packetFish != null)
+                    {
+                        var pondPacketFishRepo = _unitOfWork.GetRepo<PondPacketFish>();
+                        int remainingQty = orderDetail.Quantity;
+
+                        foreach (var pondPacket in packetFish.PondPacketFishes
+                            .Where(ppf => ppf.IsActive && ppf.AvailableQuantity > 0)
+                            .OrderBy(ppf => ppf.Id))
                         {
-                            detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
+                            if (remainingQty <= 0) break;
+
+                            int deduct = Math.Min(pondPacket.AvailableQuantity, remainingQty);
+                            pondPacket.AvailableQuantity -= deduct;
+                            pondPacket.SoldQuantity += deduct;
+                            remainingQty -= deduct;
+
+                            await pondPacketFishRepo.UpdateAsync(pondPacket);
                         }
-                        if (detail.PacketFishId.HasValue)
+                        if (remainingQty > 0)
                         {
-                            detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
+                            throw new InvalidOperationException(
+                                $"Insufficient stock for PacketFish ID {orderDetail.PacketFishId}. " +
+                                $"Still need {remainingQty} more items.");
                         }
                     }
                 }
             }
+            await _unitOfWork.SaveChangesAsync();
         }
 
         private async Task<decimal> CalculateDiscountAsync(int? promotionId, decimal subtotal)
@@ -430,5 +511,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             return Math.Min(discountAmount, subtotal);
         }
+
     }
 }

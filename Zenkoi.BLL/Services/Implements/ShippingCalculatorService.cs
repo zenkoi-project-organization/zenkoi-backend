@@ -51,7 +51,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var boxes = await _context.ShippingBoxes
                 .Include(b => b.Rules.Where(r => r.IsActive))
-                .Where(b => b.IsActive && b.MaxKoiCount.HasValue && b.MaxKoiCount.Value > 0)
+                .Where(b => !b.IsDeleted && b.MaxKoiCount.HasValue && b.MaxKoiCount.Value > 0)
                 .OrderBy(b => b.Fee / b.MaxKoiCount.Value)
                 .ToListAsync();
 
@@ -116,7 +116,7 @@ namespace Zenkoi.BLL.Services.Implements
                         remainingKoi.Count);
 
                     var extraLargeBox = await _context.ShippingBoxes
-                        .FirstOrDefaultAsync(b => b.IsActive && !b.MaxKoiCount.HasValue);
+                        .FirstOrDefaultAsync(b => !b.IsDeleted && !b.MaxKoiCount.HasValue);
 
                     if (extraLargeBox != null)
                     {
@@ -331,7 +331,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<List<ShippingBoxDto>> GetAvailableBoxes()
         {
             return await _context.ShippingBoxes
-                .Where(b => b.IsActive)
+                .Where(b => !b.IsDeleted)
                 .OrderBy(b => b.Fee)
                 .Select(b => new ShippingBoxDto
                 {
@@ -350,7 +350,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             return await _context.ShippingBoxes
                 .Include(b => b.Rules.Where(r => r.IsActive))
-                .FirstOrDefaultAsync(b => b.Id == boxId && b.IsActive);
+                .FirstOrDefaultAsync(b => b.Id == boxId && !b.IsDeleted);
         }
 
         private class KoiItem

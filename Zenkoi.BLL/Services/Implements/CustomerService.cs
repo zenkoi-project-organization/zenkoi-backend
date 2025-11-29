@@ -4,6 +4,7 @@ using Zenkoi.BLL.DTOs.CustomerDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
@@ -39,7 +40,7 @@ namespace Zenkoi.BLL.Services.Implements
             var customer = new Customer
             {
                 Id = userId,
-                IsActive = true,
+                IsDeleted = false,
                 TotalOrders = 0,
                 TotalSpent = 0,
                 CreatedAt = DateTime.UtcNow
@@ -121,8 +122,9 @@ namespace Zenkoi.BLL.Services.Implements
             if (customer == null)
             {
                 return false;
-            }         
-            customer.IsActive = false;
+            }
+            customer.IsDeleted = true;
+            customer.DeletedAt = DateTime.UtcNow;
             customer.UpdatedAt = DateTime.UtcNow;
 
             await _customerRepo.UpdateAsync(customer);
@@ -133,7 +135,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PaginatedList<CustomerResponseDTO>> GetActiveCustomersAsync(int pageIndex = 1, int pageSize = 10)
         {
             var query = _customerRepo.Get(new QueryBuilder<Customer>()
-                .WithPredicate(c => c.IsActive == true)
+                .WithPredicate(c => c.IsDeleted == false)
                 .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(3))
                 .WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt))
@@ -148,7 +150,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PaginatedList<CustomerResponseDTO>> GetCustomersByTotalSpentAsync(decimal minAmount, int pageIndex = 1, int pageSize = 10)
         {
             var query = _customerRepo.Get(new QueryBuilder<Customer>()
-                .WithPredicate(c => c.TotalSpent >= minAmount && c.IsActive == true)
+                .WithPredicate(c => c.TotalSpent >= minAmount && c.IsDeleted == false)
                 .WithInclude(c => c.ApplicationUser)
                 .WithInclude(c => c.Orders.Take(3))
                 .WithOrderBy(c => c.OrderByDescending(x => x.TotalSpent))
@@ -173,7 +175,9 @@ namespace Zenkoi.BLL.Services.Implements
                 .Build());
 
             customer.TotalOrders = orders.Count();
-            customer.TotalSpent = orders.Sum(o => o.TotalAmount);
+            customer.TotalSpent = orders
+                .Where(o => o.Status == OrderStatus.Delivered)
+                .Sum(o => o.TotalAmount);
             customer.UpdatedAt = DateTime.UtcNow;
 
             await _customerRepo.UpdateAsync(customer);
@@ -199,7 +203,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (filter.IsActive.HasValue)
             {
-                queryBuilder.WithPredicate(c => c.IsActive == filter.IsActive.Value);
+                queryBuilder.WithPredicate(c => c.IsDeleted == filter.IsActive.Value);
             }
 
             if (filter.MinTotalSpent.HasValue)
