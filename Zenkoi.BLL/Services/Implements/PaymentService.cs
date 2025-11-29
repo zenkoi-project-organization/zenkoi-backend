@@ -10,6 +10,7 @@ using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Http;
+using static Zenkoi.DAL.Enums.PaymentTransactionStatus;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -70,77 +71,103 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var feURL = _configuration["FrontendURL"];
 
-            var existingTransactions = await _unitOfWork.PaymentTransactions.GetAllAsync(
-                new QueryBuilder<PaymentTransaction>()
-                .WithPredicate(pt => pt.ActualOrderId == order.Id &&
-                                    pt.PaymentMethod == "PayOS" &&
-                                    (pt.Status == "Pending" || pt.Status == "Failed"))
-                .WithTracking(true)
-                .Build());
+            // Begin transaction with Serializable isolation to prevent retry payment race conditions
+            await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 
-            bool isRetry = existingTransactions.Any();
-
-            foreach (var existingTxn in existingTransactions)
+            try
             {
-                existingTxn.Status = "Cancelled";
-                existingTxn.UpdatedAt = DateTime.UtcNow;
-                await _unitOfWork.PaymentTransactions.UpdateAsync(existingTxn);
-            }
+                var existingTransactions = await _unitOfWork.PaymentTransactions.GetAllAsync(
+                    new QueryBuilder<PaymentTransaction>()
+                    .WithPredicate(pt => pt.ActualOrderId == order.Id &&
+                                        pt.PaymentMethod == "PayOS" &&
+                                        (pt.Status == Pending || pt.Status == Failed))
+                    .WithTracking(true)
+                    .Build());
 
-            var paymentTransaction = new PaymentTransaction
-            {
-                UserId = customer?.ApplicationUser?.Id ?? 0,
-                PaymentMethod = "PayOS",
-                OrderId = "",
-                ActualOrderId = order.Id,
-                Amount = order.TotalAmount,
-                Description = $"Thanh toán đơn hàng {order.OrderNumber}",
-                Status = "Pending",
-                PaymentUrl = "",
-                ResponseData = null,
-                TransactionId = null,
-                CreatedAt = DateTime.UtcNow
-            };
+                bool isRetry = existingTransactions.Any();
 
-            await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
-            await _unitOfWork.SaveChangesAsync();
+                foreach (var existingTxn in existingTransactions)
+                {
+                    existingTxn.Status = Cancelled;
+                    existingTxn.UpdatedAt = DateTime.UtcNow;
+                    await _unitOfWork.PaymentTransactions.UpdateAsync(existingTxn);
+                }
 
-            var orderCode = paymentTransaction.Id;
-   
-            var description = $"DH {order.OrderNumber}";
-            if (description.Length > 25)
-            {
-                description = description.Substring(0, 25);
-            }
+                var paymentTransaction = new PaymentTransaction
+                {
+                    UserId = customer?.ApplicationUser?.Id ?? 0,
+                    PaymentMethod = "PayOS",
+                    OrderId = "",
+                    ActualOrderId = order.Id,
+                    Amount = order.TotalAmount,
+                    Description = $"Thanh toán đơn hàng {order.OrderNumber}",
+                    Status = Pending,
+                    PaymentUrl = "",
+                    ResponseData = null,
+                    TransactionId = null,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            var beURL = _configuration["BackendURL"] ?? "https://localhost:7087";
+                await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
+                await _unitOfWork.SaveChangesAsync();
 
-            var paymentData = new PaymentData(
-                orderCode: orderCode,
-                amount: (int)order.TotalAmount,
-                description: description,
-                items: order.OrderDetails.Select(od => new ItemData(
+                var orderCode = paymentTransaction.Id;
+
+                var description = $"DH {order.OrderNumber}";
+                if (description.Length > 25)
+                {
+                    description = description.Substring(0, 25);
+                }
+
+                var beURL = _configuration["BackendURL"] ?? "https://localhost:7087";
+
+                // Build items list from order details
+                var items = order.OrderDetails.Select(od => new ItemData(
                     name: od.KoiFish?.RFID ?? od.PacketFish?.Name ?? "Product",
                     quantity: od.Quantity,
                     price: (int)od.UnitPrice
-                )).ToList(),
-                cancelUrl: $"{feURL}/checkout/failure",
-                returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
-            );
+                )).ToList();
 
-            var createPayment = await _payOSService.CreatePaymentLinkAsync(paymentData);
+                // Add shipping fee as separate item if exists
+                if (order.ShippingFee > 0)
+                {
+                    items.Add(new ItemData(
+                        name: "Phí vận chuyển",
+                        quantity: 1,
+                        price: (int)order.ShippingFee
+                    ));
+                }
 
-            paymentTransaction.PaymentUrl = createPayment.checkoutUrl;
-            paymentTransaction.OrderId = orderCode.ToString();
-            await _unitOfWork.PaymentTransactions.UpdateAsync(paymentTransaction);
-            await _unitOfWork.SaveChangesAsync();
+                var paymentData = new PaymentData(
+                    orderCode: orderCode,
+                    amount: (int)order.TotalAmount,
+                    description: description,
+                    items: items,
+                    cancelUrl: $"{feURL}/checkout/failure",
+                    returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
+                );
 
-            return new PaymentResponseDTO
+                var createPayment = await _payOSService.CreatePaymentLinkAsync(paymentData);
+
+                paymentTransaction.PaymentUrl = createPayment.checkoutUrl;
+                paymentTransaction.OrderId = orderCode.ToString();
+                await _unitOfWork.PaymentTransactions.UpdateAsync(paymentTransaction);
+                await _unitOfWork.SaveChangesAsync();
+
+                await _unitOfWork.CommitTransactionAsync();
+
+                return new PaymentResponseDTO
+                {
+                    PaymentUrl = createPayment.checkoutUrl,
+                    OrderId = order.Id,
+                    IsRetry = isRetry
+                };
+            }
+            catch (Exception)
             {
-                PaymentUrl = createPayment.checkoutUrl,
-                OrderId = order.Id,
-                IsRetry = isRetry
-            };
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
         }
 
         private async Task<PaymentResponseDTO> CreateVnPayPaymentAsync(OrderResponseDTO order, Customer? customer)
@@ -151,67 +178,80 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new Exception("HTTP context not available");
             }
 
-            var existingTransactions = await _unitOfWork.PaymentTransactions.GetAllAsync(
-                new QueryBuilder<PaymentTransaction>()
-                .WithPredicate(pt => pt.ActualOrderId == order.Id &&
-                                    pt.PaymentMethod == "VnPay" &&
-                                    (pt.Status == "Pending" || pt.Status == "Failed"))
-                .WithTracking(true)
-                .Build());
+            // Begin transaction with Serializable isolation to prevent retry payment race conditions
+            await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 
-            bool isRetry = existingTransactions.Any();
-
-            foreach (var existingTxn in existingTransactions)
+            try
             {
-                existingTxn.Status = "Cancelled";
-                existingTxn.UpdatedAt = DateTime.UtcNow;
-                await _unitOfWork.PaymentTransactions.UpdateAsync(existingTxn);
-            }
+                var existingTransactions = await _unitOfWork.PaymentTransactions.GetAllAsync(
+                    new QueryBuilder<PaymentTransaction>()
+                    .WithPredicate(pt => pt.ActualOrderId == order.Id &&
+                                        pt.PaymentMethod == "VnPay" &&
+                                        (pt.Status == Pending || pt.Status == Failed))
+                    .WithTracking(true)
+                    .Build());
 
-            var paymentTransaction = new PaymentTransaction
-            {
-                UserId = customer?.ApplicationUser?.Id ?? 0,
-                PaymentMethod = "VnPay",
-                OrderId = "", 
-                ActualOrderId = order.Id,
-                Amount = order.TotalAmount,
-                Description = $"Thanh toán đơn hàng {order.OrderNumber}",
-                Status = "Pending",
-                PaymentUrl = "",
-                ResponseData = null,
-                TransactionId = null,
-                CreatedAt = DateTime.UtcNow
-            };
+                bool isRetry = existingTransactions.Any();
 
-            await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
-            await _unitOfWork.SaveChangesAsync();
-
-            var txnRef = paymentTransaction.Id;
-
-            var paymentUrl = await _vnPayService.CreatePaymentUrlAsync(
-                customer?.ApplicationUser?.Id ?? 0,
-                httpContext,
-                new VnPayRequestDTO
+                foreach (var existingTxn in existingTransactions)
                 {
-                    OrderId = txnRef,
-                    Amount = (double)order.TotalAmount,
-                    Description = $"Thanh toán đơn hàng {order.OrderNumber}",
-                    FullName = customer?.ApplicationUser?.FullName ?? "Customer",
-                    CreatedDate = DateTime.Now
+                    existingTxn.Status = Cancelled;
+                    existingTxn.UpdatedAt = DateTime.UtcNow;
+                    await _unitOfWork.PaymentTransactions.UpdateAsync(existingTxn);
                 }
-            );
 
-            paymentTransaction.PaymentUrl = paymentUrl;
-            paymentTransaction.OrderId = txnRef.ToString();
-            await _unitOfWork.PaymentTransactions.UpdateAsync(paymentTransaction);
-            await _unitOfWork.SaveChangesAsync();
+                var paymentTransaction = new PaymentTransaction
+                {
+                    UserId = customer?.ApplicationUser?.Id ?? 0,
+                    PaymentMethod = "VnPay",
+                    OrderId = "",
+                    ActualOrderId = order.Id,
+                    Amount = order.TotalAmount,
+                    Description = $"Thanh toán đơn hàng {order.OrderNumber}",
+                    Status = Pending,
+                    PaymentUrl = "",
+                    ResponseData = null,
+                    TransactionId = null,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            return new PaymentResponseDTO
+                await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
+                await _unitOfWork.SaveChangesAsync();
+
+                var txnRef = paymentTransaction.Id;
+
+                var paymentUrl = await _vnPayService.CreatePaymentUrlAsync(
+                    customer?.ApplicationUser?.Id ?? 0,
+                    httpContext,
+                    new VnPayRequestDTO
+                    {
+                        OrderId = txnRef,
+                        Amount = (double)order.TotalAmount,
+                        Description = $"Thanh toán đơn hàng {order.OrderNumber}",
+                        FullName = customer?.ApplicationUser?.FullName ?? "Customer",
+                        CreatedDate = DateTime.Now
+                    }
+                );
+
+                paymentTransaction.PaymentUrl = paymentUrl;
+                paymentTransaction.OrderId = txnRef.ToString();
+                await _unitOfWork.PaymentTransactions.UpdateAsync(paymentTransaction);
+                await _unitOfWork.SaveChangesAsync();
+
+                await _unitOfWork.CommitTransactionAsync();
+
+                return new PaymentResponseDTO
+                {
+                    PaymentUrl = paymentUrl,
+                    OrderId = order.Id,
+                    IsRetry = isRetry
+                };
+            }
+            catch (Exception)
             {
-                PaymentUrl = paymentUrl,
-                OrderId = order.Id,
-                IsRetry = isRetry
-            };
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> ProcessPaymentCallbackAsync(int orderId, string status)
@@ -232,7 +272,7 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new Exception("Payment transaction not found");
             }
 
-            if (status == "success" && paymentTransaction.Status == "Success")
+            if (status == "success" && paymentTransaction.Status == Success)
             {
                 var payment = new Payment
                 {
@@ -277,7 +317,7 @@ namespace Zenkoi.BLL.Services.Implements
                 ActualOrderId = request.ActualOrderId,
                 Amount = request.Amount,
                 Description = request.Description,
-                Status = "Pending",
+                Status = Pending,
                 PaymentUrl = "",
                 CreatedAt = DateTime.UtcNow
             };
@@ -322,7 +362,7 @@ namespace Zenkoi.BLL.Services.Implements
                 ActualOrderId = request.OrderId.HasValue ? (int)request.OrderId.Value : null,
                 Amount = (decimal)request.Amount,
                 Description = request.Description,
-                Status = "Pending",
+                Status = Pending,
                 PaymentUrl = "",
                 CreatedAt = DateTime.UtcNow
             };
@@ -376,8 +416,8 @@ namespace Zenkoi.BLL.Services.Implements
 
             return new PaymentStatusResponseDTO
             {
-                IsSuccess = paymentTransaction.Status == "Success",
-                Status = paymentTransaction.Status,
+                IsSuccess = paymentTransaction.Status == Success,
+                Status = paymentTransaction.Status.ToString(),
                 OrderId = paymentTransaction.ActualOrderId,
                 Amount = paymentTransaction.Amount,
                 PaymentMethod = paymentTransaction.PaymentMethod,

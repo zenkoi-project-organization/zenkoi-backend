@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Zenkoi.DAL.EF;
 using Zenkoi.DAL.Entities;
@@ -38,6 +39,22 @@ namespace Zenkoi.DAL.UnitOfWork
 			_transaction = await _context.Database.BeginTransactionAsync();
 		}
 
+		public async Task BeginTransactionAsync(System.Data.IsolationLevel isolationLevel)
+		{
+			var isolationLevelName = isolationLevel switch
+			{
+				System.Data.IsolationLevel.Serializable => "SERIALIZABLE",
+				System.Data.IsolationLevel.RepeatableRead => "REPEATABLE READ",
+				System.Data.IsolationLevel.ReadCommitted => "READ COMMITTED",
+				System.Data.IsolationLevel.ReadUncommitted => "READ UNCOMMITTED",
+				System.Data.IsolationLevel.Snapshot => "SNAPSHOT",
+				_ => "READ COMMITTED"
+			};
+
+			await _context.Database.ExecuteSqlRawAsync($"SET TRANSACTION ISOLATION LEVEL {isolationLevelName}");
+			_transaction = await _context.Database.BeginTransactionAsync();
+		}
+
 		public async Task CommitTransactionAsync()
 		{
 			try
@@ -73,7 +90,6 @@ namespace Zenkoi.DAL.UnitOfWork
                 disposed = true;
 			}
 		}
-		// mẫu 
 		public IRepoBase<T> GetRepo<T>() where T : class
 		{
 			return _serviceProvider.GetRequiredService<IRepoBase<T>>();

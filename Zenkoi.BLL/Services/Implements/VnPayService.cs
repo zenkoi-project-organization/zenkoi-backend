@@ -7,6 +7,7 @@ using Zenkoi.DAL.Entities;
 using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.UnitOfWork;
+using static Zenkoi.DAL.Enums.PaymentTransactionStatus;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -158,7 +159,7 @@ namespace Zenkoi.BLL.Services.Implements
 						ErrorMessage = "Order ID not found"
 					};
 				}
-				if (paymentTransaction.Status == "Success")
+				if (paymentTransaction.Status == Success)
 				{
 					return new VnPayCallbackResultDTO
 					{
@@ -167,7 +168,7 @@ namespace Zenkoi.BLL.Services.Implements
 						Amount = (decimal)vnpayRes.Amount
 					};
 				}
-				if (paymentTransaction.Status == "Failed")
+				if (paymentTransaction.Status == Failed)
 				{
 					return new VnPayCallbackResultDTO
 					{
@@ -191,7 +192,7 @@ namespace Zenkoi.BLL.Services.Implements
 
 				if (Math.Abs(order.TotalAmount - (decimal)vnpayRes.Amount) > 0.01m)
 				{
-					paymentTransaction.Status = "Failed";
+					paymentTransaction.Status = Failed;
 					paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
 					paymentTransaction.UpdatedAt = DateTime.UtcNow;
 					await _unitOfWork.SaveChangesAsync();
@@ -209,7 +210,7 @@ namespace Zenkoi.BLL.Services.Implements
 					await _unitOfWork.BeginTransactionAsync();
 					try
 					{
-						paymentTransaction.Status = "Success";
+						paymentTransaction.Status = Success;
 						paymentTransaction.TransactionId = vnpayRes.TransactionId.ToString();
 						paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
 						paymentTransaction.UpdatedAt = DateTime.UtcNow;
@@ -249,7 +250,7 @@ namespace Zenkoi.BLL.Services.Implements
 				}
 				else
 				{
-					paymentTransaction.Status = "Failed";
+					paymentTransaction.Status = Failed;
 					paymentTransaction.TransactionId = vnpayRes.TransactionId.ToString();
 					paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
 					paymentTransaction.UpdatedAt = DateTime.UtcNow;
