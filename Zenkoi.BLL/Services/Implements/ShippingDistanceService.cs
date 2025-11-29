@@ -23,7 +23,10 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<List<ShippingDistanceResponseDTO>> GetAllAsync()
         {
-            var queryOptions = new QueryOptions<ShippingDistance>();
+            var queryOptions = new QueryOptions<ShippingDistance>
+            {
+                Predicate = d => !d.IsDeleted
+            };
             var distances = await _shippingDistanceRepo.GetAllAsync(queryOptions);
             return _mapper.Map<List<ShippingDistanceResponseDTO>>(distances);
         }
@@ -31,7 +34,7 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<ShippingDistanceResponseDTO> GetByIdAsync(int id)
         {
             var distance = await _shippingDistanceRepo.GetByIdAsync(id);
-            if (distance == null)
+            if (distance == null || distance.IsDeleted)
             {
                 throw new KeyNotFoundException("Không tìm thấy khoảng cách vận chuyển");
             }

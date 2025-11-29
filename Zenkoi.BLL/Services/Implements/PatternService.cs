@@ -35,7 +35,10 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<PaginatedList<PatternResponseDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
         {
-            var queryOptions = new QueryOptions<Pattern>();
+            var queryOptions = new QueryOptions<Pattern>
+            {
+                Predicate = p => !p.IsDeleted
+            };
 
             var patterns = await _patternRepo.GetAllAsync(queryOptions);
 

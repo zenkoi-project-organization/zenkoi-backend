@@ -50,7 +50,10 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             };
 
-            var predicates = new List<Expression<Func<Pond, bool>>>();
+            var predicates = new List<Expression<Func<Pond, bool>>>
+            {
+                p => !p.IsDeleted
+            };
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
