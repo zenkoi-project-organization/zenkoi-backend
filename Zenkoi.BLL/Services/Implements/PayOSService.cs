@@ -164,6 +164,8 @@ namespace Zenkoi.BLL.Services.Implements
 						new UpdateOrderStatusDTO { Status = OrderStatus.Processing }
 					);
 
+					await _orderService.UpdateInventoryAfterPaymentSuccessAsync(actualOrderId.Value);
+
 					// Create Payment record
 					var payment = new Payment
 					{
@@ -287,6 +289,9 @@ namespace Zenkoi.BLL.Services.Implements
 						actualOrderId.Value,
 						new UpdateOrderStatusDTO { Status = OrderStatus.Processing }
 					);
+
+					// Update inventory (KoiFish SaleStatus, PacketFish stock)
+					await _orderService.UpdateInventoryAfterPaymentSuccessAsync(actualOrderId.Value);
 
 					var payment = new Payment
 					{

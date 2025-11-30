@@ -32,12 +32,12 @@ namespace Zenkoi.API.Controllers
 
             if (result.IsSuccess)
             {
-                return Redirect($"{feURL}/checkout/success/{result.OrderId}?method=VnPay&amount={result.Amount}");
+                return Redirect($"{feURL}/checkout/success?orderId={result.OrderId}&method=VnPay&amount={result.Amount}");
             }
             else
             {
                 var errorMessage = string.IsNullOrEmpty(result.ErrorMessage) ? "Payment+failed" : result.ErrorMessage.Replace(" ", "+");
-                return Redirect($"{feURL}/checkout/failure/{result.OrderId}?method=VnPay&code={result.ErrorCode}&message={errorMessage}");
+                return Redirect($"{feURL}/checkout/failure?orderId={result.OrderId}&method=VnPay&code={result.ErrorCode}&message={errorMessage}");
             }
         }
 
@@ -52,7 +52,7 @@ namespace Zenkoi.API.Controllers
                 if (cancel == true || status == "CANCELLED")
                 {
                     var cancelResult = await _paymentService.CheckPaymentStatusByOrderCodeAsync(orderCode);
-                    return Redirect($"{feURL}/checkout/failure/{cancelResult.OrderId ?? 0}?method=PayOS&code=CANCELLED&message=Payment+cancelled");
+                    return Redirect($"{feURL}/checkout/failure?orderId={cancelResult.OrderId ?? 0}&method=PayOS&code=CANCELLED&message=Payment+cancelled");
                 }
 
                 if (status == "PAID")
@@ -64,7 +64,7 @@ namespace Zenkoi.API.Controllers
 
                 if (result.IsSuccess && result.OrderId.HasValue)
                 {
-                    return Redirect($"{feURL}/checkout/success/{result.OrderId}?method=PayOS&amount={result.Amount}");
+                    return Redirect($"{feURL}/checkout/success?orderId={result.OrderId}&method=PayOS&amount={result.Amount}");
                 }
                 else if (result.Status == "Pending")
                 {
@@ -72,12 +72,12 @@ namespace Zenkoi.API.Controllers
                 }
                 else
                 {
-                    return Redirect($"{feURL}/checkout/failure/{result.OrderId ?? 0}?method=PayOS&code=FAILED&message=Payment+failed");
+                    return Redirect($"{feURL}/checkout/failure?orderId={result.OrderId ?? 0}&method=PayOS&code=FAILED&message=Payment+failed");
                 }
             }
             catch (Exception ex)
             {
-                return Redirect($"{feURL}/checkout/failure/0?method=PayOS&code=ERROR&message={ex.Message.Replace(" ", "+")}");
+                return Redirect($"{feURL}/checkout/failure?orderId=0&method=PayOS&code=ERROR&message={ex.Message.Replace(" ", "+")}");
             }
         }
 
