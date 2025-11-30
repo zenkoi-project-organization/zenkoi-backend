@@ -121,14 +121,12 @@ namespace Zenkoi.BLL.Services.Implements
 
                 var beURL = _configuration["BackendURL"] ?? "https://localhost:7087";
 
-                // Build items list from order details
                 var items = order.OrderDetails.Select(od => new ItemData(
                     name: od.KoiFish?.RFID ?? od.PacketFish?.Name ?? "Product",
                     quantity: od.Quantity,
                     price: (int)od.UnitPrice
                 )).ToList();
 
-                // Add shipping fee as separate item if exists
                 if (order.ShippingFee > 0)
                 {
                     items.Add(new ItemData(
@@ -143,7 +141,7 @@ namespace Zenkoi.BLL.Services.Implements
                     amount: (int)order.TotalAmount,
                     description: description,
                     items: items,
-                    cancelUrl: $"{feURL}/checkout/failure",
+                    cancelUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}&cancel=true",
                     returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
                 );
 
@@ -178,7 +176,6 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new Exception("HTTP context not available");
             }
 
-            // Begin transaction with Serializable isolation to prevent retry payment race conditions
             await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 
             try
@@ -332,7 +329,7 @@ namespace Zenkoi.BLL.Services.Implements
                 amount: request.Amount,
                 description: request.Description,
                 items: request.Items,
-                cancelUrl: $"{feURL}/checkout/failure",
+                cancelUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}&cancel=true",
                 returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
             );
 
