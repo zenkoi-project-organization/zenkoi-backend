@@ -42,6 +42,7 @@ namespace Zenkoi.BLL.Services.Implements
                 IncludeProperties = new List<Expression<Func<BreedingProcess, object>>>
         {
             p => p.ClassificationStage
+            
         }
             });
 
@@ -91,6 +92,7 @@ namespace Zenkoi.BLL.Services.Implements
                 pond.PondStatus = PondStatus.Active;
                 await _pondRepo.UpdateAsync(pond);
             }
+            breed.TotalPackage = breed.ClassificationStage.PondQualifiedCount / packet.FishPerPacket;
 
             await _repo.CreateAsync(newPackage);
             await _packetRepo.UpdateAsync(packet);

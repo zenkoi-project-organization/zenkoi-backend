@@ -25,9 +25,9 @@ namespace Zenkoi.API.Controllers
             _fishService =  fishService;
         }
         [HttpPut("spawned/{id:int}")]
-        public async Task<IActionResult> UpdateSpawnedById(int id)
+        public async Task<IActionResult> UpdateSpawned(int id)
         {
-            var breeding = await _service.UpdateStatus(id);
+            var breeding = await _service.UpdateSpawnedStatus(id);
             return Success(breeding,"cập nhật thành công");
         }
         [HttpPut("cancel/{id:int}")]

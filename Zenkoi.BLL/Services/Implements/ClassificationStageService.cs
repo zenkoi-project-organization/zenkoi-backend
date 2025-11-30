@@ -49,10 +49,17 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new InvalidOperationException("quá trình sinh sản đã thất bại hoặc hủy nên không thể update");
             }
+            if(breed.TotalPackage == 0 || breed.TotalFishQualified == 0)
+            {
+                throw new InvalidOperationException("vui lòng kiểm tra đã tạo đủ lô cá chưa hoặc tạo cá chưa");
+            }
             var pond = await _pondRepo.GetByIdAsync(breed.PondId);
             pond.PondStatus = PondStatus.Empty;
             breed.PondId = null;
-            breed.Status = BreedingStatus.Complete;
+            breed.Status = BreedingStatus.Complete; 
+            breed.Result = BreedingResult.Success;
+            breed.EndDate = DateTime.Now;
+
             classìication.Status = ClassificationStatus.Success;
             await _breedRepo.UpdateAsync(breed);
             await _classRepo.UpdateAsync(classìication);

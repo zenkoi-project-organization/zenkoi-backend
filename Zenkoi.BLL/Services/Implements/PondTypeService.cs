@@ -72,7 +72,7 @@ namespace Zenkoi.BLL.Services.Implements
             return new PaginatedList<PondTypeResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
         }
 
-    public async Task<PondTypeResponseDTO?> GetByIdAsync(int id)
+        public async Task<PondTypeResponseDTO?> GetByIdAsync(int id)
         {
             var pondtypes = await _pondtypeRepo.GetByIdAsync(id);
             return _mapper.Map<PondTypeResponseDTO>(pondtypes);
@@ -100,12 +100,29 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var pondtype = await _pondtypeRepo.GetByIdAsync(id);
-            if (pondtype == null) return false;
+        
+            var pondType = await _pondtypeRepo.GetSingleAsync(new QueryOptions<PondType>
+            {
+                Predicate = p => p.Id == id,
+                IncludeProperties = new List<System.Linq.Expressions.Expression<Func<PondType, object>>> {
+                p => p.Ponds
+                }
+            });
+            if (pondType == null)
+                return false;
 
-            await _pondtypeRepo.DeleteAsync(pondtype);
+            if (pondType.Ponds != null && pondType.Ponds.Any(p => !p.IsDeleted))
+            {
+                throw new InvalidOperationException("Không thể xoá loại hồ vì đang có hồ sử dụng loại này.");
+            }
+
+            pondType.IsDeleted = true;
+            pondType.DeletedAt = DateTime.Now;
+
+            await _pondtypeRepo.UpdateAsync(pondType);
             await _unitOfWork.SaveChangesAsync();
+
             return true;
         }
     }
-}
+  }

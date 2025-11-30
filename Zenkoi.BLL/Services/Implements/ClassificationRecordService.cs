@@ -231,7 +231,7 @@ namespace Zenkoi.BLL.Services.Implements
             classification.HighQualifiedCount = record.HighQualifiedCount;
 
             classification.Status = ClassificationStatus.Stage4;
-            breed.TotalFishQualified = classification.HighQualifiedCount;
+            breed.TotalFishQualified = classification.HighQualifiedCount + dto.ShowQualifiedCount;
 
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
