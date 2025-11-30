@@ -13,6 +13,16 @@ namespace Zenkoi.BLL.DTOs.CartDTOs
         public DateTime UpdatedAt { get; set; }
         public List<CartItemResponseDTO> CartItems { get; set; } = new List<CartItemResponseDTO>();
         public decimal TotalPrice { get; set; }
+        public decimal? DiscountAmount { get; set; }
+        public decimal? FinalPrice { get; set; }
+        public PromotionInfoDTO? Promotion { get; set; }
+    }
+
+    public class PromotionInfoDTO
+    {
+        public int Id { get; set; }
+        public string Code { get; set; }
+        public string? Description { get; set; }
     }
 
     public class ConvertCartToOrderDTO

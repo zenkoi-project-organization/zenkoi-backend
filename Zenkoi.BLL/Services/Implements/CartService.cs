@@ -20,13 +20,16 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<KoiFish> _koiFishRepo;
         private readonly IRepoBase<PacketFish> _packetFishRepo;
         private readonly IRepoBase<Promotion> _promotionRepo;
+        private readonly IPromotionService _promotionService;
 
         public CartService(
             IUnitOfWork unitOfWork,
-            IMapper mapper)
+            IMapper mapper,
+            IPromotionService promotionService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _promotionService = promotionService;
             _cartRepo = _unitOfWork.GetRepo<Cart>();
             _cartItemRepo = _unitOfWork.GetRepo<CartItem>();
             _customerRepo = _unitOfWork.GetRepo<Customer>();
@@ -63,6 +66,8 @@ namespace Zenkoi.BLL.Services.Implements
 
                 // UnitPrice already calculated above, no need to recalculate
             }
+
+            await CalculateAndApplyPromotionAsync(cartResponse);
 
             return cartResponse;
         }
@@ -122,6 +127,8 @@ namespace Zenkoi.BLL.Services.Implements
                     item.ItemTotalPrice = item.PacketFish.PricePerPacket * item.Quantity;
                 }
             }
+
+            await CalculateAndApplyPromotionAsync(cartResponse);
 
             return cartResponse;
         }
@@ -612,6 +619,62 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             return Math.Min(discountAmount, subtotal);
+        }
+
+        private async Task CalculateAndApplyPromotionAsync(CartResponseDTO cartResponse)
+        {
+            try
+            {
+                var currentPromotion = await _promotionService.GetCurrentActivePromotionAsync();
+                
+                if (currentPromotion == null)
+                {
+                    cartResponse.DiscountAmount = 0;
+                    cartResponse.FinalPrice = cartResponse.TotalPrice;
+                    cartResponse.Promotion = null;
+                    return;
+                }
+
+                if (cartResponse.TotalPrice < currentPromotion.MinimumOrderAmount)
+                {
+                    cartResponse.DiscountAmount = 0;
+                    cartResponse.FinalPrice = cartResponse.TotalPrice;
+                    cartResponse.Promotion = null;
+                    return;
+                }
+                decimal discountAmount = 0;
+
+                if (currentPromotion.DiscountType == DiscountType.Percentage)
+                {
+                    discountAmount = cartResponse.TotalPrice * (currentPromotion.DiscountValue / 100m);
+
+                    if (currentPromotion.MaxDiscountAmount.HasValue)
+                    {
+                        discountAmount = Math.Min(discountAmount, currentPromotion.MaxDiscountAmount.Value);
+                    }
+                }
+                else if (currentPromotion.DiscountType == DiscountType.FixedAmount)
+                {
+                    discountAmount = currentPromotion.DiscountValue;
+                }
+
+                discountAmount = Math.Min(discountAmount, cartResponse.TotalPrice);
+
+                cartResponse.DiscountAmount = discountAmount;
+                cartResponse.FinalPrice = cartResponse.TotalPrice - discountAmount;
+                cartResponse.Promotion = new PromotionInfoDTO
+                {
+                    Id = currentPromotion.Id,
+                    Code = currentPromotion.Code,
+                    Description = currentPromotion.Description
+                };
+            }
+            catch
+            {
+                cartResponse.DiscountAmount = 0;
+                cartResponse.FinalPrice = cartResponse.TotalPrice;
+                cartResponse.Promotion = null;
+            }
         }
 
     }
