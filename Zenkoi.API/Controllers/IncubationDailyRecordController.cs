@@ -37,7 +37,7 @@ namespace Zenkoi.API.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] IncubationDailyRecordRequestDTO dto)
+        public async Task<IActionResult> CreateIncubationDailyRecord([FromBody] IncubationDailyRecordRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();
@@ -47,7 +47,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost("v2")]
-        public async Task<IActionResult> CreateV2([FromBody] IncubationDailyRecordRequestV2DTO dto)
+        public async Task<IActionResult> CreateIncubationDailyRecordV2([FromBody] IncubationDailyRecordRequestV2DTO dto)
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();

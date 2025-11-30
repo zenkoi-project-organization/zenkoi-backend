@@ -426,7 +426,7 @@ namespace Zenkoi.BLL.Services.Implements
             return $"BP-{nextNumber}";
         }
            
-        public async Task<bool> UpdateStatus(int id)
+        public async Task<bool> UpdateSpawnedStatus(int id)
         {
             var _koifish = _unitOfWork.GetRepo<KoiFish>();
             var breed = await _breedRepo.GetByIdAsync(id);

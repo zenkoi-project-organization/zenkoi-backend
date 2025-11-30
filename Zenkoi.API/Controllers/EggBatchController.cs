@@ -49,7 +49,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] EggBatchRequestDTO dto)
+        public async Task<IActionResult> CreateEggBatch([FromBody] EggBatchRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();
