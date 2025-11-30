@@ -77,7 +77,7 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<AreaResponseDTO> CreateAsync(AreaRequestDTO dto)
         {
-            
+
             var entity = _mapper.Map<Area>(dto);
             await _areaRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
@@ -88,9 +88,9 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var area = await _areaRepo.GetByIdAsync(id);
             if (area == null) if (area == null)
-             {
+                {
                     throw new KeyNotFoundException("không tìm thấy ví trí");
-            }
+                }
             _mapper.Map(dto, area);
             await _areaRepo.UpdateAsync(area);
             await _unitOfWork.SaveChangesAsync();
@@ -99,15 +99,31 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var area = await _areaRepo.GetByIdAsync(id);
+            var area = await _areaRepo.GetSingleAsync(new QueryOptions<Area>
+            {
+                Predicate = area => area.Id == id,
+                IncludeProperties = new List<Expression<Func<Area, object>>> {
+                p => p.Ponds
+                }
+            });
             if (area == null)
             {
-                throw new KeyNotFoundException("không tìm thấy ví trí");
+                throw new KeyNotFoundException("Không tìm thấy vị trí");
             }
 
-            await _areaRepo.DeleteAsync(area);
+            if (area.Ponds != null && area.Ponds.Any(p => !p.IsDeleted))
+            {
+                throw new InvalidOperationException("Không thể xóa Area vì đang có hồ thuộc khu vực này.");
+            }
+
+            area.IsDeleted = true;
+            area.DeletedAt = DateTime.Now;
+            area.UpdatedAt = DateTime.Now;
+
+            await _areaRepo.UpdateAsync(area);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
+
     }
 }
