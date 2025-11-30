@@ -121,6 +121,25 @@ namespace Zenkoi.BLL.Services.Implements
 		{
 			try
 			{
+				int? orderIdFromQuery = null;
+				if (queryParams.ContainsKey("vnp_TxnRef"))
+				{
+					var txnRefStr = queryParams["vnp_TxnRef"].ToString();
+					if (long.TryParse(txnRefStr, out var txnRef))
+					{
+						var paymentTransactionFromQuery = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+							new QueryBuilder<PaymentTransaction>()
+							.WithPredicate(pt => pt.Id == txnRef && pt.PaymentMethod == "VnPay")
+							.WithOrderBy(q => q.OrderByDescending(pt => pt.CreatedAt))
+							.Build());
+
+						if (paymentTransactionFromQuery != null && paymentTransactionFromQuery.ActualOrderId.HasValue)
+						{
+							orderIdFromQuery = paymentTransactionFromQuery.ActualOrderId.Value;
+						}
+					}
+				}
+
 				var vnpayRes = PaymentExcute(queryParams);
 
 				if (!vnpayRes.IsSuccess)
@@ -129,7 +148,8 @@ namespace Zenkoi.BLL.Services.Implements
 					{
 						IsSuccess = false,
 						ErrorCode = "97",
-						ErrorMessage = "Invalid signature"
+						ErrorMessage = "Invalid signature",
+						OrderId = orderIdFromQuery
 					};
 				}
 				var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
@@ -274,12 +294,32 @@ namespace Zenkoi.BLL.Services.Implements
 				}
 			}
 			catch (Exception ex)
-			{			
+			{
+				int? orderIdFromQuery = null;
+				if (queryParams.ContainsKey("vnp_TxnRef"))
+				{
+					var txnRefStr = queryParams["vnp_TxnRef"].ToString();
+					if (long.TryParse(txnRefStr, out var txnRef))
+					{
+						var paymentTransactionFromQuery = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+							new QueryBuilder<PaymentTransaction>()
+							.WithPredicate(pt => pt.Id == txnRef && pt.PaymentMethod == "VnPay")
+							.WithOrderBy(q => q.OrderByDescending(pt => pt.CreatedAt))
+							.Build());
+
+						if (paymentTransactionFromQuery != null && paymentTransactionFromQuery.ActualOrderId.HasValue)
+						{
+							orderIdFromQuery = paymentTransactionFromQuery.ActualOrderId.Value;
+						}
+					}
+				}
+
 				return new VnPayCallbackResultDTO
 				{
 					IsSuccess = false,
 					ErrorCode = "99",
-					ErrorMessage = ex.Message
+					ErrorMessage = ex.Message,
+					OrderId = orderIdFromQuery
 				};
 			}
 		}
