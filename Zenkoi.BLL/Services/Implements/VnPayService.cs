@@ -220,6 +220,8 @@ namespace Zenkoi.BLL.Services.Implements
 							new UpdateOrderStatusDTO { Status = OrderStatus.Processing }
 						);
 
+						await _orderService.UpdateInventoryAfterPaymentSuccessAsync(actualOrderId.Value);
+
 						var payment = new Payment
 						{
 							OrderId = actualOrderId.Value,

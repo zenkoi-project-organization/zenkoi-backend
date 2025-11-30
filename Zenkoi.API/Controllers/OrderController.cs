@@ -130,7 +130,6 @@ namespace Zenkoi.API.Controllers
         /// <param name="pageSize">Số lượng mục trên mỗi trang (mặc định: 10)</param>
         /// <returns>Danh sách đơn hàng đã phân trang</returns>
         [HttpGet("all")]
-        [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetAllOrders(
             [FromQuery] OrderFilterRequestDTO filter,
             [FromQuery] int pageIndex = 1,
