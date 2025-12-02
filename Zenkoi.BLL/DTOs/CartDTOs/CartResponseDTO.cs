@@ -46,5 +46,8 @@ namespace Zenkoi.BLL.DTOs.CartDTOs
         public decimal ItemTotalPrice { get; set; }
         public DateTime AddedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public bool IsAvailable { get; set; }
+        public string? UnavailableReason { get; set; }
+        public int? AvailableStock { get; set; }
     }
 

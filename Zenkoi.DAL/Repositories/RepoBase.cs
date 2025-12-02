@@ -69,6 +69,14 @@ namespace Zenkoi.DAL.Repositories
                 }
             }
 
+            if (options.ThenIncludeExpressions?.Any() ?? false)
+            {
+                foreach (var thenIncludeExpression in options.ThenIncludeExpressions)
+                {
+                    query = thenIncludeExpression(query);
+                }
+            }
+
             if (options.Predicate != null)
             {
                 query = query.Where(options.Predicate);

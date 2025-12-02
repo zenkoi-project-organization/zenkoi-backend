@@ -1,4 +1,6 @@
 ﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Zenkoi.DAL.Queries
 {
@@ -40,6 +42,12 @@ namespace Zenkoi.DAL.Queries
 		public QueryBuilder<T> WithInclude(params string[] includeStrings)
 		{
 			_options.IncludeStrings.AddRange(includeStrings);
+			return this;
+		}
+
+		public QueryBuilder<T> WithThenInclude(Func<IQueryable<T>, IIncludableQueryable<T, object>> includeExpression)
+		{
+			_options.ThenIncludeExpressions.Add(includeExpression);
 			return this;
 		}
 

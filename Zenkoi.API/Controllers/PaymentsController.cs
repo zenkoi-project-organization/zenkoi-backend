@@ -40,6 +40,12 @@ namespace Zenkoi.API.Controllers
                 var orderId = result.OrderId ?? 0;
                 var errorMessage = string.IsNullOrEmpty(result.ErrorMessage) ? "Payment+failed" : result.ErrorMessage.Replace(" ", "+");
                 var errorCode = string.IsNullOrEmpty(result.ErrorCode) ? "FAILED" : result.ErrorCode;
+
+                if (orderId > 0)
+                {
+                    await _paymentService.CancelOrderAndReleaseInventoryAsync(orderId);
+                }
+
                 return Redirect($"{feURL}/checkout/failure?orderId={orderId}&method=VnPay&code={errorCode}&message={errorMessage}");
             }
         }
@@ -56,6 +62,13 @@ namespace Zenkoi.API.Controllers
                 {
                     var cancelResult = await _paymentService.CheckPaymentStatusByOrderCodeAsync(orderCode);
                     var orderId = cancelResult.OrderId ?? 0;
+
+                    // Auto-cancel the order to release reserved inventory
+                    if (orderId > 0)
+                    {
+                        await _paymentService.CancelOrderAndReleaseInventoryAsync(orderId);
+                    }
+
                     return Redirect($"{feURL}/checkout/failure?orderId={orderId}&method=PayOS&code=CANCELLED&message=Payment+cancelled");
                 }
 

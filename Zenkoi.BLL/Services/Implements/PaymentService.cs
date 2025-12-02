@@ -51,6 +51,19 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception("Order status is not valid for payment. Order must be in Pending status.");
             }
+
+            var existingPayment = await _unitOfWork.GetRepo<Payment>().GetSingleAsync(
+                new QueryBuilder<Payment>()
+                .WithPredicate(p => p.OrderId == orderId)
+                .Build());
+
+            if (existingPayment != null)
+            {
+                throw new Exception("Order has already been paid");
+            }
+
+            await _orderService.ValidateOrderItemsAvailabilityAsync(order);
+
             var customer = await _unitOfWork.GetRepo<Customer>().GetSingleAsync(
                 new QueryBuilder<Customer>()
                 .WithPredicate(c => c.Id == order.CustomerId)
@@ -423,5 +436,30 @@ namespace Zenkoi.BLL.Services.Implements
                 UpdatedAt = paymentTransaction.UpdatedAt
             };
         }
+
+        public async Task CancelOrderAndReleaseInventoryAsync(int orderId)
+        {
+            try
+            {
+                var order = await _orderService.GetOrderByIdAsync(orderId);
+
+                if (order == null)
+                {
+                    return; 
+                }
+                if (order.Status != OrderStatus.Pending)
+                {
+                    return;
+                }
+                await _orderService.UpdateOrderStatusAsync(orderId, new Zenkoi.BLL.DTOs.OrderDTOs.UpdateOrderStatusDTO
+                {
+                    Status = OrderStatus.Cancelled
+                });
+            }
+            catch (Exception)
+            {
+            }
+        }
+
     }
 }

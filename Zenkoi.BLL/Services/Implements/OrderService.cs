@@ -115,8 +115,8 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(o => o.Customer.ApplicationUser)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
-                .WithInclude("OrderDetails.KoiFish")
-                .WithInclude("OrderDetails.PacketFish")
+                .WithThenInclude(q => q.Include(o => o.OrderDetails).ThenInclude(od => od.KoiFish))
+                .WithThenInclude(q => q.Include(o => o.OrderDetails).ThenInclude(od => od.PacketFish))
                 .WithOrderBy(o => o.OrderByDescending(x => x.CreatedAt));
 
             queryBuilder.WithPredicate(o => o.CustomerId == customerId);
@@ -143,8 +143,8 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(o => o.Customer.ApplicationUser)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
-                .WithInclude("OrderDetails.KoiFish")
-                .WithInclude("OrderDetails.PacketFish")
+                .WithThenInclude(q => q.Include(o => o.OrderDetails).ThenInclude(od => od.KoiFish))
+                .WithThenInclude(q => q.Include(o => o.OrderDetails).ThenInclude(od => od.PacketFish))
                 .WithOrderBy(o => o.OrderByDescending(x => x.CreatedAt));
 
             ApplyOrderFilters(queryBuilder, filter);
@@ -173,6 +173,12 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new InvalidOperationException(
                     $"Cannot transition from {order.Status} to {updateOrderStatusDTO.Status}");
+            }
+
+            // If order is being cancelled, rollback inventory reservation
+            if (updateOrderStatusDTO.Status == OrderStatus.Cancelled)
+            {
+                await RollbackInventoryReservationAsync(id);
             }
 
             order.Status = updateOrderStatusDTO.Status;
@@ -289,17 +295,20 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task UpdateInventoryAfterPaymentSuccessAsync(int orderId)
         {
+            // NOTE: Inventory reservation already happened in ConvertCartToOrderAsync
+            // This method only confirms the sale after successful payment
+
             var order = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
                 .WithPredicate(o => o.Id == orderId)
                 .WithInclude(o => o.OrderDetails)
                 .Build());
 
             if (order == null)
-            {
                 throw new ArgumentException($"Order with ID {orderId} not found");
-            }
+
             foreach (var orderDetail in order.OrderDetails)
             {
+                // For KoiFish: Change from NotForSale (reserved) to Sold (confirmed)
                 if (orderDetail.KoiFishId.HasValue)
                 {
                     var koiFish = await _koiFishRepo.GetByIdAsync(orderDetail.KoiFishId.Value);
@@ -310,6 +319,8 @@ namespace Zenkoi.BLL.Services.Implements
                     }
                 }
 
+                // For PacketFish: Just update SoldQuantity for tracking
+                // AvailableQuantity was already deducted in ConvertCartToOrderAsync
                 if (orderDetail.PacketFishId.HasValue)
                 {
                     var packetFish = await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
@@ -323,23 +334,16 @@ namespace Zenkoi.BLL.Services.Implements
                         int remainingQty = orderDetail.Quantity;
 
                         foreach (var pondPacket in packetFish.PondPacketFishes
-                            .Where(ppf => ppf.IsActive && ppf.AvailableQuantity > 0)
+                            .Where(ppf => ppf.IsActive)
                             .OrderBy(ppf => ppf.Id))
                         {
                             if (remainingQty <= 0) break;
 
-                            int deduct = Math.Min(pondPacket.AvailableQuantity, remainingQty);
-                            pondPacket.AvailableQuantity -= deduct;
-                            pondPacket.SoldQuantity += deduct;
-                            remainingQty -= deduct;
+                            int toConfirm = Math.Min(remainingQty, orderDetail.Quantity);
+                            pondPacket.SoldQuantity += toConfirm;
+                            remainingQty -= toConfirm;
 
                             await pondPacketFishRepo.UpdateAsync(pondPacket);
-                        }
-                        if (remainingQty > 0)
-                        {
-                            throw new InvalidOperationException(
-                                $"Insufficient stock for PacketFish ID {orderDetail.PacketFishId}. " +
-                                $"Still need {remainingQty} more items.");
                         }
                     }
                 }
@@ -387,6 +391,211 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             return Math.Min(discountAmount, subtotal);
+        }
+
+        public async Task ValidateOrderItemsAvailabilityAsync(OrderResponseDTO order)
+        {
+            if (order.OrderDetails == null || !order.OrderDetails.Any())
+            {
+                throw new InvalidOperationException("Order has no items");
+            }
+
+            foreach (var orderDetail in order.OrderDetails)
+            {
+                await ValidateOrderItemForPaymentAsync(
+                    orderDetail.KoiFishId,
+                    orderDetail.PacketFishId,
+                    orderDetail.Quantity,
+                    order.Id);
+            }
+        }
+
+        public async Task ValidateCartItemsAvailabilityAsync(IEnumerable<CartItem> cartItems)
+        {
+            if (cartItems == null || !cartItems.Any())
+            {
+                throw new InvalidOperationException("Cart has no items");
+            }
+
+            foreach (var cartItem in cartItems)
+            {
+                await ValidateItemAvailabilityAsync(
+                    cartItem.KoiFishId,
+                    cartItem.PacketFishId,
+                    cartItem.Quantity);
+            }
+        }
+        private async Task ValidateItemAvailabilityAsync(int? koiFishId, int? packetFishId, int quantity)
+        {
+            if (koiFishId.HasValue)
+            {
+                var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId.Value);
+                if (koiFish == null)
+                {
+                    throw new InvalidOperationException($"KoiFish with ID {koiFishId} not found");
+                }
+                if (koiFish.SaleStatus != SaleStatus.Available)
+                {
+                    throw new InvalidOperationException(
+                        $"KoiFish with RFID '{koiFish.RFID}' is no longer available for sale");
+                }
+            }
+
+            if (packetFishId.HasValue)
+            {
+                var packetFish = await _packetFishRepo.GetSingleAsync(
+                    new QueryBuilder<PacketFish>()
+                    .WithPredicate(pf => pf.Id == packetFishId.Value)
+                    .WithInclude(pf => pf.PondPacketFishes)
+                    .Build());
+
+                if (packetFish == null)
+                {
+                    throw new InvalidOperationException($"PacketFish with ID {packetFishId} not found");
+                }
+                if (!packetFish.IsAvailable)
+                {
+                    throw new InvalidOperationException(
+                        $"PacketFish '{packetFish.Name}' is no longer available");
+                }
+
+                var totalAvailable = packetFish.PondPacketFishes
+                    .Where(ppf => ppf.IsActive)
+                    .Sum(ppf => ppf.AvailableQuantity);
+
+                if (totalAvailable < quantity)
+                {
+                    throw new InvalidOperationException(
+                        $"Insufficient stock for PacketFish '{packetFish.Name}'. " +
+                        $"Requested: {quantity}, Available: {totalAvailable}");
+                }
+            }
+        }
+
+        private async Task ValidateOrderItemForPaymentAsync(int? koiFishId, int? packetFishId, int quantity, int orderId)
+        {
+            if (koiFishId.HasValue)
+            {
+                var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId.Value);
+                if (koiFish == null)
+                {
+                    throw new InvalidOperationException($"KoiFish with ID {koiFishId} not found");
+                }
+
+                if (koiFish.SaleStatus == SaleStatus.Sold)
+                {
+                    throw new InvalidOperationException(
+                        $"KoiFish with RFID '{koiFish.RFID}' has already been sold");
+                }
+
+                if (koiFish.SaleStatus == SaleStatus.NotForSale)
+                { 
+                    var orderDetail = await _orderDetailRepo.GetSingleAsync(
+                        new QueryBuilder<OrderDetail>()
+                        .WithPredicate(od => od.OrderId == orderId && od.KoiFishId == koiFishId.Value)
+                        .Build());
+
+                    if (orderDetail == null)
+                    {                   
+                        throw new InvalidOperationException(
+                            $"KoiFish with RFID '{koiFish.RFID}' is not available for this order");
+                    }
+                }
+            }
+
+            if (packetFishId.HasValue)
+            {
+                var packetFish = await _packetFishRepo.GetSingleAsync(
+                    new QueryBuilder<PacketFish>()
+                    .WithPredicate(pf => pf.Id == packetFishId.Value)
+                    .WithInclude(pf => pf.PondPacketFishes)
+                    .Build());
+
+                if (packetFish == null)
+                {
+                    throw new InvalidOperationException($"PacketFish with ID {packetFishId} not found");
+                }
+                if (!packetFish.IsAvailable)
+                {
+                    throw new InvalidOperationException(
+                        $"PacketFish '{packetFish.Name}' is no longer available");
+                }
+                var orderDetail = await _orderDetailRepo.GetSingleAsync(
+                    new QueryBuilder<OrderDetail>()
+                    .WithPredicate(od => od.OrderId == orderId && od.PacketFishId == packetFishId.Value)
+                    .Build());
+
+                if (orderDetail == null)
+                {
+                    throw new InvalidOperationException(
+                        $"PacketFish '{packetFish.Name}' is not part of this order");
+                }
+                var totalAvailable = packetFish.PondPacketFishes
+                    .Where(ppf => ppf.IsActive)
+                    .Sum(ppf => ppf.AvailableQuantity);
+                if (totalAvailable < 0)
+                {
+                    throw new InvalidOperationException(
+                        $"PacketFish '{packetFish.Name}' has insufficient stock");
+                }
+            }
+        }
+        private async Task RollbackInventoryReservationAsync(int orderId)
+        {
+            var order = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
+                .WithPredicate(o => o.Id == orderId)
+                .WithInclude(o => o.OrderDetails)
+                .Build());
+
+            if (order == null)
+                throw new ArgumentException($"Order with ID {orderId} not found");
+
+            if (order.Status != OrderStatus.Pending)
+            {
+                return;
+            }
+
+            foreach (var orderDetail in order.OrderDetails)
+            {             
+                if (orderDetail.KoiFishId.HasValue)
+                {
+                    var koiFish = await _koiFishRepo.GetByIdAsync(orderDetail.KoiFishId.Value);
+                    if (koiFish != null && koiFish.SaleStatus == SaleStatus.NotForSale)
+                    {
+                        koiFish.SaleStatus = SaleStatus.Available;
+                        await _koiFishRepo.UpdateAsync(koiFish);
+                    }
+                }
+
+                if (orderDetail.PacketFishId.HasValue)
+                {
+                    var packetFish = await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
+                        .WithPredicate(pf => pf.Id == orderDetail.PacketFishId.Value)
+                        .WithInclude(pf => pf.PondPacketFishes)
+                        .Build());
+
+                    if (packetFish != null)
+                    {
+                        var pondPacketFishRepo = _unitOfWork.GetRepo<PondPacketFish>();
+                        int remainingQty = orderDetail.Quantity;
+
+                        foreach (var pondPacket in packetFish.PondPacketFishes
+                            .Where(ppf => ppf.IsActive)
+                            .OrderBy(ppf => ppf.Id))
+                        {
+                            if (remainingQty <= 0) break;
+
+                            int toAddBack = Math.Min(remainingQty, orderDetail.Quantity);
+                            pondPacket.AvailableQuantity += toAddBack;
+                            remainingQty -= toAddBack;
+
+                            await pondPacketFishRepo.UpdateAsync(pondPacket);
+                        }
+                    }
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
     }
