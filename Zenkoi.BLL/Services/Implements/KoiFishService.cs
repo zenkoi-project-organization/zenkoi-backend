@@ -164,7 +164,7 @@ namespace Zenkoi.BLL.Services.Implements
                 var koiIds = mapped.Select(k => k.Id).ToList();
                 var userFavorites = await _koiFavoriteRepo.GetAllAsync(new QueryOptions<KoiFavorite>
                 {
-                    Predicate = f => f.UserId == userId.Value && koiIds.Contains(f.KoiFishId),
+                    Predicate = f => f.CustomerId == userId.Value && koiIds.Contains(f.KoiFishId),
                     Tracked = false
                 });
 

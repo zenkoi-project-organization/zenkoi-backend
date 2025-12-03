@@ -21,6 +21,7 @@ namespace Zenkoi.DAL.Entities
         public DateTime? UpdatedAt { get; set; }
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<CustomerAddress> CustomerAddresses { get; set; } = new List<CustomerAddress>();
+        public ICollection<KoiFavorite> KoiFavorites { get; set; } = new List<KoiFavorite>();
         public Cart? Cart { get; set; }
     }
 }
