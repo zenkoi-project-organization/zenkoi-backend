@@ -39,8 +39,8 @@ namespace Zenkoi.BLL.Services.Implements
 				vnpay.AddRequestData("vnp_Command", _vnPayConfig.Command);
 				vnpay.AddRequestData("vnp_TmnCode", _vnPayConfig.TmnCode);
 
-				var amountInVND = (vnPayRequest.Amount * 100).ToString("F0");
-				vnpay.AddRequestData("vnp_Amount", amountInVND);
+				var amountInXu = (long)Math.Round(vnPayRequest.Amount * 100, 0);
+				vnpay.AddRequestData("vnp_Amount", amountInXu.ToString());
 
 				var createDate = vnPayRequest.CreatedDate.ToString("yyyyMMddHHmmss");
 				vnpay.AddRequestData("vnp_CreateDate", createDate);
@@ -121,6 +121,25 @@ namespace Zenkoi.BLL.Services.Implements
 		{
 			try
 			{
+				int? orderIdFromQuery = null;
+				if (queryParams.ContainsKey("vnp_TxnRef"))
+				{
+					var txnRefStr = queryParams["vnp_TxnRef"].ToString();
+					if (long.TryParse(txnRefStr, out var txnRef))
+					{
+						var paymentTransactionFromQuery = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+							new QueryBuilder<PaymentTransaction>()
+							.WithPredicate(pt => pt.Id == txnRef && pt.PaymentMethod == "VnPay")
+							.WithOrderBy(q => q.OrderByDescending(pt => pt.CreatedAt))
+							.Build());
+
+						if (paymentTransactionFromQuery != null && paymentTransactionFromQuery.ActualOrderId.HasValue)
+						{
+							orderIdFromQuery = paymentTransactionFromQuery.ActualOrderId.Value;
+						}
+					}
+				}
+
 				var vnpayRes = PaymentExcute(queryParams);
 
 				if (!vnpayRes.IsSuccess)
@@ -129,7 +148,8 @@ namespace Zenkoi.BLL.Services.Implements
 					{
 						IsSuccess = false,
 						ErrorCode = "97",
-						ErrorMessage = "Invalid signature"
+						ErrorMessage = "Invalid signature",
+						OrderId = orderIdFromQuery
 					};
 				}
 				var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
@@ -190,7 +210,16 @@ namespace Zenkoi.BLL.Services.Implements
 					};
 				}
 
-				if (Math.Abs(order.TotalAmount - (decimal)vnpayRes.Amount) > 0.01m)
+				var vnp_Amount = queryParams["vnp_Amount"].ToString();
+				if (!long.TryParse(vnp_Amount, out var rawAmountFromVnPay))
+				{
+					rawAmountFromVnPay = 0;
+				}
+			
+				var orderAmountInXu = (long)(order.TotalAmount * 100);
+				var amountDifference = Math.Abs(rawAmountFromVnPay - orderAmountInXu);
+
+				if (amountDifference > 1)
 				{
 					paymentTransaction.Status = Failed;
 					paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
@@ -207,10 +236,28 @@ namespace Zenkoi.BLL.Services.Implements
 				}
 				if (vnpayRes.VnPayResponseCode == "00")
 				{
-					await _unitOfWork.BeginTransactionAsync();
+					await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 					try
 					{
+						var idempotencyKey = $"{actualOrderId.Value}_{vnpayRes.TransactionId}";
+						var existingSuccessPayment = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+							new QueryBuilder<PaymentTransaction>()
+							.WithPredicate(pt => pt.IdempotencyKey == idempotencyKey && pt.Status == Success)
+							.Build());
+
+						if (existingSuccessPayment != null)
+						{
+							await _unitOfWork.RollBackAsync();
+							return new VnPayCallbackResultDTO
+							{
+								IsSuccess = true,
+								OrderId = actualOrderId.Value,
+								Amount = (decimal)vnpayRes.Amount
+							};
+						}
+
 						paymentTransaction.Status = Success;
+						paymentTransaction.IdempotencyKey = idempotencyKey;
 						paymentTransaction.TransactionId = vnpayRes.TransactionId.ToString();
 						paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
 						paymentTransaction.UpdatedAt = DateTime.UtcNow;
@@ -274,12 +321,32 @@ namespace Zenkoi.BLL.Services.Implements
 				}
 			}
 			catch (Exception ex)
-			{			
+			{
+				int? orderIdFromQuery = null;
+				if (queryParams.ContainsKey("vnp_TxnRef"))
+				{
+					var txnRefStr = queryParams["vnp_TxnRef"].ToString();
+					if (long.TryParse(txnRefStr, out var txnRef))
+					{
+						var paymentTransactionFromQuery = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+							new QueryBuilder<PaymentTransaction>()
+							.WithPredicate(pt => pt.Id == txnRef && pt.PaymentMethod == "VnPay")
+							.WithOrderBy(q => q.OrderByDescending(pt => pt.CreatedAt))
+							.Build());
+
+						if (paymentTransactionFromQuery != null && paymentTransactionFromQuery.ActualOrderId.HasValue)
+						{
+							orderIdFromQuery = paymentTransactionFromQuery.ActualOrderId.Value;
+						}
+					}
+				}
+
 				return new VnPayCallbackResultDTO
 				{
 					IsSuccess = false,
 					ErrorCode = "99",
-					ErrorMessage = ex.Message
+					ErrorMessage = ex.Message,
+					OrderId = orderIdFromQuery
 				};
 			}
 		}

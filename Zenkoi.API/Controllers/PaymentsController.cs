@@ -32,12 +32,21 @@ namespace Zenkoi.API.Controllers
 
             if (result.IsSuccess)
             {
-                return Redirect($"{feURL}/checkout/success?orderId={result.OrderId}&method=VnPay&amount={result.Amount}");
+                var orderId = result.OrderId ?? 0;
+                return Redirect($"{feURL}/checkout/success?orderId={orderId}&method=VnPay&amount={result.Amount}");
             }
             else
             {
+                var orderId = result.OrderId ?? 0;
                 var errorMessage = string.IsNullOrEmpty(result.ErrorMessage) ? "Payment+failed" : result.ErrorMessage.Replace(" ", "+");
-                return Redirect($"{feURL}/checkout/failure?orderId={result.OrderId}&method=VnPay&code={result.ErrorCode}&message={errorMessage}");
+                var errorCode = string.IsNullOrEmpty(result.ErrorCode) ? "FAILED" : result.ErrorCode;
+
+                if (orderId > 0)
+                {
+                    await _paymentService.CancelOrderAndReleaseInventoryAsync(orderId);
+                }
+
+                return Redirect($"{feURL}/checkout/failure?orderId={orderId}&method=VnPay&code={errorCode}&message={errorMessage}");
             }
         }
 
@@ -52,7 +61,15 @@ namespace Zenkoi.API.Controllers
                 if (cancel == true || status == "CANCELLED")
                 {
                     var cancelResult = await _paymentService.CheckPaymentStatusByOrderCodeAsync(orderCode);
-                    return Redirect($"{feURL}/checkout/failure?orderId={cancelResult.OrderId ?? 0}&method=PayOS&code=CANCELLED&message=Payment+cancelled");
+                    var orderId = cancelResult.OrderId ?? 0;
+
+                    // Auto-cancel the order to release reserved inventory
+                    if (orderId > 0)
+                    {
+                        await _paymentService.CancelOrderAndReleaseInventoryAsync(orderId);
+                    }
+
+                    return Redirect($"{feURL}/checkout/failure?orderId={orderId}&method=PayOS&code=CANCELLED&message=Payment+cancelled");
                 }
 
                 if (status == "PAID")
@@ -68,16 +85,29 @@ namespace Zenkoi.API.Controllers
                 }
                 else if (result.Status == "Pending")
                 {
-                    return Redirect($"{feURL}/checkout/pending/{result.OrderId ?? 0}?method=PayOS&orderCode={orderCode}");
+                    var orderId = result.OrderId ?? 0;
+                    return Redirect($"{feURL}/checkout/pending/{orderId}?method=PayOS&orderCode={orderCode}");
                 }
                 else
                 {
-                    return Redirect($"{feURL}/checkout/failure?orderId={result.OrderId ?? 0}&method=PayOS&code=FAILED&message=Payment+failed");
+                    var orderId = result.OrderId ?? 0;
+                    return Redirect($"{feURL}/checkout/failure?orderId={orderId}&method=PayOS&code=FAILED&message=Payment+failed");
                 }
             }
             catch (Exception ex)
             {
-                return Redirect($"{feURL}/checkout/failure?orderId=0&method=PayOS&code=ERROR&message={ex.Message.Replace(" ", "+")}");
+                int? orderId = null;
+                try
+                {
+                    var result = await _paymentService.CheckPaymentStatusByOrderCodeAsync(orderCode);
+                    orderId = result.OrderId ?? 0;
+                }
+                catch
+                {
+                    orderId = 0;
+                }
+                var errorMessage = ex.Message.Replace(" ", "+");
+                return Redirect($"{feURL}/checkout/failure?orderId={orderId}&method=PayOS&code=ERROR&message={errorMessage}");
             }
         }
 

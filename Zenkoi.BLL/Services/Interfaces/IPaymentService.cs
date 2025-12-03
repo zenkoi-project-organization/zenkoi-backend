@@ -15,5 +15,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<IEnumerable<PaymentTransaction>> GetPaymentHistoryAsync(int userId);
         Task<PaymentTransaction?> GetPaymentStatusAsync(string orderId);
         Task<PaymentStatusResponseDTO> CheckPaymentStatusByOrderCodeAsync(int orderCode);
+        Task CancelOrderAndReleaseInventoryAsync(int orderId);
     }
 }

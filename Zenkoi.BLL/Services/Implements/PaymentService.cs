@@ -51,6 +51,19 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception("Order status is not valid for payment. Order must be in Pending status.");
             }
+
+            var existingPayment = await _unitOfWork.GetRepo<Payment>().GetSingleAsync(
+                new QueryBuilder<Payment>()
+                .WithPredicate(p => p.OrderId == orderId)
+                .Build());
+
+            if (existingPayment != null)
+            {
+                throw new Exception("Order has already been paid");
+            }
+
+            await _orderService.ValidateOrderItemsAvailabilityAsync(order);
+
             var customer = await _unitOfWork.GetRepo<Customer>().GetSingleAsync(
                 new QueryBuilder<Customer>()
                 .WithPredicate(c => c.Id == order.CustomerId)
@@ -121,14 +134,12 @@ namespace Zenkoi.BLL.Services.Implements
 
                 var beURL = _configuration["BackendURL"] ?? "https://localhost:7087";
 
-                // Build items list from order details
                 var items = order.OrderDetails.Select(od => new ItemData(
                     name: od.KoiFish?.RFID ?? od.PacketFish?.Name ?? "Product",
                     quantity: od.Quantity,
                     price: (int)od.UnitPrice
                 )).ToList();
 
-                // Add shipping fee as separate item if exists
                 if (order.ShippingFee > 0)
                 {
                     items.Add(new ItemData(
@@ -143,7 +154,7 @@ namespace Zenkoi.BLL.Services.Implements
                     amount: (int)order.TotalAmount,
                     description: description,
                     items: items,
-                    cancelUrl: $"{feURL}/checkout/failure",
+                    cancelUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}&cancel=true",
                     returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
                 );
 
@@ -178,7 +189,6 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new Exception("HTTP context not available");
             }
 
-            // Begin transaction with Serializable isolation to prevent retry payment race conditions
             await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 
             try
@@ -332,7 +342,7 @@ namespace Zenkoi.BLL.Services.Implements
                 amount: request.Amount,
                 description: request.Description,
                 items: request.Items,
-                cancelUrl: $"{feURL}/checkout/failure",
+                cancelUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}&cancel=true",
                 returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
             );
 
@@ -426,5 +436,30 @@ namespace Zenkoi.BLL.Services.Implements
                 UpdatedAt = paymentTransaction.UpdatedAt
             };
         }
+
+        public async Task CancelOrderAndReleaseInventoryAsync(int orderId)
+        {
+            try
+            {
+                var order = await _orderService.GetOrderByIdAsync(orderId);
+
+                if (order == null)
+                {
+                    return; 
+                }
+                if (order.Status != OrderStatus.Pending)
+                {
+                    return;
+                }
+                await _orderService.UpdateOrderStatusAsync(orderId, new Zenkoi.BLL.DTOs.OrderDTOs.UpdateOrderStatusDTO
+                {
+                    Status = OrderStatus.Cancelled
+                });
+            }
+            catch (Exception)
+            {
+            }
+        }
+
     }
 }
