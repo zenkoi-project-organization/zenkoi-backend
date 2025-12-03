@@ -274,7 +274,7 @@ public class WorkScheduleService : IWorkScheduleService
         filter.StaffId = userId;
 
         var queryBuilder = new QueryBuilder<WorkSchedule>()
-            .WithTracking(true) 
+            .WithTracking(false)
             .WithInclude(ws => ws.TaskTemplate)
             .WithInclude(ws => ws.Creator)
             .WithInclude(ws => ws.StaffAssignments)
@@ -290,57 +290,6 @@ public class WorkScheduleService : IWorkScheduleService
             .Include(ws => ws.StaffAssignments)
                 .ThenInclude(sa => sa.Staff)
             .ToListAsync();
-
-        var now = DateTime.Now;
-        var currentDate = DateOnly.FromDateTime(now);
-        var currentTime = TimeOnly.FromDateTime(now);
-        bool hasUpdates = false;
-
-        foreach (var schedule in entities)
-        {
-            bool isOverdue = schedule.ScheduledDate < currentDate ||
-                           (schedule.ScheduledDate == currentDate && schedule.EndTime < currentTime); 
-            
-            if (isOverdue &&
-                schedule.Status != DAL.Enums.WorkTaskStatus.Completed &&
-                schedule.Status != DAL.Enums.WorkTaskStatus.Cancelled &&
-                schedule.Status != DAL.Enums.WorkTaskStatus.Incomplete)
-            {
-            
-                if (schedule.StaffAssignments.Any())
-                {               
-                    bool allStaffCompleted = schedule.StaffAssignments.All(sa => sa.CompletedAt != null);
-
-                    if (allStaffCompleted)
-                    {                       
-                        schedule.Status = DAL.Enums.WorkTaskStatus.Completed;
-                        schedule.UpdatedAt = DateTime.UtcNow;
-                        await _workScheduleRepo.UpdateAsync(schedule);
-                        hasUpdates = true;
-                    }
-                    else
-                    {
-                      
-                        schedule.Status = DAL.Enums.WorkTaskStatus.Incomplete;
-                        schedule.UpdatedAt = DateTime.UtcNow;
-                        await _workScheduleRepo.UpdateAsync(schedule);
-                        hasUpdates = true;
-                    }
-                }
-                else
-                {              
-                    schedule.Status = DAL.Enums.WorkTaskStatus.Incomplete;
-                    schedule.UpdatedAt = DateTime.UtcNow;
-                    await _workScheduleRepo.UpdateAsync(schedule);
-                    hasUpdates = true;
-                }
-            }
-        }
-
-        if (hasUpdates)
-        {
-            await _unitOfWork.SaveChangesAsync();
-        }
 
         await LoadNavigationPropertiesAsync(entities);
 

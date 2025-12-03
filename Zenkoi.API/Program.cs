@@ -93,6 +93,7 @@ namespace Zenkoi.API
             builder.Services.AddBLLServices();
 
             builder.Services.AddHostedService<OrderCompletionBackgroundService>();
+            builder.Services.AddHostedService<WorkScheduleStatusBackgroundService>();
 
             builder.Services.AddAuthentication(options =>
             {

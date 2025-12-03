@@ -16,16 +16,16 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(k => k.CreatedAt)
                 .IsRequired();
 
-            builder.HasOne(k => k.User)
-                .WithMany()
-                .HasForeignKey(k => k.UserId)
+            builder.HasOne(k => k.Customer)
+                .WithMany(c => c.KoiFavorites)
+                .HasForeignKey(k => k.CustomerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(k => k.KoiFish)
                 .WithMany()
                 .HasForeignKey(k => k.KoiFishId)
                 .OnDelete(DeleteBehavior.Cascade);
-            builder.HasIndex(k => new { k.UserId, k.KoiFishId })
+            builder.HasIndex(k => new { k.CustomerId, k.KoiFishId })
                 .IsUnique();
         }
     }

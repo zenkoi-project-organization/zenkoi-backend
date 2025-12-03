@@ -13,22 +13,22 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRepoBase<KoiFavorite> _favoriteRepo;
         private readonly IRepoBase<KoiFish> _koiFishRepo;
-        private readonly IRepoBase<ApplicationUser> _userRepo;
+        private readonly IRepoBase<Customer> _customerRepo;
 
         public KoiFavoriteService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
             _favoriteRepo = _unitOfWork.GetRepo<KoiFavorite>();
             _koiFishRepo = _unitOfWork.GetRepo<KoiFish>();
-            _userRepo = _unitOfWork.GetRepo<ApplicationUser>();
+            _customerRepo = _unitOfWork.GetRepo<Customer>();
         }
 
         public async Task<bool> AddFavoriteAsync(int userId, int koiFishId)
         {
-            var user = await _userRepo.GetByIdAsync(userId);
-            if (user == null)
+            var customer = await _customerRepo.GetByIdAsync(userId);
+            if (customer == null)
             {
-                throw new ArgumentException($"Không tìm thấy user với id {userId}.");
+                throw new ArgumentException($"Không tìm thấy customer với id {userId}.");
             }
 
             var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
@@ -39,7 +39,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var existingFavorite = await _favoriteRepo.GetSingleAsync(
                 new QueryBuilder<KoiFavorite>()
-                    .WithPredicate(f => f.UserId == userId && f.KoiFishId == koiFishId)
+                    .WithPredicate(f => f.CustomerId == userId && f.KoiFishId == koiFishId)
                     .Build()
             );
 
@@ -50,7 +50,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             var favorite = new KoiFavorite
             {
-                UserId = userId,
+                CustomerId = userId,
                 KoiFishId = koiFishId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -65,7 +65,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var favorite = await _favoriteRepo.GetSingleAsync(
                 new QueryBuilder<KoiFavorite>()
-                    .WithPredicate(f => f.UserId == userId && f.KoiFishId == koiFishId)
+                    .WithPredicate(f => f.CustomerId == userId && f.KoiFishId == koiFishId)
                     .Build()
             );
 
@@ -84,7 +84,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var favorite = await _favoriteRepo.GetSingleAsync(
                 new QueryBuilder<KoiFavorite>()
-                    .WithPredicate(f => f.UserId == userId && f.KoiFishId == koiFishId)
+                    .WithPredicate(f => f.CustomerId == userId && f.KoiFishId == koiFishId)
                     .Build()
             );
 

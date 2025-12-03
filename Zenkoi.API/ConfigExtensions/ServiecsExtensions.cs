@@ -1733,25 +1733,25 @@ namespace Zenkoi.API.ConfigExtensions
                         // Customer1 favorites
                         new KoiFavorite
                         {
-                            UserId = customer1.Id,
+                            CustomerId = customer1.Id,
                             KoiFishId = koiFishes[0].Id, // KOI-0001
                             CreatedAt = DateTime.UtcNow.AddDays(-10)
                         },
                         new KoiFavorite
                         {
-                            UserId = customer1.Id,
+                            CustomerId = customer1.Id,
                             KoiFishId = koiFishes[2].Id, // KOI-0003
                             CreatedAt = DateTime.UtcNow.AddDays(-8)
                         },
                         new KoiFavorite
                         {
-                            UserId = customer1.Id,
+                            CustomerId = customer1.Id,
                             KoiFishId = koiFishes[5].Id, // KOI-0006
                             CreatedAt = DateTime.UtcNow.AddDays(-5)
                         },
                         new KoiFavorite
                         {
-                            UserId = customer1.Id,
+                            CustomerId = customer1.Id,
                             KoiFishId = koiFishes[7].Id, // KOI-0008
                             CreatedAt = DateTime.UtcNow.AddDays(-3)
                         },
@@ -1759,25 +1759,25 @@ namespace Zenkoi.API.ConfigExtensions
                         // Customer2 favorites
                         new KoiFavorite
                         {
-                            UserId = customer2.Id,
+                            CustomerId = customer2.Id,
                             KoiFishId = koiFishes[1].Id, // KOI-0002
                             CreatedAt = DateTime.UtcNow.AddDays(-12)
                         },
                         new KoiFavorite
                         {
-                            UserId = customer2.Id,
+                            CustomerId = customer2.Id,
                             KoiFishId = koiFishes[4].Id, // KOI-0005
                             CreatedAt = DateTime.UtcNow.AddDays(-7)
                         },
                         new KoiFavorite
                         {
-                            UserId = customer2.Id,
+                            CustomerId = customer2.Id,
                             KoiFishId = koiFishes[6].Id, // KOI-0007
                             CreatedAt = DateTime.UtcNow.AddDays(-4)
                         },
                         new KoiFavorite
                         {
-                            UserId = customer2.Id,
+                            CustomerId = customer2.Id,
                             KoiFishId = koiFishes[9].Id, // KOI-0010
                             CreatedAt = DateTime.UtcNow.AddDays(-2)
                         },
@@ -1785,19 +1785,19 @@ namespace Zenkoi.API.ConfigExtensions
                         // Customer3 favorites
                         new KoiFavorite
                         {
-                            UserId = customer3.Id,
+                            CustomerId = customer3.Id,
                             KoiFishId = koiFishes[0].Id, // KOI-0001 (same as customer1)
                             CreatedAt = DateTime.UtcNow.AddDays(-9)
                         },
                         new KoiFavorite
                         {
-                            UserId = customer3.Id,
+                            CustomerId = customer3.Id,
                             KoiFishId = koiFishes[3].Id, // KOI-0004
                             CreatedAt = DateTime.UtcNow.AddDays(-6)
                         },
                         new KoiFavorite
                         {
-                            UserId = customer3.Id,
+                            CustomerId = customer3.Id,
                             KoiFishId = koiFishes[8].Id, // KOI-0009
                             CreatedAt = DateTime.UtcNow.AddDays(-1)
                         }
