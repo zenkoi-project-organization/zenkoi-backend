@@ -57,7 +57,7 @@ namespace Zenkoi.API.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ClassificationStageCreateRequestDTO dto)
+        public async Task<IActionResult> CreateClassification([FromBody] ClassificationStageCreateRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();

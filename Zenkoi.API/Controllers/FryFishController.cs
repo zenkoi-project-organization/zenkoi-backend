@@ -50,7 +50,7 @@ namespace Zenkoi.API.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] FryFishRequestDTO dto)
+        public async Task<IActionResult> CreateFryFish([FromBody] FryFishRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();

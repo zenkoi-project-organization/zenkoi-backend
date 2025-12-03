@@ -39,7 +39,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] FrySurvivalRecordRequestDTO dto)
+        public async Task<IActionResult> CreateFrySurvivalRecord([FromBody] FrySurvivalRecordRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();
