@@ -81,6 +81,17 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PondTypeResponseDTO> CreateAsync(PondTypeRequestDTO dto)
         {
 
+            var existsOptions = new QueryOptions<PondType>
+            {
+                Predicate = p => p.TypeName.ToLower() == dto.TypeName.ToLower()
+                                 && !p.IsDeleted
+            };
+
+            bool exists = await _pondtypeRepo.AnyAsync(existsOptions);
+
+            if (exists)
+                throw new InvalidOperationException($"TypeName '{dto.TypeName}' đã được tạo.");
+
             var entity = _mapper.Map<PondType>(dto);
             await _pondtypeRepo.CreateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

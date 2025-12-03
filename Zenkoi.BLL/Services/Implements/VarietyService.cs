@@ -68,7 +68,17 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<VarietyResponseDTO> CreateAsync(VarietyRequestDTO dto)
         {
-          
+
+            var existsOptions = new QueryOptions<Variety>
+            {
+                Predicate = v => v.VarietyName.ToLower() == dto.VarietyName.ToLower()
+                                 && !v.IsDeleted
+            };
+
+            bool exists = await _varietyRepo.AnyAsync(existsOptions);
+
+            if (exists)
+                throw new InvalidOperationException($"Variety '{dto.VarietyName}' đã được tạo.");
 
             var entity = _mapper.Map<Variety>(dto);
            
@@ -90,11 +100,37 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var variety = await _varietyRepo.GetByIdAsync(id);
-            if (variety == null) return false;
+            // Lấy Variety kèm toàn bộ navigation cần kiểm tra
+            var variety = await _varietyRepo.GetSingleAsync(new QueryOptions<Variety>
+            {
+                Predicate = p => p.Id == id,
+                IncludeProperties = new List<Expression<Func<Variety, object>>>
+                {
+                    p => p.VarietyPatterns,
+                    p => p.KoiFishes,
+                    p => p.VarietyPacketFishes
+                }
+            });
 
-            await _varietyRepo.DeleteAsync(variety);
+            if (variety == null)
+                return false;
+
+            if (variety.KoiFishes != null && variety.KoiFishes.Any(k => !k.IsDeleted))
+                throw new InvalidOperationException("Không thể xoá Variety vì đang có cá sử dụng Variety này.");
+
+            if (variety.VarietyPatterns != null && variety.VarietyPatterns.Any())
+                throw new InvalidOperationException("Không thể xoá Variety vì đang có pattern liên kết.");
+
+            if (variety.VarietyPacketFishes != null && variety.VarietyPacketFishes.Any())
+                throw new InvalidOperationException("Không thể xoá Variety vì đang được dùng trong Packet Fish.");
+
+            variety.IsDeleted = true;
+            variety.DeletedAt = DateTime.UtcNow;
+            variety.UpdatedAt = DateTime.UtcNow;
+
+            await _varietyRepo.UpdateAsync(variety);
             await _unitOfWork.SaveChangesAsync();
+
             return true;
         }
     }

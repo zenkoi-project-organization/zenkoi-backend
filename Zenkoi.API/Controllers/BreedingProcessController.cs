@@ -31,7 +31,7 @@ namespace Zenkoi.API.Controllers
             return Success(breeding,"cập nhật thành công");
         }
         [HttpPut("cancel/{id:int}")]
-        public async Task<IActionResult> UpdateCancelById(int id)
+        public async Task<IActionResult> UpdateCancel(int id)
         {
             var breeding = await _service.CancelBreeding(id);
             return Success(breeding,"cập nhật thành công");
@@ -177,6 +177,19 @@ namespace Zenkoi.API.Controllers
             };
 
             var result = await _advisorService.AnalyzePairAsync(fullRequest);
+            try
+            {
+                double Fx = await _service.GetOffspringInbreedingAsync(req.MaleId, req.FemaleId);
+
+                Fx = Math.Clamp(Fx, 0.0, 1.0);
+
+                result.PercentInbreeding = Math.Round(Fx * 100, 2);
+            }
+            catch (Exception ex)
+            {
+                result.PercentInbreeding = -1; // hoặc null tùy bạn
+                Console.WriteLine($"❌ Lỗi tính cận huyết cho cặp {req.MaleId}-{req.FemaleId}: {ex.Message}");
+            }
 
             return GetSuccess(result);
         }

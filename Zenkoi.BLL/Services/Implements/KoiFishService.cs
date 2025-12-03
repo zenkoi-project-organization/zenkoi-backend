@@ -70,11 +70,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 string searchLower = filter.Search.ToLower();
                 queryBuilder.WithPredicate(k =>
-                    (k.Origin != null && k.Origin.ToLower().Contains(searchLower)) ||
-                    (k.RFID != null && k.RFID.ToLower().Contains(searchLower)) ||
-                    (k.Description != null && k.Description.ToLower().Contains(searchLower)) ||
-                    (k.Pond != null && k.Pond.PondName != null && k.Pond.PondName.ToLower().Contains(searchLower)) ||
-                    (k.Variety != null && k.Variety.VarietyName != null && k.Variety.VarietyName.ToLower().Contains(searchLower)));
+                    (k.RFID != null && k.RFID.ToLower().Contains(searchLower)));
             }
 
             if (filter.Gender.HasValue)
@@ -236,10 +232,20 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<KoiFishResponseDTO> CreateAsync(KoiFishRequestDTO dto)
         {
 
+            var existsOptions = new QueryOptions<KoiFish>
+            {
+                Predicate = v => v.RFID.ToLower() == dto.RFID.ToLower()
+                                 && !v.IsDeleted
+            };
+
+            bool exists = await _koiFishRepo.AnyAsync(existsOptions);
+            if (exists)
+                throw new InvalidOperationException($"RFID '{dto.RFID}' đã được tạo.");
+
 
             var variety = await _varietyRepo.CheckExistAsync(dto.VarietyId);
             if (!variety)
-                throw new Exception($"Không tìm thấy variety với id: {dto.VarietyId}");
+                throw new KeyNotFoundException($"Không tìm thấy variety với id: {dto.VarietyId}");
 
             var pond = await _pondRepo.GetSingleAsync(new QueryOptions<Pond>
             {
@@ -249,7 +255,7 @@ namespace Zenkoi.BLL.Services.Implements
             });
 
             if (pond == null)
-                throw new Exception($"Không tìm thấy pond với id {dto.PondId}");
+                throw new KeyNotFoundException($"Không tìm thấy pond với id {dto.PondId}");
 
             if (pond.PondType.Type == TypeOfPond.Paring || pond.PondType.Type == TypeOfPond.EggBatch || pond.PondType.Type == TypeOfPond.FryFish)
             {
