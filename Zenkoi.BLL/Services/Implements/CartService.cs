@@ -67,7 +67,10 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 item.ItemTotalPrice = item.UnitPrice * item.Quantity;
 
-                CheckCartItemAvailability(item, cart.CartItems.First(ci => ci.Id == item.Id));
+                var cartItemEntity = cart.CartItems.First(ci => ci.Id == item.Id);
+
+                CalculatePacketFishStockQuantity(item, cartItemEntity);
+                CheckCartItemAvailability(item, cartItemEntity);
             }
 
             await CalculateAndApplyPromotionAsync(cartResponse);
@@ -122,6 +125,8 @@ namespace Zenkoi.BLL.Services.Implements
 
             foreach (var item in cartResponse.CartItems)
             {
+                var cartItemEntity = cart.CartItems.First(ci => ci.Id == item.Id);
+
                 if (item.KoiFish != null)
                 {
                     item.ItemTotalPrice = (item.KoiFish.SellingPrice ?? 0) * item.Quantity;
@@ -130,7 +135,9 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     item.ItemTotalPrice = item.PacketFish.PricePerPacket * item.Quantity;
                 }
-                CheckCartItemAvailability(item, cart.CartItems.First(ci => ci.Id == item.Id));
+
+                CalculatePacketFishStockQuantity(item, cartItemEntity);
+                CheckCartItemAvailability(item, cartItemEntity);
             }
 
             await CalculateAndApplyPromotionAsync(cartResponse);
@@ -197,7 +204,34 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (existingItem != null && addCartItemDTO.PacketFishId.HasValue)
             {
-                existingItem.Quantity += addCartItemDTO.Quantity;
+                // Load PacketFish with PondPacketFishes to validate stock
+                var packetFish = await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
+                    .WithPredicate(pf => pf.Id == addCartItemDTO.PacketFishId.Value)
+                    .WithInclude(pf => pf.PondPacketFishes)
+                    .Build());
+
+                if (packetFish == null)
+                {
+                    throw new ArgumentException($"PacketFish with ID {addCartItemDTO.PacketFishId} not found");
+                }
+
+                // Calculate new total quantity after adding
+                var newTotalQuantity = existingItem.Quantity + addCartItemDTO.Quantity;
+                var totalAvailableFish = packetFish.PondPacketFishes
+                    .Where(ppf => ppf.IsActive)
+                    .Sum(ppf => ppf.AvailableQuantity);
+
+                var totalAvailablePackets = totalAvailableFish / packetFish.FishPerPacket;
+                var requestedFishCount = newTotalQuantity * packetFish.FishPerPacket;
+
+                if (totalAvailableFish < requestedFishCount)
+                {
+                    throw new InvalidOperationException(
+                        $"Insufficient stock for PacketFish '{packetFish.Name}'. " +
+                        $"Requested total: {newTotalQuantity} packets ({requestedFishCount} fish), Available: {totalAvailablePackets} packets ({totalAvailableFish} fish)");
+                }
+
+                existingItem.Quantity = newTotalQuantity;
                 existingItem.UpdatedAt = DateTime.UtcNow;
                 await _cartItemRepo.UpdateAsync(existingItem);
             }
@@ -235,15 +269,18 @@ namespace Zenkoi.BLL.Services.Implements
                     {
                         throw new ArgumentException($"PacketFish with ID {addCartItemDTO.PacketFishId} is not available");
                     }
-                    var totalAvailable = packetFish.PondPacketFishes
+                    var totalAvailableFish = packetFish.PondPacketFishes
                         .Where(ppf => ppf.IsActive)
                         .Sum(ppf => ppf.AvailableQuantity);
 
-                    if (totalAvailable < addCartItemDTO.Quantity)
+                    var totalAvailablePackets = totalAvailableFish / packetFish.FishPerPacket;
+                    var requestedFishCount = addCartItemDTO.Quantity * packetFish.FishPerPacket;
+
+                    if (totalAvailableFish < requestedFishCount)
                     {
                         throw new InvalidOperationException(
                             $"Insufficient stock for PacketFish '{packetFish.Name}'. " +
-                            $"Requested: {addCartItemDTO.Quantity}, Available: {totalAvailable}");
+                            $"Requested: {addCartItemDTO.Quantity} packets ({requestedFishCount} fish), Available: {totalAvailablePackets} packets ({totalAvailableFish} fish)");
                     }
                 }
 
@@ -279,6 +316,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithPredicate(ci => ci.Id == existingItem.Id)
                 .WithInclude(ci => ci.KoiFish)
                 .WithInclude(ci => ci.PacketFish)
+                .WithThenInclude(q => q.Include(ci => ci.PacketFish).ThenInclude(pf => pf.PondPacketFishes))
                 .Build());
 
             var response = _mapper.Map<CartItemResponseDTO>(cartItemWithData);
@@ -292,6 +330,8 @@ namespace Zenkoi.BLL.Services.Implements
                 response.ItemTotalPrice = response.PacketFish.PricePerPacket * response.Quantity;
             }
 
+            CalculatePacketFishStockQuantity(response, cartItemWithData);
+
             return response;
         }
 
@@ -303,6 +343,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(ci => ci.Cart)
                 .WithInclude(ci => ci.KoiFish)
                 .WithInclude(ci => ci.PacketFish)
+                .WithThenInclude(q => q.Include(ci => ci.PacketFish).ThenInclude(pf => pf.PondPacketFishes))
                 .Build());
 
             if (cartItem == null)
@@ -320,6 +361,23 @@ namespace Zenkoi.BLL.Services.Implements
                 if (updateCartItemDTO.Quantity != 1)
                 {
                     throw new ArgumentException("KoiFish quantity cannot be changed. Each Koi fish can only be purchased once with quantity of 1.");
+                }
+            }
+            else if (cartItem.PacketFishId.HasValue && cartItem.PacketFish != null)
+            {
+                // Validate stock availability for PacketFish
+                var totalAvailableFish = cartItem.PacketFish.PondPacketFishes
+                    .Where(ppf => ppf.IsActive)
+                    .Sum(ppf => ppf.AvailableQuantity);
+
+                var totalAvailablePackets = totalAvailableFish / cartItem.PacketFish.FishPerPacket;
+                var requestedFishCount = updateCartItemDTO.Quantity * cartItem.PacketFish.FishPerPacket;
+
+                if (totalAvailableFish < requestedFishCount)
+                {
+                    throw new InvalidOperationException(
+                        $"Insufficient stock for PacketFish '{cartItem.PacketFish.Name}'. " +
+                        $"Requested: {updateCartItemDTO.Quantity} packets ({requestedFishCount} fish), Available: {totalAvailablePackets} packets ({totalAvailableFish} fish)");
                 }
             }
 
@@ -342,6 +400,8 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 response.ItemTotalPrice = response.PacketFish.PricePerPacket * response.Quantity;
             }
+
+            CalculatePacketFishStockQuantity(response, cartItem);
 
             return response;
         }
@@ -408,203 +468,23 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
             try
             {
-                var cart = await _cartRepo.GetSingleAsync(new QueryBuilder<Cart>()
-                    .WithPredicate(c => c.CustomerId == customerId)
-                    .WithInclude(c => c.Customer)
-                    .WithInclude(c => c.CartItems)
-                    .Build());
+                var cart = await LoadCartWithValidationAsync(customerId);
+                await ValidateAndLockCartItemsAsync(cart.CartItems);
+                var (subtotal, orderDetails) = BuildOrderDetailsFromCart(cart.CartItems);
 
-                if (cart == null) throw new ArgumentException("Cart not found");
-                if (!cart.CartItems.Any()) throw new ArgumentException("Cart is empty. Cannot create order from empty cart.");
+                var currentPromotion = await GetCurrentPromotionAsync();
+                decimal discountAmount = await CalculateDiscountAsync(currentPromotion?.Id, subtotal);
 
+                var order = CreateOrderEntity(convertCartToOrderDTO, customerId, subtotal, discountAmount, currentPromotion?.Id, orderDetails);
+                await _unitOfWork.GetRepo<Order>().CreateAsync(order);
 
-                await _orderService.ValidateCartItemsAvailabilityAsync(cart.CartItems);
+                await ReserveInventoryForOrderAsync(cart.CartItems);
+                await IncrementPromotionUsageAsync(currentPromotion);
+                await ClearCartAfterOrderCreationAsync(cart);
 
-                foreach (var item in cart.CartItems)
-                {
-                    if (item.KoiFishId.HasValue)
-                    {
-                        item.KoiFish = await _koiFishRepo.GetSingleAsync(new QueryBuilder<KoiFish>()
-                            .WithPredicate(k => k.Id == item.KoiFishId.Value)
-                            .WithTracking(true)
-                            .Build());
-                    }
+                await _unitOfWork.SaveChangesAsync();
 
-                    if (item.PacketFishId.HasValue)
-                    {
-                        item.PacketFish = await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
-                            .WithPredicate(pf => pf.Id == item.PacketFishId.Value)
-                            .WithInclude(pf => pf.PondPacketFishes)
-                            .WithTracking(true)
-                            .Build());
-                    }
-                }
-
-                // Validate again after locking to ensure no changes occurred
-                await _orderService.ValidateCartItemsAvailabilityAsync(cart.CartItems);
-
-                // Build order details and calculate subtotal
-                decimal subtotal = 0;
-                var orderDetails = new List<OrderDetail>();
-
-                foreach (var item in cart.CartItems)
-                {
-                    decimal unitPrice = 0;
-                    if (item.KoiFishId.HasValue && item.KoiFish != null)
-                    {
-                        unitPrice = item.KoiFish.SellingPrice ?? 0;
-                        if (unitPrice == 0)
-                        {
-                            throw new ArgumentException($"KoiFish with ID {item.KoiFishId} does not have a selling price");
-                        }
-                    }
-                    else if (item.PacketFishId.HasValue && item.PacketFish != null)
-                    {
-                        unitPrice = item.PacketFish.PricePerPacket;
-                    }
-                    else
-                    {
-                        throw new ArgumentException("Invalid cart item");
-                    }
-
-                    var totalPrice = unitPrice * item.Quantity;
-                    subtotal += totalPrice;
-
-                    orderDetails.Add(new OrderDetail
-                    {
-                        KoiFishId = item.KoiFishId,
-                        PacketFishId = item.PacketFishId,
-                        Quantity = item.Quantity,
-                        UnitPrice = unitPrice,
-                        TotalPrice = totalPrice
-                    });
-                }
-
-            var now = DateTime.UtcNow;
-            var currentPromotion = await _promotionRepo.GetSingleAsync(new QueryBuilder<Promotion>()
-                .WithPredicate(p => p.IsActive && !p.IsDeleted &&
-                    p.ValidFrom <= now && p.ValidTo >= now)
-                .Build());
-
-            int? promotionId = currentPromotion?.Id;
-
-            decimal shippingFee = convertCartToOrderDTO.ShippingFee;
-            decimal discountAmount = await CalculateDiscountAsync(promotionId, subtotal);
-            var totalAmount = subtotal + shippingFee - discountAmount;
-
-            var order = new Order
-            {
-                CustomerId = customerId,
-                CustomerAddressId = convertCartToOrderDTO.CustomerAddressId,
-                Status = OrderStatus.Pending,
-                Subtotal = subtotal,
-                ShippingFee = shippingFee,
-                DiscountAmount = discountAmount,
-                TotalAmount = totalAmount,
-                PromotionId = promotionId,
-                OrderDetails = orderDetails
-            };
-
-            await _unitOfWork.GetRepo<Order>().CreateAsync(order);
-
-    
-            foreach (var item in cart.CartItems)
-            {
-                if (item.KoiFishId.HasValue && item.KoiFish != null)
-                {                 
-                    var koiToReserve = item.KoiFish;           
-                    if (koiToReserve.SaleStatus != SaleStatus.Available)
-                    {
-                        throw new InvalidOperationException(
-                            $"KoiFish '{koiToReserve.RFID}' is no longer available");
-                    }
-              
-                    koiToReserve.SaleStatus = SaleStatus.NotForSale;
-                    await _koiFishRepo.UpdateAsync(koiToReserve);
-                }
-
-                if (item.PacketFishId.HasValue && item.PacketFish != null)
-                {
-                    var pondPacketFishRepo = _unitOfWork.GetRepo<PondPacketFish>();
-                    int remainingQty = item.Quantity;
-
-                    foreach (var pondPacket in item.PacketFish.PondPacketFishes
-                        .Where(ppf => ppf.IsActive && ppf.AvailableQuantity > 0)
-                        .OrderBy(ppf => ppf.Id))
-                    {
-                        if (remainingQty <= 0) break;
-
-                        int deduct = Math.Min(pondPacket.AvailableQuantity, remainingQty);
-                        pondPacket.AvailableQuantity -= deduct;
-                        remainingQty -= deduct;
-
-                        await pondPacketFishRepo.UpdateAsync(pondPacket);
-                    }
-
-                    if (remainingQty > 0)
-                    {
-                        throw new InvalidOperationException(
-                            $"Insufficient stock for PacketFish '{item.PacketFish.Name}'. " +
-                            $"Still need {remainingQty} more items.");
-                    }
-                }
-            }
-
-            if (promotionId.HasValue && currentPromotion != null)
-            {         
-                var promotionToUpdate = await _promotionRepo.GetSingleAsync(new QueryBuilder<Promotion>()
-                    .WithPredicate(p => p.Id == currentPromotion.Id)
-                    .WithTracking(true)
-                    .Build());
-
-                if (promotionToUpdate != null)
-                {
-
-                    if (promotionToUpdate.UsageLimit.HasValue &&
-                        promotionToUpdate.UsageCount >= promotionToUpdate.UsageLimit.Value)
-                    {
-                        throw new InvalidOperationException("Promotion usage limit has been reached");
-                    }
-
-                    // Increment usage count (protected by Serializable isolation level)
-                    promotionToUpdate.UsageCount++;
-                    await _promotionRepo.UpdateAsync(promotionToUpdate);
-                }
-            }
-
-            foreach (var item in cart.CartItems.ToList())
-            {
-                await _cartItemRepo.DeleteAsync(item);
-            }
-
-            cart.UpdatedAt = DateTime.UtcNow;
-            await _cartRepo.UpdateAsync(cart);
-
-            await _unitOfWork.SaveChangesAsync();
-
-            var createdOrder = await _unitOfWork.GetRepo<Order>().GetSingleAsync(new QueryBuilder<Order>()
-                .WithPredicate(o => o.Id == order.Id)
-                .WithInclude(o => o.Customer)
-                .WithInclude(o => o.Customer.ApplicationUser)
-                .WithInclude(o => o.Promotion)
-                .WithInclude(o => o.OrderDetails)
-                .Build());
-
-                if (createdOrder != null && createdOrder.OrderDetails.Any())
-                {
-                    foreach (var detail in createdOrder.OrderDetails)
-                    {
-                        if (detail.KoiFishId.HasValue)
-                        {
-                            detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
-                        }
-                        if (detail.PacketFishId.HasValue)
-                        {
-                            detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
-                        }
-                    }
-                }
-
+                var createdOrder = await LoadCreatedOrderWithDetailsAsync(order.Id);
                 await _unitOfWork.CommitTransactionAsync();
 
                 return _mapper.Map<OrderResponseDTO>(createdOrder);
@@ -614,6 +494,266 @@ namespace Zenkoi.BLL.Services.Implements
                 await _unitOfWork.RollBackAsync();
                 throw;
             }
+        }
+
+        private async Task<Cart> LoadCartWithValidationAsync(int customerId)
+        {
+            var cart = await _cartRepo.GetSingleAsync(new QueryBuilder<Cart>()
+                .WithPredicate(c => c.CustomerId == customerId)
+                .WithInclude(c => c.CartItems)
+                .Build());
+
+            if (cart == null || !cart.CartItems.Any())
+            {
+                throw new InvalidOperationException("Cart is empty");
+            }
+
+            return cart;
+        }
+
+        private async Task ValidateAndLockCartItemsAsync(ICollection<CartItem> cartItems)
+        {
+            // Batch load all KoiFish in 1 query
+            var koiFishIds = cartItems
+                .Where(x => x.KoiFishId.HasValue)
+                .Select(x => x.KoiFishId.Value)
+                .Distinct()
+                .ToList();
+
+            Dictionary<int, KoiFish> koiFishDict = new Dictionary<int, KoiFish>();
+            if (koiFishIds.Any())
+            {
+                var koiFishes = await _koiFishRepo.GetAllAsync(new QueryBuilder<KoiFish>()
+                    .WithPredicate(k => koiFishIds.Contains(k.Id))
+                    .WithTracking(true)
+                    .Build());
+
+                koiFishDict = koiFishes.ToDictionary(k => k.Id);
+            }
+
+            // Batch load all PacketFish in 1 query
+            var packetFishIds = cartItems
+                .Where(x => x.PacketFishId.HasValue)
+                .Select(x => x.PacketFishId.Value)
+                .Distinct()
+                .ToList();
+
+            Dictionary<int, PacketFish> packetFishDict = new Dictionary<int, PacketFish>();
+            if (packetFishIds.Any())
+            {
+                var packetFishes = await _packetFishRepo.GetAllAsync(new QueryBuilder<PacketFish>()
+                    .WithPredicate(pf => packetFishIds.Contains(pf.Id))
+                    .WithInclude(pf => pf.PondPacketFishes)
+                    .WithTracking(true)
+                    .Build());
+
+                packetFishDict = packetFishes.ToDictionary(pf => pf.Id);
+            }
+
+            // Now validate each item using the loaded data
+            foreach (var item in cartItems)
+            {
+                if (item.KoiFishId.HasValue)
+                {
+                    if (!koiFishDict.TryGetValue(item.KoiFishId.Value, out var koiFish))
+                    {
+                        throw new InvalidOperationException($"KoiFish with ID {item.KoiFishId} not found");
+                    }
+
+                    item.KoiFish = koiFish;
+
+                    if (koiFish.SaleStatus != SaleStatus.Available)
+                    {
+                        throw new InvalidOperationException($"KoiFish '{koiFish.RFID}' is no longer available");
+                    }
+                }
+
+                if (item.PacketFishId.HasValue)
+                {
+                    if (!packetFishDict.TryGetValue(item.PacketFishId.Value, out var packetFish))
+                    {
+                        throw new InvalidOperationException($"PacketFish with ID {item.PacketFishId} not found");
+                    }
+
+                    item.PacketFish = packetFish;
+
+                    var totalAvailableFish = packetFish.PondPacketFishes
+                        .Where(ppf => ppf.IsActive)
+                        .Sum(ppf => ppf.AvailableQuantity);
+
+                    var totalAvailablePackets = totalAvailableFish / packetFish.FishPerPacket;
+                    var requestedFishCount = item.Quantity * packetFish.FishPerPacket;
+
+                    if (totalAvailableFish < requestedFishCount)
+                    {
+                        throw new InvalidOperationException(
+                            $"Insufficient stock for PacketFish '{packetFish.Name}'. " +
+                            $"Requested: {item.Quantity} packets ({requestedFishCount} fish), Available: {totalAvailablePackets} packets ({totalAvailableFish} fish)");
+                    }
+                }
+            }
+        }
+
+        private (decimal subtotal, List<OrderDetail> orderDetails) BuildOrderDetailsFromCart(ICollection<CartItem> cartItems)
+        {
+            decimal subtotal = 0;
+            var orderDetails = new List<OrderDetail>();
+
+            foreach (var item in cartItems)
+            {
+                decimal itemTotal = item.UnitPrice * item.Quantity;
+                subtotal += itemTotal;
+
+                orderDetails.Add(new OrderDetail
+                {
+                    KoiFishId = item.KoiFishId,
+                    PacketFishId = item.PacketFishId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice
+                });
+            }
+
+            return (subtotal, orderDetails);
+        }
+
+        private async Task<Promotion?> GetCurrentPromotionAsync()
+        {
+            var now = DateTime.UtcNow;
+            return await _promotionRepo.GetSingleAsync(new QueryBuilder<Promotion>()
+                .WithPredicate(p => p.IsActive && !p.IsDeleted &&
+                    p.ValidFrom <= now && p.ValidTo >= now)
+                .Build());
+        }
+
+        private Order CreateOrderEntity(ConvertCartToOrderDTO dto, int customerId, decimal subtotal, decimal discountAmount, int? promotionId, List<OrderDetail> orderDetails)
+        {
+            decimal totalAmount = subtotal + dto.ShippingFee - discountAmount;
+
+            return new Order
+            {
+                CustomerId = customerId,
+                CustomerAddressId = dto.CustomerAddressId,
+                Status = OrderStatus.Pending,
+                Subtotal = subtotal,
+                ShippingFee = dto.ShippingFee,
+                DiscountAmount = discountAmount,
+                TotalAmount = totalAmount,
+                PromotionId = promotionId,
+                OrderDetails = orderDetails
+            };
+        }
+
+        private async Task ReserveInventoryForOrderAsync(ICollection<CartItem> cartItems)
+        {
+            foreach (var item in cartItems)
+            {
+                if (item.KoiFishId.HasValue && item.KoiFish != null)
+                {
+                    if (item.KoiFish.SaleStatus != SaleStatus.Available)
+                    {
+                        throw new InvalidOperationException($"KoiFish '{item.KoiFish.RFID}' is no longer available");
+                    }
+
+                    item.KoiFish.SaleStatus = SaleStatus.NotForSale;
+                    await _koiFishRepo.UpdateAsync(item.KoiFish);
+                }
+
+                if (item.PacketFishId.HasValue && item.PacketFish != null)
+                {
+                    var fishCount = item.Quantity * item.PacketFish.FishPerPacket;
+                    await ReservePacketFishInventoryAsync(item.PacketFish, fishCount);
+                }
+            }
+        }
+
+        private async Task ReservePacketFishInventoryAsync(PacketFish packetFish, int fishCount)
+        {
+            var pondPacketFishRepo = _unitOfWork.GetRepo<PondPacketFish>();
+            int remainingFish = fishCount;
+
+            foreach (var pondPacket in packetFish.PondPacketFishes
+                .Where(ppf => ppf.IsActive && ppf.AvailableQuantity > 0)
+                .OrderBy(ppf => ppf.Id))
+            {
+                if (remainingFish <= 0) break;
+
+                int deduct = Math.Min(pondPacket.AvailableQuantity, remainingFish);
+                pondPacket.AvailableQuantity -= deduct;
+                remainingFish -= deduct;
+
+                await pondPacketFishRepo.UpdateAsync(pondPacket);
+            }
+
+            if (remainingFish > 0)
+            {
+                throw new InvalidOperationException(
+                    $"Insufficient stock for PacketFish '{packetFish.Name}'. " +
+                    $"Still need {remainingFish} more fish.");
+            }
+        }
+
+        private async Task IncrementPromotionUsageAsync(Promotion? promotion)
+        {
+            if (promotion == null) return;
+
+            // Use pessimistic locking (SQL Server UPDLOCK, ROWLOCK) to prevent race conditions
+            // This ensures atomic check-and-increment of promotion usage count
+            var promotionToUpdate = await _promotionRepo.GetSingleAsync(new QueryBuilder<Promotion>()
+                .WithPredicate(p => p.Id == promotion.Id)
+                .WithTracking(true)
+                .WithLockForUpdate(true)
+                .Build());
+
+            if (promotionToUpdate != null)
+            {
+                if (promotionToUpdate.UsageLimit.HasValue &&
+                    promotionToUpdate.UsageCount >= promotionToUpdate.UsageLimit.Value)
+                {
+                    throw new InvalidOperationException("Promotion usage limit has been reached");
+                }
+
+                promotionToUpdate.UsageCount++;
+                await _promotionRepo.UpdateAsync(promotionToUpdate);
+            }
+        }
+
+        private async Task ClearCartAfterOrderCreationAsync(Cart cart)
+        {
+            foreach (var item in cart.CartItems.ToList())
+            {
+                await _cartItemRepo.DeleteAsync(item);
+            }
+
+            cart.UpdatedAt = DateTime.UtcNow;
+            await _cartRepo.UpdateAsync(cart);
+        }
+
+        private async Task<Order> LoadCreatedOrderWithDetailsAsync(int orderId)
+        {
+            var order = await _unitOfWork.GetRepo<Order>().GetSingleAsync(new QueryBuilder<Order>()
+                .WithPredicate(o => o.Id == orderId)
+                .WithInclude(o => o.Customer)
+                .WithInclude(o => o.Customer.ApplicationUser)
+                .WithInclude(o => o.Promotion)
+                .WithInclude(o => o.OrderDetails)
+                .Build());
+
+            if (order != null && order.OrderDetails.Any())
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    if (detail.KoiFishId.HasValue)
+                    {
+                        detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
+                    }
+                    if (detail.PacketFishId.HasValue)
+                    {
+                        detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
+                    }
+                }
+            }
+
+            return order!;
         }
 
         private async Task<decimal> CalculateDiscountAsync(int? promotionId, decimal subtotal)
@@ -713,6 +853,17 @@ namespace Zenkoi.BLL.Services.Implements
                 cartResponse.Promotion = null;
             }
         }
+        private void CalculatePacketFishStockQuantity(CartItemResponseDTO itemDto, CartItem cartItemEntity)
+        {
+            if (itemDto.PacketFish != null && cartItemEntity.PacketFish != null && cartItemEntity.PacketFish.PondPacketFishes != null)
+            {
+                var totalAvailableFish = cartItemEntity.PacketFish.PondPacketFishes
+                    .Where(ppf => ppf.IsActive)
+                    .Sum(ppf => ppf.AvailableQuantity);
+                itemDto.PacketFish.StockQuantity = totalAvailableFish / cartItemEntity.PacketFish.FishPerPacket;
+            }
+        }
+
         private void CheckCartItemAvailability(CartItemResponseDTO itemDto, CartItem cartItem)
         {
             itemDto.IsAvailable = true;
@@ -755,22 +906,25 @@ namespace Zenkoi.BLL.Services.Implements
                 }
                 else
                 {
-                    var totalAvailable = packetFish.PondPacketFishes
+                    var totalAvailableFish = packetFish.PondPacketFishes
                         ?.Where(ppf => ppf.IsActive)
                         .Sum(ppf => ppf.AvailableQuantity) ?? 0;
 
-                    itemDto.AvailableStock = totalAvailable;
+                    var totalAvailablePackets = totalAvailableFish / packetFish.FishPerPacket;
+                    var requestedFishCount = cartItem.Quantity * packetFish.FishPerPacket;
 
-                    if (totalAvailable < cartItem.Quantity)
+                    itemDto.AvailableStock = totalAvailablePackets;
+
+                    if (totalAvailableFish < requestedFishCount)
                     {
                         itemDto.IsAvailable = false;
-                        if (totalAvailable == 0)
+                        if (totalAvailablePackets == 0)
                         {
                             itemDto.UnavailableReason = "Hết hàng";
                         }
                         else
                         {
-                            itemDto.UnavailableReason = $"Không đủ số lượng (chỉ còn {totalAvailable})";
+                            itemDto.UnavailableReason = $"Không đủ số lượng (chỉ còn {totalAvailablePackets} packets)";
                         }
                     }
                 }

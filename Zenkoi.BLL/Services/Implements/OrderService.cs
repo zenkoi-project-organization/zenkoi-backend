@@ -43,52 +43,39 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<OrderResponseDTO> GetOrderByIdAsync(int id)
         {
-            var order = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
-                .WithPredicate(o => o.Id == id)
-                .WithInclude(o => o.Customer)
-                .WithInclude(o => o.Customer.ApplicationUser)
-                .WithInclude(o => o.Promotion)
-                .WithInclude(o => o.OrderDetails)
-                .Build());
-
+            var order = await LoadOrderWithDetailsAsync(o => o.Id == id);
             if (order == null)
             {
                 throw new ArgumentException("Order not found");
             }
-
-            if (order.OrderDetails != null && order.OrderDetails.Any())
-            {
-                foreach (var detail in order.OrderDetails)
-                {
-                    if (detail.KoiFishId.HasValue)
-                    {
-                        detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
-                    }
-                    if (detail.PacketFishId.HasValue)
-                    {
-                        detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
-                    }
-                }
-            }
-
+            await LoadOrderDetailProductsAsync(order);
             return _mapper.Map<OrderResponseDTO>(order);
         }
 
         public async Task<OrderResponseDTO> GetOrderByOrderNumberAsync(string orderNumber)
         {
-            var order = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
-                .WithPredicate(o => o.OrderNumber == orderNumber)
+            var order = await LoadOrderWithDetailsAsync(o => o.OrderNumber == orderNumber);
+            if (order == null)
+            {
+                throw new ArgumentException("Order not found");
+            }
+            await LoadOrderDetailProductsAsync(order);
+            return _mapper.Map<OrderResponseDTO>(order);
+        }
+
+        private async Task<Order?> LoadOrderWithDetailsAsync(Expression<Func<Order, bool>> predicate)
+        {
+            return await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
+                .WithPredicate(predicate)
                 .WithInclude(o => o.Customer)
                 .WithInclude(o => o.Customer.ApplicationUser)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
                 .Build());
+        }
 
-            if (order == null)
-            {
-                throw new ArgumentException("Order not found");
-            }
-
+        private async Task LoadOrderDetailProductsAsync(Order order)
+        {
             if (order.OrderDetails != null && order.OrderDetails.Any())
             {
                 foreach (var detail in order.OrderDetails)
@@ -103,8 +90,6 @@ namespace Zenkoi.BLL.Services.Implements
                     }
                 }
             }
-
-            return _mapper.Map<OrderResponseDTO>(order);
         }
 
         public async Task<PaginatedList<OrderResponseDTO>> GetOrdersByCustomerIdAsync(int customerId, OrderFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
@@ -295,9 +280,25 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task UpdateInventoryAfterPaymentSuccessAsync(int orderId)
         {
-            // NOTE: Inventory reservation already happened in ConvertCartToOrderAsync
-            // This method only confirms the sale after successful payment
+            var order = await LoadOrderWithOrderDetailsAsync(orderId);
 
+            foreach (var orderDetail in order.OrderDetails)
+            {
+                if (orderDetail.KoiFishId.HasValue)
+                {
+                    await ConfirmKoiFishSaleAsync(orderDetail.KoiFishId.Value);
+                }
+
+                if (orderDetail.PacketFishId.HasValue)
+                {
+                    await ConfirmPacketFishSaleAsync(orderDetail.PacketFishId.Value, orderDetail.Quantity);
+                }
+            }
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        private async Task<Order> LoadOrderWithOrderDetailsAsync(int orderId)
+        {
             var order = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
                 .WithPredicate(o => o.Id == orderId)
                 .WithInclude(o => o.OrderDetails)
@@ -306,49 +307,53 @@ namespace Zenkoi.BLL.Services.Implements
             if (order == null)
                 throw new ArgumentException($"Order with ID {orderId} not found");
 
-            foreach (var orderDetail in order.OrderDetails)
+            return order;
+        }
+
+        private async Task ConfirmKoiFishSaleAsync(int koiFishId)
+        {
+            var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
+            if (koiFish != null)
             {
-                // For KoiFish: Change from NotForSale (reserved) to Sold (confirmed)
-                if (orderDetail.KoiFishId.HasValue)
-                {
-                    var koiFish = await _koiFishRepo.GetByIdAsync(orderDetail.KoiFishId.Value);
-                    if (koiFish != null)
-                    {
-                        koiFish.SaleStatus = SaleStatus.Sold;
-                        await _koiFishRepo.UpdateAsync(koiFish);
-                    }
-                }
-
-                // For PacketFish: Just update SoldQuantity for tracking
-                // AvailableQuantity was already deducted in ConvertCartToOrderAsync
-                if (orderDetail.PacketFishId.HasValue)
-                {
-                    var packetFish = await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
-                        .WithPredicate(pf => pf.Id == orderDetail.PacketFishId.Value)
-                        .WithInclude(pf => pf.PondPacketFishes)
-                        .Build());
-
-                    if (packetFish != null)
-                    {
-                        var pondPacketFishRepo = _unitOfWork.GetRepo<PondPacketFish>();
-                        int remainingQty = orderDetail.Quantity;
-
-                        foreach (var pondPacket in packetFish.PondPacketFishes
-                            .Where(ppf => ppf.IsActive)
-                            .OrderBy(ppf => ppf.Id))
-                        {
-                            if (remainingQty <= 0) break;
-
-                            int toConfirm = Math.Min(remainingQty, orderDetail.Quantity);
-                            pondPacket.SoldQuantity += toConfirm;
-                            remainingQty -= toConfirm;
-
-                            await pondPacketFishRepo.UpdateAsync(pondPacket);
-                        }
-                    }
-                }
+                koiFish.SaleStatus = SaleStatus.Sold;
+                await _koiFishRepo.UpdateAsync(koiFish);
             }
-            await _unitOfWork.SaveChangesAsync();
+        }
+
+        private async Task ConfirmPacketFishSaleAsync(int packetFishId, int packetQuantity)
+        {
+            var packetFish = await LoadPacketFishWithPondsAsync(packetFishId);
+            if (packetFish == null) return;
+
+            var fishCount = packetQuantity * packetFish.FishPerPacket;
+            await UpdatePondPacketSoldQuantityAsync(packetFish.PondPacketFishes, fishCount);
+        }
+
+        private async Task<PacketFish?> LoadPacketFishWithPondsAsync(int packetFishId)
+        {
+            return await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
+                .WithPredicate(pf => pf.Id == packetFishId)
+                .WithInclude(pf => pf.PondPacketFishes)
+                .Build());
+        }
+
+        private async Task UpdatePondPacketSoldQuantityAsync(ICollection<PondPacketFish> pondPackets, int fishCount)
+        {
+            var pondPacketFishRepo = _unitOfWork.GetRepo<PondPacketFish>();
+            int remainingFish = fishCount;
+
+            foreach (var pondPacket in pondPackets
+                .Where(ppf => ppf.IsActive)
+                .OrderBy(ppf => ppf.Id))
+            {
+                if (remainingFish <= 0) break;
+
+                int toConfirm = Math.Min(remainingFish, fishCount);
+                pondPacket.SoldQuantity += toConfirm;
+                remainingFish -= toConfirm;
+
+                await pondPacketFishRepo.UpdateAsync(pondPacket);
+            }
         }
 
         private async Task<decimal> CalculateDiscountAsync(int? promotionId, decimal subtotal)
@@ -542,13 +547,7 @@ namespace Zenkoi.BLL.Services.Implements
         }
         private async Task RollbackInventoryReservationAsync(int orderId)
         {
-            var order = await _orderRepo.GetSingleAsync(new QueryBuilder<Order>()
-                .WithPredicate(o => o.Id == orderId)
-                .WithInclude(o => o.OrderDetails)
-                .Build());
-
-            if (order == null)
-                throw new ArgumentException($"Order with ID {orderId} not found");
+            var order = await LoadOrderWithOrderDetailsAsync(orderId);
 
             if (order.Status != OrderStatus.Pending)
             {
@@ -556,46 +555,57 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             foreach (var orderDetail in order.OrderDetails)
-            {             
+            {
                 if (orderDetail.KoiFishId.HasValue)
                 {
-                    var koiFish = await _koiFishRepo.GetByIdAsync(orderDetail.KoiFishId.Value);
-                    if (koiFish != null && koiFish.SaleStatus == SaleStatus.NotForSale)
-                    {
-                        koiFish.SaleStatus = SaleStatus.Available;
-                        await _koiFishRepo.UpdateAsync(koiFish);
-                    }
+                    await RollbackKoiFishReservationAsync(orderDetail.KoiFishId.Value);
                 }
 
                 if (orderDetail.PacketFishId.HasValue)
                 {
-                    var packetFish = await _packetFishRepo.GetSingleAsync(new QueryBuilder<PacketFish>()
-                        .WithPredicate(pf => pf.Id == orderDetail.PacketFishId.Value)
-                        .WithInclude(pf => pf.PondPacketFishes)
-                        .Build());
-
-                    if (packetFish != null)
-                    {
-                        var pondPacketFishRepo = _unitOfWork.GetRepo<PondPacketFish>();
-                        int remainingQty = orderDetail.Quantity;
-
-                        foreach (var pondPacket in packetFish.PondPacketFishes
-                            .Where(ppf => ppf.IsActive)
-                            .OrderBy(ppf => ppf.Id))
-                        {
-                            if (remainingQty <= 0) break;
-
-                            int toAddBack = Math.Min(remainingQty, orderDetail.Quantity);
-                            pondPacket.AvailableQuantity += toAddBack;
-                            remainingQty -= toAddBack;
-
-                            await pondPacketFishRepo.UpdateAsync(pondPacket);
-                        }
-                    }
+                    await RollbackPacketFishReservationAsync(orderDetail.PacketFishId.Value, orderDetail.Quantity);
                 }
             }
 
             await _unitOfWork.SaveChangesAsync();
+        }
+
+        private async Task RollbackKoiFishReservationAsync(int koiFishId)
+        {
+            var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
+            if (koiFish != null && koiFish.SaleStatus == SaleStatus.NotForSale)
+            {
+                koiFish.SaleStatus = SaleStatus.Available;
+                await _koiFishRepo.UpdateAsync(koiFish);
+            }
+        }
+
+        private async Task RollbackPacketFishReservationAsync(int packetFishId, int packetQuantity)
+        {
+            var packetFish = await LoadPacketFishWithPondsAsync(packetFishId);
+            if (packetFish == null) return;
+
+            var fishCount = packetQuantity * packetFish.FishPerPacket;
+            await RestorePondPacketAvailableQuantityAsync(packetFish.PondPacketFishes, fishCount);
+        }
+
+        private async Task RestorePondPacketAvailableQuantityAsync(ICollection<PondPacketFish> pondPackets, int fishCount)
+        {
+            var pondPacketFishRepo = _unitOfWork.GetRepo<PondPacketFish>();
+            int remainingFish = fishCount;
+
+            foreach (var pondPacket in pondPackets
+                .Where(ppf => ppf.IsActive)
+                .OrderBy(ppf => ppf.Id))
+            {
+                if (remainingFish <= 0) break;
+
+                int toAddBack = Math.Min(remainingFish, fishCount);
+                pondPacket.AvailableQuantity += toAddBack;
+                remainingFish -= toAddBack;
+
+                await pondPacketFishRepo.UpdateAsync(pondPacket);
+            }
         }
 
     }

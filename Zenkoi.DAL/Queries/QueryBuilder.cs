@@ -27,6 +27,12 @@ namespace Zenkoi.DAL.Queries
 			return this;
 		}
 
+		public QueryBuilder<T> WithLockForUpdate(bool lockForUpdate)
+		{
+			_options.LockForUpdate = lockForUpdate;
+			return this;
+		}
+
 		public QueryBuilder<T> WithOrderBy(Func<IQueryable<T>, IOrderedQueryable<T>> orderBy)
 		{
 			_options.OrderBy = orderBy;
