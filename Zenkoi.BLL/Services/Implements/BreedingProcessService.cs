@@ -587,6 +587,8 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<bool> CancelBreeding(int id)
         { 
             var breed = await _breedRepo.GetByIdAsync(id);
+            var _pondRepo = _unitOfWork.GetRepo<Pond>();
+
             if (breed == null)
             {
                 throw new KeyNotFoundException("không tìm thấy quy trình sinh sản ");
@@ -594,11 +596,19 @@ namespace Zenkoi.BLL.Services.Implements
             if (breed.Status.Equals(BreedingStatus.Complete))
             {
                 throw new Exception($"hiện tại quá trình sinh sản này đã hoàn thành nên không thể hủy được");
+            } 
+            var pond = await _pondRepo.GetByIdAsync(breed.PondId);
+            if (pond == null)
+            {
+                throw new InvalidDataException("không tìm thấy hồ");
             }
+            pond.PondStatus = PondStatus.Empty;
             breed.Status = BreedingStatus.Failed;
+            await _pondRepo.UpdateAsync(pond);
             await _breedRepo.UpdateAsync(breed);
             return await _unitOfWork.SaveAsync();
         }
+            
 
         public async Task<List<KoiFishResponseDTO>> GetAllKoiFishByBreedingProcessAsync(int breedingProcessId)
         {
