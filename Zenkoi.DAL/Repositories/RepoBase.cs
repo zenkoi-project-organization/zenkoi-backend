@@ -53,6 +53,21 @@ namespace Zenkoi.DAL.Repositories
                 query = query.AsNoTracking();
             }
 
+            // Apply pessimistic lock using SQL Server table hints (UPDLOCK, ROWLOCK)
+            // This prevents race conditions for critical operations like promotion usage counting
+            if (options.LockForUpdate && options.Tracked)
+            {
+                var entityType = _context.Model.FindEntityType(typeof(T));
+                var tableName = entityType?.GetTableName();
+                var schema = entityType?.GetSchema() ?? "dbo";
+
+                if (!string.IsNullOrEmpty(tableName))
+                {
+                    // Safely build SQL with schema and table name from EF Core metadata (not user input)
+                    query = _dbSet.FromSqlRaw($"SELECT * FROM [{schema}].[{tableName}] WITH (UPDLOCK, ROWLOCK)");
+                }
+            }
+
             if (options.IncludeProperties?.Any() ?? false)
             {
                 foreach (var includeProperty in options.IncludeProperties)

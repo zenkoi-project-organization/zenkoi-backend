@@ -82,103 +82,141 @@ namespace Zenkoi.BLL.Services.Implements
 
         private async Task<PaymentResponseDTO> CreatePayOSPaymentAsync(OrderResponseDTO order, Customer? customer)
         {
-            var feURL = _configuration["FrontendURL"];
+            // Step 1: Create payment transaction record in a short transaction
+            bool isRetry;
+            PaymentTransaction paymentTransaction;
+            int orderCode;
 
-            // Begin transaction with Serializable isolation to prevent retry payment race conditions
             await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
-
             try
             {
-                var existingTransactions = await _unitOfWork.PaymentTransactions.GetAllAsync(
-                    new QueryBuilder<PaymentTransaction>()
-                    .WithPredicate(pt => pt.ActualOrderId == order.Id &&
-                                        pt.PaymentMethod == "PayOS" &&
-                                        (pt.Status == Pending || pt.Status == Failed))
-                    .WithTracking(true)
-                    .Build());
-
-                bool isRetry = existingTransactions.Any();
-
-                foreach (var existingTxn in existingTransactions)
-                {
-                    existingTxn.Status = Cancelled;
-                    existingTxn.UpdatedAt = DateTime.UtcNow;
-                    await _unitOfWork.PaymentTransactions.UpdateAsync(existingTxn);
-                }
-
-                var paymentTransaction = new PaymentTransaction
-                {
-                    UserId = customer?.ApplicationUser?.Id ?? 0,
-                    PaymentMethod = "PayOS",
-                    OrderId = "",
-                    ActualOrderId = order.Id,
-                    Amount = order.TotalAmount,
-                    Description = $"Thanh toán đơn hàng {order.OrderNumber}",
-                    Status = Pending,
-                    PaymentUrl = "",
-                    ResponseData = null,
-                    TransactionId = null,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
-                await _unitOfWork.SaveChangesAsync();
-
-                var orderCode = paymentTransaction.Id;
-
-                var description = $"DH {order.OrderNumber}";
-                if (description.Length > 25)
-                {
-                    description = description.Substring(0, 25);
-                }
-
-                var beURL = _configuration["BackendURL"] ?? "https://localhost:7087";
-
-                var items = order.OrderDetails.Select(od => new ItemData(
-                    name: od.KoiFish?.RFID ?? od.PacketFish?.Name ?? "Product",
-                    quantity: od.Quantity,
-                    price: (int)od.UnitPrice
-                )).ToList();
-
-                if (order.ShippingFee > 0)
-                {
-                    items.Add(new ItemData(
-                        name: "Phí vận chuyển",
-                        quantity: 1,
-                        price: (int)order.ShippingFee
-                    ));
-                }
-
-                var paymentData = new PaymentData(
-                    orderCode: orderCode,
-                    amount: (int)order.TotalAmount,
-                    description: description,
-                    items: items,
-                    cancelUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}&cancel=true",
-                    returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
-                );
-
-                var createPayment = await _payOSService.CreatePaymentLinkAsync(paymentData);
-
-                paymentTransaction.PaymentUrl = createPayment.checkoutUrl;
-                paymentTransaction.OrderId = orderCode.ToString();
-                await _unitOfWork.PaymentTransactions.UpdateAsync(paymentTransaction);
-                await _unitOfWork.SaveChangesAsync();
+                isRetry = await CancelExistingPendingTransactionsAsync(order.Id, "PayOS");
+                paymentTransaction = await CreatePaymentTransactionAsync(order, customer, "PayOS");
+                orderCode = paymentTransaction.Id;
 
                 await _unitOfWork.CommitTransactionAsync();
-
-                return new PaymentResponseDTO
-                {
-                    PaymentUrl = createPayment.checkoutUrl,
-                    OrderId = order.Id,
-                    IsRetry = isRetry
-                };
             }
             catch (Exception)
             {
                 await _unitOfWork.RollBackAsync();
                 throw;
             }
+
+            // Step 2: Call external API OUTSIDE of transaction to avoid holding lock
+            CreatePaymentResult createPayment;
+            try
+            {
+                var paymentData = BuildPayOSPaymentData(order, orderCode);
+                createPayment = await _payOSService.CreatePaymentLinkAsync(paymentData);
+            }
+            catch (Exception ex)
+            {
+                // If external API fails, mark transaction as failed
+                paymentTransaction.Status = Failed;
+                paymentTransaction.UpdatedAt = DateTime.UtcNow;
+                paymentTransaction.ResponseData = ex.Message;
+                await _unitOfWork.PaymentTransactions.UpdateAsync(paymentTransaction);
+                await _unitOfWork.SaveChangesAsync();
+                throw;
+            }
+
+            // Step 3: Update transaction with payment URL
+            await UpdatePaymentTransactionWithUrlAsync(paymentTransaction, createPayment.checkoutUrl, orderCode.ToString());
+
+            return new PaymentResponseDTO
+            {
+                PaymentUrl = createPayment.checkoutUrl,
+                OrderId = order.Id,
+                IsRetry = isRetry
+            };
+        }
+
+        private async Task<bool> CancelExistingPendingTransactionsAsync(int orderId, string paymentMethod)
+        {
+            var existingTransactions = await _unitOfWork.PaymentTransactions.GetAllAsync(
+                new QueryBuilder<PaymentTransaction>()
+                .WithPredicate(pt => pt.ActualOrderId == orderId &&
+                                    pt.PaymentMethod == paymentMethod &&
+                                    (pt.Status == Pending || pt.Status == Failed))
+                .WithTracking(true)
+                .Build());
+
+            bool isRetry = existingTransactions.Any();
+
+            foreach (var existingTxn in existingTransactions)
+            {
+                existingTxn.Status = Cancelled;
+                existingTxn.UpdatedAt = DateTime.UtcNow;
+                await _unitOfWork.PaymentTransactions.UpdateAsync(existingTxn);
+            }
+
+            return isRetry;
+        }
+
+        private async Task<PaymentTransaction> CreatePaymentTransactionAsync(OrderResponseDTO order, Customer? customer, string paymentMethod)
+        {
+            var paymentTransaction = new PaymentTransaction
+            {
+                UserId = customer?.ApplicationUser?.Id ?? 0,
+                PaymentMethod = paymentMethod,
+                OrderId = "",
+                ActualOrderId = order.Id,
+                Amount = order.TotalAmount,
+                Description = $"Thanh toán đơn hàng {order.OrderNumber}",
+                Status = Pending,
+                PaymentUrl = "",
+                ResponseData = null,
+                TransactionId = null,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
+            await _unitOfWork.SaveChangesAsync();
+
+            return paymentTransaction;
+        }
+
+        private PaymentData BuildPayOSPaymentData(OrderResponseDTO order, int orderCode)
+        {
+            var description = $"DH {order.OrderNumber}";
+            if (description.Length > 25)
+            {
+                description = description.Substring(0, 25);
+            }
+
+            var beURL = _configuration["BackendURL"] ?? "https://localhost:7087";
+
+            var items = order.OrderDetails.Select(od => new ItemData(
+                name: od.KoiFish?.RFID ?? od.PacketFish?.Name ?? "Product",
+                quantity: od.Quantity,
+                price: (int)od.UnitPrice
+            )).ToList();
+
+            if (order.ShippingFee > 0)
+            {
+                items.Add(new ItemData(
+                    name: "Phí vận chuyển",
+                    quantity: 1,
+                    price: (int)order.ShippingFee
+                ));
+            }
+
+            return new PaymentData(
+                orderCode: orderCode,
+                amount: (int)order.TotalAmount,
+                description: description,
+                items: items,
+                cancelUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}&cancel=true",
+                returnUrl: $"{beURL}/api/Payments/payos-return?orderCode={orderCode}"
+            );
+        }
+
+        private async Task UpdatePaymentTransactionWithUrlAsync(PaymentTransaction transaction, string paymentUrl, string orderId)
+        {
+            transaction.PaymentUrl = paymentUrl;
+            transaction.OrderId = orderId;
+            await _unitOfWork.PaymentTransactions.UpdateAsync(transaction);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         private async Task<PaymentResponseDTO> CreateVnPayPaymentAsync(OrderResponseDTO order, Customer? customer)
@@ -189,48 +227,31 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new Exception("HTTP context not available");
             }
 
-            await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+            // Step 1: Create payment transaction record in a short transaction
+            bool isRetry;
+            PaymentTransaction paymentTransaction;
+            int txnRef;
 
+            await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
             try
             {
-                var existingTransactions = await _unitOfWork.PaymentTransactions.GetAllAsync(
-                    new QueryBuilder<PaymentTransaction>()
-                    .WithPredicate(pt => pt.ActualOrderId == order.Id &&
-                                        pt.PaymentMethod == "VnPay" &&
-                                        (pt.Status == Pending || pt.Status == Failed))
-                    .WithTracking(true)
-                    .Build());
+                isRetry = await CancelExistingPendingTransactionsAsync(order.Id, "VnPay");
+                paymentTransaction = await CreatePaymentTransactionAsync(order, customer, "VnPay");
+                txnRef = paymentTransaction.Id;
 
-                bool isRetry = existingTransactions.Any();
+                await _unitOfWork.CommitTransactionAsync();
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
 
-                foreach (var existingTxn in existingTransactions)
-                {
-                    existingTxn.Status = Cancelled;
-                    existingTxn.UpdatedAt = DateTime.UtcNow;
-                    await _unitOfWork.PaymentTransactions.UpdateAsync(existingTxn);
-                }
-
-                var paymentTransaction = new PaymentTransaction
-                {
-                    UserId = customer?.ApplicationUser?.Id ?? 0,
-                    PaymentMethod = "VnPay",
-                    OrderId = "",
-                    ActualOrderId = order.Id,
-                    Amount = order.TotalAmount,
-                    Description = $"Thanh toán đơn hàng {order.OrderNumber}",
-                    Status = Pending,
-                    PaymentUrl = "",
-                    ResponseData = null,
-                    TransactionId = null,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                await _unitOfWork.PaymentTransactions.CreateAsync(paymentTransaction);
-                await _unitOfWork.SaveChangesAsync();
-
-                var txnRef = paymentTransaction.Id;
-
-                var paymentUrl = await _vnPayService.CreatePaymentUrlAsync(
+            // Step 2: Call external API OUTSIDE of transaction to avoid holding lock
+            string paymentUrl;
+            try
+            {
+                paymentUrl = await _vnPayService.CreatePaymentUrlAsync(
                     customer?.ApplicationUser?.Id ?? 0,
                     httpContext,
                     new VnPayRequestDTO
@@ -242,26 +263,27 @@ namespace Zenkoi.BLL.Services.Implements
                         CreatedDate = DateTime.Now
                     }
                 );
-
-                paymentTransaction.PaymentUrl = paymentUrl;
-                paymentTransaction.OrderId = txnRef.ToString();
+            }
+            catch (Exception ex)
+            {
+                // If external API fails, mark transaction as failed
+                paymentTransaction.Status = Failed;
+                paymentTransaction.UpdatedAt = DateTime.UtcNow;
+                paymentTransaction.ResponseData = ex.Message;
                 await _unitOfWork.PaymentTransactions.UpdateAsync(paymentTransaction);
                 await _unitOfWork.SaveChangesAsync();
-
-                await _unitOfWork.CommitTransactionAsync();
-
-                return new PaymentResponseDTO
-                {
-                    PaymentUrl = paymentUrl,
-                    OrderId = order.Id,
-                    IsRetry = isRetry
-                };
-            }
-            catch (Exception)
-            {
-                await _unitOfWork.RollBackAsync();
                 throw;
             }
+
+            // Step 3: Update transaction with payment URL
+            await UpdatePaymentTransactionWithUrlAsync(paymentTransaction, paymentUrl, txnRef.ToString());
+
+            return new PaymentResponseDTO
+            {
+                PaymentUrl = paymentUrl,
+                OrderId = order.Id,
+                IsRetry = isRetry
+            };
         }
 
         public async Task<bool> ProcessPaymentCallbackAsync(int orderId, string status)
