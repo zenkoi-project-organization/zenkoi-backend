@@ -230,6 +230,7 @@ namespace Zenkoi.BLL.Services.Implements
                 AlertType? alertType = null;
                 string message = null;
 
+                string ParameterName = TranslateParameterName(parameter);
                 if (value < threshold.MinValue)
                 {
                     alertType = AlertType.Low;
@@ -244,6 +245,7 @@ namespace Zenkoi.BLL.Services.Implements
                 if (alertType != null)
                 {
                     var severity = GetSeverityLevel(threshold, value.Value);
+
                     var alert = new WaterAlert
                     {
                         PondId = entity.PondId,
@@ -258,13 +260,13 @@ namespace Zenkoi.BLL.Services.Implements
                     };
 
                     await _alertRepo.CreateAsync(alert);
-
+                    
 
                     var dto = new WaterAlertWebSocketResponseDTO
                     {
                         PondId = alert.PondId,
                         PondName = alert.Pond.PondName,
-                        ParameterName = alert.ParameterName.ToString(),
+                        ParameterName = ParameterName,
                         MeasuredValue = alert.MeasuredValue,
                         AlertType = alert.AlertType.ToString(),
                         Severity = alert.Severity.ToString(),
@@ -280,7 +282,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                     await _pushService.SendPushNotificationToMultipleAsync(
                         tokens,
-                        $"Alert: {parameter} vượt ngưỡng",
+                        $"Alert: {ParameterName} vượt ngưỡng",
                         message,
                         new { PondId = entity.PondId, Parameter = parameter, Value = value }
                     );
@@ -314,6 +316,22 @@ namespace Zenkoi.BLL.Services.Implements
             else
                 return SeverityLevel.Urgent;
         }
+        private string TranslateParameterName(WaterParameterType parameter)
+        {
+            return parameter switch
+            {
+                WaterParameterType.PHLevel => "Độ pH",
+                WaterParameterType.TemperatureCelsius => "Nhiệt độ",
+                WaterParameterType.OxygenLevel => "Hàm lượng Oxy hòa tan",
+                WaterParameterType.AmmoniaLevel => "Nồng độ Amoniac",
+                WaterParameterType.NitriteLevel => "Nồng độ Nitrit",
+                WaterParameterType.NitrateLevel => "Nồng độ Nitrat",
+                WaterParameterType.CarbonHardness => "Độ cứng cacbonat",
+                WaterParameterType.WaterLevelMeters => "Mực nước",
+                _ => parameter.ToString()
+            };
+        }
+
 
     }
 }
