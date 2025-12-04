@@ -487,24 +487,10 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new InvalidOperationException($"KoiFish with ID {koiFishId} not found");
                 }
 
-                if (koiFish.SaleStatus == SaleStatus.Sold)
+                if (koiFish.SaleStatus != SaleStatus.Available)
                 {
                     throw new InvalidOperationException(
-                        $"KoiFish with RFID '{koiFish.RFID}' has already been sold");
-                }
-
-                if (koiFish.SaleStatus == SaleStatus.NotForSale)
-                { 
-                    var orderDetail = await _orderDetailRepo.GetSingleAsync(
-                        new QueryBuilder<OrderDetail>()
-                        .WithPredicate(od => od.OrderId == orderId && od.KoiFishId == koiFishId.Value)
-                        .Build());
-
-                    if (orderDetail == null)
-                    {                   
-                        throw new InvalidOperationException(
-                            $"KoiFish with RFID '{koiFish.RFID}' is not available for this order");
-                    }
+                        $"KoiFish with RFID '{koiFish.RFID}' is no longer available for sale (Status: {koiFish.SaleStatus}). Please contact support or cancel this order.");
                 }
             }
 

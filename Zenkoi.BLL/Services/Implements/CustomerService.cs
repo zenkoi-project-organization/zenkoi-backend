@@ -20,23 +20,25 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<Customer> _customerRepo;
         private readonly IRepoBase<ApplicationUser> _userRepo;
         private readonly IRepoBase<Order> _orderRepo;
+        private readonly ICartService _cartService;
 
-        public CustomerService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CustomerService(IUnitOfWork unitOfWork, IMapper mapper, ICartService cartService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _customerRepo = _unitOfWork.GetRepo<Customer>();
             _userRepo = _unitOfWork.GetRepo<ApplicationUser>();
             _orderRepo = _unitOfWork.GetRepo<Order>();
+            _cartService = cartService;
         }
 
         public async Task CreateCustomerProfileAsync(int userId)
         {
-          
+
             var existingCustomer = await _customerRepo.GetByIdAsync(userId);
             if (existingCustomer != null)
-                return; 
-      
+                return;
+
             var customer = new Customer
             {
                 Id = userId,
@@ -48,6 +50,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             await _customerRepo.CreateAsync(customer);
             await _unitOfWork.SaveChangesAsync();
+            await _cartService.GetOrCreateCartForCustomerAsync(userId);
         }
 
         public async Task<CustomerResponseDTO> GetCustomerByIdAsync(int id)
