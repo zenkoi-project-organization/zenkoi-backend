@@ -366,7 +366,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 foreach (var h in request.Male.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%,CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%,AveEggs={h.AvgEggs}, Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
@@ -381,7 +381,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 foreach (var h in request.Female.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
@@ -400,7 +400,6 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("  \"MutationDescription\": \"Đột biến ánh kim tương tự GinRin\",");
             sb.AppendLine("  \"PredictedMutationDescription\": 90.3,");
             sb.AppendLine("  \"Summary\": \"Cặp này tương thích tốt, có tiềm năng sinh ra cá con mang đặc tính ánh kim ổn định.\",");
-
             sb.AppendLine("  \"MaleBreedingInfo\": {");
             sb.AppendLine("    \"Summary\": \"Cá đực có sức khỏe tốt, ổn định di truyền và tỷ lệ sinh sản cao.\",");
             sb.AppendLine("    \"BreedingSuccessRate\": 84.0");
