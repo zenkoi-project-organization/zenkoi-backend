@@ -60,7 +60,7 @@ namespace Zenkoi.BLL.Services.Implements
             if (eggBatch.TotalHatchedEggs ==0 && dto.HatchedEggs > 0)
             {
                 eggBatch.Status = EggBatchStatus.PartiallyHatched;
-                eggBatch.HatchingTime = DateTime.Now;
+                eggBatch.HatchingTime = DateTime.UtcNow;
             }
 
             var record = _mapper.Map<IncubationDailyRecord>(dto);
@@ -72,8 +72,8 @@ namespace Zenkoi.BLL.Services.Implements
             if (dto.Success)
             {
                 eggBatch.Status = EggBatchStatus.Success;
-                eggBatch.SpawnDate = DateTime.Now;
-                eggBatch.EndDate = DateTime.Now;
+                eggBatch.SpawnDate = DateTime.UtcNow;
+                eggBatch.EndDate = DateTime.UtcNow;
                 record.HatchedEggs = dto.HatchedEggs;
                 record.RottenEggs = eggBatch.Quantity - (dto.HealthyEggs + dto.HatchedEggs);
                 record.HealthyEggs = 0;
@@ -127,15 +127,15 @@ namespace Zenkoi.BLL.Services.Implements
                 if (eggBatch.TotalHatchedEggs == 0 && dto.HatchedEggs > 0)
                 {
                     eggBatch.Status = EggBatchStatus.PartiallyHatched;
-                    eggBatch.HatchingTime = DateTime.Now;
+                    eggBatch.HatchingTime = DateTime.UtcNow;
                 }
 
                 record.HealthyEggs = lastRecord.HealthyEggs - dto.HatchedEggs;
                 if (record.Success)
                 {
                     eggBatch.Status = EggBatchStatus.Success;
-                    eggBatch.SpawnDate = DateTime.Now;
-                    eggBatch.EndDate = DateTime.Now;
+                    eggBatch.SpawnDate = DateTime.UtcNow;
+                    eggBatch.EndDate = DateTime.UtcNow;
                     record.RottenEggs = eggBatch.Quantity - (total.TotalHatchedEggs + dto.HatchedEggs);
                     eggBatch.TotalHatchedEggs = total.TotalHatchedEggs + dto.HatchedEggs;
                     record.HealthyEggs = 0;
@@ -282,8 +282,8 @@ namespace Zenkoi.BLL.Services.Implements
             if (record.Success)
             {
                 eggBatch.Status = EggBatchStatus.Success;
-                eggBatch.SpawnDate = DateTime.Now;
-                eggBatch.EndDate = DateTime.Now;
+                eggBatch.SpawnDate = DateTime.UtcNow;
+                eggBatch.EndDate = DateTime.UtcNow;
             }
 
             eggBatch.FertilizationRate = (double)(dto.HealthyEggs ?? 0) / eggBatch.Quantity * 100;
@@ -365,8 +365,8 @@ namespace Zenkoi.BLL.Services.Implements
             if (record.Success)
             {
                 eggBatch.Status = EggBatchStatus.Success;
-                eggBatch.SpawnDate = DateTime.Now;
-                eggBatch.EndDate = DateTime.Now;
+                eggBatch.SpawnDate = DateTime.UtcNow;
+                eggBatch.EndDate = DateTime.UtcNow;
 
                 eggBatch.TotalHatchedEggs = totalBefore.TotalHatchedEggs + dto.HatchedEggs;
                 breed.HatchingRate = (double)eggBatch.TotalHatchedEggs / eggBatch.Quantity * 100;

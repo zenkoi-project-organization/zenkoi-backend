@@ -16,6 +16,7 @@ namespace Zenkoi.BLL.Services.Interfaces
     {
         Task<PaginatedList<WaterAlertResponseDTO>> GetAllWaterAlertAsync(WaterAlertFilterRequestDTO? filter, int pageIndex = 1, int pageSize = 10);
         Task<WaterAlertResponseDTO?> GetByIdAsync(int id);
+        Task<bool> MarkAllAsSeenAsync();
         Task<WaterAlertResponseDTO> CreateAsync(int userId, WaterAlertRequestDTO dto);
         Task<bool> ResolveAsync(int id, int userId);
         Task<bool> DeleteAsync(int id);

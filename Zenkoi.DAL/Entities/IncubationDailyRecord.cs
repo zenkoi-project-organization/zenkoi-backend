@@ -10,7 +10,7 @@ namespace Zenkoi.DAL.Entities
     {
         public int Id { get; set; }
         public int EggBatchId { get; set; }
-        public DateTime? DayNumber { get; set; } = DateTime.Now;
+        public DateTime? DayNumber { get; set; } = DateTime.UtcNow;
         public int? HealthyEggs { get; set; }
         public int? RottenEggs { get; set; }
         public int? HatchedEggs { get; set; }

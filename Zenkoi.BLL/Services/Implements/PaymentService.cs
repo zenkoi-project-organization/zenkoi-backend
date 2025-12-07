@@ -260,7 +260,7 @@ namespace Zenkoi.BLL.Services.Implements
                         Amount = (double)order.TotalAmount,
                         Description = $"Thanh toán đơn hàng {order.OrderNumber}",
                         FullName = customer?.ApplicationUser?.FullName ?? "Customer",
-                        CreatedDate = DateTime.Now
+                        CreatedDate = DateTime.UtcNow
                     }
                 );
             }

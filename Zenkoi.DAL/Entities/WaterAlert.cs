@@ -15,6 +15,7 @@ namespace Zenkoi.DAL.Entities
         public string Message { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ResolveAt { get; set; }
+        public bool Seen {  get; set; } = false;
         public bool IsResolved { get; set; } 
         public int? ResolvedByUserId { get; set; }
         public Pond Pond { get; set; }

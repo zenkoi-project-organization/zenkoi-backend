@@ -11,6 +11,7 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
     {
         public int? PondId { get; set; }
         public bool? IsResolved { get; set; }
+        public bool? IsSeen { get; set; }
         public AlertType? AlertType { get; set; }
         public SeverityLevel? Severity { get; set; }
     }

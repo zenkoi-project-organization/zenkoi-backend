@@ -494,13 +494,12 @@ namespace Zenkoi.BLL.Services.Implements
                 };
             }
 
-            // 🧮 Tính toán cơ bản
             var response = new KoiFishParentResponseDTO
             {
                 KoiFishId = koiFishId,
                 ParticipationCount = breedings.Count(),
                 FailCount = breedings.Count(b => b.Status == BreedingStatus.Failed),
-
+                AvgEggs = breedings.Average(b => b.TotalEggs ?? 0),
                 FertilizationRate = breedings.Average(b => b.FertilizationRate ?? 0),
                 HatchRate = breedings.Average(b => b.HatchingRate ?? 0),
                 SurvivalRate = breedings.Average(b => b.SurvivalRate ?? 0),
@@ -518,7 +517,7 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync(string? variety = null)
         {
-            var today = DateTime.Now;
+            var today = DateTime.UtcNow;
 
             // ✅ Tạo QueryOptions để lọc koi trong độ tuổi sinh sản
             var options = new QueryOptions<KoiFish>
@@ -573,6 +572,7 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     FertilizationRate = perf.FertilizationRate,
                     HatchRate = perf.HatchRate,
+                    AvgEggs = perf.AvgEggs,
                     SurvivalRate = perf.SurvivalRate,
                     HighQualifiedRate = perf.HighQualifiedRate,
                     ResultNote = $"Participations: {perf.ParticipationCount}, Failed: {perf.FailCount}"

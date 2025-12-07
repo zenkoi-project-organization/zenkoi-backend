@@ -287,7 +287,7 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new InvalidOperationException("hiện tại hồ đang hoạt động không thể xóa");
             }
             pond.IsDeleted = true;
-            pond.DeletedAt = DateTime.Now;
+            pond.DeletedAt = DateTime.UtcNow;
 
             await _pondRepo.UpdateAsync(pond);
             await _unitOfWork.SaveChangesAsync();
