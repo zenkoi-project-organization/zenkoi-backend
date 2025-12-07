@@ -77,19 +77,23 @@ namespace Zenkoi.BLL.Services.Implements
             var totalFishCount = shippingCalculation.TotalKoiCount;
 
             var totalBoxCount = shippingCalculation.Boxes.Sum(b => b.Quantity);
+  
+            var boxFeeInt = (int)Math.Round(totalBoxFee);
+            var distanceFeeInt = (int)Math.Round(distanceFeeResult.Fee);
+            var totalShippingFeeInt = boxFeeInt + distanceFeeInt;
 
             return new ShippingFeeBreakdownDTO
             {
-                BoxFee = totalBoxFee,
+                BoxFee = boxFeeInt,
                 ShippingBoxId = shippingCalculation.Boxes.FirstOrDefault()?.BoxId,
                 ShippingBoxName = totalBoxCount > 1
                     ? $"{totalBoxCount} boxes"
                     : shippingCalculation.Boxes.FirstOrDefault()?.BoxName,
                 Boxes = shippingCalculation.Boxes,
-                DistanceFee = distanceFeeResult.Fee,
+                DistanceFee = distanceFeeInt,
                 ShippingDistanceId = distanceFeeResult.ShippingDistanceId,
                 DistanceKm = customerAddress.DistanceFromFarmKm,
-                TotalShippingFee = totalBoxFee + distanceFeeResult.Fee,
+                TotalShippingFee = totalShippingFeeInt,
                 Notes = $"Total fish count: {totalFishCount}, Boxes: {totalBoxCount}, Distance: {customerAddress.DistanceFromFarmKm:F2}km"
             };
         }
