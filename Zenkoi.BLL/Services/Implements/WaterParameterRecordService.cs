@@ -234,12 +234,12 @@ namespace Zenkoi.BLL.Services.Implements
                 if (value < threshold.MinValue)
                 {
                     alertType = AlertType.Low;
-                    message = $"Giá trị {parameter} = {value} {threshold.Unit} thấp hơn ngưỡng tối thiểu {threshold.MinValue}.";
+                    message = $"Giá trị {ParameterName} = {value} {threshold.Unit} thấp hơn ngưỡng tối thiểu {threshold.MinValue}.";
                 }
                 else if (value > threshold.MaxValue)
                 {
                     alertType = AlertType.High;
-                    message = $"Giá trị {parameter} = {value} {threshold.Unit} vượt ngưỡng tối đa {threshold.MaxValue}.";
+                    message = $"Giá trị {ParameterName} = {value} {threshold.Unit} vượt ngưỡng tối đa {threshold.MaxValue}.";
                 }
 
                 if (alertType != null)

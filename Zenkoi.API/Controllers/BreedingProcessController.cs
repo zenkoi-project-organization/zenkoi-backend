@@ -131,30 +131,6 @@ namespace Zenkoi.API.Controllers
 
             var result = await _advisorService.RecommendPairsAsync(request);
 
-            var updatedPairs = new List<BreedingPairResult>();
-
-            foreach (var pair in result.RecommendedPairs)
-            {
-                try
-                {
-                    double Fx = await _service.GetOffspringInbreedingAsync(pair.MaleId, pair.FemaleId);
-
-                    Fx = Math.Clamp(Fx, 0.0, 1.0);
-
-                    pair.PercentInbreeding = Math.Round(Fx * 100, 2);
-                }
-                catch (Exception ex)
-                {
-                    pair.PercentInbreeding = -1;
-                    Console.WriteLine($"❌ Lỗi tính cận huyết cho cặp {pair.MaleId}-{pair.FemaleId}: {ex.Message}");
-                }
-
-                updatedPairs.Add(pair);
-            }
-
-            // Gán lại vào kết quả gốc
-            result.RecommendedPairs = updatedPairs;
-
             return GetSuccess(result);
         }
 
@@ -177,20 +153,7 @@ namespace Zenkoi.API.Controllers
             };
 
             var result = await _advisorService.AnalyzePairAsync(fullRequest);
-            try
-            {
-                double Fx = await _service.GetOffspringInbreedingAsync(req.MaleId, req.FemaleId);
-
-                Fx = Math.Clamp(Fx, 0.0, 1.0);
-
-                result.PercentInbreeding = Math.Round(Fx * 100, 2);
-            }
-            catch (Exception ex)
-            {
-                result.PercentInbreeding = -1; // hoặc null tùy bạn
-                Console.WriteLine($"❌ Lỗi tính cận huyết cho cặp {req.MaleId}-{req.FemaleId}: {ex.Message}");
-            }
-
+         
             return GetSuccess(result);
         }
     }

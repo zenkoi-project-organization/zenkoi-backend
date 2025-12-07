@@ -51,13 +51,13 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 fryfish.CurrentSurvivalRate = 0;
                 fryfish.Status = FryFishStatus.Dead;
-                fryfish.EndDate = DateTime.Now;
+                fryfish.EndDate = DateTime.UtcNow;
                 breed.Status = BreedingStatus.Failed;
-                breed.EndDate = DateTime.Now;
+                breed.EndDate = DateTime.UtcNow;
             }
             else if(dto.Success == true) {
                 fryfish.Status = FryFishStatus.Completed;
-                fryfish.EndDate = DateTime.Now;
+                fryfish.EndDate = DateTime.UtcNow;
                 breed.SurvivalRate = ((double)dto.CountAlive / fryfish.InitialCount) * 100;
             }
             else
@@ -71,7 +71,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var previousRecord = records
-                .Where(r => r.DayNumber < DateTime.Now)
+                .Where(r => r.DayNumber < DateTime.UtcNow)
                 .OrderByDescending(r => r.DayNumber)
                 .FirstOrDefault();
 
@@ -349,15 +349,15 @@ namespace Zenkoi.BLL.Services.Implements
             if (dto.CountAlive == 0)
             {
                 fryFish.Status = FryFishStatus.Dead;
-                fryFish.EndDate = DateTime.Now;
+                fryFish.EndDate = DateTime.UtcNow;
                 breed.Status = BreedingStatus.Failed;
-                breed.EndDate = DateTime.Now;
+                breed.EndDate = DateTime.UtcNow;
             }
             else if (dto.Success == true)
             {
                 fryFish.Status = FryFishStatus.Completed;
-                fryFish.EndDate = DateTime.Now;
-                breed.EndDate = DateTime.Now;
+                fryFish.EndDate = DateTime.UtcNow;
+                breed.EndDate = DateTime.UtcNow;
             }
             else
             {

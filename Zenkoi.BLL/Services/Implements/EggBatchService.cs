@@ -59,7 +59,7 @@ namespace Zenkoi.BLL.Services.Implements
                 BreedingProcessId = dto.BreedingProcessId,
                 Status = EggBatchStatus.Collected,
                 Quantity = dto.Quantity,
-               SpawnDate = DateTime.Now 
+               SpawnDate = DateTime.UtcNow 
             };
 
             // chuyển hồ

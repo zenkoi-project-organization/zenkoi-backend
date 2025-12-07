@@ -94,7 +94,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (filter.IsBreeding)
             {
-                queryBuilder.WithPredicate(k => k.KoiBreedingStatus == KoiBreedingStatus.Ready);
+                queryBuilder.WithPredicate(k => k.KoiBreedingStatus == KoiBreedingStatus.Ready && k.SaleStatus == SaleStatus.NotForSale);
             }
 
             if (filter.VarietyId.HasValue)
@@ -483,7 +483,7 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             });
 
-            var today = DateTime.Now;
+            var today = DateTime.UtcNow;
             if (koifish == null)
                 throw new KeyNotFoundException("không tìm thấy cá koi");
 

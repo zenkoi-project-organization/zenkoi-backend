@@ -117,8 +117,8 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             area.IsDeleted = true;
-            area.DeletedAt = DateTime.Now;
-            area.UpdatedAt = DateTime.Now;
+            area.DeletedAt = DateTime.UtcNow;
+            area.UpdatedAt = DateTime.UtcNow;
 
             await _areaRepo.UpdateAsync(area);
             await _unitOfWork.SaveChangesAsync();
