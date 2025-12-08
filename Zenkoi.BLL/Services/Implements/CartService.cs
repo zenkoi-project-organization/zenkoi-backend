@@ -513,7 +513,6 @@ namespace Zenkoi.BLL.Services.Implements
 
         private async Task ValidateAndLockCartItemsAsync(ICollection<CartItem> cartItems)
         {
-            // Batch load all KoiFish in 1 query
             var koiFishIds = cartItems
                 .Where(x => x.KoiFishId.HasValue)
                 .Select(x => x.KoiFishId.Value)
@@ -526,12 +525,12 @@ namespace Zenkoi.BLL.Services.Implements
                 var koiFishes = await _koiFishRepo.GetAllAsync(new QueryBuilder<KoiFish>()
                     .WithPredicate(k => koiFishIds.Contains(k.Id))
                     .WithTracking(true)
+                    .WithLockForUpdate(true) // Add row-level lock to prevent race conditions
                     .Build());
 
                 koiFishDict = koiFishes.ToDictionary(k => k.Id);
             }
 
-            // Batch load all PacketFish in 1 query
             var packetFishIds = cartItems
                 .Where(x => x.PacketFishId.HasValue)
                 .Select(x => x.PacketFishId.Value)
@@ -545,12 +544,12 @@ namespace Zenkoi.BLL.Services.Implements
                     .WithPredicate(pf => packetFishIds.Contains(pf.Id))
                     .WithInclude(pf => pf.PondPacketFishes)
                     .WithTracking(true)
+                    .WithLockForUpdate(true) // Add row-level lock to prevent concurrent reservation
                     .Build());
 
                 packetFishDict = packetFishes.ToDictionary(pf => pf.Id);
             }
 
-            // Now validate each item using the loaded data
             foreach (var item in cartItems)
             {
                 if (item.KoiFishId.HasValue)

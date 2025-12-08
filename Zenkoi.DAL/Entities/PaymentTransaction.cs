@@ -49,9 +49,7 @@ namespace Zenkoi.DAL.Entities
 
         public DateTime? UpdatedAt { get; set; }
 
-        /// <summary>
         /// Row version for optimistic concurrency control
-        /// </summary>
         [Timestamp]
         public byte[]? RowVersion { get; set; }
 

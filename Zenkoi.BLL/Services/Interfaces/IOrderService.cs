@@ -17,5 +17,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task UpdateInventoryAfterPaymentSuccessAsync(int orderId);
         Task ValidateOrderItemsAvailabilityAsync(OrderResponseDTO order);
         Task ValidateCartItemsAvailabilityAsync(IEnumerable<CartItem> cartItems);
+        Task CancelOrderAndReleaseInventoryAsync(int orderId);
     }
 }

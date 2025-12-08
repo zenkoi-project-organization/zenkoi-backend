@@ -94,6 +94,7 @@ namespace Zenkoi.API
 
             builder.Services.AddHostedService<OrderCompletionBackgroundService>();
             builder.Services.AddHostedService<WorkScheduleStatusBackgroundService>();
+            builder.Services.AddHostedService<PendingOrderCleanupService>();
 
             builder.Services.AddAuthentication(options =>
             {

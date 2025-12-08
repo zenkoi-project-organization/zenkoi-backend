@@ -304,11 +304,6 @@ namespace Zenkoi.BLL.Services.Implements
 					paymentTransaction.ResponseData = System.Text.Json.JsonSerializer.Serialize(vnpayRes);
 					paymentTransaction.UpdatedAt = DateTime.UtcNow;
 
-					await _orderService.UpdateOrderStatusAsync(
-						actualOrderId.Value,
-						new UpdateOrderStatusDTO { Status = OrderStatus.Pending }
-					);
-
 					await _unitOfWork.SaveChangesAsync();
 
 					return new VnPayCallbackResultDTO

@@ -288,52 +288,84 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<bool> ProcessPaymentCallbackAsync(int orderId, string status)
         {
-            var order = await _orderService.GetOrderByIdAsync(orderId);
-            if (order == null)
-            {
-                throw new Exception("Order not found");
-            }
+            await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 
-            var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
-                new QueryBuilder<PaymentTransaction>()
-                .WithPredicate(pt => pt.ActualOrderId == orderId)
-                .Build());
-
-            if (paymentTransaction == null)
+            try
             {
-                throw new Exception("Payment transaction not found");
-            }
-
-            if (status == "success" && paymentTransaction.Status == Success)
-            {
-                var payment = new Payment
+                var order = await _orderService.GetOrderByIdAsync(orderId);
+                if (order == null)
                 {
-                    OrderId = orderId,
-                    Method = paymentTransaction.PaymentMethod == "PayOS"
-                        ? PaymentMethod.PayOS
-                        : PaymentMethod.VNPAY,
-                    Amount = order.TotalAmount,
-                    PaidAt = DateTime.UtcNow,
-                    TransactionId = paymentTransaction.TransactionId,
-                    Gateway = paymentTransaction.PaymentMethod,
-                    UserId = paymentTransaction.UserId
-                };
+                    await _unitOfWork.RollBackAsync();
+                    throw new Exception("Order not found");
+                }
 
-                await _unitOfWork.GetRepo<Payment>().CreateAsync(payment);
+                var existingPayment = await _unitOfWork.GetRepo<Payment>().GetSingleAsync(
+                    new QueryBuilder<Payment>()
+                        .WithPredicate(p => p.OrderId == orderId)
+                        .Build());
 
-                await _orderService.UpdateOrderStatusAsync(orderId, new Zenkoi.BLL.DTOs.OrderDTOs.UpdateOrderStatusDTO
+                if (existingPayment != null)
                 {
-                    Status = OrderStatus.Processing
-                });
+                    await _unitOfWork.RollBackAsync();
+                    return true;
+                }
 
-                await _orderService.UpdateInventoryAfterPaymentSuccessAsync(orderId);
+                var paymentTransaction = await _unitOfWork.PaymentTransactions.GetSingleAsync(
+                    new QueryBuilder<PaymentTransaction>()
+                    .WithPredicate(pt => pt.ActualOrderId == orderId)
+                    .WithTracking(true)
+                    .Build());
 
-                await _unitOfWork.SaveChangesAsync();
+                if (paymentTransaction == null)
+                {
+                    await _unitOfWork.RollBackAsync();
+                    throw new Exception("Payment transaction not found");
+                }
 
-                return true;
+                if (order.Status != OrderStatus.Pending)
+                {
+                    await _unitOfWork.RollBackAsync();
+                    throw new InvalidOperationException($"Order is in {order.Status} status, cannot process payment");
+                }
+
+                if (status == "success" && paymentTransaction.Status == Success)
+                {
+                    var payment = new Payment
+                    {
+                        OrderId = orderId,
+                        Method = paymentTransaction.PaymentMethod == "PayOS"
+                            ? PaymentMethod.PayOS
+                            : PaymentMethod.VNPAY,
+                        Amount = order.TotalAmount,
+                        PaidAt = DateTime.UtcNow,
+                        TransactionId = paymentTransaction.TransactionId,
+                        Gateway = paymentTransaction.PaymentMethod,
+                        UserId = paymentTransaction.UserId
+                    };
+
+                    await _unitOfWork.GetRepo<Payment>().CreateAsync(payment);
+
+                    await _orderService.UpdateOrderStatusAsync(orderId, new Zenkoi.BLL.DTOs.OrderDTOs.UpdateOrderStatusDTO
+                    {
+                        Status = OrderStatus.Processing
+                    });
+
+                    await _orderService.UpdateInventoryAfterPaymentSuccessAsync(orderId);
+
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitTransactionAsync();
+
+                    return true;
+                }
+
+                await _unitOfWork.RollBackAsync();
+                return false;
             }
-
-            return false;
+            catch (Exception)
+            {
+                await _unitOfWork.RollBackAsync();
+                throw;
+            }
         }
 
         public async Task<string> CreatePayOSPaymentLinkAsync(int userId, PayOSPaymentRequestDTO request)
@@ -463,23 +495,11 @@ namespace Zenkoi.BLL.Services.Implements
         {
             try
             {
-                var order = await _orderService.GetOrderByIdAsync(orderId);
-
-                if (order == null)
-                {
-                    return; 
-                }
-                if (order.Status != OrderStatus.Pending)
-                {
-                    return;
-                }
-                await _orderService.UpdateOrderStatusAsync(orderId, new Zenkoi.BLL.DTOs.OrderDTOs.UpdateOrderStatusDTO
-                {
-                    Status = OrderStatus.Cancelled
-                });
+                await _orderService.CancelOrderAndReleaseInventoryAsync(orderId);
             }
             catch (Exception)
             {
+                // Log error but don't throw to prevent blocking payment flow
             }
         }
 

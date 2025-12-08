@@ -77,16 +77,46 @@ namespace Zenkoi.BLL.Services.Implements
         private async Task LoadOrderDetailProductsAsync(Order order)
         {
             if (order.OrderDetails != null && order.OrderDetails.Any())
-            {
+            {          
+                var koiFishIds = order.OrderDetails
+                    .Where(d => d.KoiFishId.HasValue)
+                    .Select(d => d.KoiFishId.Value)
+                    .Distinct()
+                    .ToList();
+
+                var packetFishIds = order.OrderDetails
+                    .Where(d => d.PacketFishId.HasValue)
+                    .Select(d => d.PacketFishId.Value)
+                    .Distinct()
+                    .ToList();
+
+                Dictionary<int, KoiFish> koiFishDict = new Dictionary<int, KoiFish>();
+                if (koiFishIds.Any())
+                {
+                    var koiFishes = await _koiFishRepo.GetAllAsync(new QueryBuilder<KoiFish>()
+                        .WithPredicate(k => koiFishIds.Contains(k.Id))
+                        .Build());
+                    koiFishDict = koiFishes.ToDictionary(k => k.Id);
+                }
+
+                Dictionary<int, PacketFish> packetFishDict = new Dictionary<int, PacketFish>();
+                if (packetFishIds.Any())
+                {
+                    var packetFishes = await _packetFishRepo.GetAllAsync(new QueryBuilder<PacketFish>()
+                        .WithPredicate(pf => packetFishIds.Contains(pf.Id))
+                        .Build());
+                    packetFishDict = packetFishes.ToDictionary(pf => pf.Id);
+                }
+
                 foreach (var detail in order.OrderDetails)
                 {
-                    if (detail.KoiFishId.HasValue)
+                    if (detail.KoiFishId.HasValue && koiFishDict.TryGetValue(detail.KoiFishId.Value, out var koiFish))
                     {
-                        detail.KoiFish = await _koiFishRepo.GetByIdAsync(detail.KoiFishId.Value);
+                        detail.KoiFish = koiFish;
                     }
-                    if (detail.PacketFishId.HasValue)
+                    if (detail.PacketFishId.HasValue && packetFishDict.TryGetValue(detail.PacketFishId.Value, out var packetFish))
                     {
-                        detail.PacketFish = await _packetFishRepo.GetByIdAsync(detail.PacketFishId.Value);
+                        detail.PacketFish = packetFish;
                     }
                 }
             }
@@ -348,7 +378,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 if (remainingFish <= 0) break;
 
-                int toConfirm = Math.Min(remainingFish, fishCount);
+                int toConfirm = Math.Min(remainingFish, pondPacket.AvailableQuantity);
                 pondPacket.SoldQuantity += toConfirm;
                 remainingFish -= toConfirm;
 
@@ -486,11 +516,25 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     throw new InvalidOperationException($"KoiFish with ID {koiFishId} not found");
                 }
-
-                if (koiFish.SaleStatus != SaleStatus.Available)
+                if (koiFish.SaleStatus == SaleStatus.Sold)
                 {
                     throw new InvalidOperationException(
-                        $"KoiFish with RFID '{koiFish.RFID}' is no longer available for sale (Status: {koiFish.SaleStatus}). Please contact support or cancel this order.");
+                        $"KoiFish with RFID '{koiFish.RFID}' has already been sold to another customer.");
+                }
+
+                if (koiFish.SaleStatus == SaleStatus.NotForSale)
+                {
+                    var orderDetail = await _orderDetailRepo.GetSingleAsync(
+                        new QueryBuilder<OrderDetail>()
+                        .WithPredicate(od => od.OrderId == orderId && od.KoiFishId == koiFishId.Value)
+                        .Build());
+
+                    if (orderDetail == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"KoiFish with RFID '{koiFish.RFID}' is not available for sale. Please contact support or cancel this order.");
+                    }
+                    // Fish is NotForSale but is in this order - this is expected (reserved during checkout)
                 }
             }
 
@@ -586,12 +630,37 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 if (remainingFish <= 0) break;
 
-                int toAddBack = Math.Min(remainingFish, fishCount);
+                int toAddBack = Math.Min(remainingFish, pondPacket.SoldQuantity);
                 pondPacket.AvailableQuantity += toAddBack;
+                pondPacket.SoldQuantity -= toAddBack;
                 remainingFish -= toAddBack;
 
                 await pondPacketFishRepo.UpdateAsync(pondPacket);
             }
+        }
+
+        public async Task CancelOrderAndReleaseInventoryAsync(int orderId)
+        {
+            var order = await GetOrderByIdAsync(orderId);
+
+            if (order == null)
+            {
+                return;
+            }
+
+            if (order.Status != OrderStatus.Pending)
+            {
+                return;
+            }
+
+            // Release inventory first
+            await RollbackInventoryReservationAsync(orderId);
+
+            // Then cancel the order
+            await UpdateOrderStatusAsync(orderId, new UpdateOrderStatusDTO
+            {
+                Status = OrderStatus.Cancelled
+            });
         }
 
     }
