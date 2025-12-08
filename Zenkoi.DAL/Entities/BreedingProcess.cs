@@ -17,9 +17,7 @@ namespace Zenkoi.DAL.Entities
         public int FemaleKoiId { get; set; }
         public int? PondId { get; set; }
        
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-
+    
         public BreedingStatus Status { get; set; }
         public string? Note { get; set; }
         public BreedingResult Result { get; set; }
@@ -29,7 +27,9 @@ namespace Zenkoi.DAL.Entities
         public double? SurvivalRate { get; set; } = 0;
         public int? TotalFishQualified { get; set; } = 0;
         public int? TotalPackage { get; set; } = 0;
-        public double? MutationRate { get; set; } = 0;  
+        public double? MutationRate { get; set; } = 0;
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         [ForeignKey(nameof(MaleKoiId))]
         public KoiFish MaleKoi { get; set; }

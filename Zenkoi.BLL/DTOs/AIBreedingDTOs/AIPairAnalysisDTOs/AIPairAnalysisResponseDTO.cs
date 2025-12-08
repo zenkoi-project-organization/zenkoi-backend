@@ -27,5 +27,6 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs
     {
         public string Summary { get; set; }
         public double BreedingSuccessRate { get; set; }
+        public int? AvgEggs { get; set; }
     }
 }

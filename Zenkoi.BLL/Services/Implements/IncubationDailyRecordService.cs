@@ -72,7 +72,6 @@ namespace Zenkoi.BLL.Services.Implements
             if (dto.Success)
             {
                 eggBatch.Status = EggBatchStatus.Success;
-                eggBatch.SpawnDate = DateTime.UtcNow;
                 eggBatch.EndDate = DateTime.UtcNow;
                 record.HatchedEggs = dto.HatchedEggs;
                 record.RottenEggs = eggBatch.Quantity - (dto.HealthyEggs + dto.HatchedEggs);
