@@ -118,7 +118,10 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var alert = await _waterAlertRepo.GetByIdAsync(id);
             if (alert == null) return false;
-
+            if (alert.IsResolved == true)
+            {
+                throw new InvalidOperationException("không ");   
+            }
             alert.IsResolved = true;
             alert.ResolvedByUserId = userId;
             alert.ResolveAt = DateTime.UtcNow;

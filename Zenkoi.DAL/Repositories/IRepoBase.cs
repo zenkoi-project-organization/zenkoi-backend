@@ -7,7 +7,8 @@ namespace Zenkoi.DAL.Repositories
 		public Task<T> CreateAsync(T entity);
 		public Task CreateAllAsync(List<T> entities);
 		public Task UpdateAsync(T entity);
-		public Task DeleteAsync(T entity);
+        public Task UpdateRangeAsync(List<T> entities);
+        public Task DeleteAsync(T entity);
 		public Task DeleteAllAsync(List<T> entities);
 		public IQueryable<T> Get(QueryOptions<T> options);
 		public Task<IEnumerable<T>> GetAllAsync(QueryOptions<T> options);
