@@ -165,9 +165,14 @@ namespace Zenkoi.BLL.Services.Implements
                 queryBuilder.WithPredicate(k => k.SaleStatus == filter.SaleStatus.Value);
             }
 
-            if (filter.IsBreeding)
+            if (filter.IsBreeding.HasValue == true)
             {
                 queryBuilder.WithPredicate(k => k.KoiBreedingStatus == KoiBreedingStatus.Ready && k.SaleStatus == SaleStatus.NotForSale);
+            }
+            if(filter.IsPostSpawning.HasValue == true)
+            {
+                queryBuilder.WithPredicate(k => k.KoiBreedingStatus == KoiBreedingStatus.PostSpawning && k.SaleStatus != SaleStatus.Sold);
+
             }
 
             if (filter.VarietyId.HasValue)
@@ -561,5 +566,16 @@ namespace Zenkoi.BLL.Services.Implements
             return fish.KoiBreedingStatus;
         }
 
+        public async Task<bool> UpdateKoiSpawning(int id)
+        {
+            var koifish = await _koiFishRepo.GetByIdAsync(id);
+            if (koifish == null)
+            {
+                throw new KeyNotFoundException("không tim thấy cá koi");
+            }
+            koifish.KoiBreedingStatus = KoiBreedingStatus.Ready;
+            await _koiFishRepo.UpdateAsync(koifish);
+            return await _unitOfWork.SaveAsync(); 
+        }
     }
 }

@@ -331,15 +331,15 @@ namespace Zenkoi.BLL.Services.Implements
                 request.Male.BreedingHistory?.Any(h =>
                     h.FertilizationRate.HasValue ||
                     h.HatchRate.HasValue ||
-                    h.SurvivalRate.HasValue ) == true;
+                    h.SurvivalRate.HasValue) == true;
 
             bool femaleHasData = request.Female != null &&
                 request.Female.BreedingHistory?.Any(h =>
                     h.FertilizationRate.HasValue ||
                     h.HatchRate.HasValue ||
-                    h.SurvivalRate.HasValue) == true ;
+                    h.SurvivalRate.HasValue) == true;
 
-           if (!maleHasData || !femaleHasData)
+            if (!maleHasData || !femaleHasData)
                 throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
 
             var sb = new StringBuilder();
@@ -366,7 +366,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 foreach (var h in request.Male.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%,AveEggs={h.AvgEggs}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
@@ -404,10 +404,10 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("    \"Summary\": \"Cá đực có sức khỏe tốt, ổn định di truyền và tỷ lệ sinh sản cao.\",");
             sb.AppendLine("    \"BreedingSuccessRate\": 84.0");
             sb.AppendLine("  },");
-
             sb.AppendLine("  \"FemaleBreedingInfo\": {");
             sb.AppendLine("    \"Summary\": \"Cá cái có lịch sử nở tốt, sức khỏe ổn định và màu sắc sáng.\",");
-            sb.AppendLine("    \"BreedingSuccessRate\": 87.0");
+            sb.AppendLine("    \"BreedingSuccessRate\": 87.0,");
+            sb.AppendLine("    \"AvgEggs\": 2500");  // Lấy thông tin số lượng trứng của cá cái.
             sb.AppendLine("  }");
             sb.AppendLine("}");
             sb.AppendLine();
@@ -421,6 +421,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             return sb.ToString();
         }
+
 
         private static string ExtractAiMessage(string content)
         {
