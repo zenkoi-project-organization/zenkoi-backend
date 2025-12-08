@@ -18,5 +18,7 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
     public double? AvgEggs {  get; set; }
     public double? SurvivalRate { get; set; }
     public double? HighQualifiedRate { get; set; }
+    public double? HighQualifiedQuanity { get; set; }
+
     }
 }

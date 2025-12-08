@@ -537,6 +537,7 @@ namespace Zenkoi.BLL.Services.Implements
                         FertilizationRate = historyBreed.FertilizationRate,
                         HatchRate = historyBreed.HatchRate,
                         SurvivalRate = historyBreed.SurvivalRate,
+                        HighQualifiedQuanity = historyBreed.HighQualifiedQuanity.Value,
                         AvgEggs = historyBreed.AvgEggs,
                         HighQualifiedRate = historyBreed.HighQualifiedRate,
                         ResultNote = $"Participations: {historyBreed.ParticipationCount}, Failed: {historyBreed.FailCount}",

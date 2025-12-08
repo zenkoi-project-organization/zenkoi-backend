@@ -230,9 +230,18 @@ namespace Zenkoi.BLL.Services.Implements
             classification.ShowQualifiedCount = dto.ShowQualifiedCount;
             classification.HighQualifiedCount = record.HighQualifiedCount;
 
+            // mang cá high qua pondpacket 
+            var _pondpacketRepo = _unitOfWork.GetRepo<PondPacketFish>();
+            var pondpacket = await _pondpacketRepo.GetSingleAsync(new QueryOptions<PondPacketFish>
+            {
+                Predicate = p => p.BreedingProcessId == classification.BreedingProcessId
+            });
+
+            pondpacket.AvailableQuantity += classification.HighQualifiedCount.Value;
+
             classification.Status = ClassificationStatus.Stage4;
             breed.TotalFishQualified = classification.HighQualifiedCount + dto.ShowQualifiedCount;
-
+            await _pondpacketRepo.UpdateAsync(pondpacket);
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
             await _breedRepo.UpdateAsync(breed);
