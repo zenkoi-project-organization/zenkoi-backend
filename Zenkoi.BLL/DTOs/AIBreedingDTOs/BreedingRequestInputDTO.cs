@@ -14,6 +14,5 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public bool IsMutation { get; set; }
         public double MinHatchRate { get; set; } = 0;             
         public double MinSurvivalRate { get; set; } = 0;         
-        public double MinHighQualifiedRate { get; set; } = 0;
     }
 }

@@ -508,7 +508,7 @@ namespace Zenkoi.BLL.Services.Implements
                 KoiFishId = koiFishId,
                 ParticipationCount = breedings.Count(),
                 FailCount = breedings.Count(b => b.Status == BreedingStatus.Failed),
-                AvgEggs = breedings.Average(b => b.TotalEggs ?? 0),
+                AvgEggs = Math.Round(breedings.Average(b => b.TotalEggs ?? 0)),
                 FertilizationRate = breedings.Average(b => b.FertilizationRate ?? 0),
                 HatchRate = breedings.Average(b => b.HatchingRate ?? 0),
                 SurvivalRate = breedings.Average(b => b.SurvivalRate ?? 0),
@@ -517,7 +517,9 @@ namespace Zenkoi.BLL.Services.Implements
                     .Average(b =>
                         b.TotalFishQualified /
                         ((b.SurvivalRate ?? 0) * (b.HatchingRate ?? 0) * (b.TotalEggs ?? 1.0))
-                    )
+                    ),
+                HighQualifiedQuanity = Math.Round(breedings.Average(b => b.TotalFishQualified ?? 0))
+
             };
 
             return response;
@@ -533,7 +535,8 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 Predicate = k =>
                 k.Gender != Gender.Other &&
-                k.HealthStatus != HealthStatus.Weak &&
+                k.HealthStatus == HealthStatus.Healthy &&
+                k.KoiBreedingStatus ==KoiBreedingStatus.Ready && 
                 k.BirthDate.HasValue &&
                 EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 2 &&
                 EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6 &&
@@ -613,6 +616,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             pond.PondStatus = PondStatus.Empty;
             breed.Status = BreedingStatus.Failed;
+            breed.Result = BreedingResult.Failed;
             breed.Note = note;
             await _pondRepo.UpdateAsync(pond);
             await _breedRepo.UpdateAsync(breed);
