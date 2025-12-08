@@ -186,6 +186,8 @@ namespace Zenkoi.BLL.Services.Implements
                 Fx = Math.Clamp(Fx, 0.0, 1.0);
 
                 result.PercentInbreeding = Math.Round(Fx * 100, 2);
+                result.MaleId = request.Male.Id;
+                result.FemaleId = request.Female.Id;
 
                 Console.WriteLine($"✅ Parse JSON thành công:\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
                 return result;
@@ -203,7 +205,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             // 🧠 Giới thiệu & hướng dẫn cơ bản
             sb.AppendLine("Bạn là **Smart Koi Breeder**, chuyên gia di truyền và phân tích phối giống cá Koi.");
-  
             sb.AppendLine();
             sb.AppendLine("⚠️ Quy tắc bắt buộc:");
             sb.AppendLine("❗Không được tạo, giả định hoặc thêm bất kỳ cá nào không có trong danh sách đầu vào.");
@@ -216,10 +217,9 @@ namespace Zenkoi.BLL.Services.Implements
             // 🎯 Mục tiêu phối giống
             sb.AppendLine("🎯 Mục tiêu phối giống:");
             sb.AppendLine("Chúng tôi cần chọn những cặp cá có khả năng phối giống tối ưu để đạt được giống mục tiêu.");
-            sb.AppendLine("Hãy chú trọng vào những yếu tố quan trọng như di truyền , tỷ lệ sinh sản, và các đặc tính di truyền có thể ảnh hưởng đến chất lượng cá con.");
             sb.AppendLine($"- Giống mục tiêu: {request.TargetVariety}");
             sb.AppendLine($"- Ưu tiên: {request.Priority}");
-            sb.AppendLine($"- Ngưỡng yêu cầu: HatchRate ≥ {request.MinHatchRate}%, SurvivalRate ≥ {request.MinSurvivalRate}%, HighQualifiedRate ≥ {request.MinHighQualifiedRate}%");
+            sb.AppendLine($"- Ngưỡng yêu cầu: HatchRate ≥ {request.MinHatchRate}%, SurvivalRate ≥ {request.MinSurvivalRate}%");
             sb.AppendLine();
 
             // 🐟 Danh sách cá bố mẹ thực tế
@@ -243,11 +243,11 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("- Chỉ được phép sử dụng các cá trong danh sách trên.");
             sb.AppendLine("- Mọi giá trị ID, RFID, Image phải trùng 100% với dữ liệu đầu vào.");
             sb.AppendLine("- Nếu không có dữ liệu phù hợp, có thể chọn cặp gần đúng nhất, nhưng phải ghi rõ lý do là 'tương tự' thay vì 'đúng loại'.");
-            sb.AppendLine();
 
             // 📈 Nhiệm vụ chi tiết
             sb.AppendLine("📈 Nhiệm vụ của bạn:");
             sb.AppendLine("- Phân tích dữ liệu trên để **dự đoán hiệu quả phối giống** giữa các cặp cá đực và cá cái.");
+            sb.AppendLine("- **Chỉ chọn các cặp cá có tỷ lệ HatchRate, SurvivalRate và HighQualifiedRate đạt yêu cầu từ đầu vào.**");
             sb.AppendLine("- Ưu tiên cặp có khả năng sinh ra cá con đạt giống mục tiêu và có loại đột biến mong muốn.");
             sb.AppendLine("- Với mỗi cặp, ước lượng các chỉ số từ 0–100 (%). Nếu thiếu dữ liệu, đặt giá trị 0.");
             sb.AppendLine("- Khi tính `PredictedMutationRate`:");
@@ -257,11 +257,6 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("🪶 Khi viết `Reason` (giải thích):");
             sb.AppendLine("- Hãy viết ngắn gọn (1–2 câu), nhưng mang phong cách **chuyên gia di truyền cá Koi**.");
             sb.AppendLine("- Giải thích lý do chọn cặp một cách tự nhiên, có cơ sở khoa học và mang tính thẩm mỹ.");
-            sb.AppendLine("- Nên nhắc đến các yếu tố như: màu sắc, ánh kim, độ tương thích giống, sức khỏe, tỷ lệ sinh sản, hoặc di truyền ánh sáng.");
-            sb.AppendLine("- Nếu không có đúng đột biến, có thể dùng các cụm như “tương tự ánh kim GinRin”, “gần với hiệu ứng Metallic” nhưng phải nói rõ đó là tương tự, không phải chính xác.");
-            sb.AppendLine("- Tránh các cụm máy móc như 'phù hợp với mục tiêu', 'có tỷ lệ cao'; thay bằng cách diễn đạt sinh động hơn như 'có tiềm năng di truyền tốt', 'mang đặc tính ánh sáng mạnh', 'dòng máu ổn định' v.v.");
-            sb.AppendLine("- Không viết dài, không liệt kê số liệu trong phần lý do.");
-            sb.AppendLine();
 
             // 📋 Kết quả cần trả về
             sb.AppendLine("📋 Kết quả cần trả về:");
@@ -272,6 +267,7 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("  • PredictedFertilizationRate, PredictedHatchRate, PredictedSurvivalRate, PredictedHighQualifiedRate");
             sb.AppendLine("  • PredictedMutationRate, PredictedMutationDescription, PercentInbreeding, Rank");
             sb.AppendLine("  • Reason: Một hoặc hai câu, diễn đạt tự nhiên, chuyên nghiệp, mang ngôn ngữ của chuyên gia lai tạo.");
+
             sb.AppendLine();
 
             // ⚠️ Lưu ý quan trọng
@@ -280,8 +276,6 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("- Không được ghép cùng giới tính hoặc tạo ID mới.");
             sb.AppendLine("- `PercentInbreeding` là double (0 nếu không có dữ liệu).");
             sb.AppendLine("- Ưu tiên đột biến trùng khớp với `DesiredMutationDescription`. Nếu không có, cho phép loại tương tự và ghi rõ 'gần đúng'.");
-            sb.AppendLine("- Chỉ ghi lý do có thật, ngắn gọn, không trùng lặp giữa các cặp.");
-            sb.AppendLine();
 
             // 📦 Mẫu JSON chuẩn
             sb.AppendLine("📋 Kết quả cần trả về:");
@@ -294,7 +288,7 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("     \"PredictedFertilizationRate\": 92.5,");
             sb.AppendLine("     \"PredictedHatchRate\": 88.1,");
             sb.AppendLine("     \"PredictedSurvivalRate\": 79.6,");
-            sb.AppendLine("     \"PredictedHighQualifiedRate\": 82.0,");
+            sb.AppendLine("     \"PredictedHighQualifiedRate\": 0.07,");
             sb.AppendLine("     \"PercentInbreeding\": 0.0,");
             sb.AppendLine("     \"PredictedMutationRate\": 25.3,");
             sb.AppendLine("     \"MutationDescription\": \"Đột biến ánh kim tương tự GinRin\",");
@@ -312,15 +306,6 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine(" ]");
             sb.AppendLine("}");
             sb.AppendLine();
-            sb.AppendLine("📌 Ghi nhớ:");
-            sb.AppendLine("- Tất cả các trường phải có mặt và đúng kiểu dữ liệu theo mẫu trên.");
-            sb.AppendLine("- Các giá trị tỷ lệ (Rate, Percent, Match) nằm trong khoảng 0–100.");
-            sb.AppendLine("- `Summary` là mô tả ngắn gọn (1–2 câu), mang phong cách chuyên gia di truyền cá Koi, diễn đạt tự nhiên và có cơ sở khoa học.");
-            sb.AppendLine("- Nếu không có dữ liệu, đặt giá trị 0 hoặc để chuỗi rỗng (\"\").");
-            sb.AppendLine("- `MutationDescription` có thể là mô tả loại đột biến thật, hoặc ghi rõ là 'gần đúng' nếu không trùng loại mong muốn.");
-            sb.AppendLine("- `PredictedMatchToDesiredMutationDescription` là % mức độ tương đồng với loại đột biến mục tiêu.");
-            sb.AppendLine();
-            sb.AppendLine("⚠️ Chỉ trả về JSON hợp lệ, bắt đầu bằng { và kết thúc bằng }. Không thêm văn bản khác.");
 
             return sb.ToString();
         }
@@ -339,8 +324,14 @@ namespace Zenkoi.BLL.Services.Implements
                     h.HatchRate.HasValue ||
                     h.SurvivalRate.HasValue) == true;
 
+            int maleId = request.Male.Id;
+            int fememaleId = request.Female.Id;
+
+            // Check if data is missing for Male or Female
             if (!maleHasData || !femaleHasData)
-                throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
+            {
+                return null;  // Return null if there's no data
+            }
 
             var sb = new StringBuilder();
 
@@ -361,7 +352,10 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine($"- ID: {request.Male.Id} | RFID: {request.Male.RFID} | Giống: {request.Male.Variety}");
             sb.AppendLine($"- Kích thước: {request.Male.Size} | Tuổi: {request.Male.Age} | Sức khỏe: {request.Male.Health}");
             sb.AppendLine($"- Đột biến: {(request.Male.IsMutated ? $"{request.Male.MutationDescription} " : "Không có")}");
+
+            if (string.IsNullOrEmpty(request.Male.image)) return null;
             sb.AppendLine($"- Ảnh: {request.Male.image}");
+
             if (request.Male.BreedingHistory?.Any() == true)
             {
                 foreach (var h in request.Male.BreedingHistory)
@@ -376,7 +370,10 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine($"- ID: {request.Female.Id} | RFID: {request.Female.RFID} | Giống: {request.Female.Variety}");
             sb.AppendLine($"- Kích thước: {request.Female.Size} | Tuổi: {request.Female.Age} | Sức khỏe: {request.Female.Health}");
             sb.AppendLine($"- Đột biến: {(request.Female.IsMutated ? $"{request.Female.MutationDescription} " : "Không có")}");
+
+            if (string.IsNullOrEmpty(request.Female.image)) return null;
             sb.AppendLine($"- Ảnh: {request.Female.image}");
+
             if (request.Female.BreedingHistory?.Any() == true)
             {
                 foreach (var h in request.Female.BreedingHistory)
@@ -389,42 +386,35 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("📋 Trả về kết quả **JSON hợp lệ duy nhất**, KHÔNG markdown, KHÔNG văn bản ngoài JSON.");
             sb.AppendLine("JSON phải đúng cấu trúc sau (giá trị mẫu chỉ minh họa):");
             sb.AppendLine("{");
-            sb.AppendLine($"  \"MaleId\": {request.Male.Id},");
-            sb.AppendLine($"  \"FemaleId\": {request.Female.Id},");
-            sb.AppendLine("  \"PredictedFertilizationRate\": 85.2,");
-            sb.AppendLine("  \"PredictedHatchRate\": 78.6,");
-            sb.AppendLine("  \"PredictedSurvivalRate\": 81.4,");
-            sb.AppendLine("  \"PredictedHighQualifiedRate\": 76.9,");
-            sb.AppendLine("  \"PercentInbreeding\": 0.0,");
-            sb.AppendLine("  \"PredictedMutationRate\": 12.4,");
-            sb.AppendLine("  \"MutationDescription\": \"Đột biến ánh kim tương tự GinRin\",");
-            sb.AppendLine("  \"PredictedMutationDescription\": 90.3,");
 
-            sb.AppendLine("  \"Summary\": \"Cặp này tương thích tốt, có tiềm năng sinh ra cá con mang đặc tính ánh kim ổn định.\",");
+            
+            sb.AppendLine($"  \"MaleId\": {maleId.ToString()}");
+            sb.AppendLine($"  \"FemaleId\": {fememaleId.ToString()}");
 
         
-            double maleBreedingSuccessRate =
-                ((request.Male.BreedingHistory?[0]?.FertilizationRate ?? 0) +
-                 (request.Male.BreedingHistory?[0]?.HatchRate ?? 0) +
-                 (request.Male.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3;
-            maleBreedingSuccessRate = Math.Round(maleBreedingSuccessRate, 2);
-            double AvgFertilizationRate = (request.Male.BreedingHistory?[0]?.FertilizationRate ?? 0) ;
-            AvgFertilizationRate = Math.Round(AvgFertilizationRate, 2);
+            sb.AppendLine($"  \"PredictedFertilizationRate\": {(request.Male.BreedingHistory?.FirstOrDefault()?.FertilizationRate ?? (double?)null)?.ToString() ?? "null"},");
+            sb.AppendLine($"  \"PredictedHatchRate\": {(request.Male.BreedingHistory?.FirstOrDefault()?.HatchRate ?? (double?)null)?.ToString() ?? "null"},");
+            sb.AppendLine($"  \"PredictedSurvivalRate\": {(request.Male.BreedingHistory?.FirstOrDefault()?.SurvivalRate ?? (double?)null)?.ToString() ?? "null"},");
+            sb.AppendLine($"  \"PredictedHighQualifiedRate\": {(request.Male.BreedingHistory?.FirstOrDefault()?.SurvivalRate ?? (double?)null)?.ToString() ?? "null"},");
+            sb.AppendLine($"  \"PercentInbreeding\": null,");  
+            sb.AppendLine($"  \"PredictedMutationRate\": {(request.Male.IsMutated ? (double?)12.4 : (double?)null)?.ToString() ?? "null"},");
+            sb.AppendLine($"  \"MutationDescription\": {(request.Male.IsMutated ? "Đột biến ánh kim tương tự GinRin" : "null")},");
+            sb.AppendLine($"  \"PredictedMutationDescription\": {(request.Male.IsMutated ? (double?)90.3 : (double?)null)?.ToString() ?? "null"},");
+            sb.AppendLine($"  \"Summary\": \"{(request.Male.IsMutated ? "Cặp này tương thích tốt, có tiềm năng sinh ra cá con mang đặc tính ánh kim ổn định." : "null")}\",");
+
+          
             sb.AppendLine("  \"MaleBreedingInfo\": {");
             sb.AppendLine($"    \"Summary\": \"Cá đực có sức khỏe tốt, ổn định di truyền và tỷ lệ sinh sản cao.\",");
-            sb.AppendLine($"    \"BreedingSuccessRate\": {maleBreedingSuccessRate},");
-            sb.AppendLine($"    \"AvgFertilizationRate\": {AvgFertilizationRate}");
+            sb.AppendLine($"    \"BreedingSuccessRate\": {(maleHasData ? (double?)85.3 : (double?)null)?.ToString() ?? "null"}");
+            sb.AppendLine($"    \"AvgFertilizationRate\": {request.Male.BreedingHistory[0].FertilizationRate}");
+        //  sb.AppendLine($"    \"AveEggs\": null ");
             sb.AppendLine("  },");
 
-            double femaleBreedingSuccessRate =
-            ((request.Female.BreedingHistory?[0]?.FertilizationRate ?? 0) +
-             (request.Female.BreedingHistory?[0]?.HatchRate ?? 0) +
-             (request.Female.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3;
-            femaleBreedingSuccessRate = Math.Round(femaleBreedingSuccessRate, 2);
             sb.AppendLine("  \"FemaleBreedingInfo\": {");
             sb.AppendLine($"    \"Summary\": \"Cá cái có lịch sử nở tốt, sức khỏe ổn định và màu sắc sáng.\",");
-            sb.AppendLine($"    \"BreedingSuccessRate\": {femaleBreedingSuccessRate},");
-            sb.AppendLine("    \"AvgEggs\": 2500"); 
+            sb.AppendLine($"    \"BreedingSuccessRate\": {(femaleHasData ? (double?)88.1 : (double?)null)?.ToString() ?? "null"}");
+            //  sb.AppendLine($"    \"AvgFertilizationRate\": null ");
+            sb.AppendLine($"    \"AvgEggs\": {request.Female.BreedingHistory?[0].AvgEggs ?? 0}");
             sb.AppendLine("  }");
             sb.AppendLine("}");
             sb.AppendLine();
@@ -434,7 +424,7 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("- Không thêm các trường khác như PatternMatchScore hoặc PredictedCommonMutationType.");
             sb.AppendLine("- Đảm bảo JSON bắt đầu bằng `{` và kết thúc bằng `}`.");
             sb.AppendLine("- Summary phải là 1–2 câu tự nhiên, phong cách chuyên gia lai tạo cá Koi.");
-            sb.AppendLine("- Nếu không có dữ liệu, đặt giá trị 0 hoặc chuỗi rỗng (\"\").");
+            sb.AppendLine("- Nếu không có dữ liệu, trả về `null`.");
 
             return sb.ToString();
         }

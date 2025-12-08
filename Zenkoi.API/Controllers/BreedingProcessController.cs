@@ -125,7 +125,6 @@ namespace Zenkoi.API.Controllers
                 MinHatchRate = input.MinHatchRate,
                 MinSurvivalRate = input.MinSurvivalRate,
                 IsMutation = input.IsMutation,
-                MinHighQualifiedRate = input.MinHighQualifiedRate,
                 PotentialParents = allParents
             };
 
