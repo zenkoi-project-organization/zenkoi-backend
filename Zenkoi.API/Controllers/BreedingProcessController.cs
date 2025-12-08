@@ -31,9 +31,9 @@ namespace Zenkoi.API.Controllers
             return Success(breeding,"cập nhật thành công");
         }
         [HttpPut("cancel/{id:int}")]
-        public async Task<IActionResult> UpdateCancel(int id)
+        public async Task<IActionResult> UpdateCancel(int id,[FromBody] string note)
         {
-            var breeding = await _service.CancelBreeding(id);
+            var breeding = await _service.CancelBreeding(id,note);
             return Success(breeding,"cập nhật thành công");
         }
         [HttpGet("{koiFishId}/breeding-parent-history")]
@@ -151,6 +151,8 @@ namespace Zenkoi.API.Controllers
                 Male = male,
                 Female = female
             };
+
+            Console.WriteLine($"FullRequest: {Newtonsoft.Json.JsonConvert.SerializeObject(fullRequest)}");
 
             var result = await _advisorService.AnalyzePairAsync(fullRequest);
          
