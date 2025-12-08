@@ -399,15 +399,32 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("  \"PredictedMutationRate\": 12.4,");
             sb.AppendLine("  \"MutationDescription\": \"Đột biến ánh kim tương tự GinRin\",");
             sb.AppendLine("  \"PredictedMutationDescription\": 90.3,");
+
             sb.AppendLine("  \"Summary\": \"Cặp này tương thích tốt, có tiềm năng sinh ra cá con mang đặc tính ánh kim ổn định.\",");
+
+        
+            double maleBreedingSuccessRate =
+                ((request.Male.BreedingHistory?[0]?.FertilizationRate ?? 0) +
+                 (request.Male.BreedingHistory?[0]?.HatchRate ?? 0) +
+                 (request.Male.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3;
+            maleBreedingSuccessRate = Math.Round(maleBreedingSuccessRate, 2);
+            double AvgFertilizationRate = (request.Male.BreedingHistory?[0]?.FertilizationRate ?? 0) ;
+            AvgFertilizationRate = Math.Round(AvgFertilizationRate, 2);
             sb.AppendLine("  \"MaleBreedingInfo\": {");
-            sb.AppendLine("    \"Summary\": \"Cá đực có sức khỏe tốt, ổn định di truyền và tỷ lệ sinh sản cao.\",");
-            sb.AppendLine("    \"BreedingSuccessRate\": 84.0");
+            sb.AppendLine($"    \"Summary\": \"Cá đực có sức khỏe tốt, ổn định di truyền và tỷ lệ sinh sản cao.\",");
+            sb.AppendLine($"    \"BreedingSuccessRate\": {maleBreedingSuccessRate},");
+            sb.AppendLine($"    \"AvgFertilizationRate\": {AvgFertilizationRate}");
             sb.AppendLine("  },");
+
+            double femaleBreedingSuccessRate =
+            ((request.Female.BreedingHistory?[0]?.FertilizationRate ?? 0) +
+             (request.Female.BreedingHistory?[0]?.HatchRate ?? 0) +
+             (request.Female.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3;
+            femaleBreedingSuccessRate = Math.Round(femaleBreedingSuccessRate, 2);
             sb.AppendLine("  \"FemaleBreedingInfo\": {");
-            sb.AppendLine("    \"Summary\": \"Cá cái có lịch sử nở tốt, sức khỏe ổn định và màu sắc sáng.\",");
-            sb.AppendLine("    \"BreedingSuccessRate\": 87.0,");
-            sb.AppendLine("    \"AvgEggs\": 2500");  // Lấy thông tin số lượng trứng của cá cái.
+            sb.AppendLine($"    \"Summary\": \"Cá cái có lịch sử nở tốt, sức khỏe ổn định và màu sắc sáng.\",");
+            sb.AppendLine($"    \"BreedingSuccessRate\": {femaleBreedingSuccessRate},");
+            sb.AppendLine("    \"AvgEggs\": 2500"); 
             sb.AppendLine("  }");
             sb.AppendLine("}");
             sb.AppendLine();
@@ -421,6 +438,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             return sb.ToString();
         }
+
 
 
         private static string ExtractAiMessage(string content)
