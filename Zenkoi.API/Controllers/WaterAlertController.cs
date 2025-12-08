@@ -64,7 +64,17 @@ namespace Zenkoi.API.Controllers
             return Success(success, "Đã xử lý cảnh báo nước thành công.");
         }
 
-      
+        [HttpPut("seen-all")]
+        public async Task<IActionResult> SeenAll()
+        {
+            var success = await _waterAlertService.MarkAllAsSeenAsync();
+            if (!success)
+                return GetError("Không có cảnh báo nào để cập nhật.");
+
+            return Success(success, "Đã đánh dấu tất cả cảnh báo là đã xem.");
+        }
+
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

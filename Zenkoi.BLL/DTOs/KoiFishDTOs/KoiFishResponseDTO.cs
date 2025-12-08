@@ -19,6 +19,8 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public string? Pattern { get; set; }
         public SaleStatus SaleStatus { get; set; }
 
+        public KoiBreedingStatus KoiBreedingStatus { get; set; }
+
         public List<string>? Images { get; set; } = new();
         public List<string>? Videos { get; set; } = new();
 

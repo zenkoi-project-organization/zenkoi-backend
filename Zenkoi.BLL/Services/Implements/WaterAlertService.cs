@@ -41,6 +41,7 @@ namespace Zenkoi.BLL.Services.Implements
                 IncludeProperties = new List<Expression<Func<WaterAlert, object>>>
                 {
                     a => a.Pond!,
+                    a => a.ResolvedBy
                 }
             };
 
@@ -57,6 +58,8 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (filter.IsResolved.HasValue)
                 predicate = predicate.AndAlso(a => a.IsResolved == filter.IsResolved.Value);
+            if (filter.IsSeen.HasValue)
+                predicate = predicate.AndAlso(a => a.Seen == filter.IsSeen.Value);
 
             queryOptions.Predicate = predicate;
 
@@ -115,7 +118,10 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var alert = await _waterAlertRepo.GetByIdAsync(id);
             if (alert == null) return false;
-
+            if (alert.IsResolved == true)
+            {
+                throw new InvalidOperationException("không ");   
+            }
             alert.IsResolved = true;
             alert.ResolvedByUserId = userId;
             alert.ResolveAt = DateTime.UtcNow;
@@ -134,6 +140,20 @@ namespace Zenkoi.BLL.Services.Implements
             await _waterAlertRepo.DeleteAsync(alert);
             await _unitOfWork.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> MarkAllAsSeenAsync()
+        {
+            var notifications = await _waterAlertRepo.GetAllAsync(new QueryOptions<WaterAlert>
+            {
+                Predicate = p => p.Seen == false
+            });
+            foreach (var notification in notifications)
+            {
+                notification.Seen = true;
+                await _waterAlertRepo.UpdateAsync(notification);
+            }
+            return await _unitOfWork.SaveAsync();
         }
     }
 }

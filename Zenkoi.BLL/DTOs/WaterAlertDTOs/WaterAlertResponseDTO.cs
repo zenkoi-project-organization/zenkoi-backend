@@ -17,6 +17,7 @@ namespace Zenkoi.BLL.DTOs.WaterAlertDTOs
         public AlertType AlertType { get; set; }
         public SeverityLevel Severity { get; set; }
         public string Message { get; set; }
+        public bool Seen { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsResolved { get; set; }
         public int? ResolvedByUserId { get; set; }

@@ -68,7 +68,7 @@ namespace Zenkoi.BLL.Services.Implements
                 var jwtToken = new JwtSecurityToken(
                         issuer: _configuration["JWT:ValidIssuer"],
                         audience: _configuration["JWT:ValidAudience"],
-                        expires: DateTime.Now.AddDays(1),
+                        expires: DateTime.UtcNow.AddDays(1),
                         claims: authClaims,
                         signingCredentials: new SigningCredentials(authenKey, SecurityAlgorithms.HmacSha512)
                     );
@@ -84,7 +84,7 @@ namespace Zenkoi.BLL.Services.Implements
                     Token = refreshToken,
                     IsUsed = false,
                     IsRevoked = false,
-                    IssuedAt = DateTime.Now,
+                    IssuedAt = DateTime.UtcNow,
                     ExpiredAt = DateTime.Now.AddDays(30),
                 };
 

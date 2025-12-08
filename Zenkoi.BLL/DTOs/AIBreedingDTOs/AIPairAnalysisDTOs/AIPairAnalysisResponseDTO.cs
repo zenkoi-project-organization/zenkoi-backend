@@ -12,11 +12,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs
         public double PredictedSurvivalRate { get; set; }
         public double PredictedHighQualifiedRate { get; set; }
         public double PercentInbreeding { get; set; }
-
-        public double PredictedMutationRate { get; set; }
         public string? MutationDescription { get; set; }
-        public double PredictedMatchToDesiredMutationType { get; set; }
-
         public string Summary { get; set; }
 
         public BreedingInfo MaleBreedingInfo { get; set; }
@@ -27,5 +23,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs
     {
         public string Summary { get; set; }
         public double BreedingSuccessRate { get; set; }
+        public double AvgFertilizationRate { get; set; }
+        public int? AvgEggs { get; set; }
     }
 }

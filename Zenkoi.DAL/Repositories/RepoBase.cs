@@ -26,8 +26,14 @@ namespace Zenkoi.DAL.Repositories
 		{
 			await _dbSet.AddRangeAsync(entities);
 		}
+        public Task UpdateRangeAsync(List<T> entities)  
+        {
+            _dbSet.UpdateRange(entities); 
+            return _context.SaveChangesAsync();
+        }
 
-		public Task DeleteAsync(T entity)
+
+        public Task DeleteAsync(T entity)
 		{
 			if (_context.Entry<T>(entity).State == EntityState.Detached)
 			{

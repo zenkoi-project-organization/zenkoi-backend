@@ -32,6 +32,7 @@ using Zenkoi.BLL.DTOs.WeeklyScheduleTemplateDTOs;
 using Zenkoi.BLL.DTOs.IncidentDTOs;
 using Zenkoi.BLL.DTOs.IncidentTypeDTOs;
 using Zenkoi.BLL.DTOs.PaymentTransactionDTOs;
+using Zenkoi.BLL.DTOs.WaterAlertDTOs;
 
 namespace Zenkoi.BLL.Helpers.Mapper
 {
@@ -147,11 +148,13 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<WaterParameterThresholdRequestDTO, WaterParameterThreshold>();
             CreateMap<WaterParameterRecord, WaterParameterRecordResponseDTO>()
             .ForMember(dest => dest.PondName, opt => opt.MapFrom(src => src.Pond.PondName))
-            .ForMember(dest => dest.RecordedByUserName, opt => opt.MapFrom(src => src.RecordedBy != null ? src.RecordedBy.UserName : null));
+            .ForMember(dest => dest.RecordedByUserName, opt => opt.MapFrom(src => src.RecordedBy != null ? src.RecordedBy.FullName : null));
             CreateMap<WaterParameterRecordRequestDTO, WaterParameterRecord>();
             CreateMap<WaterRecordDTO, WaterParameterRecordRequestDTO>();
             CreateMap<WaterParameterRecordRequestDTO, WaterRecordDTO>();
             CreateMap<WaterParameterRecord, WaterRecordDTO>().ReverseMap();
+            CreateMap<WaterAlert, WaterAlertResponseDTO>()
+                .ForMember(dest => dest.ResolvedByUserName, opt => opt.MapFrom(src => src.ResolvedBy != null ? src.ResolvedBy.FullName : null));
 
 
             // Order mappings

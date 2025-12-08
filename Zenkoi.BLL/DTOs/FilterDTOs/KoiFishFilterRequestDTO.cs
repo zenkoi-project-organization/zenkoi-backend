@@ -11,12 +11,13 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
     {
         public string? Search { get; set; }
         public Gender? Gender { get; set; }
-        public bool IsBreeding { get; set; }
+        public bool? IsBreeding { get; set; }
         public HealthStatus? Health { get; set; }
         public int? VarietyId { get; set; }
         public double? MinSize { get; set; }
         public double? MaxSize { get; set; }
-        public SaleStatus? SaleStatus { get; set; }
+        public SaleStatus? SaleStatus { get; set;}
+        public bool? IsPostSpawning { get; set;}
         public bool? IsMutation { get; set; }
         public int? PondId { get; set; }
         public string? Origin { get; set; }

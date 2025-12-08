@@ -58,7 +58,7 @@ namespace Zenkoi.BLL.Services.Implements
             breed.PondId = null;
             breed.Status = BreedingStatus.Complete; 
             breed.Result = BreedingResult.Success;
-            breed.EndDate = DateTime.Now;
+            breed.EndDate = DateTime.UtcNow;
 
             classìication.Status = ClassificationStatus.Success;
             await _breedRepo.UpdateAsync(breed);

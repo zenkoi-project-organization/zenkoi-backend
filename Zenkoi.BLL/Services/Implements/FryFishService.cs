@@ -88,7 +88,7 @@ namespace Zenkoi.BLL.Services.Implements
             var fryFish = _mapper.Map<FryFish>(dto);
             fryFish.InitialCount = eggBatch.TotalHatchedEggs;
             fryFish.Status = FryFishStatus.Hatched;
-            fryFish.StartDate = DateTime.Now;
+            fryFish.StartDate = DateTime.UtcNow;
             await _pondRepo.UpdateAsync(eggPond);
             await _pondRepo.UpdateAsync(pond);
             await _eggRepo.UpdateAsync(eggBatch);
@@ -254,7 +254,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 var targetDate = start.AddDays(days);
 
-                if (targetDate > DateTime.Now)
+                if (targetDate > DateTime.UtcNow)
                     return null;
 
                 var record = records

@@ -88,8 +88,17 @@ namespace Zenkoi.API.Controllers
 
             return SaveSuccess($"Cập nhật cá koi thành công (ID = {id}).");
         }
+        [HttpPut("koi-spawn/{id:int}")]
+        public async Task<IActionResult> UpdateFishSpawn (int id)
+        {
 
-       
+            var updated = await _koiFishService.UpdateKoiSpawning(id);
+            if (!updated)
+                return GetNotFound($"Không tìm thấy cá koi cần cập nhật (ID = {id}).");
+
+            return SaveSuccess($"Cập nhật cá koi thành công (ID = {id}).");
+        }
+
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteKoiFish(int id)
         {

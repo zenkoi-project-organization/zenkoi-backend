@@ -128,7 +128,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             pondType.IsDeleted = true;
-            pondType.DeletedAt = DateTime.Now;
+            pondType.DeletedAt = DateTime.UtcNow;
 
             await _pondtypeRepo.UpdateAsync(pondType);
             await _unitOfWork.SaveChangesAsync();

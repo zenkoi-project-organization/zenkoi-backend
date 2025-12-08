@@ -236,11 +236,20 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var res = _mapper.Map<BreedingProcessResponseDTO>(breeding);
-            res.HatchedTime = breeding.Batch.HatchingTime;
+
+            if (breeding.Batch != null)
+            {
+                res.HatchedTime = breeding.Batch.HatchingTime;
+            }
+            else
+            {
+                res.HatchedTime = null;  
+            }
+
             return res;
         }
 
-        public async Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(
+            public async Task<PaginatedList<BreedingProcessResponseDTO>> GetAllBreedingProcess(
       BreedingProcessFilterRequestDTO filter, int pageIndex = 1, int pageSize = 10)
         {
             var queryOptions = new QueryOptions<BreedingProcess>
@@ -440,8 +449,8 @@ namespace Zenkoi.BLL.Services.Implements
             }
             var malekoi = await _koifish.GetByIdAsync(breed.MaleKoiId);
             var female = await _koifish.GetByIdAsync(breed.FemaleKoiId);
-            malekoi.KoiBreedingStatus = KoiBreedingStatus.Ready;
-            female.KoiBreedingStatus = KoiBreedingStatus.Ready;
+            malekoi.KoiBreedingStatus = KoiBreedingStatus.PostSpawning;
+            female.KoiBreedingStatus = KoiBreedingStatus.PostSpawning;
             breed.Status = BreedingStatus.Spawned;
             await _breedRepo.UpdateAsync(breed);
             return await _unitOfWork.SaveAsync();
@@ -494,13 +503,12 @@ namespace Zenkoi.BLL.Services.Implements
                 };
             }
 
-            // 🧮 Tính toán cơ bản
             var response = new KoiFishParentResponseDTO
             {
                 KoiFishId = koiFishId,
                 ParticipationCount = breedings.Count(),
                 FailCount = breedings.Count(b => b.Status == BreedingStatus.Failed),
-
+                AvgEggs = breedings.Average(b => b.TotalEggs ?? 0),
                 FertilizationRate = breedings.Average(b => b.FertilizationRate ?? 0),
                 HatchRate = breedings.Average(b => b.HatchingRate ?? 0),
                 SurvivalRate = breedings.Average(b => b.SurvivalRate ?? 0),
@@ -518,7 +526,7 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync(string? variety = null)
         {
-            var today = DateTime.Now;
+            var today = DateTime.UtcNow;
 
             // ✅ Tạo QueryOptions để lọc koi trong độ tuổi sinh sản
             var options = new QueryOptions<KoiFish>
@@ -573,6 +581,7 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     FertilizationRate = perf.FertilizationRate,
                     HatchRate = perf.HatchRate,
+                    AvgEggs = perf.AvgEggs,
                     SurvivalRate = perf.SurvivalRate,
                     HighQualifiedRate = perf.HighQualifiedRate,
                     ResultNote = $"Participations: {perf.ParticipationCount}, Failed: {perf.FailCount}"
@@ -584,7 +593,7 @@ namespace Zenkoi.BLL.Services.Implements
             return result;
         }
 
-        public async Task<bool> CancelBreeding(int id)
+        public async Task<bool> CancelBreeding(int id, string note)
         { 
             var breed = await _breedRepo.GetByIdAsync(id);
             var _pondRepo = _unitOfWork.GetRepo<Pond>();
@@ -604,6 +613,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             pond.PondStatus = PondStatus.Empty;
             breed.Status = BreedingStatus.Failed;
+            breed.Note = note;
             await _pondRepo.UpdateAsync(pond);
             await _breedRepo.UpdateAsync(breed);
             return await _unitOfWork.SaveAsync();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Org.BouncyCastle.Ocsp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,12 +25,14 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly string _apiKey;
         private readonly JsonSerializerOptions _jsonOptions;
         private readonly IUnitOfWork _unitOfWork;
-     
-        public BreedingAdvisorService(IConfiguration config, IUnitOfWork unitOfWork)
+        private readonly IBreedingProcessService _service;
+
+        public BreedingAdvisorService(IConfiguration config, IUnitOfWork unitOfWork, IBreedingProcessService service)
         {
             _http = new HttpClient();
             _apiKey = config["OpenRouter:ApiKey"]!;
             _unitOfWork = unitOfWork;
+            _service = service;
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -72,7 +75,7 @@ namespace Zenkoi.BLL.Services.Implements
             string logDir = Path.Combine(AppContext.BaseDirectory, "Logs", "SmartKoi");
             Directory.CreateDirectory(logDir);
 
-            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
             string promptPath = Path.Combine(logDir, $"Prompt_{timestamp}.txt");
             string bodyPath = Path.Combine(logDir, $"Body_{timestamp}.json");
 
@@ -109,32 +112,19 @@ namespace Zenkoi.BLL.Services.Implements
                 if (result == null)
                     throw new Exception("Không thể deserialize JSON từ AI.");
 
+                foreach (var pair in result.RecommendedPairs)
+                {
+
+                    double Fx = await _service.GetOffspringInbreedingAsync(pair.MaleId, pair.FemaleId);
+
+                    Fx = Math.Clamp(Fx, 0.0, 1.0);
+
+                    pair.PercentInbreeding = Math.Round(Fx * 100, 2);
+                }
+
+
                 string resultPath = Path.Combine(logDir, $"Result_{timestamp}.json");
                 File.WriteAllText(resultPath, JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }), Encoding.UTF8);
-
-             /*   foreach (var pair in result.RecommendedPairs)
-                {
-                    var advice = new AIBreedingAdvice
-                    {
-                        MaleKoiId = pair.MaleId,
-                        FemaleKoiId = pair.FemaleId,
-                        GeneticCompatibility = 100 - pair.PercentInbreeding, // ví dụ: tương thích di truyền = 100 - cận huyết
-                        ColorPredictionScore = pair.PredictedHighQualifiedRate, // có thể tạm dùng nếu chưa tách riêng
-                        SizePredictionScore = pair.PredictedSurvivalRate,
-                        QualityPredictionScore = pair.PredictedFertilizationRate,
-                        PredictedOffspringTraits = JsonSerializer.Serialize(new
-                        {
-                            pair.PredictedMutationRate,
-                            pair.PredictedFertilizationRate,
-                            pair.PredictedHighQualifiedRate
-                        }),
-                        BreedingRecommendations = pair.Reason,
-                        GeneratedAt = DateTime.Now
-                    };
-
-                    await _adviceRepo.CreateAsync(advice);
-                }
-                await _unitOfWork.SaveChangesAsync();*/
 
                 Console.WriteLine($"✅ Parse JSON thành công — lưu tại: {resultPath}");
                 return result;
@@ -188,8 +178,14 @@ namespace Zenkoi.BLL.Services.Implements
                 string jsonPart = SanitizeJson(message);
                 var result = JsonSerializer.Deserialize<AIPairAnalysisResponseDTO>(jsonPart, _jsonOptions);
 
+
                 if (result == null)
                     throw new Exception("Không thể deserialize JSON từ AI.");
+
+                double Fx = await _service.GetOffspringInbreedingAsync(request.Male.Id, request.Female.Id);
+                Fx = Math.Clamp(Fx, 0.0, 1.0);
+
+                result.PercentInbreeding = Math.Round(Fx * 100, 2);
 
                 Console.WriteLine($"✅ Parse JSON thành công:\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
                 return result;
@@ -237,7 +233,7 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     foreach (var h in p.BreedingHistory)
                     {
-                        sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
+                        sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, Note={h.ResultNote}");
                     }
                 }
             }
@@ -335,15 +331,15 @@ namespace Zenkoi.BLL.Services.Implements
                 request.Male.BreedingHistory?.Any(h =>
                     h.FertilizationRate.HasValue ||
                     h.HatchRate.HasValue ||
-                    h.SurvivalRate.HasValue ) == true;
+                    h.SurvivalRate.HasValue) == true;
 
             bool femaleHasData = request.Female != null &&
                 request.Female.BreedingHistory?.Any(h =>
                     h.FertilizationRate.HasValue ||
                     h.HatchRate.HasValue ||
-                    h.SurvivalRate.HasValue) == true ;
+                    h.SurvivalRate.HasValue) == true;
 
-           if (!maleHasData || !femaleHasData)
+            if (!maleHasData || !femaleHasData)
                 throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
 
             var sb = new StringBuilder();
@@ -370,7 +366,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 foreach (var h in request.Male.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%,CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
@@ -385,7 +381,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 foreach (var h in request.Female.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, CommonMut={h.CommonMutationDescription}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
@@ -403,16 +399,32 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("  \"PredictedMutationRate\": 12.4,");
             sb.AppendLine("  \"MutationDescription\": \"Đột biến ánh kim tương tự GinRin\",");
             sb.AppendLine("  \"PredictedMutationDescription\": 90.3,");
+
             sb.AppendLine("  \"Summary\": \"Cặp này tương thích tốt, có tiềm năng sinh ra cá con mang đặc tính ánh kim ổn định.\",");
 
+        
+            double maleBreedingSuccessRate =
+                ((request.Male.BreedingHistory?[0]?.FertilizationRate ?? 0) +
+                 (request.Male.BreedingHistory?[0]?.HatchRate ?? 0) +
+                 (request.Male.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3;
+            maleBreedingSuccessRate = Math.Round(maleBreedingSuccessRate, 2);
+            double AvgFertilizationRate = (request.Male.BreedingHistory?[0]?.FertilizationRate ?? 0) ;
+            AvgFertilizationRate = Math.Round(AvgFertilizationRate, 2);
             sb.AppendLine("  \"MaleBreedingInfo\": {");
-            sb.AppendLine("    \"Summary\": \"Cá đực có sức khỏe tốt, ổn định di truyền và tỷ lệ sinh sản cao.\",");
-            sb.AppendLine("    \"BreedingSuccessRate\": 84.0");
+            sb.AppendLine($"    \"Summary\": \"Cá đực có sức khỏe tốt, ổn định di truyền và tỷ lệ sinh sản cao.\",");
+            sb.AppendLine($"    \"BreedingSuccessRate\": {maleBreedingSuccessRate},");
+            sb.AppendLine($"    \"AvgFertilizationRate\": {AvgFertilizationRate}");
             sb.AppendLine("  },");
 
+            double femaleBreedingSuccessRate =
+            ((request.Female.BreedingHistory?[0]?.FertilizationRate ?? 0) +
+             (request.Female.BreedingHistory?[0]?.HatchRate ?? 0) +
+             (request.Female.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3;
+            femaleBreedingSuccessRate = Math.Round(femaleBreedingSuccessRate, 2);
             sb.AppendLine("  \"FemaleBreedingInfo\": {");
-            sb.AppendLine("    \"Summary\": \"Cá cái có lịch sử nở tốt, sức khỏe ổn định và màu sắc sáng.\",");
-            sb.AppendLine("    \"BreedingSuccessRate\": 87.0");
+            sb.AppendLine($"    \"Summary\": \"Cá cái có lịch sử nở tốt, sức khỏe ổn định và màu sắc sáng.\",");
+            sb.AppendLine($"    \"BreedingSuccessRate\": {femaleBreedingSuccessRate},");
+            sb.AppendLine("    \"AvgEggs\": 2500"); 
             sb.AppendLine("  }");
             sb.AppendLine("}");
             sb.AppendLine();
@@ -426,6 +438,8 @@ namespace Zenkoi.BLL.Services.Implements
 
             return sb.ToString();
         }
+
+
 
         private static string ExtractAiMessage(string content)
         {

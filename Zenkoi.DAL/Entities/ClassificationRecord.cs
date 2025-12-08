@@ -19,7 +19,7 @@ namespace Zenkoi.DAL.Entities
         public int? CullQualifiedCount { get; set; } = 0;
 
         public string? Notes { get; set; }
-        public DateTime CreateAt { get; set; } = DateTime.Now;
+        public DateTime CreateAt { get; set; } = DateTime.UtcNow;
 
         // Navigation
         public ClassificationStage ClassificationStage { get; set; }
