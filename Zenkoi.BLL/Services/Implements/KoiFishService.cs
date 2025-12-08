@@ -537,6 +537,7 @@ namespace Zenkoi.BLL.Services.Implements
                         FertilizationRate = historyBreed.FertilizationRate,
                         HatchRate = historyBreed.HatchRate,
                         SurvivalRate = historyBreed.SurvivalRate,
+                        AvgEggs = historyBreed.AvgEggs,
                         HighQualifiedRate = historyBreed.HighQualifiedRate,
                         ResultNote = $"Participations: {historyBreed.ParticipationCount}, Failed: {historyBreed.FailCount}",
                     }
@@ -558,14 +559,19 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var ageMonths = GetAgeInMonths(fish.BirthDate.Value);
 
-            // Nếu dưới 24 tháng → luôn là NotMature
-            if (ageMonths < 24)
-                return KoiBreedingStatus.NotMature;
 
-            // Nếu đủ 24 tháng trở lên → để staff tự quản lý trạng thái
+            if (ageMonths < 24)
+            {
+                return KoiBreedingStatus.NotMature;
+            }
+
+            if (fish.KoiBreedingStatus == KoiBreedingStatus.NotMature)
+            {
+                return KoiBreedingStatus.Ready;
+            }
+
             return fish.KoiBreedingStatus;
         }
-
         public async Task<bool> UpdateKoiSpawning(int id)
         {
             var koifish = await _koiFishRepo.GetByIdAsync(id);
