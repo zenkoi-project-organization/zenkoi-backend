@@ -582,7 +582,7 @@ namespace Zenkoi.BLL.Services.Implements
                     if (record.HighQualifiedCount > classification.PondQualifiedCount)
                         throw new InvalidOperationException("Số cá High vượt quá số cá hiện có trong hồ.");
 
-                    record.PondQualifiedCount = classification.PondQualifiedCount - record.HighQualifiedCount;
+                    record.PondQualifiedCount = classification.PondQualifiedCount + record.HighQualifiedCount - dto.HighQualifiedCount;
 
                     classification.HighQualifiedCount = record.HighQualifiedCount;
                     classification.PondQualifiedCount = record.PondQualifiedCount;
@@ -596,7 +596,7 @@ namespace Zenkoi.BLL.Services.Implements
                     if (record.ShowQualifiedCount > classification.HighQualifiedCount)
                         throw new InvalidOperationException("Số cá Show vượt quá số cá High hiện có.");
 
-                    record.HighQualifiedCount = classification.HighQualifiedCount - record.ShowQualifiedCount;
+                    record.HighQualifiedCount = classification.HighQualifiedCount + record.ShowQualifiedCount - dto.ShowQualifiedCount;
 
                     classification.HighQualifiedCount = record.HighQualifiedCount;
                     classification.ShowQualifiedCount = record.ShowQualifiedCount;
