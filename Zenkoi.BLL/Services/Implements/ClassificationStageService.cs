@@ -62,6 +62,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             classìication.Status = ClassificationStatus.Success;
             await _breedRepo.UpdateAsync(breed);
+            await _pondRepo.UpdateAsync(pond);
             await _classRepo.UpdateAsync(classìication);
             await _unitOfWork.SaveChangesAsync();
             return true;
