@@ -37,11 +37,6 @@ public class TaskTemplateService : ITaskTemplateService
                 t.TaskName.Contains(filter.Search) ||
                 (t.Description != null && t.Description.Contains(filter.Search)));
         }
-
-        if (filter.IsDeleted.HasValue)
-        {
-            queryBuilder.WithPredicate(t => t.IsDeleted == filter.IsDeleted.Value);
-        }
         else
         {
             queryBuilder.WithPredicate(t => t.IsDeleted == false);
@@ -109,22 +104,6 @@ public class TaskTemplateService : ITaskTemplateService
             return false;
 
         taskTemplate.IsDeleted = true;
-        taskTemplate.UpdatedAt = DateTime.UtcNow;
-
-        await _taskTemplateRepo.UpdateAsync(taskTemplate);
-        await _unitOfWork.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<bool> RestoreTaskTemplateAsync(int id)
-    {
-        var taskTemplate = await _taskTemplateRepo.GetByIdAsync(id);
-
-        if (taskTemplate == null)
-            return false;
-
-        taskTemplate.IsDeleted = false;
         taskTemplate.UpdatedAt = DateTime.UtcNow;
 
         await _taskTemplateRepo.UpdateAsync(taskTemplate);

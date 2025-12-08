@@ -25,7 +25,5 @@ namespace Zenkoi.BLL.DTOs.ShippingBoxDTOs
         [Required]
         [StringLength(500, ErrorMessage = "Notes cannot exceed 500 characters")]
         public string Notes { get; set; }
-
-        public bool IsActive { get; set; } = true;
     }
 }

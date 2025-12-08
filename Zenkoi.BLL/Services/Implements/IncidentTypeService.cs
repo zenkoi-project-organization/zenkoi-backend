@@ -83,7 +83,16 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new ArgumentNullException(nameof(dto));
             }
-
+            var checkQuery = new QueryBuilder<IncidentType>()
+                        .WithPredicate(it => it.Name == dto.Name)
+                        .WithTracking(false)
+                        .Build();
+          
+            var existingType = await _incidentTypeRepo.GetSingleAsync(checkQuery);
+            if (existingType != null)
+            {
+                throw new InvalidOperationException($"Loại sự cố với tên '{dto.Name}' đã tồn tại.");
+            }
             var incidentType = _mapper.Map<IncidentType>(dto);
 
             await _incidentTypeRepo.CreateAsync(incidentType);
@@ -105,6 +114,19 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException($"Không tìm thấy loại sự cố với id {id}.");
             }
 
+            if (dto.Name != incidentType.Name)
+            {
+                var checkQuery = new QueryBuilder<IncidentType>()
+                                .WithPredicate(it => it.Name == dto.Name)
+                                .WithTracking(false)
+                                .Build();
+
+                var duplicateType = await _incidentTypeRepo.GetSingleAsync(checkQuery);
+                if (duplicateType != null)
+                {
+                    throw new InvalidOperationException($"Tên loại sự cố '{dto.Name}' đã được sử dụng bởi một mục khác.");
+                }
+            }
             _mapper.Map(dto, incidentType);
 
             await _incidentTypeRepo.UpdateAsync(incidentType);

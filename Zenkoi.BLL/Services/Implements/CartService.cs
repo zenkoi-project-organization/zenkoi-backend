@@ -194,7 +194,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                 if (existingItem != null)
                 {
-                    throw new ArgumentException($"KoiFish with ID {addCartItemDTO.KoiFishId} is already in your cart. Each Koi fish can only be purchased once.");
+                    throw new ArgumentException($"Cá koi với RFID {addCartItemDTO.KoiFishId} is already in your cart. Each Koi fish can only be purchased once.");
                 }
             }
             else if (addCartItemDTO.PacketFishId.HasValue)
