@@ -106,18 +106,4 @@ public class TaskTemplateController : BaseAPIController
             return GetError($"Error deleting task template: {ex.Message}");
         }
     }
-
-    [HttpPut("{id:int}/restore")]
-    public async Task<IActionResult> RestoreTaskTemplate(int id)
-    {
-        try
-        {
-            var result = await _taskTemplateService.RestoreTaskTemplateAsync(id);
-            return Success(result, result ? "Task template restored successfully" : "Task template not found");
-        }
-        catch (Exception ex)
-        {
-            return GetError($"Error restoring task template: {ex.Message}");
-        }
-    }
 }

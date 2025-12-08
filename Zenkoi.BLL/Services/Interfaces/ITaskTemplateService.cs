@@ -18,6 +18,4 @@ public interface ITaskTemplateService
     Task<TaskTemplateResponseDTO> UpdateTaskTemplateAsync(int id, TaskTemplateRequestDTO dto);
 
     Task<bool> DeleteTaskTemplateAsync(int id);
-
-    Task<bool> RestoreTaskTemplateAsync(int id);
 }

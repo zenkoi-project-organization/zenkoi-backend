@@ -8,6 +8,5 @@ namespace Zenkoi.BLL.DTOs.ShippingDistanceDTOs
         public decimal PricePerKm { get; set; }
         public decimal BaseFee { get; set; }
         public string Description { get; set; }
-        public bool IsActive { get; set; } = true;
     }
 }
