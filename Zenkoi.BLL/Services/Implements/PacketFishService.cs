@@ -23,14 +23,16 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<PacketFish> _packetFishRepo;
         private readonly IRepoBase<VarietyPacketFish> _varietyPacketFishRepo;
         private readonly IRepoBase<Variety> _varietyRepo;
+        private readonly ICartService _cartService;
 
-        public PacketFishService(IUnitOfWork unitOfWork, IMapper mapper)
+        public PacketFishService(IUnitOfWork unitOfWork, IMapper mapper, ICartService cartService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _packetFishRepo = _unitOfWork.GetRepo<PacketFish>();
             _varietyPacketFishRepo = _unitOfWork.GetRepo<VarietyPacketFish>();
             _varietyRepo = _unitOfWork.GetRepo<Variety>();
+            _cartService = cartService;
         }
 
         public async Task<PacketFishResponseDTO> CreatePacketFishAsync(PacketFishRequestDTO dto)
@@ -225,8 +227,10 @@ namespace Zenkoi.BLL.Services.Implements
                 if (packetFish == null)
                     throw new ArgumentException("PacketFish not found");
 
+                var oldPrice = packetFish.PricePerPacket;
                 _mapper.Map(packetFishUpdateDTO, packetFish);
                 packetFish.UpdatedAt = DateTime.UtcNow;
+                var priceChanged = oldPrice != packetFish.PricePerPacket;
 
                 await _packetFishRepo.UpdateAsync(packetFish);
 
@@ -253,6 +257,13 @@ namespace Zenkoi.BLL.Services.Implements
                 }
 
                 await _unitOfWork.SaveChangesAsync();
+
+                // Sync cart item prices if price changed
+                if (priceChanged)
+                {
+                    await _cartService.SyncCartItemPricesForPacketFishAsync(id, packetFish.PricePerPacket);
+                }
+
                 await _unitOfWork.CommitTransactionAsync();
 
                 return await GetPacketFishByIdAsync(id);
