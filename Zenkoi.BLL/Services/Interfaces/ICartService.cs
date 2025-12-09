@@ -12,6 +12,8 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<bool> ClearCartAsync(int customerId);
         Task<CartResponseDTO> GetOrCreateCartForCustomerAsync(int customerId);
         Task<OrderResponseDTO> ConvertCartToOrderAsync(ConvertCartToOrderDTO convertCartToOrderDTO, int customerId);
+        Task SyncCartItemPricesForKoiFishAsync(int koiFishId, decimal newPrice);
+        Task SyncCartItemPricesForPacketFishAsync(int packetFishId, decimal newPrice);
     }
 }
 

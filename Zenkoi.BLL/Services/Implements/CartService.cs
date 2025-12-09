@@ -763,20 +763,20 @@ namespace Zenkoi.BLL.Services.Implements
             var promotion = await _promotionRepo.GetByIdAsync(promotionId.Value);
 
             if (promotion == null)
-                throw new ArgumentException("Không tìm thấy khuyến mãi");
+                return 0;
 
             if (!promotion.IsActive)
-                throw new ArgumentException($"Khuyến mãi '{promotion.Code}' không còn hoạt động");
+                return 0;
 
             var now = DateTime.UtcNow;
             if (now < promotion.ValidFrom || now > promotion.ValidTo)
-                throw new ArgumentException($"Khuyến mãi '{promotion.Code}' không trong thời gian áp dụng");
+                return 0;
 
             if (subtotal < promotion.MinimumOrderAmount)
-                throw new ArgumentException($"Đơn hàng phải đạt tối thiểu {promotion.MinimumOrderAmount:C}");
+                return 0;
 
             if (promotion.UsageLimit.HasValue && promotion.UsageCount >= promotion.UsageLimit.Value)
-                throw new ArgumentException($"Khuyến mãi '{promotion.Code}' đã hết lượt sử dụng");
+                return 0;
 
             decimal discountAmount = 0;
 
@@ -933,6 +933,52 @@ namespace Zenkoi.BLL.Services.Implements
                 itemDto.IsAvailable = false;
                 itemDto.UnavailableReason = "Sản phẩm không tồn tại";
             }
+        }
+
+        /// <summary>
+        /// Sync cart item prices when manager updates KoiFish price
+        /// </summary>
+        public async Task SyncCartItemPricesForKoiFishAsync(int koiFishId, decimal newPrice)
+        {
+            var cartItems = await _cartItemRepo.GetAllAsync(new QueryBuilder<CartItem>()
+                .WithPredicate(ci => ci.KoiFishId == koiFishId)
+                .WithTracking(true)
+                .Build());
+
+            if (!cartItems.Any())
+                return;
+
+            foreach (var cartItem in cartItems)
+            {
+                cartItem.UnitPrice = newPrice;
+                cartItem.UpdatedAt = DateTime.UtcNow;
+                await _cartItemRepo.UpdateAsync(cartItem);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Sync cart item prices when manager updates PacketFish price
+        /// </summary>
+        public async Task SyncCartItemPricesForPacketFishAsync(int packetFishId, decimal newPrice)
+        {
+            var cartItems = await _cartItemRepo.GetAllAsync(new QueryBuilder<CartItem>()
+                .WithPredicate(ci => ci.PacketFishId == packetFishId)
+                .WithTracking(true)
+                .Build());
+
+            if (!cartItems.Any())
+                return;
+
+            foreach (var cartItem in cartItems)
+            {
+                cartItem.UnitPrice = newPrice;
+                cartItem.UpdatedAt = DateTime.UtcNow;
+                await _cartItemRepo.UpdateAsync(cartItem);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
     }

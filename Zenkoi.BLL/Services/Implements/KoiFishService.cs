@@ -30,14 +30,16 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IBreedingProcessService _breedingProcessService;
         private readonly IRepoBase<BreedingProcess> _breedRepo;
         private readonly IRepoBase<KoiFavorite> _koiFavoriteRepo;
+        private readonly ICartService _cartService;
 
-        public KoiFishService(IUnitOfWork unitOfWork, IMapper mapper, IBreedingProcessService breedingProcessService)
+        public KoiFishService(IUnitOfWork unitOfWork, IMapper mapper, IBreedingProcessService breedingProcessService, ICartService cartService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _koiFishRepo = _unitOfWork.GetRepo<KoiFish>();
             _varietyRepo = _unitOfWork.GetRepo<Variety>();
             _pondRepo = _unitOfWork.GetRepo<Pond>();
+            _cartService = cartService;
             _breedRepo = _unitOfWork.GetRepo<BreedingProcess>();
             _koiFavoriteRepo = _unitOfWork.GetRepo<KoiFavorite>();
             _breedingProcessService = breedingProcessService;
@@ -347,10 +349,17 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new Exception($"Không tìm thấy Pond với id: {dto.PondId}");
             }
 
+            var oldPrice = koiFish.SellingPrice;
             _mapper.Map(dto, koiFish);
+            var priceChanged = dto.SellingPrice.HasValue && oldPrice != koiFish.SellingPrice;
 
             await _koiFishRepo.UpdateAsync(koiFish);
             await _unitOfWork.SaveChangesAsync();
+
+            if (priceChanged && koiFish.SellingPrice.HasValue)
+            {
+                await _cartService.SyncCartItemPricesForKoiFishAsync(id, koiFish.SellingPrice.Value);
+            }
 
             return true;
         }
