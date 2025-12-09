@@ -13,9 +13,6 @@ public class WorkScheduleRequestDTO
     [Required(ErrorMessage = "Start time is required")]
     public TimeOnly StartTime { get; set; }
 
-    [Required(ErrorMessage = "End time is required")]
-    public TimeOnly EndTime { get; set; }
-
     [MaxLength(1000, ErrorMessage = "Notes cannot exceed 1000 characters")]
     public string? Notes { get; set; }
 
