@@ -31,17 +31,83 @@ namespace Zenkoi.BLL.Services.BackgroundServices
             {
                 try
                 {
+                    await ProcessActiveWorkSchedules(stoppingToken);
                     await ProcessOverdueWorkSchedules(stoppingToken);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error occurred while processing overdue work schedules");
+                    _logger.LogError(ex, "Error occurred while processing work schedules");
                 }
 
                 await Task.Delay(_checkInterval, stoppingToken);
             }
 
             _logger.LogInformation("WorkScheduleStatusBackgroundService stopped");
+        }
+
+        private async Task ProcessActiveWorkSchedules(CancellationToken stoppingToken)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+            try
+            {
+                var now = DateTime.Now;
+                var currentDate = DateOnly.FromDateTime(now);
+                var currentTime = TimeOnly.FromDateTime(now);
+
+                var activeSchedules = await unitOfWork.GetRepo<WorkSchedule>().GetAllAsync(
+                    new QueryBuilder<WorkSchedule>()
+                        .WithPredicate(ws =>
+                            ws.Status == WorkTaskStatus.Pending &&
+                            ws.ScheduledDate == currentDate &&
+                            ws.StartTime <= currentTime &&
+                            ws.EndTime >= currentTime)
+                        .WithTracking(true)
+                        .Build());
+
+                if (!activeSchedules.Any())
+                {
+                    _logger.LogInformation("No active work schedules to process at {Time}", DateTime.UtcNow);
+                    return;
+                }
+
+                _logger.LogInformation("Found {Count} active work schedules to process", activeSchedules.Count());
+
+                var workScheduleRepo = unitOfWork.GetRepo<WorkSchedule>();
+                var updatedCount = 0;
+
+                foreach (var schedule in activeSchedules)
+                {
+                    try
+                    {
+                        schedule.Status = WorkTaskStatus.InProgress;
+                        schedule.UpdatedAt = DateTime.UtcNow;
+
+                        await workScheduleRepo.UpdateAsync(schedule);
+                        updatedCount++;
+
+                        _logger.LogInformation(
+                            "Auto-marking WorkSchedule #{ScheduleId} as InProgress - Currently within working hours",
+                            schedule.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to update WorkSchedule #{ScheduleId} to InProgress", schedule.Id);
+                    }
+                }
+
+                if (updatedCount > 0)
+                {
+                    await unitOfWork.SaveChangesAsync();
+                    _logger.LogInformation("Successfully updated {Count} work schedules to InProgress", updatedCount);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ProcessActiveWorkSchedules");
+                throw;
+            }
         }
 
         private async Task ProcessOverdueWorkSchedules(CancellationToken stoppingToken)
@@ -54,8 +120,7 @@ namespace Zenkoi.BLL.Services.BackgroundServices
                 var now = DateTime.Now;
                 var currentDate = DateOnly.FromDateTime(now);
                 var currentTime = TimeOnly.FromDateTime(now);
-
-                // Get all work schedules that are overdue and not yet marked as Incomplete/Completed/Cancelled
+            
                 var overdueSchedules = await unitOfWork.GetRepo<WorkSchedule>().GetAllAsync(
                     new QueryBuilder<WorkSchedule>()
                         .WithPredicate(ws =>
@@ -85,10 +150,8 @@ namespace Zenkoi.BLL.Services.BackgroundServices
                     {
                         WorkTaskStatus newStatus;
 
-                        // Check if there are staff assignments
                         if (schedule.StaffAssignments != null && schedule.StaffAssignments.Any())
                         {
-                            // Check if all staff completed their assignments
                             bool allStaffCompleted = schedule.StaffAssignments.All(sa => sa.CompletedAt != null);
 
                             if (allStaffCompleted)
@@ -111,7 +174,6 @@ namespace Zenkoi.BLL.Services.BackgroundServices
                         }
                         else
                         {
-                            // No staff assignments, mark as Incomplete
                             newStatus = WorkTaskStatus.Incomplete;
                             _logger.LogInformation(
                                 "Auto-marking WorkSchedule #{ScheduleId} as Incomplete - No staff assigned",
