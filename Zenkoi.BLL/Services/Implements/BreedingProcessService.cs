@@ -600,6 +600,7 @@ namespace Zenkoi.BLL.Services.Implements
         { 
             var breed = await _breedRepo.GetByIdAsync(id);
             var _pondRepo = _unitOfWork.GetRepo<Pond>();
+            var _koiRepo = _unitOfWork.GetRepo<KoiFish>();
 
             if (breed == null)
             {
@@ -609,6 +610,8 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception($"hiện tại quá trình sinh sản này đã hoàn thành nên không thể hủy được");
             } 
+            var malekoi = await _koiRepo.GetByIdAsync(breed.MaleKoiId);
+            var femalekoi = await _koiRepo.GetByIdAsync(breed.FemaleKoiId);
             var pond = await _pondRepo.GetByIdAsync(breed.PondId);
             if (pond == null)
             {
@@ -618,6 +621,11 @@ namespace Zenkoi.BLL.Services.Implements
             breed.Status = BreedingStatus.Failed;
             breed.Result = BreedingResult.Failed;
             breed.Note = note;
+            breed.EndDate = DateTime.UtcNow;
+            malekoi.KoiBreedingStatus = KoiBreedingStatus.PostSpawning;
+            femalekoi.KoiBreedingStatus = KoiBreedingStatus.PostSpawning;
+            await _koiRepo.UpdateAsync(malekoi);
+            await _koiRepo.UpdateAsync(femalekoi);
             await _pondRepo.UpdateAsync(pond);
             await _breedRepo.UpdateAsync(breed);
             return await _unitOfWork.SaveAsync();
