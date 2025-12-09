@@ -22,7 +22,6 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs
         public string Reason { get; set; } = "";
         public double PredictedFertilizationRate { get; set; }
         public double PredictedHatchRate { get; set; } 
-        public double PredictedMutationRate { get; set; }
         public string? PredictedMutationDescription { get; set; }
         public double PredictedSurvivalRate { get; set; }
         public double PredictedHighQualifiedRate { get; set; }

@@ -187,6 +187,9 @@ namespace Zenkoi.BLL.Services.Implements
 
                 result.PercentInbreeding = Math.Round(Fx * 100, 2);
 
+                result.FemaleId = request.Female.Id;
+                result.MaleId = request.Male.Id;
+
                 Console.WriteLine($"✅ Parse JSON thành công:\n{JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true })}");
                 return result;
             }
@@ -203,7 +206,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             // 🧠 Giới thiệu & hướng dẫn cơ bản
             sb.AppendLine("Bạn là **Smart Koi Breeder**, chuyên gia di truyền và phân tích phối giống cá Koi.");
-  
+
             sb.AppendLine();
             sb.AppendLine("⚠️ Quy tắc bắt buộc:");
             sb.AppendLine("❗Không được tạo, giả định hoặc thêm bất kỳ cá nào không có trong danh sách đầu vào.");
@@ -219,21 +222,63 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("Hãy chú trọng vào những yếu tố quan trọng như di truyền , tỷ lệ sinh sản, và các đặc tính di truyền có thể ảnh hưởng đến chất lượng cá con.");
             sb.AppendLine($"- Giống mục tiêu: {request.TargetVariety}");
             sb.AppendLine($"- Ưu tiên: {request.Priority}");
-            sb.AppendLine($"- Ngưỡng yêu cầu: HatchRate ≥ {request.MinHatchRate}%, SurvivalRate ≥ {request.MinSurvivalRate}%, HighQualifiedRate ≥ {request.MinHighQualifiedRate}%");
+            sb.AppendLine($"- Đột Biến: {request.IsMutation}");
+            sb.AppendLine($"- Ngưỡng yêu cầu: HatchRate ≥ {request.MinHatchRate}%, SurvivalRate ≥ {request.MinSurvivalRate}%");
             sb.AppendLine();
 
             // 🐟 Danh sách cá bố mẹ thực tế
             sb.AppendLine("🐟 Danh sách cá bố mẹ tiềm năng (nguồn dữ liệu thật):");
-            foreach (var p in request.PotentialParents)
+
+            // Lọc cá đực và cá cái từ danh sách
+            var males = request.PotentialParents.Where(p => p.Gender == "Male").ToList();
+            var females = request.PotentialParents.Where(p => p.Gender == "Female").ToList();
+
+            // Duyệt qua tất cả các cặp cá đực và cá cái
+            foreach (var male in males)
             {
-                sb.AppendLine($"- ID {p.Id} | RFID: {p.RFID} | Giống: {p.Variety} | Giới tính: {p.Gender} | Kích thước: {p.Size} cm | Tuổi: {p.Age} | Sức khỏe: {p.Health}");
-                sb.AppendLine($"  🧬 Đột biến: {(p.IsMutated ? $"{p.MutationDescription} " : "Không có")}");
-                sb.AppendLine($"  🖼️ Hình ảnh: {p.image}");
-                if (p.BreedingHistory?.Any() == true)
+                foreach (var female in females)
                 {
-                    foreach (var h in p.BreedingHistory)
+                    // Kiểm tra yêu cầu về đột biến
+                    if (request.IsMutation)
                     {
-                        sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, Note={h.ResultNote}");
+                        // Nếu yêu cầu có đột biến, ít nhất một trong hai cá (đực hoặc cái) phải có đột biến
+                        if (!(male.IsMutated || female.IsMutated))
+                        {
+                            continue;  // Nếu cả cá đực và cá cái đều không có đột biến, bỏ qua cặp này
+                        }
+                    }
+                    else
+                    {
+                        if (male.IsMutated || female.IsMutated)
+                        {
+                            continue;  
+                        }
+                    }
+
+                    sb.AppendLine($"- ID Cá đực: {male.Id} | RFID: {male.RFID} | Giống: {male.Variety} | Kích thước: {male.Size} cm | Tuổi: {male.Age} | Sức khỏe: {male.Health}");
+                    sb.AppendLine($"  🧬 Đột biến: {(male.IsMutated ? $"{male.MutationDescription} " : "Không có")}");
+
+                    sb.AppendLine($"- ID Cá cái: {female.Id} | RFID: {female.RFID} | Giống: {female.Variety} | Kích thước: {female.Size} cm | Tuổi: {female.Age} | Sức khỏe: {female.Health}");
+                    sb.AppendLine($"  🧬 Đột biến: {(female.IsMutated ? $"{female.MutationDescription} " : "Không có")}");
+
+                    sb.AppendLine($"  🖼️ Hình ảnh cá đực: {male.image}");
+                    sb.AppendLine($"  🖼️ Hình ảnh cá cái: {female.image}");
+
+                    // Nếu có lịch sử sinh sản, hiển thị thông tin
+                    if (male.BreedingHistory?.Any() == true)
+                    {
+                        foreach (var h in male.BreedingHistory)
+                        {
+                            sb.AppendLine($"  ↳ Lịch sử cá đực: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, HighQualifiedRate = {h.HighQualifiedRate}, HighQualifiedQuanity = {h.HighQualifiedQuanity}   , Note={h.ResultNote}");
+                        }
+                    }
+
+                    if (female.BreedingHistory?.Any() == true)
+                    {
+                        foreach (var h in female.BreedingHistory)
+                        {
+                            sb.AppendLine($"  ↳ Lịch sử cá cái: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, HighQualifiedRate = {h.HighQualifiedRate}, HighQualifiedQuanity = {h.HighQualifiedQuanity}   , Note={h.ResultNote}");
+                        }
                     }
                 }
             }
@@ -250,9 +295,6 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("- Phân tích dữ liệu trên để **dự đoán hiệu quả phối giống** giữa các cặp cá đực và cá cái.");
             sb.AppendLine("- Ưu tiên cặp có khả năng sinh ra cá con đạt giống mục tiêu và có loại đột biến mong muốn.");
             sb.AppendLine("- Với mỗi cặp, ước lượng các chỉ số từ 0–100 (%). Nếu thiếu dữ liệu, đặt giá trị 0.");
-            sb.AppendLine("- Khi tính `PredictedMutationRate`:");
-            sb.AppendLine("  • Nếu chỉ một cá thể có đột biến, chỉ lấy khoảng 30–50% giá trị trung bình của đột biến đó.");
-            sb.AppendLine("  • Nếu cả hai cùng có cùng loại đột biến, có thể đạt 70–90%.");
             sb.AppendLine();
             sb.AppendLine("🪶 Khi viết `Reason` (giải thích):");
             sb.AppendLine("- Hãy viết ngắn gọn (1–2 câu), nhưng mang phong cách **chuyên gia di truyền cá Koi**.");
@@ -294,20 +336,26 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("     \"PredictedFertilizationRate\": 92.5,");
             sb.AppendLine("     \"PredictedHatchRate\": 88.1,");
             sb.AppendLine("     \"PredictedSurvivalRate\": 79.6,");
-            sb.AppendLine("     \"PredictedHighQualifiedRate\": 82.0,");
+            sb.AppendLine("     \"PredictedHighQualifiedRate\": <AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra con số kết luận >,");
             sb.AppendLine("     \"PercentInbreeding\": 0.0,");
-            sb.AppendLine("     \"PredictedMutationRate\": 25.3,");
-            sb.AppendLine("     \"MutationDescription\": \"Đột biến ánh kim tương tự GinRin\",");
+            sb.AppendLine("  \"MutationDescription\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng đột biến của cặp cá này\",");
             sb.AppendLine("     \"PredictedMutationDescription\": 78.5,");
-            sb.AppendLine("     \"Summary\": \"Cặp này có khả năng sinh ra cá con mang ánh sáng mạnh và di truyền ổn định.\",");
+            sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cặp cá này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\"");
             sb.AppendLine("     \"MaleBreedingInfo\": {");
-            sb.AppendLine("         \"Summary\": \"Cá đực sức khỏe tốt, từng đạt tỷ lệ nở cao trong các lần phối giống trước.\",");
+            sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cá trống này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\"");
             sb.AppendLine("         \"BreedingSuccessRate\": 85.3");
             sb.AppendLine("     },");
-            sb.AppendLine("     \"FemaleBreedingInfo\": {");
-            sb.AppendLine("         \"Summary\": \"Cá cái có nền di truyền ổn định, màu sắc sáng và tỷ lệ sống con cao.\",");
-            sb.AppendLine("         \"BreedingSuccessRate\": 88.1");
-            sb.AppendLine("     }");
+
+            // Sort based on priority
+            if (request.Priority == "Số lượng")
+            {
+                sb.AppendLine("• Ưu tiên các cặp có tỷ lệ HighQualifiedRate và HighQualifiedQuanity cao nhất.");
+            }
+            else if (request.Priority == "Chất lượng")
+            {
+                sb.AppendLine("• Ưu tiên các cặp có tỷ lệ HatchRate và SurvivalRate cao nhất.");
+            }
+
             sb.AppendLine("   }");
             sb.AppendLine(" ]");
             sb.AppendLine("}");
@@ -340,8 +388,8 @@ namespace Zenkoi.BLL.Services.Implements
                     h.SurvivalRate.HasValue) == true;
 
             if (!maleHasData || !femaleHasData)
-                throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
-
+                // throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
+                return null;
             var sb = new StringBuilder();
 
             // 🧠 Giới thiệu & mục tiêu
@@ -366,7 +414,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 foreach (var h in request.Male.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, HighQualifiedRate = {h.HighQualifiedRate}, HighQualifiedQuanity = {h.HighQualifiedQuanity}   , Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
@@ -381,7 +429,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 foreach (var h in request.Female.BreedingHistory)
                 {
-                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, Note={h.ResultNote}");
+                    sb.AppendLine($"  ↳ Lịch sử: Fert={h.FertilizationRate}%, Hatch={h.HatchRate}%, Surv={h.SurvivalRate}%, AveEggs={h.AvgEggs}, HighQualifiedRate = {h.HighQualifiedRate},HighQualifiedQuanity = {h.HighQualifiedQuanity},Note={h.ResultNote}");
                 }
             }
             sb.AppendLine();
@@ -394,26 +442,21 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("  \"PredictedFertilizationRate\": 85.2,");
             sb.AppendLine("  \"PredictedHatchRate\": 78.6,");
             sb.AppendLine("  \"PredictedSurvivalRate\": 81.4,");
-            sb.AppendLine("  \"PredictedHighQualifiedRate\": 76.9,");
+            sb.AppendLine("  \"PredictedHighQualifiedRate\": <AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra con số kết luận >,");
             sb.AppendLine("  \"PercentInbreeding\": 0.0,");
             sb.AppendLine("  \"PredictedMutationRate\": 12.4,");
-            sb.AppendLine("  \"MutationDescription\": \"Đột biến ánh kim tương tự GinRin\",");
+            sb.AppendLine("  \"MutationDescription\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng đột biến của cặp cá này\",");
             sb.AppendLine("  \"PredictedMutationDescription\": 90.3,");
 
-            sb.AppendLine("  \"Summary\": \"Cặp này tương thích tốt, có tiềm năng sinh ra cá con mang đặc tính ánh kim ổn định.\",");
+            sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cặp cá này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\"");
 
-        
             double maleBreedingSuccessRate =
                 ((request.Male.BreedingHistory?[0]?.FertilizationRate ?? 0) +
                  (request.Male.BreedingHistory?[0]?.HatchRate ?? 0) +
-                 (request.Male.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3;
-            maleBreedingSuccessRate = Math.Round(maleBreedingSuccessRate, 2);
-            double AvgFertilizationRate = (request.Male.BreedingHistory?[0]?.FertilizationRate ?? 0) ;
-            AvgFertilizationRate = Math.Round(AvgFertilizationRate, 2);
+                 (request.Male.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3; 
             sb.AppendLine("  \"MaleBreedingInfo\": {");
-            sb.AppendLine($"    \"Summary\": \"Cá đực có sức khỏe tốt, ổn định di truyền và tỷ lệ sinh sản cao.\",");
-            sb.AppendLine($"    \"BreedingSuccessRate\": {maleBreedingSuccessRate},");
-            sb.AppendLine($"    \"AvgFertilizationRate\": {AvgFertilizationRate}");
+            sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cá trống này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\""); sb.AppendLine($"    \"BreedingSuccessRate\": {maleBreedingSuccessRate},");
+            sb.AppendLine($"    \"AvgFertilizationRate\": {request.Male.BreedingHistory?[0]?.FertilizationRate}");
             sb.AppendLine("  },");
 
             double femaleBreedingSuccessRate =
@@ -422,8 +465,7 @@ namespace Zenkoi.BLL.Services.Implements
              (request.Female.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3;
             femaleBreedingSuccessRate = Math.Round(femaleBreedingSuccessRate, 2);
             sb.AppendLine("  \"FemaleBreedingInfo\": {");
-            sb.AppendLine($"    \"Summary\": \"Cá cái có lịch sử nở tốt, sức khỏe ổn định và màu sắc sáng.\",");
-            sb.AppendLine($"    \"BreedingSuccessRate\": {femaleBreedingSuccessRate},");
+            sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cá mái này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\""); sb.AppendLine($"    \"BreedingSuccessRate\": {femaleBreedingSuccessRate},");
             sb.AppendLine("    \"AvgEggs\": 2500"); 
             sb.AppendLine("  }");
             sb.AppendLine("}");

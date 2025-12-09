@@ -230,9 +230,19 @@ namespace Zenkoi.BLL.Services.Implements
             classification.ShowQualifiedCount = dto.ShowQualifiedCount;
             classification.HighQualifiedCount = record.HighQualifiedCount;
 
+            // mang cá high qua pondpacket 
+            var _pondpacketRepo = _unitOfWork.GetRepo<PondPacketFish>();
+            var pondpacket = await _pondpacketRepo.GetSingleAsync(new QueryOptions<PondPacketFish>
+            {
+                Predicate = p => p.BreedingProcessId == classification.BreedingProcessId
+            });
+            if (pondpacket != null)
+            {
+                pondpacket.AvailableQuantity += classification.HighQualifiedCount.Value;
+                await _pondpacketRepo.UpdateAsync(pondpacket);
+            }
             classification.Status = ClassificationStatus.Stage4;
             breed.TotalFishQualified = classification.HighQualifiedCount + dto.ShowQualifiedCount;
-
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
             await _breedRepo.UpdateAsync(breed);
@@ -573,7 +583,7 @@ namespace Zenkoi.BLL.Services.Implements
                     if (record.HighQualifiedCount > classification.PondQualifiedCount)
                         throw new InvalidOperationException("Số cá High vượt quá số cá hiện có trong hồ.");
 
-                    record.PondQualifiedCount = classification.PondQualifiedCount - record.HighQualifiedCount;
+                    record.PondQualifiedCount = classification.PondQualifiedCount + record.HighQualifiedCount - dto.HighQualifiedCount;
 
                     classification.HighQualifiedCount = record.HighQualifiedCount;
                     classification.PondQualifiedCount = record.PondQualifiedCount;
@@ -587,7 +597,7 @@ namespace Zenkoi.BLL.Services.Implements
                     if (record.ShowQualifiedCount > classification.HighQualifiedCount)
                         throw new InvalidOperationException("Số cá Show vượt quá số cá High hiện có.");
 
-                    record.HighQualifiedCount = classification.HighQualifiedCount - record.ShowQualifiedCount;
+                    record.HighQualifiedCount = classification.HighQualifiedCount + record.ShowQualifiedCount - dto.ShowQualifiedCount;
 
                     classification.HighQualifiedCount = record.HighQualifiedCount;
                     classification.ShowQualifiedCount = record.ShowQualifiedCount;

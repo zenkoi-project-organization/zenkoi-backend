@@ -415,10 +415,12 @@ namespace Zenkoi.BLL.Services.Implements
 
             queryOptions.Predicate = predicate;
 
-            var allBreeds = await _breedRepo.GetAllAsync(queryOptions);
-            Console.WriteLine($"Số lượng BreedingProcess: {allBreeds.Count()}");
+            var allBreeds = await _breedRepo.GetAllAsync(queryOptions);     
 
-            var mappedList = allBreeds.Select(bp => _mapper.Map<BreedingProcessResponseDTO>(bp)).ToList();
+            var mappedList = allBreeds
+            .Select(bp => _mapper.Map<BreedingProcessResponseDTO>(bp))
+            .Reverse()
+            .ToList();  
 
             var count = mappedList.Count;
             var items = mappedList.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
@@ -508,7 +510,7 @@ namespace Zenkoi.BLL.Services.Implements
                 KoiFishId = koiFishId,
                 ParticipationCount = breedings.Count(),
                 FailCount = breedings.Count(b => b.Status == BreedingStatus.Failed),
-                AvgEggs = breedings.Average(b => b.TotalEggs ?? 0),
+                AvgEggs = Math.Round(breedings.Average(b => b.TotalEggs ?? 0)),
                 FertilizationRate = breedings.Average(b => b.FertilizationRate ?? 0),
                 HatchRate = breedings.Average(b => b.HatchingRate ?? 0),
                 SurvivalRate = breedings.Average(b => b.SurvivalRate ?? 0),
@@ -517,12 +519,13 @@ namespace Zenkoi.BLL.Services.Implements
                     .Average(b =>
                         b.TotalFishQualified /
                         ((b.SurvivalRate ?? 0) * (b.HatchingRate ?? 0) * (b.TotalEggs ?? 1.0))
-                    )
+                    ),
+                HighQualifiedQuanity = Math.Round(breedings.Average(b => b.TotalFishQualified ?? 0))
+
             };
 
             return response;
         }
-
 
         public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync(string? variety = null)
         {
@@ -533,7 +536,8 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 Predicate = k =>
                 k.Gender != Gender.Other &&
-                k.HealthStatus != HealthStatus.Weak &&
+                k.HealthStatus == HealthStatus.Healthy &&
+                k.KoiBreedingStatus ==KoiBreedingStatus.Ready && 
                 k.BirthDate.HasValue &&
                 EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 2 &&
                 EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6 &&
@@ -597,6 +601,7 @@ namespace Zenkoi.BLL.Services.Implements
         { 
             var breed = await _breedRepo.GetByIdAsync(id);
             var _pondRepo = _unitOfWork.GetRepo<Pond>();
+            var _koiRepo = _unitOfWork.GetRepo<KoiFish>();
 
             if (breed == null)
             {
@@ -606,6 +611,8 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new Exception($"hiện tại quá trình sinh sản này đã hoàn thành nên không thể hủy được");
             } 
+            var malekoi = await _koiRepo.GetByIdAsync(breed.MaleKoiId);
+            var femalekoi = await _koiRepo.GetByIdAsync(breed.FemaleKoiId);
             var pond = await _pondRepo.GetByIdAsync(breed.PondId);
             if (pond == null)
             {
@@ -613,7 +620,13 @@ namespace Zenkoi.BLL.Services.Implements
             }
             pond.PondStatus = PondStatus.Empty;
             breed.Status = BreedingStatus.Failed;
+            breed.Result = BreedingResult.Failed;
             breed.Note = note;
+            breed.EndDate = DateTime.UtcNow;
+            malekoi.KoiBreedingStatus = KoiBreedingStatus.PostSpawning;
+            femalekoi.KoiBreedingStatus = KoiBreedingStatus.PostSpawning;
+            await _koiRepo.UpdateAsync(malekoi);
+            await _koiRepo.UpdateAsync(femalekoi);
             await _pondRepo.UpdateAsync(pond);
             await _breedRepo.UpdateAsync(breed);
             return await _unitOfWork.SaveAsync();

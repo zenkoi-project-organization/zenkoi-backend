@@ -62,6 +62,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             classìication.Status = ClassificationStatus.Success;
             await _breedRepo.UpdateAsync(breed);
+            await _pondRepo.UpdateAsync(pond);
             await _classRepo.UpdateAsync(classìication);
             await _unitOfWork.SaveChangesAsync();
             return true;
@@ -121,7 +122,8 @@ namespace Zenkoi.BLL.Services.Implements
             fryPond.PondStatus = PondStatus.Empty;
             pond.PondStatus = PondStatus.Active;
             fryFish.Status = FryFishStatus.Completed;
-            breed.Status = BreedingStatus.Classification; 
+            breed.Status = BreedingStatus.Classification;
+            breed.PondId = dto.PondId;
 
             var classification = _mapper.Map<ClassificationStage>(dto);
             classification.Status = ClassificationStatus.Preparing;
