@@ -415,10 +415,12 @@ namespace Zenkoi.BLL.Services.Implements
 
             queryOptions.Predicate = predicate;
 
-            var allBreeds = await _breedRepo.GetAllAsync(queryOptions);
-            Console.WriteLine($"Số lượng BreedingProcess: {allBreeds.Count()}");
+            var allBreeds = await _breedRepo.GetAllAsync(queryOptions);     
 
-            var mappedList = allBreeds.Select(bp => _mapper.Map<BreedingProcessResponseDTO>(bp)).ToList();
+            var mappedList = allBreeds
+            .Select(bp => _mapper.Map<BreedingProcessResponseDTO>(bp))
+            .Reverse()
+            .ToList();  
 
             var count = mappedList.Count;
             var items = mappedList.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
@@ -524,7 +526,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             return response;
         }
-
 
         public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync(string? variety = null)
         {
