@@ -236,12 +236,13 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 Predicate = p => p.BreedingProcessId == classification.BreedingProcessId
             });
-
-            pondpacket.AvailableQuantity += classification.HighQualifiedCount.Value;
-
+            if (pondpacket != null)
+            {
+                pondpacket.AvailableQuantity += classification.HighQualifiedCount.Value;
+                await _pondpacketRepo.UpdateAsync(pondpacket);
+            }
             classification.Status = ClassificationStatus.Stage4;
             breed.TotalFishQualified = classification.HighQualifiedCount + dto.ShowQualifiedCount;
-            await _pondpacketRepo.UpdateAsync(pondpacket);
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);
             await _breedRepo.UpdateAsync(breed);
