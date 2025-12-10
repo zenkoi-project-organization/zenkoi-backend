@@ -136,9 +136,11 @@ namespace Zenkoi.API.Controllers
         [HttpPost("analyze-pair")]
         public async Task<IActionResult> AnalyzePair([FromBody] AIPairAnalysisSimpleRequestDTO req)
         {
+         
+            
             var male = await _fishService.GetAnalysisAsync(req.MaleId);
             var female = await _fishService.GetAnalysisAsync(req.FemaleId);
-
+         
             if (male == null || female == null)
                 return Error("Không tìm thấy dữ liệu cá tương ứng.");
 
@@ -151,7 +153,8 @@ namespace Zenkoi.API.Controllers
                 Female = female
             };
 
-            Console.WriteLine($"FullRequest: {Newtonsoft.Json.JsonConvert.SerializeObject(fullRequest)}");
+        
+
 
             var result = await _advisorService.AnalyzePairAsync(fullRequest);
          
