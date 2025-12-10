@@ -15,5 +15,6 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         [MaxLength(2000)]
         public string Description { get; set; }
         public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
+        public List<string>? ReportImages { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Zenkoi.DAL.EF;
 
@@ -11,9 +12,11 @@ using Zenkoi.DAL.EF;
 namespace Zenkoi.DAL.Migrations
 {
     [DbContext(typeof(ZenKoiContext))]
-    partial class ZenKoiContextModelSnapshot : ModelSnapshot
+    [Migration("20251210162610_AddImagesToIncident")]
+    partial class AddImagesToIncident
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -789,12 +792,14 @@ namespace Zenkoi.DAL.Migrations
                         .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("ReportImages")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ReportedByUserId")
                         .HasColumnType("int");
 
                     b.Property<string>("ResolutionImages")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ResolutionNotes")
@@ -2079,6 +2084,7 @@ namespace Zenkoi.DAL.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Images")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("WorkScheduleId", "StaffId");

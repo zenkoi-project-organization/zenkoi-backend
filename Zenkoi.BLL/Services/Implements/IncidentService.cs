@@ -423,7 +423,7 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<IncidentResponseDTO> ChangeStatusAsync(int id, int userId, IncidentStatus status, string? resolutionNotes)
+        public async Task<IncidentResponseDTO> ChangeStatusAsync(int id, int userId, IncidentStatus status, string? resolutionNotes, List<string>? resolutionImages)
         {
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -452,6 +452,11 @@ namespace Zenkoi.BLL.Services.Implements
                     if (!string.IsNullOrWhiteSpace(resolutionNotes))
                     {
                         incident.ResolutionNotes = resolutionNotes;
+                    }
+
+                    if (resolutionImages != null && resolutionImages.Any())
+                    {
+                        incident.ResolutionImages = resolutionImages;
                     }
 
                     if (incident.KoiIncidents != null && incident.KoiIncidents.Any())

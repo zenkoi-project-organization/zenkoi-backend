@@ -25,9 +25,8 @@ public class StaffAssignmentConfiguration : IEntityTypeConfiguration<StaffAssign
 
         builder.Property(sa => sa.Images)
             .HasConversion(
-                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
-                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions)null) ?? new List<string>())
-            .HasColumnType("nvarchar(max)");
+                v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
+                v => v == null ? null : System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions)null));
 
         builder.HasOne(sa => sa.WorkSchedule)
             .WithMany(ws => ws.StaffAssignments)

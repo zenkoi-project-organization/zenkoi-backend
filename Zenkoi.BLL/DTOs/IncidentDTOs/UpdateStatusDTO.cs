@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Zenkoi.DAL.Enums;
 
 namespace Zenkoi.BLL.DTOs.IncidentDTOs
@@ -10,5 +11,7 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
 
         [MaxLength(2000)]
         public string? ResolutionNotes { get; set; }
+
+        public List<string>? ResolutionImages { get; set; }
     }
 }

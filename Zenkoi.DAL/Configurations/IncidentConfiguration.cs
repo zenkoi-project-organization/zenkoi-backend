@@ -47,6 +47,16 @@ namespace Zenkoi.DAL.Configurations
             builder.Property(i => i.ResolutionNotes)
                 .HasMaxLength(2000);
 
+            builder.Property(i => i.ReportImages)
+                .HasConversion(
+                    v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
+                    v => v == null ? null : System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions)null));
+
+            builder.Property(i => i.ResolutionImages)
+                .HasConversion(
+                    v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
+                    v => v == null ? null : System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions)null));
+
             builder.HasOne(i => i.IncidentType)
                 .WithMany(it => it.Incidents)
                 .HasForeignKey(i => i.IncidentTypeId)

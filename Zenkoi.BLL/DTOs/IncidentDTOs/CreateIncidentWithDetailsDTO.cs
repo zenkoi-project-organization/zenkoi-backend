@@ -19,6 +19,7 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         public string Description { get; set; }
 
         public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
+        public List<string>? ReportImages { get; set; }
         public List<KoiIncidentRequestDTO>? AffectedKoiFish { get; set; }
         public List<PondIncidentRequestDTO>? AffectedPonds { get; set; }
     }
