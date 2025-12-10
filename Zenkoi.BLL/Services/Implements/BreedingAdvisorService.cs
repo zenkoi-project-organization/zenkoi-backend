@@ -143,6 +143,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             string prompt = BuildPairAnalysisPrompt(request);
 
+
             var messages = new[]
           {
             new { role = "system", content = "Bạn là Smart Koi Breeder – chuyên gia di truyền cá Koi. Chỉ được sử dụng dữ liệu trong danh sách được cung cấp. Không được tạo thêm cá hoặc dữ liệu mới. Trả lời duy nhất bằng JSON hợp lệ." },
@@ -338,7 +339,7 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("     \"PredictedSurvivalRate\": 79.6,");
             sb.AppendLine("     \"PredictedHighQualifiedRate\": <AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra con số kết luận >,");
             sb.AppendLine("     \"PercentInbreeding\": 0.0,");
-            sb.AppendLine("  \"MutationDescription\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng đột biến của cặp cá này\",");
+            sb.AppendLine("  \"MutationDescription\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng đột biến của cặp cá này>\",");
             sb.AppendLine("     \"PredictedMutationDescription\": 78.5,");
             sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cặp cá này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\"");
             sb.AppendLine("     \"MaleBreedingInfo\": {");
@@ -388,7 +389,6 @@ namespace Zenkoi.BLL.Services.Implements
                     h.SurvivalRate.HasValue) == true;
 
             if (!maleHasData || !femaleHasData)
-                // throw new InvalidOperationException("Dữ liệu không đủ để phân tích. Vui lòng chọn cá trống và cá mái có lịch sử sinh sản.");
                 return null;
             var sb = new StringBuilder();
 
@@ -450,19 +450,22 @@ namespace Zenkoi.BLL.Services.Implements
 
             sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cặp cá này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\"");
 
+            var maleHistory = request.Male.BreedingHistory?.FirstOrDefault();
             double maleBreedingSuccessRate =
-                ((request.Male.BreedingHistory?[0]?.FertilizationRate ?? 0) +
-                 (request.Male.BreedingHistory?[0]?.HatchRate ?? 0) +
-                 (request.Male.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3; 
+                ((maleHistory?.FertilizationRate ?? 0) +
+                 (maleHistory?.HatchRate ?? 0) +
+                 (maleHistory?.SurvivalRate ?? 0)) / 3; 
             sb.AppendLine("  \"MaleBreedingInfo\": {");
             sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cá trống này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\""); sb.AppendLine($"    \"BreedingSuccessRate\": {maleBreedingSuccessRate},");
-            sb.AppendLine($"    \"AvgFertilizationRate\": {request.Male.BreedingHistory?[0]?.FertilizationRate}");
+            sb.AppendLine($"    \"AvgFertilizationRate\": {(maleHistory?.FertilizationRate ?? 0)}");
             sb.AppendLine("  },");
 
+            var femaleHistory = request.Female.BreedingHistory?.FirstOrDefault();
+
             double femaleBreedingSuccessRate =
-            ((request.Female.BreedingHistory?[0]?.FertilizationRate ?? 0) +
-             (request.Female.BreedingHistory?[0]?.HatchRate ?? 0) +
-             (request.Female.BreedingHistory?[0]?.SurvivalRate ?? 0)) / 3;
+                ((femaleHistory?.FertilizationRate ?? 0) +
+                 (femaleHistory?.HatchRate ?? 0) +
+                 (femaleHistory?.SurvivalRate ?? 0)) / 3;
             femaleBreedingSuccessRate = Math.Round(femaleBreedingSuccessRate, 2);
             sb.AppendLine("  \"FemaleBreedingInfo\": {");
             sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cá mái này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\""); sb.AppendLine($"    \"BreedingSuccessRate\": {femaleBreedingSuccessRate},");
