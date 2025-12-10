@@ -31,6 +31,7 @@ public class StaffAssignmentResponseDTO
     public Role Role { get; set; }
     public string? CompletionNotes { get; set; }
     public DateTime? CompletedAt { get; set; }
+    public List<string> Images { get; set; } = new();
 }
 
 public class PondAssignmentResponseDTO

@@ -4,6 +4,7 @@ using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.WorkScheduleDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Paging;
 using Zenkoi.DAL.Queries;
 using Zenkoi.DAL.Repositories;
@@ -105,6 +106,8 @@ public class WorkScheduleService : IWorkScheduleService
         workSchedule.CreatedBy = createdBy;
         workSchedule.CreatedAt = DateTime.UtcNow;
 
+         workSchedule.EndTime = dto.StartTime.AddMinutes(taskTemplate.DefaultDuration);
+
         await _workScheduleRepo.CreateAsync(workSchedule);
         await _unitOfWork.SaveChangesAsync();
 
@@ -150,6 +153,8 @@ public class WorkScheduleService : IWorkScheduleService
 
         _mapper.Map(dto, workSchedule);
         workSchedule.UpdatedAt = DateTime.UtcNow;
+
+        workSchedule.EndTime = dto.StartTime.AddMinutes(taskTemplate.DefaultDuration);
 
         await _workScheduleRepo.UpdateAsync(workSchedule);
 
@@ -500,6 +505,11 @@ public class WorkScheduleService : IWorkScheduleService
         staffAssignment.CompletedAt = DateTime.UtcNow;
         staffAssignment.CompletionNotes = dto.CompletionNotes;
 
+        if (dto.Images != null)
+        {
+            staffAssignment.Images = dto.Images;
+        }
+
         await _staffAssignmentRepo.UpdateAsync(staffAssignment);
 
         var allStaffCompleted = workSchedule.StaffAssignments.All(sa => sa.CompletedAt != null);
@@ -507,12 +517,6 @@ public class WorkScheduleService : IWorkScheduleService
         if (allStaffCompleted && workSchedule.Status != DAL.Enums.WorkTaskStatus.Completed)
         {
             workSchedule.Status = DAL.Enums.WorkTaskStatus.Completed;
-            workSchedule.UpdatedAt = DateTime.UtcNow;
-            await _workScheduleRepo.UpdateAsync(workSchedule);
-        }
-        else if (workSchedule.Status == DAL.Enums.WorkTaskStatus.Pending)
-        {
-            workSchedule.Status = DAL.Enums.WorkTaskStatus.InProgress;
             workSchedule.UpdatedAt = DateTime.UtcNow;
             await _workScheduleRepo.UpdateAsync(workSchedule);
         }
