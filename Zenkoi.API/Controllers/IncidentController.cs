@@ -137,7 +137,7 @@ namespace Zenkoi.API.Controllers
                 if (!ModelState.IsValid)
                     return ModelInvalid();
 
-                var incident = await _incidentService.ChangeStatusAsync(id, UserId, dto.Status, dto.ResolutionNotes);
+                var incident = await _incidentService.ChangeStatusAsync(id, UserId, dto.Status, dto.ResolutionNotes, dto.ResolutionImages);
                 return Success(incident, "Thay đổi trạng thái sự cố thành công.");
             }
             catch (KeyNotFoundException ex)

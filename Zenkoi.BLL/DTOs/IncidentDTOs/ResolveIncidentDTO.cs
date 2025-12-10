@@ -7,5 +7,7 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         [Required(ErrorMessage = "Ghi chú giải quyết không được để trống")]
         [MaxLength(2000)]
         public string ResolutionNotes { get; set; }
+
+        public List<string>? ResolutionImages { get; set; }
     }
 }

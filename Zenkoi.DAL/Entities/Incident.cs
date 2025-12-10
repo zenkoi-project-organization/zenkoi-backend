@@ -22,6 +22,8 @@ namespace Zenkoi.DAL.Entities
         public int? ResolvedByUserId { get; set; }
         public ApplicationUser? ResolvedBy { get; set; }
         public string? ResolutionNotes { get; set; }
+        public List<string>? ReportImages { get; set; }
+        public List<string>? ResolutionImages { get; set; }
         public ICollection<KoiIncident> KoiIncidents { get; set; } = new List<KoiIncident>();
         public ICollection<PondIncident> PondIncidents { get; set; } = new List<PondIncident>();
     }

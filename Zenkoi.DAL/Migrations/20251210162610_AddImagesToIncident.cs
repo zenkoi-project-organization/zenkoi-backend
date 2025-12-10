@@ -5,20 +5,22 @@
 namespace Zenkoi.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class MoveImagesFromWorkScheduleToStaffAssignment : Migration
+    public partial class AddImagesToIncident : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Images",
+            migrationBuilder.AddColumn<string>(
+                name: "ReportImages",
                 schema: "dbo",
-                table: "WorkSchedules");
+                table: "Incidents",
+                type: "nvarchar(max)",
+                nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "Images",
+                name: "ResolutionImages",
                 schema: "dbo",
-                table: "StaffAssignments",
+                table: "Incidents",
                 type: "nvarchar(max)",
                 nullable: true);
         }
@@ -27,17 +29,14 @@ namespace Zenkoi.DAL.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Images",
+                name: "ReportImages",
                 schema: "dbo",
-                table: "StaffAssignments");
+                table: "Incidents");
 
-            migrationBuilder.AddColumn<string>(
-                name: "Images",
+            migrationBuilder.DropColumn(
+                name: "ResolutionImages",
                 schema: "dbo",
-                table: "WorkSchedules",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
+                table: "Incidents");
         }
     }
 }

@@ -178,15 +178,15 @@ namespace Zenkoi.DAL.EF
             modelBuilder.Entity<KoiFish>()
               .Property(k => k.Images)
               .HasConversion(
-                  v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                  v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null)
+                  v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                  v => v == null ? null : JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null)
               );
 
             modelBuilder.Entity<KoiFish>()
                 .Property(k => k.Videos)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null)
+                    v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => v == null ? null : JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null)
                 );
 
         }

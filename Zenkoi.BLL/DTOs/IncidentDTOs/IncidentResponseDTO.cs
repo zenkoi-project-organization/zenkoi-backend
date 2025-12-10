@@ -21,6 +21,8 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         public int? ResolvedByUserId { get; set; }
         public string? ResolvedByUserName { get; set; }
         public string? ResolutionNotes { get; set; }
+        public List<string> ReportImages { get; set; } = new();
+        public List<string> ResolutionImages { get; set; } = new();
         public List<KoiIncidentSimpleDTO> KoiIncidents { get; set; }
         public List<PondIncidentSimpleDTO> PondIncidents { get; set; }
     }
