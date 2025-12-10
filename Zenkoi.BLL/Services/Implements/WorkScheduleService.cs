@@ -505,6 +505,11 @@ public class WorkScheduleService : IWorkScheduleService
         staffAssignment.CompletedAt = DateTime.UtcNow;
         staffAssignment.CompletionNotes = dto.CompletionNotes;
 
+        if (dto.Images != null)
+        {
+            staffAssignment.Images = dto.Images;
+        }
+
         await _staffAssignmentRepo.UpdateAsync(staffAssignment);
 
         var allStaffCompleted = workSchedule.StaffAssignments.All(sa => sa.CompletedAt != null);
