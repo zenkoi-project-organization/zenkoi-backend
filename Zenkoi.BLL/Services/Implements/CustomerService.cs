@@ -136,20 +136,20 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        public async Task<PaginatedList<CustomerResponseDTO>> GetActiveCustomersAsync(int pageIndex = 1, int pageSize = 10)
-        {
-            var query = _customerRepo.Get(new QueryBuilder<Customer>()
-                .WithPredicate(c => c.IsDeleted == false)
-                .WithInclude(c => c.ApplicationUser)
-                .WithInclude(c => c.Orders.Take(3))
-                .WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt))
-                .WithTracking(false)
-                .Build());
+        //public async Task<PaginatedList<CustomerResponseDTO>> GetActiveCustomersAsync(int pageIndex = 1, int pageSize = 10)
+        //{
+        //    var query = _customerRepo.Get(new QueryBuilder<Customer>()
+        //        .WithPredicate(c => c.IsDeleted == false)
+        //        .WithInclude(c => c.ApplicationUser)
+        //        .WithInclude(c => c.Orders.Take(3))
+        //        .WithOrderBy(c => c.OrderByDescending(x => x.CreatedAt))
+        //        .WithTracking(false)
+        //        .Build());
 
-            var pagedCustomers = await PaginatedList<Customer>.CreateAsync(query, pageIndex, pageSize);
-            var result = _mapper.Map<List<CustomerResponseDTO>>(pagedCustomers);
-            return new PaginatedList<CustomerResponseDTO>(result, pagedCustomers.TotalItems, pageIndex, pageSize);
-        }
+        //    var pagedCustomers = await PaginatedList<Customer>.CreateAsync(query, pageIndex, pageSize);
+        //    var result = _mapper.Map<List<CustomerResponseDTO>>(pagedCustomers);
+        //    return new PaginatedList<CustomerResponseDTO>(result, pagedCustomers.TotalItems, pageIndex, pageSize);
+        //}
 
         public async Task<PaginatedList<CustomerResponseDTO>> GetCustomersByTotalSpentAsync(decimal minAmount, int pageIndex = 1, int pageSize = 10)
         {
@@ -195,7 +195,6 @@ namespace Zenkoi.BLL.Services.Implements
             if (filter == null)
                 return;
 
-            // Search in FullName, Email, UserName, ContactNumber
             if (!string.IsNullOrEmpty(filter.Search))
             {
                 queryBuilder.WithPredicate(c =>
@@ -204,11 +203,7 @@ namespace Zenkoi.BLL.Services.Implements
                     (c.ApplicationUser != null && c.ApplicationUser.UserName != null && c.ApplicationUser.UserName.Contains(filter.Search)) ||
                     (c.ContactNumber != null && c.ContactNumber.Contains(filter.Search)));
             }
-
-            if (filter.IsActive.HasValue)
-            {
-                queryBuilder.WithPredicate(c => c.IsDeleted == !filter.IsActive.Value);
-            }
+        
 
             if (filter.MinTotalSpent.HasValue)
             {

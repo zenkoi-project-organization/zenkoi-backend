@@ -17,6 +17,8 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         [MaxLength(2000)]
         public string? ResolutionNotes { get; set; }
 
+        public List<string>? ReportImages { get; set; }
+
         // Update affected Koi and Ponds
         public List<KoiIncidentRequestDTO>? AffectedKoiFish { get; set; }
         public List<PondIncidentRequestDTO>? AffectedPonds { get; set; }

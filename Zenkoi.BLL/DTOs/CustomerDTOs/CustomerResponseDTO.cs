@@ -13,7 +13,6 @@ namespace Zenkoi.BLL.DTOs.CustomerDTOs
         public string? ContactNumber { get; set; }
         public int TotalOrders { get; set; }
         public decimal TotalSpent { get; set; }
-        public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public List<CustomerOrderSummaryDTO> RecentOrders { get; set; } = new List<CustomerOrderSummaryDTO>();
