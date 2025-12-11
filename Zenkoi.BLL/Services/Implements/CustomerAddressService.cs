@@ -263,7 +263,7 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException("Address not found or does not belong to this customer");
             }
 
-            if (!address.IsDeleted)
+            if (address.IsDeleted)
             {
                 throw new ArgumentException("Cannot set inactive address as default");
             }

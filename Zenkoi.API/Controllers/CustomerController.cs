@@ -165,34 +165,30 @@ namespace Zenkoi.API.Controllers
                 });
             }
         }
-
-        /// <summary>
-        /// Get active customers only
-        /// </summary>
-        /// <returns>List of active customers</returns>
-        [HttpGet("active")]
-        public async Task<ActionResult<ResponseApiDTO>> GetActiveCustomers([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
-        {
-            try
-            {
-                var result = await _customerService.GetActiveCustomersAsync(pageIndex, pageSize);
-                var response = new PagingDTO<CustomerResponseDTO>(result);
-                return Ok(new ResponseApiDTO
-                {
-                    IsSuccess = true,
-                    Message = "Active customers retrieved successfully",
-                    Result = response
-                });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new ResponseApiDTO
-                {
-                    IsSuccess = false,
-                    Message = "An error occurred while retrieving active customers"
-                });
-            }
-        }
+      
+        //[HttpGet("active")]
+        //public async Task<ActionResult<ResponseApiDTO>> GetActiveCustomers([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        //{
+        //    try
+        //    {
+        //        var result = await _customerService.GetActiveCustomersAsync(pageIndex, pageSize);
+        //        var response = new PagingDTO<CustomerResponseDTO>(result);
+        //        return Ok(new ResponseApiDTO
+        //        {
+        //            IsSuccess = true,
+        //            Message = "Active customers retrieved successfully",
+        //            Result = response
+        //        });
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return StatusCode(500, new ResponseApiDTO
+        //        {
+        //            IsSuccess = false,
+        //            Message = "An error occurred while retrieving active customers"
+        //        });
+        //    }
+        //}
 
         /// <summary>
         /// Get customers by minimum total spent amount
