@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AIBreedingDTOs;
+using Zenkoi.BLL.DTOs.BreedingDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.DAL.Paging;
@@ -17,6 +18,7 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<KoiFishResponseDTO?> ScanRFID(string RFID);
         Task<BreedingParentDTO> GetAnalysisAsync(int id);
         Task<KoiFishResponseDTO> CreateAsync(KoiFishRequestDTO dto);
+        Task<KoiBreedingHistoryResponseDTO> GetKoiBreedingHistory(int id);
         Task<bool> TransferFish(int id, int PondId);
         Task<bool> UpdateAsync(int id, KoiFishUpdateRequestDTO dto);
         Task<bool> UpdateKoiSpawning(int id);

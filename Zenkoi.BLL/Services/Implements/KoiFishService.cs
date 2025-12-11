@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Zenkoi.BLL.DTOs.AIBreedingDTOs;
+using Zenkoi.BLL.DTOs.BreedingDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
@@ -592,6 +593,78 @@ namespace Zenkoi.BLL.Services.Implements
             koifish.KoiBreedingStatus = KoiBreedingStatus.Ready;
             await _koiFishRepo.UpdateAsync(koifish);
             return await _unitOfWork.SaveAsync(); 
+        }
+
+        public async Task<KoiBreedingHistoryResponseDTO> GetKoiBreedingHistory(int id)
+        {
+            var koi = await _koiFishRepo.GetByIdAsync(id);
+            if(koi == null)
+            {
+                throw new KeyNotFoundException("không tìm thấy cá koi");
+            }
+            var breedings = await _breedRepo.GetAllAsync(new QueryOptions<BreedingProcess>
+            {
+                Predicate = p => p.FemaleKoiId == id || 
+                p.MaleKoiId == id  , IncludeProperties = new List<Expression<Func<BreedingProcess, object>>>
+                {
+                    f => f.MaleKoi,
+                    f => f.FemaleKoi,
+                    f => f.MaleKoi.Variety,
+                    f => f.FemaleKoi.Variety
+                }
+            });
+            var history = new List<KoiBreedingRecordDTO>();
+
+            foreach (var b in breedings)
+            {
+                bool isMale = b.MaleKoiId == id;
+                bool isFemale = b.FemaleKoiId == id;
+
+                // Xác định partner
+                var partner = isMale ? b.FemaleKoi : b.MaleKoi;
+
+                history.Add(new KoiBreedingRecordDTO
+                {
+                    BreedingProcessId = b.Id,
+                    Code = b.Code,
+
+                    Partner = new ParentKoiInfoDTO
+                    {
+                        Id = partner.Id,
+                        RFID = partner.RFID,
+                        VarietyName = partner.Variety?.VarietyName,
+                        Images = partner.Images,
+                        IsMutated = partner.IsMutated,
+                        MutationDescription = partner.MutationDescription
+                    },
+
+                    TotalEggs = b.TotalEggs,
+                    FertilizationRate = b.FertilizationRate,
+                    HatchingRate = b.HatchingRate,
+                    SurvivalRate = b.SurvivalRate,
+                    TotalFishQualified = b.TotalFishQualified,
+                    MutationRate = b.MutationRate,
+                    TotalPackage = b.TotalPackage,
+
+                    Status = b.Status.ToString(),
+                    StartDate = b.StartDate,
+                    EndDate = b.EndDate
+                });
+            }
+
+            // Sort theo timeline
+            history = history.OrderByDescending(h => h.StartDate).ToList();
+
+            // 4. Build response DTO
+            return new KoiBreedingHistoryResponseDTO
+            {
+                KoiId = koi.Id,
+                RFID = koi.RFID,
+                VarietyName = koi.Variety?.VarietyName,
+                Gender = koi.Gender.ToString(),
+                Images = koi.Images,
+                BreedingHistory = history
+            };
         }
     }
 }
