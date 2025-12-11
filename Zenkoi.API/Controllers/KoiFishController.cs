@@ -124,5 +124,11 @@ namespace Zenkoi.API.Controllers
 
             return SaveSuccess($"Chuyển cá koi (ID = {id}) sang hồ (ID = {pondId}) thành công.");
         }
+        [HttpGet("{id:int}/breeding-history")]
+        public async Task<IActionResult> GetBreedingHistory(int id)
+        {
+            var result = await _koiFishService.GetKoiBreedingHistory(id);
+            return GetSuccess(result);
+        }
     }
 }
