@@ -5,7 +5,6 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
     public class CustomerFilterRequestDTO
     {
         public string? Search { get; set; }
-        public bool? IsActive { get; set; }
         public decimal? MinTotalSpent { get; set; }
         public decimal? MaxTotalSpent { get; set; }
         public int? MinTotalOrders { get; set; }
