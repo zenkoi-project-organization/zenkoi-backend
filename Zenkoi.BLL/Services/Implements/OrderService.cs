@@ -197,6 +197,12 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             order.Status = updateOrderStatusDTO.Status;
+
+            if (!string.IsNullOrWhiteSpace(updateOrderStatusDTO.Note))
+            {
+                order.Note = updateOrderStatusDTO.Note;
+            }
+
             order.UpdatedAt = DateTime.UtcNow;
             await _orderRepo.UpdateAsync(order);
             await _unitOfWork.SaveChangesAsync();

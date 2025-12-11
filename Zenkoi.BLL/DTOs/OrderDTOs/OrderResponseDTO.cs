@@ -17,6 +17,7 @@ namespace Zenkoi.BLL.DTOs.OrderDTOs
         public decimal ShippingFee { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal TotalAmount { get; set; }
+        public string? Note { get; set; }
         public int? PromotionId { get; set; }
         public PromotionResponseDTO? Promotion { get; set; }
         public List<OrderDetailResponseDTO> OrderDetails { get; set; } = new List<OrderDetailResponseDTO>();
