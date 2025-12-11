@@ -23,7 +23,7 @@ namespace Zenkoi.DAL.Entities
         public decimal ShippingFee { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal TotalAmount { get; set; }
-
+        public string? Note { get; set; }
         public int? PromotionId { get; set; }
         public Promotion? Promotion { get; set; }
 
