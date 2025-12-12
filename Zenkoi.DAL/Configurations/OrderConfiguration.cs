@@ -46,6 +46,9 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasColumnType("decimal(18,2)");
 
+            builder.Property(o => o.Note)
+                .HasMaxLength(2000);
+
             builder.Property(o => o.PromotionId);
 
             builder.HasOne(o => o.Customer)

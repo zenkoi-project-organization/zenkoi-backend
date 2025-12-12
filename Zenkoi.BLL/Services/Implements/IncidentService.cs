@@ -437,27 +437,27 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     throw new KeyNotFoundException($"Không tìm thấy sự cố với id {id}.");
                 }
-
-                bool wasResolved = incident.Status == IncidentStatus.Resolved;
-                bool isNowResolved = status == IncidentStatus.Resolved;
+           
+                bool wasClosed = incident.Status == IncidentStatus.Resolved || incident.Status == IncidentStatus.Cancelled;
+                bool isClosed = status == IncidentStatus.Resolved || status == IncidentStatus.Cancelled;
 
                 incident.Status = status;
                 incident.UpdatedAt = DateTime.UtcNow;
 
-                if (isNowResolved && !wasResolved)
+                if (!string.IsNullOrWhiteSpace(resolutionNotes))
+                {
+                    incident.ResolutionNotes = resolutionNotes;
+                }
+
+                if (resolutionImages != null && resolutionImages.Any())
+                {
+                    incident.ResolutionImages = resolutionImages;
+                }
+
+                if (isClosed && !wasClosed)
                 {
                     incident.ResolvedAt = DateTime.UtcNow;
                     incident.ResolvedByUserId = userId;
-
-                    if (!string.IsNullOrWhiteSpace(resolutionNotes))
-                    {
-                        incident.ResolutionNotes = resolutionNotes;
-                    }
-
-                    if (resolutionImages != null && resolutionImages.Any())
-                    {
-                        incident.ResolutionImages = resolutionImages;
-                    }
 
                     if (incident.KoiIncidents != null && incident.KoiIncidents.Any())
                     {

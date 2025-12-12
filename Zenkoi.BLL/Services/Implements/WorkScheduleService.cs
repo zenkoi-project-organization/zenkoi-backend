@@ -87,6 +87,10 @@ public class WorkScheduleService : IWorkScheduleService
 
         if (taskTemplate.IsDeleted)
             throw new ArgumentException("Cannot create work schedule from deleted task template");
+  
+        var scheduledDateTime = dto.ScheduledDate.ToDateTime(dto.StartTime);
+        if (scheduledDateTime < DateTime.Now)
+            throw new ArgumentException("Không thể tạo lịch làm việc trong quá khứ");
 
         foreach (var staffId in dto.StaffIds)
         {
@@ -150,6 +154,10 @@ public class WorkScheduleService : IWorkScheduleService
         var taskTemplate = await _taskTemplateRepo.GetByIdAsync(dto.TaskTemplateId);
         if (taskTemplate == null)
             throw new ArgumentException("Task template not found");
+
+        var scheduledDateTime = dto.ScheduledDate.ToDateTime(dto.StartTime);
+        if (scheduledDateTime < DateTime.Now)
+            throw new ArgumentException("Không thể cập nhật lịch làm việc với thời gian trong quá khứ");
 
         _mapper.Map(dto, workSchedule);
         workSchedule.UpdatedAt = DateTime.UtcNow;

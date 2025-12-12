@@ -7,7 +7,8 @@ namespace Zenkoi.BLL.DTOs.OrderDTOs
     {
         [Required]
         public OrderStatus Status { get; set; }
-        
+
+        [MaxLength(2000)]
         public string? Note { get; set; }
     }
 }
