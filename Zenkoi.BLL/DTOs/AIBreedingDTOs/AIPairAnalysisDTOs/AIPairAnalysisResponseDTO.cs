@@ -11,6 +11,7 @@ namespace Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs
         public double PredictedHatchRate { get; set; }
         public double PredictedSurvivalRate { get; set; }
         public double PredictedHighQualifiedRate { get; set; }
+        public double PredictedHighQualifiedQuanity { get; set; }
         public double PercentInbreeding { get; set; }
         public string? MutationDescription { get; set; }
         public string Summary { get; set; }

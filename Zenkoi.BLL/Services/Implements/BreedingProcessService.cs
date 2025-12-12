@@ -565,6 +565,9 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 var perf = await GetKoiFishParentStatsAsync(k.Id);
 
+                if (perf == null)
+                    continue;
+
                 var age = (today - k.BirthDate.Value).TotalDays / 365.25;
 
                 result.Add(new BreedingParentDTO
