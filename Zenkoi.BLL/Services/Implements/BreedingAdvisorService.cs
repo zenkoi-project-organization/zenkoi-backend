@@ -147,6 +147,7 @@ namespace Zenkoi.BLL.Services.Implements
             var messages = new[]
           {
             new { role = "system", content = "Bạn là Smart Koi Breeder – chuyên gia di truyền cá Koi. Chỉ được sử dụng dữ liệu trong danh sách được cung cấp. Không được tạo thêm cá hoặc dữ liệu mới. Trả lời duy nhất bằng JSON hợp lệ." },
+            new { role = "system", content = "Bạn là Smart Koi Breeder – chuyên gia di truyền cá Koi. Chỉ được sử dụng dữ liệu trong danh sách được cung cấp. Không được tạo thêm cá hoặc dữ liệu mới. Trả lời duy nhất bằng JSON hợp lệ." },
             new { role = "user", content = prompt }
         };
 
@@ -178,7 +179,6 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 string jsonPart = SanitizeJson(message);
                 var result = JsonSerializer.Deserialize<AIPairAnalysisResponseDTO>(jsonPart, _jsonOptions);
-
 
                 if (result == null)
                     throw new Exception("Không thể deserialize JSON từ AI.");
@@ -312,7 +312,7 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("Mỗi phần tử gồm:");
             sb.AppendLine("  • MaleId, MaleRFID, MaleImage, MaleIsMutated, MaleMutationDescription, MaleMutationRate");
             sb.AppendLine("  • FemaleId, FemaleRFID, FemaleImage, FemaleIsMutated, FemaleMutationDescription, FemaleMutationRate");
-            sb.AppendLine("  • PredictedFertilizationRate, PredictedHatchRate, PredictedSurvivalRate, PredictedHighQualifiedRate");
+            sb.AppendLine("  • PredictedFertilizationRate, PredictedHatchRate, PredictedSurvivalRate, PredictedHighQualifiedRate, PredictedHighQualifiedQuantity");
             sb.AppendLine("  • PredictedMutationRate, PredictedMutationDescription, PercentInbreeding, Rank");
             sb.AppendLine("  • Reason: Một hoặc hai câu, diễn đạt tự nhiên, chuyên nghiệp, mang ngôn ngữ của chuyên gia lai tạo.");
             sb.AppendLine();
@@ -338,6 +338,7 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("     \"PredictedHatchRate\": 88.1,");
             sb.AppendLine("     \"PredictedSurvivalRate\": 79.6,");
             sb.AppendLine("     \"PredictedHighQualifiedRate\": <AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra con số kết luận >,");
+            sb.AppendLine("     \"PredictedHighQualifiedQuanity\": <AI sẽ phân tích dựa trên các thông số HighQualifiedQuanity của cá trống và máy được cung cấp và đưa ra con số kết luận >,");
             sb.AppendLine("     \"PercentInbreeding\": 0.0,");
             sb.AppendLine("  \"MutationDescription\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng đột biến của cặp cá này>\",");
             sb.AppendLine("     \"PredictedMutationDescription\": 78.5,");
@@ -442,6 +443,7 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("  \"PredictedHatchRate\": 78.6,");
             sb.AppendLine("  \"PredictedSurvivalRate\": 81.4,");
             sb.AppendLine("  \"PredictedHighQualifiedRate\": <AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra con số kết luận >,");
+            sb.AppendLine("  \"PredictedHighQualifiedQuanity\": <AI sẽ phân tích dựa trên các thông số HighQualifiedQuanity của cá trống và máy được cung cấp và đưa ra con số kết luận >,");
             sb.AppendLine("  \"PercentInbreeding\": 0.0,");
             sb.AppendLine("  \"PredictedMutationRate\": 12.4,");
             sb.AppendLine("  \"MutationDescription\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng đột biến của cặp cá này\",");

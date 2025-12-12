@@ -196,13 +196,26 @@ namespace Zenkoi.BLL.Services.Implements
 
         public async Task<bool> DeleteAsync(int id)
         {
+            var _waterAlertRepo =  _unitOfWork.GetRepo<WaterAlert>();
             var entity = await _recordRepo.GetByIdAsync(id);
             if (entity == null) return false;
 
+          
+            var alerts = await _waterAlertRepo
+                .GetAllAsync(new QueryOptions<WaterAlert>
+                {
+                    Predicate = P => P.WaterParameterRecord.Id == id
+                });
+
+            if (alerts.Any())
+                await _waterAlertRepo.DeleteAllAsync(alerts.ToList());
+
             await _recordRepo.DeleteAsync(entity);
+
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
+
 
         private async Task CheckAndCreateAlertsAsync(WaterParameterRecord entity, IEnumerable<WaterParameterThreshold> thresholds, IRepoBase<WaterAlert> _alertRepo)
         {
