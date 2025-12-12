@@ -350,11 +350,11 @@ namespace Zenkoi.BLL.Services.Implements
             // Sort based on priority
             if (request.Priority == "Số lượng")
             {
-                sb.AppendLine("• Ưu tiên các cặp có tỷ lệ HighQualifiedRate và HighQualifiedQuanity cao nhất.");
+                sb.AppendLine("• Ưu tiên các cặp có tỷ lệ HatchRate và SurvivalRate cao nhất.");
             }
             else if (request.Priority == "Chất lượng")
             {
-                sb.AppendLine("• Ưu tiên các cặp có tỷ lệ HatchRate và SurvivalRate cao nhất.");
+                sb.AppendLine("• Ưu tiên các cặp có tỷ lệ HighQualifiedRate và HighQualifiedQuanity cao nhất.");
             }
 
             sb.AppendLine("   }");
@@ -433,7 +433,6 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
             sb.AppendLine();
-
             sb.AppendLine("📋 Trả về kết quả **JSON hợp lệ duy nhất**, KHÔNG markdown, KHÔNG văn bản ngoài JSON.");
             sb.AppendLine("JSON phải đúng cấu trúc sau (giá trị mẫu chỉ minh họa):");
             sb.AppendLine("{");
