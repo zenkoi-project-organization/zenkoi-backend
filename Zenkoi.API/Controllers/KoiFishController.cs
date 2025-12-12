@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -16,7 +17,7 @@ namespace Zenkoi.API.Controllers
             _koiFishService = koiFishService;
         }
 
-       
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllKoiFish(
             [FromQuery] KoiFishFilterRequestDTO? filter,

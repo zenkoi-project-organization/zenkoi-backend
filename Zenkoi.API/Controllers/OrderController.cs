@@ -69,14 +69,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy danh sách đơn hàng của khách hàng
-        /// </summary>
-        /// <param name="customerId">ID khách hàng</param>
-        /// <param name="filter">Bộ lọc đơn hàng</param>
-        /// <param name="pageIndex">Trang hiện tại (mặc định: 1)</param>
-        /// <param name="pageSize">Số lượng mục trên mỗi trang (mặc định: 10)</param>
-        /// <returns>Danh sách đơn hàng đã phân trang</returns>
+        [Authorize]
         [HttpGet("customer/{customerId:int}")]
         public async Task<IActionResult> GetOrdersByCustomerId(
             int customerId,
@@ -98,13 +91,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy danh sách đơn hàng của user hiện tại
-        /// </summary>
-        /// <param name="filter">Bộ lọc đơn hàng</param>
-        /// <param name="pageIndex">Trang hiện tại (mặc định: 1)</param>
-        /// <param name="pageSize">Số lượng mục trên mỗi trang (mặc định: 10)</param>
-        /// <returns>Danh sách đơn hàng đã phân trang</returns>
+        [Authorize]
         [HttpGet("customer/me")]
         public async Task<IActionResult> GetOrdersByCurrentCustomerId(
             [FromQuery] OrderFilterRequestDTO filter,

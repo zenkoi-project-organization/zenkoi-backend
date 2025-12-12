@@ -19,6 +19,7 @@ namespace Zenkoi.API.Controllers
             _koiFavoriteService = koiFavoriteService;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> AddFavorite([FromBody] KoiFavoriteRequestDTO dto)
         {
@@ -43,6 +44,8 @@ namespace Zenkoi.API.Controllers
                 return Error($"Lỗi khi thêm yêu thích: {ex.Message}");
             }
         }
+
+        [Authorize]
         [HttpDelete("{koiFishId}")]
         public async Task<IActionResult> RemoveFavorite(int koiFishId)
         {
@@ -60,6 +63,8 @@ namespace Zenkoi.API.Controllers
                 return Error($"Lỗi khi xóa yêu thích: {ex.Message}");
             }
         }
+
+        [Authorize]
         [HttpGet("check/{koiFishId}")]
         public async Task<IActionResult> IsFavorite(int koiFishId)
         {

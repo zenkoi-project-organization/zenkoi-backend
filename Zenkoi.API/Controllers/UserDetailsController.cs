@@ -17,6 +17,7 @@ namespace Zenkoi.API.Controllers
 			_userDetailService = userDetailService;
 		}
 
+		[Authorize]
 		[HttpPost]
 		[Route("create-update-user-detail")]
 		public async Task<IActionResult> CreateUpdateUserDetail(UserDetailRequestDTO dto)

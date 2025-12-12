@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.WaterParameterRecordDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -35,6 +36,7 @@ namespace Zenkoi.API.Controllers
             return GetSuccess(data);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] WaterParameterRecordRequestDTO dto)
         {
@@ -43,8 +45,7 @@ namespace Zenkoi.API.Controllers
 
             try
             {
-                int userId = UserId;
-                var created = await _service.CreateAsync(userId,dto);
+                var created = await _service.CreateAsync(UserId, dto);
                 return SaveSuccess(created, "Ghi nhận thông số nước thành công.");
             }
             catch (Exception ex)

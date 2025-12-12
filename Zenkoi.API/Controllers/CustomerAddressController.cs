@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.CustomerAddressDTOs;
 using Zenkoi.BLL.DTOs.Response;
@@ -16,6 +17,7 @@ namespace Zenkoi.API.Controllers
             _customerAddressService = customerAddressService;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<ResponseApiDTO>> CreateCustomerAddress([FromBody] CustomerAddressRequestDTO requestDTO)
         {
@@ -101,6 +103,8 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+
+        [Authorize]
         [HttpGet("customer/me")]
         public async Task<ActionResult<ResponseApiDTO>> GetAddressesByCustomerId()
         {
@@ -124,6 +128,8 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+
+        [Authorize]
         [HttpGet("customer/me/default")]
         public async Task<ActionResult<ResponseApiDTO>> GetDefaultAddressByCustomerId()
         {
@@ -220,6 +226,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("customer/me/set-default/{addressId}")]
         public async Task<ActionResult<ResponseApiDTO>> SetDefaultAddress(int addressId)
         {

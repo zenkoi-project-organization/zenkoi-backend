@@ -106,6 +106,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("payos/create-payment-link")]
         public async Task<IActionResult> CreatePayOSPaymentLink([FromBody] PayOSPaymentRequestDTO request)
         {
@@ -144,6 +145,8 @@ namespace Zenkoi.API.Controllers
             return Ok(result);
         }
 
+
+        [Authorize]
         [HttpPost("vnpay/create-payment-url")]
         public async Task<IActionResult> CreateVnPayPaymentUrl([FromBody] VnPayRequestDTO request)
         {
