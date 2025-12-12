@@ -20,6 +20,7 @@ namespace Zenkoi.API.Controllers
             _koiReIDService = koiReIDService;
         }
 
+        [Authorize]
         [HttpPost("enroll")]
         public async Task<IActionResult> EnrollFromCloudinary([FromBody] EnrollFromCloudinaryRequestDTO dto)
         {
@@ -47,6 +48,8 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+
+        [Authorize]
         [HttpPost("enroll-from-video")]
         public async Task<IActionResult> EnrollFromVideo([FromBody] EnrollFromVideoRequestDTO dto)
         {
@@ -77,6 +80,7 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Nhận diện cá từ Cloudinary URL
         /// </summary>
+        [Authorize]
         [HttpPost("identify")]
         public async Task<IActionResult> IdentifyFromUrl([FromBody] IdentifyFromUrlRequestDTO dto)
         {
@@ -171,6 +175,7 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Deactivate enrollment (xóa cá khỏi gallery)
         /// </summary>
+        [Authorize]
         [HttpDelete("enrollments/{id}")]
         public async Task<IActionResult> DeactivateEnrollment(int id)
         {
