@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.PondDTOs;
@@ -37,19 +38,18 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(data);
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPost]
         public async Task<IActionResult> CreatePond([FromBody] PondRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return ModelInvalid();
-            int userId = UserId; 
 
-            var created = await _pondService.CreateAsync(userId,dto);
+            var created = await _pondService.CreateAsync(UserId, dto);
             return SaveSuccess(created, "Tạo ao thành công.");
         }
 
-
+        [Authorize(Roles = "Manager")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePond(int id, [FromBody] PondUpdateRequestDTO dto)
         {
@@ -63,6 +63,7 @@ namespace Zenkoi.API.Controllers
             return Success(updated, "Cập nhật ao thành công.");
         }
 
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePond(int id)
         {
@@ -72,6 +73,7 @@ namespace Zenkoi.API.Controllers
 
             return Success(deleted, "Xóa ao thành công.");
         }
+
         [HttpGet("{pondId}/koifish")]
         public async Task<IActionResult> GetKoiFishByPond(int pondId)
         {

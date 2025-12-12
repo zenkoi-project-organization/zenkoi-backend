@@ -22,6 +22,7 @@ namespace Zenkoi.API.Controllers
         /// Lấy giỏ hàng của khách hàng
         /// </summary>
         /// <returns>Thông tin giỏ hàng</returns>
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetCartByCustomerId()
         {
@@ -45,6 +46,7 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <param name="customerId">ID khách hàng</param>
         /// <returns>Giỏ hàng</returns>
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> GetOrCreateCart()
         {
@@ -68,6 +70,7 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <param name="addCartItemDTO">Thông tin sản phẩm</param>
         /// <returns>Mục giỏ hàng đã thêm</returns>
+        [Authorize]
         [HttpPost("items")]
         public async Task<IActionResult> AddCartItem([FromBody] AddCartItemDTO addCartItemDTO)
         {
@@ -95,6 +98,7 @@ namespace Zenkoi.API.Controllers
         /// <param name="cartItemId">ID mục giỏ hàng</param>
         /// <param name="updateCartItemDTO">Thông tin cập nhật</param>
         /// <returns>Mục giỏ hàng đã cập nhật</returns>
+        [Authorize]
         [HttpPut("items/{cartItemId:int}")]
         public async Task<IActionResult> UpdateCartItem(int cartItemId, [FromBody] UpdateCartItemDTO updateCartItemDTO)
         {
@@ -121,6 +125,7 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <param name="cartItemId">ID mục giỏ hàng</param>
         /// <returns>Kết quả xóa</returns>
+        [Authorize]
         [HttpDelete("items/{cartItemId:int}")]
         public async Task<IActionResult> RemoveCartItem(int cartItemId)
         {
@@ -148,6 +153,7 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <param name="customerId">ID khách hàng</param>
         /// <returns>Kết quả xóa</returns>
+        [Authorize]
         [HttpDelete("customer/{customerId:int}")]
         public async Task<IActionResult> ClearCart(int customerId)
         {      
@@ -178,6 +184,7 @@ namespace Zenkoi.API.Controllers
         /// </summary>
         /// <param name="convertCartToOrderDTO">Thông tin chuyển đổi</param>
         /// <returns>Đơn hàng đã tạo</returns>
+        [Authorize]
         [HttpPost("convert-to-order")]
         public async Task<IActionResult> ConvertCartToOrder([FromBody] ConvertCartToOrderDTO convertCartToOrderDTO)
         {

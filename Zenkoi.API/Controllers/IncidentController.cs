@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.IncidentDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -54,6 +55,7 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Tạo sự cố kèm theo thông tin chi tiết về cá và ao bị ảnh hưởng
         /// </summary>
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateIncidentWithDetailsDTO dto)
         {
@@ -62,8 +64,7 @@ namespace Zenkoi.API.Controllers
                 if (!ModelState.IsValid)
                     return ModelInvalid();
 
-                int userId = UserId;
-                var incident = await _incidentService.CreateIncidentWithDetailsAsync(userId, dto);
+                var incident = await _incidentService.CreateIncidentWithDetailsAsync(UserId, dto);
                 return SaveSuccess(incident, "Tạo sự cố kèm chi tiết thành công.");
             }
             catch (ArgumentException ex)
@@ -83,6 +84,7 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Cập nhật sự cố (bao gồm cả thay đổi status, resolve, và affected koi/ponds)
         /// </summary>
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] IncidentUpdateRequestDTO dto)
         {
@@ -129,6 +131,7 @@ namespace Zenkoi.API.Controllers
         /// <summary>
         /// Thay đổi trạng thái của sự cố
         /// </summary>
+        [Authorize]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] UpdateStatusDto dto)
         {

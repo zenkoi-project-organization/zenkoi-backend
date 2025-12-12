@@ -95,6 +95,7 @@ public class WorkScheduleController : BaseAPIController
         }
     }
 
+    [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetWorkSchedulesByUserId(
         [FromQuery] WorkScheduleFilterRequestDTO? filter)
@@ -112,6 +113,7 @@ public class WorkScheduleController : BaseAPIController
         }
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateWorkSchedule([FromBody] WorkScheduleRequestDTO dto)
     {
@@ -244,10 +246,6 @@ public class WorkScheduleController : BaseAPIController
         }
     }
 
-    /// <summary>
-    /// Get current staff's assignments with full task details and completion status
-    /// Returns StaffAssignment records with WorkSchedule and TaskTemplate information
-    /// </summary>
     [HttpGet("my-assignments")]
     [Authorize]
     public async Task<IActionResult> GetMyAssignments([FromQuery] WorkScheduleFilterRequestDTO? filter)

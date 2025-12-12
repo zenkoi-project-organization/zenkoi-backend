@@ -37,6 +37,8 @@ namespace Zenkoi.API.Controllers
                 return Error($"Lỗi khi lấy danh sách transactions: {ex.Message}");
             }
         }
+
+        [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> GetMyTransactions(
             [FromQuery] PaymentTransactionFilterDTO filter,
@@ -54,6 +56,8 @@ namespace Zenkoi.API.Controllers
                 return Error($"Lỗi khi lấy danh sách transactions: {ex.Message}");
             }
         }
+
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTransactionById(int id)
         {
@@ -78,18 +82,14 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+        [Authorize(Roles = "Manager,SaleStaff")]
         [HttpGet("by-order/{actualOrderId}")]
         public async Task<IActionResult> GetTransactionByActualOrderId(int actualOrderId)
         {
             try
             {
                 var result = await _transactionService.GetTransactionByActualOrderIdAsync(actualOrderId);
-
-                if (!User.IsInRole("Admin") && !User.IsInRole("SaleStaff") && result.UserId != UserId)
-                {
-                    return GetUnAuthorized("Bạn không có quyền xem transaction này.");
-                }
-
+            
                 return GetSuccess(result);
             }
             catch (KeyNotFoundException ex)
