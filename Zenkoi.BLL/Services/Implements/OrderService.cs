@@ -69,6 +69,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithPredicate(predicate)
                 .WithInclude(o => o.Customer)
                 .WithInclude(o => o.Customer.ApplicationUser)
+                .WithInclude(o => o.CustomerAddress)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
                 .Build());
@@ -128,6 +129,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithTracking(false)
                 .WithInclude(o => o.Customer)
                 .WithInclude(o => o.Customer.ApplicationUser)
+                .WithInclude(o => o.CustomerAddress)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
                 .WithThenInclude(q => q.Include(o => o.OrderDetails).ThenInclude(od => od.KoiFish))
@@ -156,6 +158,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithTracking(false)
                 .WithInclude(o => o.Customer)
                 .WithInclude(o => o.Customer.ApplicationUser)
+                .WithInclude(o => o.CustomerAddress)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
                 .WithThenInclude(q => q.Include(o => o.OrderDetails).ThenInclude(od => od.KoiFish))
@@ -194,6 +197,14 @@ namespace Zenkoi.BLL.Services.Implements
             if (updateOrderStatusDTO.Status == OrderStatus.Cancelled)
             {
                 await RollbackInventoryReservationAsync(id);
+            }
+
+            // If order is UnShipping, Rejected, or Refund - partial rollback (KoiFish only)
+            if (updateOrderStatusDTO.Status == OrderStatus.UnShiping ||
+                updateOrderStatusDTO.Status == OrderStatus.Rejected ||
+                updateOrderStatusDTO.Status == OrderStatus.Refund)
+            {
+                await PartialRollbackInventoryAsync(id);
             }
 
             order.Status = updateOrderStatusDTO.Status;
@@ -528,7 +539,7 @@ namespace Zenkoi.BLL.Services.Implements
                         $"KoiFish with RFID '{koiFish.RFID}' has already been sold to another customer.");
                 }
 
-                if (koiFish.SaleStatus == SaleStatus.NotForSale)
+                if (koiFish.SaleStatus == SaleStatus.PendingSale)
                 {
                     var orderDetail = await _orderDetailRepo.GetSingleAsync(
                         new QueryBuilder<OrderDetail>()
@@ -606,10 +617,35 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.SaveChangesAsync();
         }
 
+        private async Task PartialRollbackInventoryAsync(int orderId)
+        {
+            var order = await LoadOrderWithOrderDetailsAsync(orderId);
+
+            foreach (var orderDetail in order.OrderDetails)
+            {
+                if (orderDetail.KoiFishId.HasValue)
+                {
+                    await PartialRollbackKoiFishAsync(orderDetail.KoiFishId.Value);
+                }             
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        private async Task PartialRollbackKoiFishAsync(int koiFishId)
+        {
+            var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
+            if (koiFish != null && (koiFish.SaleStatus == SaleStatus.PendingSale || koiFish.SaleStatus == SaleStatus.Sold))
+            {
+                koiFish.SaleStatus = SaleStatus.NotForSale;
+                await _koiFishRepo.UpdateAsync(koiFish);
+            }
+        }
+
         private async Task RollbackKoiFishReservationAsync(int koiFishId)
         {
             var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
-            if (koiFish != null && koiFish.SaleStatus == SaleStatus.NotForSale)
+            if (koiFish != null && koiFish.SaleStatus == SaleStatus.PendingSale)
             {
                 koiFish.SaleStatus = SaleStatus.Available;
                 await _koiFishRepo.UpdateAsync(koiFish);
@@ -667,6 +703,29 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 Status = OrderStatus.Cancelled
             });
+        }
+
+        public async Task RestockOrderPacketFishAsync(int orderId)
+        {
+            var order = await LoadOrderWithOrderDetailsAsync(orderId);
+
+            if (order.Status != OrderStatus.UnShiping &&
+                order.Status != OrderStatus.Rejected &&
+                order.Status != OrderStatus.Refund)
+            {
+                throw new InvalidOperationException(
+                    $"Không thể hoàn kho gói cá với trạng thái  {order.Status}. Chỉ UnShipping, Rejected, hoặc Refund đơn hàng có thể hoàn kho.");
+            }
+
+            foreach (var orderDetail in order.OrderDetails)
+            {
+                if (orderDetail.PacketFishId.HasValue)
+                {
+                    await RollbackPacketFishReservationAsync(orderDetail.PacketFishId.Value, orderDetail.Quantity);
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
     }

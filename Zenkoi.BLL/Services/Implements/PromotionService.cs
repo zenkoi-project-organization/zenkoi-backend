@@ -84,6 +84,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new ArgumentException("Ngày bắt đầu phải trước ngày kết thúc.");
             }
+           
 
             if (dto.IsActive)
             {
@@ -133,7 +134,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (dto.IsActive)
             {
-                // Kiểm tra xem đã có promotion nào active khác trong khoảng thời gian này chưa
                 var overlappingPromotion = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
                 {
                     Predicate = p => p.IsActive && !p.IsDeleted && p.Id != id &&
