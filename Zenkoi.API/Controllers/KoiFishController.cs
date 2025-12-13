@@ -17,7 +17,6 @@ namespace Zenkoi.API.Controllers
             _koiFishService = koiFishService;
         }
 
-        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllKoiFish(
             [FromQuery] KoiFishFilterRequestDTO? filter,

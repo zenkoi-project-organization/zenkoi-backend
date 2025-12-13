@@ -69,6 +69,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithPredicate(predicate)
                 .WithInclude(o => o.Customer)
                 .WithInclude(o => o.Customer.ApplicationUser)
+                .WithInclude(o => o.CustomerAddress)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
                 .Build());
@@ -128,6 +129,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithTracking(false)
                 .WithInclude(o => o.Customer)
                 .WithInclude(o => o.Customer.ApplicationUser)
+                .WithInclude(o => o.CustomerAddress)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
                 .WithThenInclude(q => q.Include(o => o.OrderDetails).ThenInclude(od => od.KoiFish))
@@ -156,6 +158,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithTracking(false)
                 .WithInclude(o => o.Customer)
                 .WithInclude(o => o.Customer.ApplicationUser)
+                .WithInclude(o => o.CustomerAddress)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
                 .WithThenInclude(q => q.Include(o => o.OrderDetails).ThenInclude(od => od.KoiFish))

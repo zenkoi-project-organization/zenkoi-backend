@@ -732,6 +732,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithPredicate(o => o.Id == orderId)
                 .WithInclude(o => o.Customer)
                 .WithInclude(o => o.Customer.ApplicationUser)
+                .WithInclude(o => o.CustomerAddress)
                 .WithInclude(o => o.Promotion)
                 .WithInclude(o => o.OrderDetails)
                 .Build());

@@ -70,12 +70,12 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (filter.OccurredFrom.HasValue)
             {
-                queryBuilder.WithPredicate(i => i.OccurredAt >= filter.OccurredFrom.Value);
+                queryBuilder.WithPredicate(i => DateOnly.FromDateTime(i.OccurredAt) >= filter.OccurredFrom.Value);
             }
 
             if (filter.OccurredTo.HasValue)
             {
-                queryBuilder.WithPredicate(i => i.OccurredAt <= filter.OccurredTo.Value);
+                queryBuilder.WithPredicate(i => DateOnly.FromDateTime(i.OccurredAt) <= filter.OccurredTo.Value);
             }
 
             if (filter.PondId.HasValue)
