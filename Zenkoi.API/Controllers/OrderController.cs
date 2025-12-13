@@ -183,5 +183,23 @@ namespace Zenkoi.API.Controllers
             }
         }
 
+        [HttpPost("{id:int}/restock-packetfish")]
+        public async Task<IActionResult> RestockPacketFish(int id)
+        {
+            try
+            {
+                await _orderService.RestockOrderPacketFishAsync(id);
+                return Success(new { message = "Restock gói cá thành công" }, "Restock gói cá thành công");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return GetError(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return GetError($"Lỗi khi restock gói cá: {ex.Message}");
+            }
+        }
+
     }
 }

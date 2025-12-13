@@ -653,7 +653,7 @@ namespace Zenkoi.BLL.Services.Implements
                         throw new InvalidOperationException($"Cá Koi '{item.KoiFish.RFID}' đã được bán hoặc không còn khả dụng. Vui lòng xóa khỏi giỏ hàng");
                     }
 
-                    item.KoiFish.SaleStatus = SaleStatus.NotForSale;
+                    item.KoiFish.SaleStatus = SaleStatus.PendingSale;
                     await _koiFishRepo.UpdateAsync(item.KoiFish);
                 }
 
@@ -877,6 +877,11 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     itemDto.IsAvailable = false;
                     itemDto.UnavailableReason = "Cá đã được bán";
+                }
+                else if (koiFish.SaleStatus == SaleStatus.PendingSale)
+                {
+                    itemDto.IsAvailable = false;
+                    itemDto.UnavailableReason = "Cá đang chờ thanh toán";
                 }
                 else if (koiFish.SaleStatus == SaleStatus.NotForSale)
                 {
