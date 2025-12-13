@@ -182,7 +182,21 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PondResponseDTO> CreateAsync(int userId, PondRequestDTO dto)
         {
             var areaRepo = _unitOfWork.GetRepo<Area>();
+
+
+            var existsOptions = new QueryOptions<Pond>
+            {
+                Predicate = p => p.PondName.ToLower() == dto.PondName.ToLower()
+                                 && !p.IsDeleted
+            };
+
+            bool exists = await _pondRepo.AnyAsync(existsOptions);
+
+            if (exists)
+                throw new InvalidOperationException($"TypeName '{dto.PondName}' đã được tạo.");
+
             var area = await areaRepo.CheckExistAsync(dto.AreaId);
+
             if (!area)
                 throw new KeyNotFoundException($"không tìm thấy vị trí với AreaId : {dto.AreaId}");
 
