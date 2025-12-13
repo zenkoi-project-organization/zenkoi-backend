@@ -13,6 +13,7 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public string RFID { get; set; }
         public string VarietyName { get; set; }
         public Gender Gender { get; set; }
+        public List<string> images { get; set; }
 
         // Cha
         public KoiParentDTO Father { get; set; }
@@ -27,7 +28,7 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public string RFID { get; set; }
         public string VarietyName { get; set; }
         public Gender Gender { get; set; }
-
+        public List<string> images { get; set; }
   
         public KoiGrandParentDTO Father { get; set; }
 
@@ -40,5 +41,6 @@ namespace Zenkoi.BLL.DTOs.KoiFishDTOs
         public string RFID { get; set; }
         public string VarietyName { get; set; }
         public Gender Gender { get; set; }
+        public List<string> images { get; set; }
     }
 }
