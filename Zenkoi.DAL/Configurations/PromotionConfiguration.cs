@@ -56,7 +56,9 @@ namespace Zenkoi.DAL.Configurations
 
             builder.HasQueryFilter(p => !p.IsDeleted);
 
-            builder.HasIndex(p => p.Code).IsUnique();
+            builder.HasIndex(p => p.Code)
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0");
             builder.HasIndex(p => p.ValidFrom);
             builder.HasIndex(p => p.ValidTo);
         }

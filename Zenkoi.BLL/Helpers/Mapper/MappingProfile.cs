@@ -171,6 +171,7 @@ namespace Zenkoi.BLL.Helpers.Mapper
                     src.Customer != null && src.Customer.ApplicationUser != null
                         ? src.Customer.ApplicationUser.FullName
                         : string.Empty))
+                .ForMember(dest => dest.CustomerAddress, opt => opt.MapFrom(src => src.CustomerAddress))
                 .ForMember(dest => dest.Promotion, opt => opt.MapFrom(src => src.Promotion))
                 .ForMember(dest => dest.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails));
 
@@ -201,7 +202,17 @@ namespace Zenkoi.BLL.Helpers.Mapper
             CreateMap<CustomerRequestDTO, Customer>();
             CreateMap<CustomerUpdateDTO, Customer>();
 
-          
+            // CustomerAddress mappings
+            CreateMap<CustomerAddress, CustomerAddressResponseDTO>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
+                    src.Customer != null && src.Customer.ApplicationUser != null
+                        ? src.Customer.ApplicationUser.FullName
+                        : string.Empty))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => !src.IsDeleted));
+            CreateMap<CustomerAddressRequestDTO, CustomerAddress>();
+            CreateMap<CustomerAddressUpdateDTO, CustomerAddress>();
+
+
             CreateMap<CartItem, CartItemResponseDTO>()
                 .ForMember(dest => dest.KoiFish, opt => opt.MapFrom(src => src.KoiFish))
                 .ForMember(dest => dest.PacketFish, opt => opt.MapFrom(src => src.PacketFish))
