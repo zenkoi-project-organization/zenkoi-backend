@@ -30,6 +30,10 @@ namespace Zenkoi.DAL.Configurations
                 .IsRequired()
                 .HasConversion<string>();
 
+            builder.Property(o => o.IsRestocked)
+                .IsRequired()
+                .HasDefaultValue(false);
+
             builder.Property(o => o.Subtotal)
                 .IsRequired()
                 .HasColumnType("decimal(18,2)");
