@@ -414,6 +414,7 @@ namespace Zenkoi.BLL.Services.Implements
                     RFID = koi.RFID,
                     VarietyName = koi.Variety?.VarietyName,
                     Gender = koi.Gender,
+                    images = koi.Images 
                 };
             }
             else
@@ -432,6 +433,7 @@ namespace Zenkoi.BLL.Services.Implements
                         RFID = breeding.MaleKoi.RFID,
                         VarietyName = breeding.MaleKoi.Variety?.VarietyName,
                         Gender = breeding.MaleKoi.Gender,
+                        images = breeding.MaleKoi.Images,
                         Father = breeding.MaleKoi.BreedingProcess?.MaleKoi != null
                             ? _mapper.Map<KoiGrandParentDTO>(breeding.MaleKoi.BreedingProcess.MaleKoi)
                             : null,
@@ -445,6 +447,7 @@ namespace Zenkoi.BLL.Services.Implements
                         RFID = breeding.FemaleKoi.RFID,
                         VarietyName = breeding.FemaleKoi.Variety?.VarietyName,
                         Gender = breeding.FemaleKoi.Gender,
+                        images = breeding.FemaleKoi.Images,
                         Father = breeding.FemaleKoi.BreedingProcess?.MaleKoi != null
                             ? _mapper.Map<KoiGrandParentDTO>(breeding.FemaleKoi.BreedingProcess.MaleKoi)
                             : null,
