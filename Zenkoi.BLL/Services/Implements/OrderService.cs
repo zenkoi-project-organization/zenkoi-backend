@@ -199,6 +199,14 @@ namespace Zenkoi.BLL.Services.Implements
                 await RollbackInventoryReservationAsync(id);
             }
 
+            // If order is UnShipping, Rejected, or Refund - partial rollback (KoiFish only)
+            if (updateOrderStatusDTO.Status == OrderStatus.UnShiping ||
+                updateOrderStatusDTO.Status == OrderStatus.Rejected ||
+                updateOrderStatusDTO.Status == OrderStatus.Refund)
+            {
+                await PartialRollbackInventoryAsync(id);
+            }
+
             order.Status = updateOrderStatusDTO.Status;
 
             if (!string.IsNullOrWhiteSpace(updateOrderStatusDTO.Note))
@@ -609,6 +617,31 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.SaveChangesAsync();
         }
 
+        private async Task PartialRollbackInventoryAsync(int orderId)
+        {
+            var order = await LoadOrderWithOrderDetailsAsync(orderId);
+
+            foreach (var orderDetail in order.OrderDetails)
+            {
+                if (orderDetail.KoiFishId.HasValue)
+                {
+                    await PartialRollbackKoiFishAsync(orderDetail.KoiFishId.Value);
+                }             
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        private async Task PartialRollbackKoiFishAsync(int koiFishId)
+        {
+            var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
+            if (koiFish != null && (koiFish.SaleStatus == SaleStatus.PendingSale || koiFish.SaleStatus == SaleStatus.Sold))
+            {
+                koiFish.SaleStatus = SaleStatus.NotForSale;
+                await _koiFishRepo.UpdateAsync(koiFish);
+            }
+        }
+
         private async Task RollbackKoiFishReservationAsync(int koiFishId)
         {
             var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
@@ -670,6 +703,29 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 Status = OrderStatus.Cancelled
             });
+        }
+
+        public async Task RestockOrderPacketFishAsync(int orderId)
+        {
+            var order = await LoadOrderWithOrderDetailsAsync(orderId);
+
+            if (order.Status != OrderStatus.UnShiping &&
+                order.Status != OrderStatus.Rejected &&
+                order.Status != OrderStatus.Refund)
+            {
+                throw new InvalidOperationException(
+                    $"Không thể hoàn kho gói cá với trạng thái  {order.Status}. Chỉ UnShipping, Rejected, hoặc Refund đơn hàng có thể hoàn kho.");
+            }
+
+            foreach (var orderDetail in order.OrderDetails)
+            {
+                if (orderDetail.PacketFishId.HasValue)
+                {
+                    await RollbackPacketFishReservationAsync(orderDetail.PacketFishId.Value, orderDetail.Quantity);
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
     }
