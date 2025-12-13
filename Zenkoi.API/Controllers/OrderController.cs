@@ -188,8 +188,8 @@ namespace Zenkoi.API.Controllers
         {
             try
             {
-                await _orderService.RestockOrderPacketFishAsync(id);
-                return Success(new { message = "Restock gói cá thành công" }, "Restock gói cá thành công");
+                var result = await _orderService.RestockOrderPacketFishAsync(id);
+                return SaveSuccess(result, "Restock gói cá thành công");
             }
             catch (InvalidOperationException ex)
             {

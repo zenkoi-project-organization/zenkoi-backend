@@ -77,8 +77,25 @@ namespace Zenkoi.BLL.Services.Implements
 		await _unitOfWork.BeginTransactionAsync();
 
 		try
-		{
-			// Update ApplicationUser fields
+		{		
+			if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && dto.PhoneNumber != user.PhoneNumber)
+			{	
+				var phonePattern = @"^(0\d{9}|\+84\d{9})$";
+				if (!System.Text.RegularExpressions.Regex.IsMatch(dto.PhoneNumber, phonePattern))
+				{
+					throw new ArgumentException("Số điện thoại không hợp lệ. Định dạng: 10 chữ số bắt đầu bằng 0 (vd: 0912345678) hoặc +84 theo sau 9 chữ số (vd: +84912345678).");
+				}
+
+				var phoneExists = await userRepo.AnyAsync(new QueryBuilder<ApplicationUser>()
+					.WithPredicate(u => u.PhoneNumber == dto.PhoneNumber && u.Id != userId && !u.IsDeleted)
+					.Build());
+
+				if (phoneExists)
+				{
+					throw new ArgumentException($"Số điện thoại '{dto.PhoneNumber}' đã được sử dụng bởi tài khoản khác.");
+				}
+			}
+
 			if (!string.IsNullOrWhiteSpace(dto.FullName))
 			{
 				user.FullName = dto.FullName;
