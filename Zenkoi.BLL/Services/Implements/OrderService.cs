@@ -531,7 +531,7 @@ namespace Zenkoi.BLL.Services.Implements
                         $"KoiFish with RFID '{koiFish.RFID}' has already been sold to another customer.");
                 }
 
-                if (koiFish.SaleStatus == SaleStatus.NotForSale)
+                if (koiFish.SaleStatus == SaleStatus.PendingSale)
                 {
                     var orderDetail = await _orderDetailRepo.GetSingleAsync(
                         new QueryBuilder<OrderDetail>()
@@ -612,7 +612,7 @@ namespace Zenkoi.BLL.Services.Implements
         private async Task RollbackKoiFishReservationAsync(int koiFishId)
         {
             var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
-            if (koiFish != null && koiFish.SaleStatus == SaleStatus.NotForSale)
+            if (koiFish != null && koiFish.SaleStatus == SaleStatus.PendingSale)
             {
                 koiFish.SaleStatus = SaleStatus.Available;
                 await _koiFishRepo.UpdateAsync(koiFish);
