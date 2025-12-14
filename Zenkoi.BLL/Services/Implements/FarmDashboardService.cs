@@ -87,14 +87,20 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var currentMonthOrders = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
-                .WithPredicate(o => o.CreatedAt >= startOfMonth && 
-                                    o.Status != OrderStatus.Cancelled)
+                .WithPredicate(o => o.CreatedAt >= startOfMonth &&
+                                    o.Status != OrderStatus.Cancelled &&
+                                    o.Status != OrderStatus.Refund &&
+                                    o.Status != OrderStatus.Rejected &&
+                                    o.Status != OrderStatus.UnShiping)
                 .Build());
 
             var lastMonthOrders = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
-                .WithPredicate(o => o.CreatedAt >= startOfLastMonth && 
+                .WithPredicate(o => o.CreatedAt >= startOfLastMonth &&
                                     o.CreatedAt <= endOfLastMonth &&
-                                    o.Status != OrderStatus.Cancelled)
+                                    o.Status != OrderStatus.Cancelled &&
+                                    o.Status != OrderStatus.Refund &&
+                                    o.Status != OrderStatus.Rejected &&
+                                    o.Status != OrderStatus.UnShiping)
                 .Build());
 
             var currentMonthOrdersList = currentMonthOrders.ToList();
