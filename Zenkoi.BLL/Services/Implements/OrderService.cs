@@ -323,6 +323,11 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 queryBuilder.WithPredicate(o => o.OrderNumber.Contains(filter.OrderNumber));
             }
+
+            if (filter.IsRestocked.HasValue)
+            {
+                queryBuilder.WithPredicate(o => o.IsRestocked == filter.IsRestocked.Value);
+            }
         }
 
         public async Task UpdateInventoryAfterPaymentSuccessAsync(int orderId)

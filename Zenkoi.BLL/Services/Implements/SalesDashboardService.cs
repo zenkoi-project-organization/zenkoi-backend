@@ -96,14 +96,16 @@ namespace Zenkoi.BLL.Services.Implements
 
             // Fish In Stock
             var allKoiFish = await _koiFishRepo.GetAllAsync(new QueryBuilder<KoiFish>()
+                .WithInclude(k => k.Variety)
                 .WithPredicate(k => k.SaleStatus == SaleStatus.Available)
                 .Build());
-            var fishInStock = allKoiFish.Count();
-            
+            var allKoiFishList = allKoiFish.ToList();
+            var fishInStock = allKoiFishList.Count;
 
-            var avgPrice = allKoiFish.Any() ? allKoiFish.Average(k => (double)(k.SellingPrice ?? 0)) : 0;
-            var lowStockCount = allKoiFish.Count(k => (k.SellingPrice ?? 0) < (decimal)avgPrice * 0.5m || 
-                                                      allKoiFish.Count() < 10);
+            // Low stock: Count varieties with less than 10 fish available
+            var lowStockCount = allKoiFishList
+                .GroupBy(k => k.VarietyId)
+                .Count(g => g.Count() < 10);
 
             return new SalesStatisticsDTO
             {

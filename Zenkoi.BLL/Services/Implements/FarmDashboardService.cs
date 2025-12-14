@@ -60,11 +60,6 @@ namespace Zenkoi.BLL.Services.Implements
             var allUsersList = allUsers.ToList();
             var currentActiveAccounts = allUsersList.Count(u => !u.IsDeleted && !u.IsBlocked);
 
-            var totalUsers = allUsersList.Count();
-            
-          
-            var activeRate = totalUsers > 0 ? (double)(currentActiveAccounts / (double)totalUsers * 100) : 0;
-                  
             var accountsChangePercent = 0.0;
 
             var allPonds = await _pondRepo.GetAllAsync(new QueryBuilder<Pond>().Build());
