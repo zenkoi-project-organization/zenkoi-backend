@@ -14,5 +14,6 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
         public decimal? MaxTotalAmount { get; set; }
         public bool? HasPromotion { get; set; }
         public string? OrderNumber { get; set; }
+        public bool? IsRestocked { get; set; }
     }
 }
