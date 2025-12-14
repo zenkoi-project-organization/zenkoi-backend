@@ -608,7 +608,8 @@ namespace Zenkoi.BLL.Services.Implements
                     KoiFishId = item.KoiFishId,
                     PacketFishId = item.PacketFishId,
                     Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice
+                    UnitPrice = item.UnitPrice,
+                    TotalPrice = itemTotal
                 });
             }
 
