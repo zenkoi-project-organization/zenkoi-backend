@@ -27,6 +27,9 @@ namespace Zenkoi.BLL.Services.Implements
 
 		Expression<Func<ApplicationUser, bool>> predicate = x => !x.IsDeleted;
 
+		Expression<Func<ApplicationUser, bool>> excludeManagerExpr = x => x.Role != Role.Manager;
+		predicate = predicate.AndAlso(excludeManagerExpr);
+
 		if (role.HasValue)
 		{
 			Expression<Func<ApplicationUser, bool>> roleExpr = x => x.Role == role.Value;
@@ -108,7 +111,6 @@ namespace Zenkoi.BLL.Services.Implements
 
 			await userRepo.UpdateAsync(user);
 
-			// Update or create UserDetail
 			if (user.UserDetail == null)
 			{
 				user.UserDetail = new UserDetail
