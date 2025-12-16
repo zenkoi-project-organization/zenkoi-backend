@@ -36,22 +36,15 @@ namespace Zenkoi.BLL.Services.Implements
             var startOfLastMonth = startOfMonth.AddMonths(-1);
             var endOfLastMonth = startOfMonth.AddDays(-1);
 
-            // Monthly Revenue - exclude Cancelled, Refund, Rejected, UnShipping
             var currentMonthRevenue = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
                 .WithPredicate(o => o.CreatedAt >= startOfMonth &&
-                                    o.Status != OrderStatus.Cancelled &&
-                                    o.Status != OrderStatus.Refund &&
-                                    o.Status != OrderStatus.Rejected &&
-                                    o.Status != OrderStatus.UnShiping)
+                                    o.Status != OrderStatus.Refund)
                 .Build());
 
             var lastMonthRevenue = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
                 .WithPredicate(o => o.CreatedAt >= startOfLastMonth &&
                                     o.CreatedAt <= endOfLastMonth &&
-                                    o.Status != OrderStatus.Cancelled &&
-                                    o.Status != OrderStatus.Refund &&
-                                    o.Status != OrderStatus.Rejected &&
-                                    o.Status != OrderStatus.UnShiping)
+                                    o.Status != OrderStatus.Refund)
                 .Build());
 
             var currentMonthRevenueList = currentMonthRevenue.ToList();
@@ -70,7 +63,6 @@ namespace Zenkoi.BLL.Services.Implements
                 revenueChangePercent = 100.0;
             }
 
-            // Total Orders
             var currentMonthOrders = currentMonthRevenueList.Count;
             var lastMonthOrders = lastMonthRevenueList.Count;
             var ordersChangePercent = 0.0;
@@ -84,7 +76,6 @@ namespace Zenkoi.BLL.Services.Implements
                 ordersChangePercent = 100.0;
             }
 
-            // Customer Count
             var allCustomers = await _customerRepo.GetAllAsync(new QueryBuilder<Customer>().Build());
             var currentCustomers = allCustomers.Count(c => !c.IsDeleted);
             
@@ -94,7 +85,6 @@ namespace Zenkoi.BLL.Services.Implements
                 ? (double)(newCustomersThisMonth / (double)currentCustomers * 100) 
                 : 0;
 
-            // Fish In Stock
             var allKoiFish = await _koiFishRepo.GetAllAsync(new QueryBuilder<KoiFish>()
                 .WithInclude(k => k.Variety)
                 .WithPredicate(k => k.SaleStatus == SaleStatus.Available)
@@ -102,7 +92,6 @@ namespace Zenkoi.BLL.Services.Implements
             var allKoiFishList = allKoiFish.ToList();
             var fishInStock = allKoiFishList.Count;
 
-            // Low stock: Count varieties with less than 10 fish available
             var lowStockCount = allKoiFishList
                 .GroupBy(k => k.VarietyId)
                 .Count(g => g.Count() < 10);
