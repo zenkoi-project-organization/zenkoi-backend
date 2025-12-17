@@ -148,9 +148,6 @@ namespace Zenkoi.BLL.Services.Implements
                 classification.CullQualifiedCount += record.CullQualifiedCount;
             }
 
-             breed.MutationRate =  dto.MutatedFishCount/(breed.TotalEggs * breed.HatchingRate/100 * breed.SurvivalRate/100) * 100;
-
-
             if (record.StageNumber > 4)
                     throw new InvalidOperationException("Bạn đã hoàn thành quy trình phân loại.");
 
