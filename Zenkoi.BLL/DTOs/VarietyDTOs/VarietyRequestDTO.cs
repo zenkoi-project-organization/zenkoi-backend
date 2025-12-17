@@ -10,14 +10,14 @@ namespace Zenkoi.BLL.DTOs.VarietyDTOs
 {
     public class VarietyRequestDTO
     {
-        [Required(ErrorMessage = "VarietyName is required.")]
-        [MaxLength(100, ErrorMessage = "VarietyName cannot exceed 100 characters.")]
+        [Required(ErrorMessage = "Tên giống không được để trống.")]
+        [MaxLength(100, ErrorMessage = "Tên giống không được vượt quá 100 ký tự.")]
         public string VarietyName { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Characteristic cannot exceed 500 characters.")]
+        [MaxLength(500, ErrorMessage = "Đặc điểm giống không được vượt quá 500 ký tự.")]
         public string Characteristic { get; set; }
 
-        [MaxLength(100, ErrorMessage = "OriginCountry cannot exceed 100 characters.")]
+        [MaxLength(100, ErrorMessage = "Tên quốc gia xuất xứ không được vượt quá 100 ký tự.")]
         public string OriginCountry { get; set; }
     }
 }

@@ -39,11 +39,16 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("không tìm thấy bầy cá");
             }
             var breed = await _breedRepo.GetByIdAsync(fryfish.BreedingProcessId);
+          
             if(breed == null)
             {
                 throw new KeyNotFoundException("không tìm thấy quy trình sinh sản ");
             }
-            if(fryfish.InitialCount < dto.CountAlive)
+            if (breed.Result == BreedingResult.Success)
+            {
+                throw new InvalidOperationException("quy trình đã hoàn thành");
+            }
+            if (fryfish.InitialCount < dto.CountAlive)
             {
                 throw new InvalidOperationException("số lượng cá sống đang lớn hơn tổng của bầy");
             }

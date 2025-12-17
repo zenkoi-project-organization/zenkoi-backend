@@ -39,6 +39,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new KeyNotFoundException("Không tim thấy lô trứng ");
             }
+           
             if (eggBatch.Status.Equals(EggBatchStatus.Success) || eggBatch.Status.Equals(EggBatchStatus.Failed))
             {
 
@@ -287,9 +288,10 @@ namespace Zenkoi.BLL.Services.Implements
                 eggBatch.SpawnDate = DateTime.UtcNow;
                 eggBatch.EndDate = DateTime.UtcNow;
             }
+            var healthy = dto.HealthyEggs ?? 0;
+            var hatched = dto.HatchedEggs ?? 0;
 
-            eggBatch.FertilizationRate = (double)(dto.HealthyEggs ?? 0) / eggBatch.Quantity * 100;
-
+            eggBatch.FertilizationRate = (double)(healthy + hatched) / eggBatch.Quantity * 100;
             var breed = await _breedRepo.GetByIdAsync(eggBatch.BreedingProcessId);
             if (breed != null)
             {
@@ -360,14 +362,14 @@ namespace Zenkoi.BLL.Services.Implements
                 record.HealthyEggs = eggBatch.Quantity - dto.HatchedEggs;
             }
 
-            record.RottenEggs = eggBatch.Quantity - (totalBefore.TotalHatchedEggs + dto.HatchedEggs + record.HealthyEggs);
+            record.RottenEggs = eggBatch.Quantity- (record.HealthyEggs + totalBefore.TotalHatchedEggs + dto.HatchedEggs);
+
             if (record.RottenEggs < 0)
                 record.RottenEggs = 0;
 
             if (record.Success)
             {
                 eggBatch.Status = EggBatchStatus.Success;
-                eggBatch.SpawnDate = DateTime.UtcNow;
                 eggBatch.EndDate = DateTime.UtcNow;
 
                 eggBatch.TotalHatchedEggs = totalBefore.TotalHatchedEggs + dto.HatchedEggs;

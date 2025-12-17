@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.VarietyDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -36,7 +37,7 @@ namespace Zenkoi.API.Controllers
             return GetSuccess(data);
         }
 
-       
+        [Authorize(Roles = "Manager")]
         [HttpPost]
         public async Task<IActionResult> CreateVariety([FromBody] VarietyRequestDTO dto)
         {
@@ -46,7 +47,7 @@ namespace Zenkoi.API.Controllers
             var created = await _varietyService.CreateAsync(dto);
             return SaveSuccess(created, "Tạo giống cá thành công.");
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateVariety(int id, [FromBody] VarietyRequestDTO dto)
         {
@@ -58,7 +59,7 @@ namespace Zenkoi.API.Controllers
             return Success(updated, "cập nhật giống cá thành công");
         }
 
-      
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVariety(int id)
         {

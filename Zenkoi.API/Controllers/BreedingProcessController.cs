@@ -1,4 +1,5 @@
 ﻿using MailKit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text.Json;
@@ -24,18 +25,21 @@ namespace Zenkoi.API.Controllers
             _advisorService = advisorService;
             _fishService =  fishService;
         }
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPut("spawned/{id:int}")]
         public async Task<IActionResult> UpdateSpawned(int id)
         {
             var breeding = await _service.UpdateSpawnedStatus(id);
             return Success(breeding,"cập nhật thành công");
         }
+        [Authorize(Roles = "Manager")]
         [HttpPut("cancel/{id:int}")]
         public async Task<IActionResult> UpdateCancel(int id,[FromBody] string note)
         {
             var breeding = await _service.CancelBreeding(id,note);
             return Success(breeding,"cập nhật thành công");
         }
+
         [HttpGet("{koiFishId}/breeding-parent-history")]
         public async Task<IActionResult> GetKoiFishBreedingStats(int koiFishId)
         {
@@ -71,7 +75,7 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(breeding);
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPost]
         public async Task<IActionResult> CreateBreeding([FromBody] BreedingProcessRequestDTO dto)
         {
@@ -112,7 +116,7 @@ namespace Zenkoi.API.Controllers
             var koiList = await _service.GetAllKoiFishByBreedingProcessAsync(id);
             return GetSuccess(koiList);
         }
-
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPost("recommend")]
         public async Task<IActionResult> Recommend([FromBody] BreedingRequestInputDTO input)
         {
@@ -132,7 +136,7 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(result);
         }
-
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPost("analyze-pair")]
         public async Task<IActionResult> AnalyzePair([FromBody] AIPairAnalysisSimpleRequestDTO req)
         {
@@ -152,12 +156,7 @@ namespace Zenkoi.API.Controllers
                 Male = male,
                 Female = female
             };
-
-        
-
-
-            var result = await _advisorService.AnalyzePairAsync(fullRequest);
-         
+           var result = await _advisorService.AnalyzePairAsync(fullRequest);
             return GetSuccess(result);
         }
     }
