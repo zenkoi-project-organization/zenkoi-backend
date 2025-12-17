@@ -8,7 +8,7 @@ namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize("SaleStaff")]
+    [Authorize(Roles = "SaleStaff")]
     public class SalesDashboardController : BaseAPIController
     {
         private readonly ISalesDashboardService _salesDashboardService;
