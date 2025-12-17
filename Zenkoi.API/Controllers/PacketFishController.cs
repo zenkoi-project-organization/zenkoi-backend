@@ -22,12 +22,9 @@ namespace Zenkoi.API.Controllers
             _packetFishService = packetFishService;
         }
 
-        /// <summary>
-        /// Tạo gói cá mới
-        /// </summary>
-        /// <param name="packetFishRequestDTO">Thông tin gói cá</param>
-        /// <returns>Gói cá đã tạo</returns>
+
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreatePacketFish([FromBody] PacketFishRequestDTO packetFishRequestDTO)
         {
             try
@@ -48,11 +45,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy gói cá theo ID
-        /// </summary>
-        /// <param name="id">ID gói cá</param>
-        /// <returns>Thông tin gói cá</returns>
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetPacketFishById(int id)
         {
@@ -71,13 +63,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy tất cả gói cá
-        /// </summary>
-        /// <param name="filter">Bộ lọc gói cá</param>
-        /// <param name="pageIndex">Trang hiện tại</param>
-        /// <param name="pageSize">Số lượng item mỗi trang</param>
-        /// <returns>Danh sách gói cá</returns>
+
         [HttpGet]
         public async Task<IActionResult> GetAllPacketFishes(
             [FromQuery] PacketFishFilterRequestDTO filter,
@@ -95,12 +81,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Cập nhật gói cá
-        /// </summary>
-        /// <param name="id">ID gói cá</param>
-        /// <param name="packetFishUpdateDTO">Thông tin cập nhật</param>
-        /// <returns>Gói cá đã cập nhật</returns>
+        [Authorize]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdatePacketFish(int id, [FromBody] PacketFishUpdateDTO packetFishUpdateDTO)
         {
@@ -122,11 +103,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Xóa gói cá
-        /// </summary>
-        /// <param name="id">ID gói cá</param>
-        /// <returns>Kết quả xóa</returns>
+        [Authorize]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeletePacketFish(int id)
         {
@@ -145,10 +122,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy các gói cá có sẵn
-        /// </summary>
-        /// <returns>Danh sách gói cá có sẵn</returns>
+
         [HttpGet("available")]
         public async Task<IActionResult> GetAvailablePacketFishes([FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10)
@@ -164,11 +138,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy gói cá theo kích thước
-        /// </summary>
-        /// <param name="size">Kích thước cá</param>
-        /// <returns>Danh sách gói cá theo kích thước</returns>
         [HttpGet("by-size")]
         public async Task<IActionResult> GetPacketFishesBySize(
         [FromQuery] double minSize,
@@ -191,12 +160,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy gói cá theo khoảng giá
-        /// </summary>
-        /// <param name="minPrice">Giá tối thiểu</param>
-        /// <param name="maxPrice">Giá tối đa</param>
-        /// <returns>Danh sách gói cá theo khoảng giá</returns>
         [HttpGet("by-price")]
         public async Task<IActionResult> GetPacketFishesByPriceRange(
             [FromQuery] decimal minPrice,

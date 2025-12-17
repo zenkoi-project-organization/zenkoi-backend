@@ -8,6 +8,7 @@ using Zenkoi.BLL.Services.Interfaces;
 namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     public class PaymentsController : BaseAPIController
     {
         private readonly IPayOSService _payOSService;

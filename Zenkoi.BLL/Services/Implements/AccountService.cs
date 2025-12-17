@@ -381,7 +381,7 @@ namespace Zenkoi.BLL.Services.Implements
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.WriteLine($"encode password reset token: {encodedPasswordToken}");
 			Console.ResetColor();
-			var forgotUrl = $"{_configuration["FronendURL"]}/renew-password?token={encodedPasswordToken}&email={user.Email}";
+			var forgotUrl = $"{_configuration["FrontendURL"]}/renew-password?token={encodedPasswordToken}&email={user.Email}";
             var emailContent = $@"
 				<div style=""font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: auto; border: 1px solid #dfe6e9; border-radius: 12px; padding: 28px; background: #ffffff; box-shadow: 0 4px 16px rgba(0,0,0,0.05);"">
 				  <h2 style=""color: #e67e22; text-align: center; margin-bottom: 20px;"">Yêu cầu đặt lại mật khẩu</h2>				 

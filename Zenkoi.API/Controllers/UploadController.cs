@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.UploadImageDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -7,6 +8,7 @@ namespace Zenkoi.API.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
+	[Authorize]
 	public class UploadController : BaseAPIController
     {
 		private readonly ICloudinaryService _cloudinaryService;

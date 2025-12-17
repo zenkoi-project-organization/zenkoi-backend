@@ -8,6 +8,7 @@ namespace Zenkoi.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class TaskTemplateController : BaseAPIController
 {
     private readonly ITaskTemplateService _taskTemplateService;

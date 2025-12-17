@@ -26,13 +26,16 @@ namespace Zenkoi.BLL.Services.Implements
         private readonly IRepoBase<KoiFish> _koiFishRepo;
         private readonly IRepoBase<PacketFish> _packetFishRepo;
         private readonly IRepoBase<Promotion> _promotionRepo;
+        private readonly IShippingFeeCalculationService _shippingFeeCalculationService;
 
         public OrderService(
             IUnitOfWork unitOfWork,
-            IMapper mapper)
+            IMapper mapper,
+            IShippingFeeCalculationService shippingFeeCalculationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _shippingFeeCalculationService = shippingFeeCalculationService;
             _orderRepo = _unitOfWork.GetRepo<Order>();
             _orderDetailRepo = _unitOfWork.GetRepo<OrderDetail>();
             _customerRepo = _unitOfWork.GetRepo<Customer>();
@@ -49,7 +52,34 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException("Order not found");
             }
             await LoadOrderDetailProductsAsync(order);
-            return _mapper.Map<OrderResponseDTO>(order);
+        
+            var orderResponse = _mapper.Map<OrderResponseDTO>(order);
+
+            if (order.CustomerAddressId.HasValue && order.OrderDetails != null && order.OrderDetails.Any())
+            {
+                try
+                {
+
+                    var items = order.OrderDetails.Select(od => new OrderItemDTO
+                    {
+                        KoiFishId = od.KoiFishId,
+                        PacketFishId = od.PacketFishId,
+                        Quantity = od.Quantity
+                    }).ToList();
+
+                    var shippingBreakdown = await _shippingFeeCalculationService
+                        .CalculateShippingFeeForOrderAsync(items, order.CustomerAddressId.Value);
+
+                    orderResponse.BoxFee = shippingBreakdown.BoxFee;
+                    orderResponse.DistanceFee = shippingBreakdown.DistanceFee;
+                }
+                catch
+                {
+
+                }
+            }
+
+            return orderResponse;
         }
 
         public async Task<OrderResponseDTO> GetOrderByOrderNumberAsync(string orderNumber)
@@ -60,7 +90,32 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException("Order not found");
             }
             await LoadOrderDetailProductsAsync(order);
-            return _mapper.Map<OrderResponseDTO>(order);
+
+            var orderResponse = _mapper.Map<OrderResponseDTO>(order);
+            if (order.CustomerAddressId.HasValue && order.OrderDetails != null && order.OrderDetails.Any())
+            {
+                try
+                {
+                    var items = order.OrderDetails.Select(od => new OrderItemDTO
+                    {
+                        KoiFishId = od.KoiFishId,
+                        PacketFishId = od.PacketFishId,
+                        Quantity = od.Quantity
+                    }).ToList();
+
+                    var shippingBreakdown = await _shippingFeeCalculationService
+                        .CalculateShippingFeeForOrderAsync(items, order.CustomerAddressId.Value);
+
+                    orderResponse.BoxFee = shippingBreakdown.BoxFee;
+                    orderResponse.DistanceFee = shippingBreakdown.DistanceFee;
+                }
+                catch
+                {
+
+                }
+            }
+
+            return orderResponse;
         }
 
         private async Task<Order?> LoadOrderWithDetailsAsync(Expression<Func<Order, bool>> predicate)
@@ -207,6 +262,7 @@ namespace Zenkoi.BLL.Services.Implements
                 await PartialRollbackInventoryAsync(id);
             }
 
+            var oldStatus = order.Status;
             order.Status = updateOrderStatusDTO.Status;
 
             if (!string.IsNullOrWhiteSpace(updateOrderStatusDTO.Note))
@@ -216,6 +272,9 @@ namespace Zenkoi.BLL.Services.Implements
 
             order.UpdatedAt = DateTime.UtcNow;
             await _orderRepo.UpdateAsync(order);
+
+            await UpdateCustomerStatisticsOnStatusChangeAsync(order.CustomerId, oldStatus, updateOrderStatusDTO.Status, order.TotalAmount);
+
             await _unitOfWork.SaveChangesAsync();
 
             return await GetOrderByIdAsync(id);
@@ -741,6 +800,41 @@ namespace Zenkoi.BLL.Services.Implements
 
             await _unitOfWork.SaveChangesAsync();
             return true;
+        }
+
+        private async Task UpdateCustomerStatisticsOnStatusChangeAsync(int customerId, OrderStatus oldStatus, OrderStatus newStatus, decimal orderAmount)
+        {
+            var customer = await _customerRepo.GetByIdAsync(customerId);
+            if (customer == null) return;
+
+            bool needsUpdate = false;
+
+            if (newStatus == OrderStatus.Delivered && oldStatus != OrderStatus.Delivered)
+            {
+                customer.TotalSpent += orderAmount;
+                needsUpdate = true;
+            }
+
+            if (newStatus == OrderStatus.Cancelled && oldStatus != OrderStatus.Delivered)
+            {
+                customer.TotalOrders = Math.Max(0, customer.TotalOrders - 1);
+                needsUpdate = true;
+            }
+
+            if (newStatus == OrderStatus.Refund)
+            {
+                if (oldStatus == OrderStatus.Delivered || oldStatus == OrderStatus.Rejected || oldStatus == OrderStatus.Shipped)
+                {
+                    customer.TotalSpent = Math.Max(0, customer.TotalSpent - orderAmount);
+                    needsUpdate = true;
+                }
+            }
+
+            if (needsUpdate)
+            {
+                customer.UpdatedAt = DateTime.UtcNow;
+                await _customerRepo.UpdateAsync(customer);
+            }
         }
 
     }

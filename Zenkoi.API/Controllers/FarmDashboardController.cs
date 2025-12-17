@@ -7,7 +7,7 @@ namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize("FarmStaff")]
     public class FarmDashboardController : BaseAPIController
     {
         private readonly IFarmDashboardService _farmDashboardService;

@@ -36,22 +36,7 @@ namespace Zenkoi.API.Controllers
                 return GetError("Không tìm thấy cảnh báo nước.");
 
             return GetSuccess(alert);
-        }
-        /*   [HttpPost]
-           public async Task<IActionResult> Create([FromBody] WaterAlertRequestDTO dto)
-           {
-               try
-               {
-                   int userId = UserId; // lấy từ BaseAPIController
-                   var createdAlert = await _waterAlertService.CreateAsync(userId, dto);
-                   return Success(createdAlert, "Tạo cảnh báo nước thành công.");
-               }
-               catch (Exception ex)
-               {
-                   return GetError(ex.Message);
-               }
-           }
-   */
+        }  
 
         [Authorize]
         [HttpPut("{id}/resolve")]

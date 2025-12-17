@@ -23,11 +23,6 @@ namespace Zenkoi.API.Controllers
             _orderService = orderService;
         }
 
-        /// <summary>
-        /// Lấy đơn hàng theo ID
-        /// </summary>
-        /// <param name="id">ID đơn hàng</param>
-        /// <returns>Thông tin đơn hàng</returns>
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetOrderById(int id)
         {
@@ -46,11 +41,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy đơn hàng theo mã đơn hàng
-        /// </summary>
-        /// <param name="orderNumber">Mã đơn hàng</param>
-        /// <returns>Thông tin đơn hàng</returns>
         [HttpGet("by-order-number/{orderNumber}")]
         public async Task<IActionResult> GetOrderByOrderNumber(string orderNumber)
         {
@@ -109,13 +99,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy tất cả đơn hàng với bộ lọc và phân trang (Admin only)
-        /// </summary>
-        /// <param name="filter">Bộ lọc đơn hàng</param>
-        /// <param name="pageIndex">Trang hiện tại (mặc định: 1)</param>
-        /// <param name="pageSize">Số lượng mục trên mỗi trang (mặc định: 10)</param>
-        /// <returns>Danh sách đơn hàng đã phân trang</returns>
         [HttpGet("all")]
         public async Task<IActionResult> GetAllOrders(
             [FromQuery] OrderFilterRequestDTO filter,
@@ -133,12 +116,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Cập nhật trạng thái đơn hàng
-        /// </summary>
-        /// <param name="id">ID đơn hàng</param>
-        /// <param name="updateOrderStatusDTO">Thông tin cập nhật trạng thái</param>
-        /// <returns>Đơn hàng đã cập nhật</returns>
         [HttpPut("{id:int}/status")]
         public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusDTO updateOrderStatusDTO)
         {
@@ -160,11 +137,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Xóa đơn hàng
-        /// </summary>
-        /// <param name="id">ID đơn hàng</param>
-        /// <returns>Kết quả xóa</returns>
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteOrder(int id)
         {

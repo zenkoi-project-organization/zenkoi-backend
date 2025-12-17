@@ -477,6 +477,14 @@ namespace Zenkoi.BLL.Services.Implements
 
                 var order = CreateOrderEntity(convertCartToOrderDTO, customerId, subtotal, discountAmount, currentPromotion?.Id, orderDetails);
                 await _unitOfWork.GetRepo<Order>().CreateAsync(order);
+           
+                var customer = await _customerRepo.GetByIdAsync(customerId);
+                if (customer != null)
+                {
+                    customer.TotalOrders++;
+                    customer.UpdatedAt = DateTime.UtcNow;
+                    await _customerRepo.UpdateAsync(customer);
+                }
 
                 await ReserveInventoryForOrderAsync(cart.CartItems);
                 await IncrementPromotionUsageAsync(currentPromotion);

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs;
 using Zenkoi.BLL.DTOs.CustomerDTOs;
@@ -9,6 +10,7 @@ using Zenkoi.DAL.Queries;
 namespace Zenkoi.API.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class CustomerController : BaseAPIController
     {
@@ -20,11 +22,6 @@ namespace Zenkoi.API.Controllers
         }
      
 
-        /// <summary>
-        /// Get customer by user ID
-        /// </summary>
-        /// <param name="userId">User ID</param>
-        /// <returns>Customer details</returns>
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<ResponseApiDTO>> GetCustomerByUserId(int userId)
         {
@@ -56,13 +53,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get all customers
-        /// </summary>
-        /// <param name="filter">Filter parameters</param>
-        /// <param name="pageIndex">Page index (default: 1)</param>
-        /// <param name="pageSize">Page size (default: 10)</param>
-        /// <returns>List of customers</returns>
         [HttpGet]
         public async Task<ActionResult<ResponseApiDTO>> GetAllCustomers(
             [FromQuery] CustomerFilterRequestDTO? filter,
@@ -90,12 +80,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Update customer
-        /// </summary>
-        /// <param name="id">Customer ID</param>
-        /// <param name="customerUpdateDTO">Updated customer data</param>
-        /// <returns>Updated customer</returns>
         [HttpPut("{id}")]
         public async Task<ActionResult<ResponseApiDTO>> UpdateCustomer(int id, [FromBody] CustomerUpdateDTO customerUpdateDTO)
         {
@@ -127,11 +111,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Delete customer (soft delete)
-        /// </summary>
-        /// <param name="id">Customer ID</param>
-        /// <returns>Success status</returns>
         [HttpDelete("{id}")]
         public async Task<ActionResult<ResponseApiDTO>> DeleteCustomer(int id)
         {
@@ -165,36 +144,7 @@ namespace Zenkoi.API.Controllers
                 });
             }
         }
-      
-        //[HttpGet("active")]
-        //public async Task<ActionResult<ResponseApiDTO>> GetActiveCustomers([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
-        //{
-        //    try
-        //    {
-        //        var result = await _customerService.GetActiveCustomersAsync(pageIndex, pageSize);
-        //        var response = new PagingDTO<CustomerResponseDTO>(result);
-        //        return Ok(new ResponseApiDTO
-        //        {
-        //            IsSuccess = true,
-        //            Message = "Active customers retrieved successfully",
-        //            Result = response
-        //        });
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return StatusCode(500, new ResponseApiDTO
-        //        {
-        //            IsSuccess = false,
-        //            Message = "An error occurred while retrieving active customers"
-        //        });
-        //    }
-        //}
-
-        /// <summary>
-        /// Get customers by minimum total spent amount
-        /// </summary>
-        /// <param name="minAmount">Minimum total spent amount</param>
-        /// <returns>List of customers</returns>
+          
         [HttpGet("by-total-spent/{minAmount}")]
         public async Task<ActionResult<ResponseApiDTO>> GetCustomersByTotalSpent(decimal minAmount, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
@@ -219,11 +169,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Update customer statistics (total orders and total spent)
-        /// </summary>
-        /// <param name="customerId">Customer ID</param>
-        /// <returns>Updated customer</returns>
         [HttpPut("{customerId}/update-stats")]
         public async Task<ActionResult<ResponseApiDTO>> UpdateCustomerStatus(int customerId)
         {

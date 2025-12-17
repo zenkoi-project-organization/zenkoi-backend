@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.PromotionDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
@@ -6,6 +7,7 @@ namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PromotionsController : BaseAPIController
     {
         private readonly IPromotionService _promotionService;

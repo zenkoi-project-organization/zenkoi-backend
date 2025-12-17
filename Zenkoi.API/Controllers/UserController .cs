@@ -25,13 +25,12 @@ namespace Zenkoi.API.Controllers
 
         [HttpPost("send-notify")]
         public async Task<IActionResult> SendTestNotify()
-        {
-            // Token giả (mock) — chỉ để kiểm tra backend gửi request tới Expo server
+        {        
             string mockToken = "ExponentPushToken[xxxxxxxxxxxxxxxxxxxx]";
 
             await _pushService.SendAsync(
                 mockToken,
-                "🚨 Test Notification",
+                "Test Notification",
                 "Đây là thử nghiệm Backend Push Notification"
             );
 
