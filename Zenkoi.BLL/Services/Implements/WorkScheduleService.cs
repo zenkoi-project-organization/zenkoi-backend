@@ -106,11 +106,12 @@ public class WorkScheduleService : IWorkScheduleService
                 throw new ArgumentException($"Pond with ID {pondId} not found");
         }
 
+        var endTime = dto.StartTime.AddMinutes(taskTemplate.DefaultDuration);
+        await ValidateStaffTimeConflicts(dto.StaffIds, dto.ScheduledDate, dto.StartTime, endTime);
         var workSchedule = _mapper.Map<WorkSchedule>(dto);
         workSchedule.CreatedBy = createdBy;
         workSchedule.CreatedAt = DateTime.UtcNow;
-
-         workSchedule.EndTime = dto.StartTime.AddMinutes(taskTemplate.DefaultDuration);
+        workSchedule.EndTime = endTime;
 
         await _workScheduleRepo.CreateAsync(workSchedule);
         await _unitOfWork.SaveChangesAsync();
@@ -159,10 +160,13 @@ public class WorkScheduleService : IWorkScheduleService
         if (scheduledDateTime < DateTime.Now)
             throw new ArgumentException("Không thể cập nhật lịch làm việc với thời gian trong quá khứ");
 
+        var endTime = dto.StartTime.AddMinutes(taskTemplate.DefaultDuration);
+
+        await ValidateStaffTimeConflicts(dto.StaffIds, dto.ScheduledDate, dto.StartTime, endTime, workSchedule.Id);
+
         _mapper.Map(dto, workSchedule);
         workSchedule.UpdatedAt = DateTime.UtcNow;
-
-        workSchedule.EndTime = dto.StartTime.AddMinutes(taskTemplate.DefaultDuration);
+        workSchedule.EndTime = endTime;
 
         await _workScheduleRepo.UpdateAsync(workSchedule);
 
@@ -461,6 +465,22 @@ public class WorkScheduleService : IWorkScheduleService
                         continue;
                     }
 
+                    try
+                    {
+                        await ValidateStaffTimeConflicts(
+                            new List<int> { staffId },
+                            workSchedule.ScheduledDate,
+                            workSchedule.StartTime,
+                            workSchedule.EndTime,
+                            workScheduleId);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        result.Errors.Add($"Staff {staffId}: {ex.Message}");
+                        result.FailedAssignments++;
+                        continue;
+                    }
+
                     var staffAssignment = new StaffAssignment
                     {
                         WorkScheduleId = workScheduleId,
@@ -632,5 +652,46 @@ public class WorkScheduleService : IWorkScheduleService
         .ToList();
 
         return result;
+    }
+    private async Task ValidateStaffTimeConflicts(
+        List<int> staffIds,
+        DateOnly scheduledDate,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        int? excludeWorkScheduleId = null)
+    {
+        foreach (var staffId in staffIds)
+        {
+            var existingSchedules = await _workScheduleRepo.GetAllAsync(new QueryBuilder<WorkSchedule>()
+                .WithPredicate(ws =>
+                    ws.ScheduledDate == scheduledDate &&
+                    ws.Status != WorkTaskStatus.Cancelled &&
+                    (excludeWorkScheduleId == null || ws.Id != excludeWorkScheduleId))
+                .WithInclude(ws => ws.StaffAssignments)
+                .WithInclude(ws => ws.TaskTemplate)
+                .Build());
+
+            var conflictingSchedules = existingSchedules
+                .Where(ws => ws.StaffAssignments.Any(sa => sa.StaffId == staffId))
+                .Where(ws =>
+                {
+                    return startTime < ws.EndTime && endTime > ws.StartTime;
+                })
+                .ToList();
+
+            if (conflictingSchedules.Any())
+            {
+                var staff = await _userRepo.GetByIdAsync(staffId);
+                var staffName = staff?.FullName ?? $"Staff ID {staffId}";
+
+                var conflicts = conflictingSchedules
+                    .Select(ws => $"'{ws.TaskTemplate?.TaskName ?? "Unknown Task"}' ({ws.StartTime:HH:mm} - {ws.EndTime:HH:mm})")
+                    .ToList();
+
+                throw new ArgumentException(
+                    $"Nhân viên '{staffName}' đã có lịch làm việc trùng giờ vào ngày {scheduledDate:dd/MM/yyyy}. Một nhân viên không thể thực hiện 2 công việc cùng lúc!"
+                );
+            }
+        }
     }
 }

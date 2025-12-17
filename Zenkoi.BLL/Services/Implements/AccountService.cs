@@ -303,6 +303,15 @@ namespace Zenkoi.BLL.Services.Implements
 		{
 			try
 			{
+				if (!string.IsNullOrWhiteSpace(accRequest.PhoneNumber))
+				{
+					var phonePattern = @"^(0\d{9}|\+84\d{9})$";
+					if (!System.Text.RegularExpressions.Regex.IsMatch(accRequest.PhoneNumber, phonePattern))
+					{
+						throw new ArgumentException("Số điện thoại không hợp lệ. Định dạng: 10 chữ số bắt đầu bằng 0 (vd: 0912345678) hoặc +84 theo sau 9 chữ số (vd: +84912345678).");
+					}
+				}
+
 				await _unitOfWork.BeginTransactionAsync();
 				var user = new ApplicationUser
 				{
@@ -742,11 +751,33 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<StaffAccountResponseDTO?> CreateStaffAccountAsync(StaffAccountRequestDTO dto)
         {
             if (dto.Role != Role.FarmStaff && dto.Role != Role.SaleStaff)
-                return null;
+                throw new ArgumentException("Role không hợp lệ. Chỉ được tạo tài khoản FarmStaff hoặc SaleStaff.");
 
-            var existingUser = await _identityService.GetByEmailAsync(dto.Email);
-            if (existingUser != null)
-                return null;
+
+            var existingUserByEmail = await _identityService.GetByEmailAsync(dto.Email);
+            if (existingUserByEmail != null)
+                throw new ArgumentException($"Email '{dto.Email}' đã được sử dụng bởi tài khoản khác.");
+
+            var existingUserByUsername = await _identityService.GetByUserNameAsync(dto.UserName);
+            if (existingUserByUsername != null)
+                throw new ArgumentException($"Tên đăng nhập '{dto.UserName}' đã được sử dụng bởi tài khoản khác.");
+
+            if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
+            {
+                var phonePattern = @"^(0\d{9}|\+84\d{9})$";
+                if (!System.Text.RegularExpressions.Regex.IsMatch(dto.PhoneNumber, phonePattern))
+                {
+                    throw new ArgumentException("Số điện thoại không hợp lệ. Định dạng: 10 chữ số bắt đầu bằng 0 (vd: 0912345678) hoặc +84 theo sau 9 chữ số (vd: +84912345678).");
+                }
+
+                var userRepo = _unitOfWork.GetRepo<ApplicationUser>();
+                var phoneExists = await userRepo.AnyAsync(new QueryBuilder<ApplicationUser>()
+                    .WithPredicate(u => u.PhoneNumber == dto.PhoneNumber && !u.IsDeleted)
+                    .Build());
+
+                if (phoneExists)
+                    throw new ArgumentException($"Số điện thoại '{dto.PhoneNumber}' đã được sử dụng bởi tài khoản khác.");
+            }
 
             var tempPassword = string.IsNullOrEmpty(dto.Password) ? GenerateRandomPassword() : dto.Password;
 
@@ -764,7 +795,11 @@ namespace Zenkoi.BLL.Services.Implements
 
             var result = await _identityService.CreateAsync(user, tempPassword);
             if (!result.Succeeded)
-                return null;
+            {
+                var errors = result.Errors.Select(e => e.Description).ToList();
+                var errorMessage = string.Join("; ", errors);
+                throw new Exception($"Không thể tạo tài khoản: {errorMessage}");
+            }
 
             await _identityService.AddToRoleAsync(user, dto.Role.ToString());
 
@@ -897,18 +932,49 @@ namespace Zenkoi.BLL.Services.Implements
             if (user == null)
                 return null;
 
-            // Manager không được phép update tài khoản Manager khác
             if (user.Role == Role.Manager)
                 return null;
 
             if (user.Role != Role.FarmStaff && user.Role != Role.SaleStaff)
                 return null;
 
+            var userRepo = _unitOfWork.GetRepo<ApplicationUser>();
+
+            if (!string.IsNullOrWhiteSpace(dto.UserName) && dto.UserName != user.UserName)
+            {
+                var userNameExists = await userRepo.AnyAsync(new QueryBuilder<ApplicationUser>()
+                    .WithPredicate(u => u.UserName == dto.UserName && u.Id != userId && !u.IsDeleted)
+                    .Build());
+
+                if (userNameExists)
+                {
+                    throw new ArgumentException($"Tên đăng nhập '{dto.UserName}' đã được sử dụng bởi tài khoản khác.");
+                }
+            }
+
+
+            if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && dto.PhoneNumber != user.PhoneNumber)
+            {    
+                var phonePattern = @"^(0\d{9}|\+84\d{9})$";
+                if (!System.Text.RegularExpressions.Regex.IsMatch(dto.PhoneNumber, phonePattern))
+                {
+                    throw new ArgumentException("Số điện thoại không hợp lệ. Định dạng: 10 chữ số bắt đầu bằng 0 (vd: 0912345678) hoặc +84 theo sau 9 chữ số (vd: +84912345678).");
+                }
+
+                var phoneExists = await userRepo.AnyAsync(new QueryBuilder<ApplicationUser>()
+                    .WithPredicate(u => u.PhoneNumber == dto.PhoneNumber && u.Id != userId && !u.IsDeleted)
+                    .Build());
+
+                if (phoneExists)
+                {
+                    throw new ArgumentException($"Số điện thoại '{dto.PhoneNumber}' đã được sử dụng bởi tài khoản khác.");
+                }
+            }
+
             user.UserName = dto.UserName;
             user.FullName = dto.FullName;
             user.PhoneNumber = dto.PhoneNumber;
 
-            var userRepo = _unitOfWork.GetRepo<ApplicationUser>();
             await userRepo.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
@@ -930,7 +996,6 @@ namespace Zenkoi.BLL.Services.Implements
             if (user == null)
                 return false;
 
-            // Manager không được phép block/unblock tài khoản Manager khác
             if (user.Role == Role.Manager)
                 return false;
 

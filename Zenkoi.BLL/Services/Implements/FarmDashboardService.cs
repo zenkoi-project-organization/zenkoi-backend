@@ -34,13 +34,12 @@ namespace Zenkoi.BLL.Services.Implements
             var startOfLastMonth = startOfMonth.AddMonths(-1);
             var endOfLastMonth = startOfMonth.AddDays(-1);
 
-            // Total Koi
             var allKoi = await _koiFishRepo.GetAllAsync(new QueryBuilder<KoiFish>().Build());
             var allKoiList = allKoi.ToList();
             var currentKoiCount = allKoiList.Count;
 
             var lastMonthKoi = await _koiFishRepo.GetAllAsync(new QueryBuilder<KoiFish>()
-                .WithPredicate(k => k.CreatedAt < startOfMonth)
+                .WithPredicate(k => k.CreatedAt <= endOfLastMonth)
                 .Build());
             var lastMonthKoiList = lastMonthKoi.ToList();
             var lastMonthKoiCount = lastMonthKoiList.Count;
@@ -60,19 +59,14 @@ namespace Zenkoi.BLL.Services.Implements
             var allUsersList = allUsers.ToList();
             var currentActiveAccounts = allUsersList.Count(u => !u.IsDeleted && !u.IsBlocked);
 
-            var totalUsers = allUsersList.Count();
-            
-          
-            var activeRate = totalUsers > 0 ? (double)(currentActiveAccounts / (double)totalUsers * 100) : 0;
-                  
             var accountsChangePercent = 0.0;
 
             var allPonds = await _pondRepo.GetAllAsync(new QueryBuilder<Pond>().Build());
             var allPondsList = allPonds.ToList();
             var currentPondsInUse = allPondsList.Count(p => p.PondStatus == PondStatus.Active);
-
+  
             var lastMonthPonds = await _pondRepo.GetAllAsync(new QueryBuilder<Pond>()
-                .WithPredicate(p => p.CreatedAt < startOfMonth)
+                .WithPredicate(p => p.CreatedAt <= endOfLastMonth)
                 .Build());
             var lastMonthPondsList = lastMonthPonds.ToList();
             var lastMonthPondsInUse = lastMonthPondsList.Count(p => p.PondStatus == PondStatus.Active);
@@ -87,14 +81,14 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var currentMonthOrders = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
-                .WithPredicate(o => o.CreatedAt >= startOfMonth && 
-                                    o.Status != OrderStatus.Cancelled)
+                .WithPredicate(o => o.CreatedAt >= startOfMonth &&
+                                    o.Status != OrderStatus.Refund)
                 .Build());
 
             var lastMonthOrders = await _orderRepo.GetAllAsync(new QueryBuilder<Order>()
-                .WithPredicate(o => o.CreatedAt >= startOfLastMonth && 
+                .WithPredicate(o => o.CreatedAt >= startOfLastMonth &&
                                     o.CreatedAt <= endOfLastMonth &&
-                                    o.Status != OrderStatus.Cancelled)
+                                    o.Status != OrderStatus.Refund)
                 .Build());
 
             var currentMonthOrdersList = currentMonthOrders.ToList();

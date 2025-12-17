@@ -323,6 +323,11 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 queryBuilder.WithPredicate(o => o.OrderNumber.Contains(filter.OrderNumber));
             }
+
+            if (filter.IsRestocked.HasValue)
+            {
+                queryBuilder.WithPredicate(o => o.IsRestocked == filter.IsRestocked.Value);
+            }
         }
 
         public async Task UpdateInventoryAfterPaymentSuccessAsync(int orderId)
@@ -705,7 +710,7 @@ namespace Zenkoi.BLL.Services.Implements
             });
         }
 
-        public async Task RestockOrderPacketFishAsync(int orderId)
+        public async Task<bool> RestockOrderPacketFishAsync(int orderId)
         {
             var order = await LoadOrderWithOrderDetailsAsync(orderId);
 
@@ -717,6 +722,12 @@ namespace Zenkoi.BLL.Services.Implements
                     $"Không thể hoàn kho gói cá với trạng thái  {order.Status}. Chỉ UnShipping, Rejected, hoặc Refund đơn hàng có thể hoàn kho.");
             }
 
+            if (order.IsRestocked)
+            {
+                throw new InvalidOperationException(
+                    $"Đơn hàng #{order.OrderNumber} đã được hoàn kho trước đó. Không thể hoàn kho lại.");
+            }
+
             foreach (var orderDetail in order.OrderDetails)
             {
                 if (orderDetail.PacketFishId.HasValue)
@@ -725,7 +736,11 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
 
+            order.IsRestocked = true;
+            await _orderRepo.UpdateAsync(order);
+
             await _unitOfWork.SaveChangesAsync();
+            return true;
         }
 
     }
