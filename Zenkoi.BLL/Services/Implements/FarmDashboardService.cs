@@ -54,7 +54,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
 
             var allUsers = await _userRepo.GetAllAsync(new QueryBuilder<ApplicationUser>()
-                .WithPredicate(u => u.Role == Role.FarmStaff || u.Role == Role.Manager || u.Role == Role.SaleStaff)
+                .WithPredicate(u => u.Role == Role.FarmStaff || u.Role == Role.Manager || u.Role == Role.SaleStaff )
                 .Build());
             var allUsersList = allUsers.ToList();
             var currentActiveAccounts = allUsersList.Count(u => !u.IsDeleted && !u.IsBlocked);

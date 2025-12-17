@@ -8,7 +8,7 @@ namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize("SaleStaff")]
     public class SalesDashboardController : BaseAPIController
     {
         private readonly ISalesDashboardService _salesDashboardService;
@@ -18,9 +18,6 @@ namespace Zenkoi.API.Controllers
             _salesDashboardService = salesDashboardService;
         }
 
-        /// <summary>
-        /// Lấy 4 chỉ số thống kê chính (KPIs) của dashboard bán hàng
-        /// </summary>
         [HttpGet("statistics")]
         public async Task<IActionResult> GetStatistics()
         {
@@ -35,9 +32,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy thông tin nhanh cho box "Thông tin nhanh"
-        /// </summary>
         [HttpGet("quick-info")]
         public async Task<IActionResult> GetQuickInfo()
         {
@@ -52,10 +46,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy danh sách "Cá bán chạy nhất"
-        /// </summary>
-        /// <param name="top">Số lượng top items (mặc định: 5)</param>
         [HttpGet("best-sellers")]
         public async Task<IActionResult> GetBestSellers([FromQuery] int top = 5)
         {

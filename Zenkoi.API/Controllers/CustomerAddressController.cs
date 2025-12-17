@@ -7,6 +7,7 @@ using Zenkoi.BLL.Services.Interfaces;
 namespace Zenkoi.API.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class CustomerAddressController : BaseAPIController
     {
@@ -17,7 +18,6 @@ namespace Zenkoi.API.Controllers
             _customerAddressService = customerAddressService;
         }
 
-        [Authorize]
         [HttpPost]
         public async Task<ActionResult<ResponseApiDTO>> CreateCustomerAddress([FromBody] CustomerAddressRequestDTO requestDTO)
         {
@@ -103,8 +103,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-
-        [Authorize]
         [HttpGet("customer/me")]
         public async Task<ActionResult<ResponseApiDTO>> GetAddressesByCustomerId()
         {
@@ -128,8 +126,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-
-        [Authorize]
         [HttpGet("customer/me/default")]
         public async Task<ActionResult<ResponseApiDTO>> GetDefaultAddressByCustomerId()
         {
@@ -226,7 +222,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        [Authorize]
         [HttpPut("customer/me/set-default/{addressId}")]
         public async Task<ActionResult<ResponseApiDTO>> SetDefaultAddress(int addressId)
         {
