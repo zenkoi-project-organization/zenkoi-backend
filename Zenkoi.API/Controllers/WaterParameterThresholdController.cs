@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.WaterParameterThresholdDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -34,7 +35,7 @@ namespace Zenkoi.API.Controllers
                 return GetError("Không tìm thấy ngưỡng thông số.");
             return GetSuccess(data);
         }
-
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] WaterParameterThresholdRequestDTO dto)
         {
@@ -51,7 +52,7 @@ namespace Zenkoi.API.Controllers
                 return GetError(ex.Message);
             }
         }
-
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] WaterParameterThresholdRequestDTO dto)
         {
@@ -70,7 +71,7 @@ namespace Zenkoi.API.Controllers
                 return GetError(ex.Message);
             }
         }
-
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.IncubationDailyRecordDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
@@ -6,6 +7,7 @@ namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Manager,FarmStaff")]
     public class IncubationDailyRecordController : BaseAPIController
     {
         private readonly IIncubationDailyRecordService _recordService;

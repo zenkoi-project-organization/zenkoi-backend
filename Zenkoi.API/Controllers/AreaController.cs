@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.AreaDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -36,6 +37,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> CreateArea([FromBody] AreaRequestDTO dto)
         {
             if (!ModelState.IsValid)
@@ -44,7 +46,7 @@ namespace Zenkoi.API.Controllers
             var created = await _areaService.CreateAsync(dto);
              return SaveSuccess(created); ;
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateArea(int id, [FromBody] AreaRequestDTO dto)
         {
@@ -54,7 +56,7 @@ namespace Zenkoi.API.Controllers
             var updated = await _areaService.UpdateAsync(id, dto);
              return GetSuccess(updated);
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArea(int id)
         {

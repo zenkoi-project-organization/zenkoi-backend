@@ -55,7 +55,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             // ✅ Validate cơ bản
             if (dto.CullQualifiedCount < 0)
-                throw new InvalidOperationException("Số cá loại bỏ không hợp lệ.");
+                throw new ArgumentException("Số cá loại bỏ không hợp lệ.");
 
             if (!existingRecords.Any())
             {
@@ -200,7 +200,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             return _mapper.Map<ClassificationRecordResponseDTO>(record);
         }
-        // phân loại lần cuối
         public async Task<ClassificationRecordResponseDTO> CreateV3Async(ClassificationRecordV3RequestDTO dto)
         {
             var _classRepo = _unitOfWork.GetRepo<ClassificationStage>();
@@ -216,7 +215,6 @@ namespace Zenkoi.BLL.Services.Implements
 
             var record = _mapper.Map<ClassificationRecord>(dto);
 
-            // ✅ Validate dữ liệu nhập
             if (dto.ShowQualifiedCount < 0)
                 throw new InvalidOperationException("Số cá Show không hợp lệ.");
 
@@ -242,6 +240,7 @@ namespace Zenkoi.BLL.Services.Implements
                 await _pondpacketRepo.UpdateAsync(pondpacket);
             }
             classification.Status = ClassificationStatus.Stage4;
+            classification.EndDate = DateTime.UtcNow;
             breed.TotalFishQualified = classification.HighQualifiedCount + dto.ShowQualifiedCount;
             await _recordRepo.CreateAsync(record);
             await _classRepo.UpdateAsync(classification);

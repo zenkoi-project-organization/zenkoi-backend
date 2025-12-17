@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.ClassificationRecordDTOs;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -7,6 +8,7 @@ namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Manager,FarmStaff")]
     public class ClassificationRecordController : BaseAPIController
     {
         private readonly IClassificationRecordService _recordService;
@@ -16,7 +18,6 @@ namespace Zenkoi.API.Controllers
             _recordService = recordService;
         }
 
-       
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] ClassificationRecordFilterRequestDTO? filter,

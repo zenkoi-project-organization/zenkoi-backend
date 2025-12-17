@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.PondTypeDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -38,7 +39,7 @@ namespace Zenkoi.API.Controllers
             return GetSuccess(data);
         }
 
-
+        [Authorize(Roles = "Manager")]
         [HttpPost]
         public async Task<IActionResult> CreatePondType([FromBody] PondTypeRequestDTO dto)
         {
@@ -49,7 +50,7 @@ namespace Zenkoi.API.Controllers
             return SaveSuccess(created);
         }
 
-   
+        [Authorize(Roles = "Manager")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePondType(int id, [FromBody] PondTypeRequestDTO dto)
         {
@@ -63,7 +64,7 @@ namespace Zenkoi.API.Controllers
             return Success(updated, "Cập nhật loại ao thành công.");
         }
 
-      
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePondType(int id)
         {
