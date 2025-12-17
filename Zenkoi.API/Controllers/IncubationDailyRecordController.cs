@@ -7,7 +7,7 @@ namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "Manager,FarmStaff")]
     public class IncubationDailyRecordController : BaseAPIController
     {
         private readonly IIncubationDailyRecordService _recordService;

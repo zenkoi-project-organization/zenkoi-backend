@@ -38,7 +38,7 @@ namespace Zenkoi.API.Controllers
             return GetSuccess(alert);
         }  
 
-        [Authorize]
+        [Authorize(Roles = "Manager")]
         [HttpPut("{id}/resolve")]
         public async Task<IActionResult> Resolve(int id)
         {
@@ -59,7 +59,7 @@ namespace Zenkoi.API.Controllers
             return Success(success, "Đã đánh dấu tất cả cảnh báo là đã xem.");
         }
 
-
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

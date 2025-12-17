@@ -336,16 +336,16 @@ namespace Zenkoi.BLL.Services.Implements
             if (koiFish == null)
                 throw new KeyNotFoundException($"Không tìm thấy cá Koi với id {id}.");
 
-            if (dto.VarietyId.HasValue)
+            if (dto.VarietyId != null)
             {
-                var varietyExists = await _varietyRepo.CheckExistAsync(dto.VarietyId.Value);
+                var varietyExists = await _varietyRepo.CheckExistAsync(dto.VarietyId);
                 if (!varietyExists)
                     throw new Exception($"Không tìm thấy Variety với id: {dto.VarietyId}");
             }
 
-            if (dto.PondId.HasValue)
+            if (dto.PondId != null)
             {
-                var pondExists = await _pondRepo.CheckExistAsync(dto.PondId.Value);
+                var pondExists = await _pondRepo.CheckExistAsync(dto.PondId);
                 if (!pondExists)
                     throw new Exception($"Không tìm thấy Pond với id: {dto.PondId}");
             }
@@ -414,7 +414,7 @@ namespace Zenkoi.BLL.Services.Implements
                     RFID = koi.RFID,
                     VarietyName = koi.Variety?.VarietyName,
                     Gender = koi.Gender,
-                    images = koi.Images 
+                    images = koi.Images,
                 };
             }
             else
@@ -427,6 +427,7 @@ namespace Zenkoi.BLL.Services.Implements
                     RFID = koi.RFID,
                     VarietyName = koi.Variety?.VarietyName,
                     Gender = koi.Gender,
+                    images = koi.Images,
                     Father = breeding.MaleKoi != null ? new KoiParentDTO
                     {
                         Id = breeding.MaleKoi.Id,

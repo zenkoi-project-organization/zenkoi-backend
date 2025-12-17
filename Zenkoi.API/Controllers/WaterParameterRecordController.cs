@@ -36,7 +36,7 @@ namespace Zenkoi.API.Controllers
             return GetSuccess(data);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] WaterParameterRecordRequestDTO dto)
         {
@@ -53,7 +53,7 @@ namespace Zenkoi.API.Controllers
                 return GetError(ex.Message);
             }
         }
-
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] WaterParameterRecordRequestDTO dto)
         {
@@ -72,7 +72,7 @@ namespace Zenkoi.API.Controllers
                 return GetError(ex.Message);
             }
         }
-
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

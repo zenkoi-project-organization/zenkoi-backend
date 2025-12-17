@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.PatternDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 
@@ -34,7 +35,7 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(pattern);
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PatternRequestDTO dto)
         {
@@ -45,7 +46,7 @@ namespace Zenkoi.API.Controllers
             return SaveSuccess(created);
         }
 
-   
+        [Authorize(Roles = "Manager")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] PatternRequestDTO dto)
         {

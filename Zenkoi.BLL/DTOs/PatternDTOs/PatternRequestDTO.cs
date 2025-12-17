@@ -9,12 +9,12 @@ namespace Zenkoi.BLL.DTOs.PatternDTOs
 {
     public class PatternRequestDTO
     {
-        [Required(ErrorMessage = "Pattern name is required.")]
-        [StringLength(100, ErrorMessage = "Pattern name cannot exceed 100 characters.")]
+        [Required(ErrorMessage = "Tên họa tiết không được để trống.")]
+        [StringLength(100, ErrorMessage = "Tên họa tiết không được vượt quá 100 ký tự.")]
         public string PatternName { get; set; }
 
-        [Required(ErrorMessage = "Description is required.")]
-        [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters.")]
+        [Required(ErrorMessage = "Mô tả không được để trống.")]
+        [StringLength(500, ErrorMessage = "Mô tả không được vượt quá 500 ký tự.")]
         public string Description { get; set; }
     }
 }

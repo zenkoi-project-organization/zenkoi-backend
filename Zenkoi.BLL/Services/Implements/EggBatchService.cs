@@ -32,6 +32,10 @@ namespace Zenkoi.BLL.Services.Implements
             var _breedRepo =  _unitOfWork.GetRepo<BreedingProcess>();
             var _pondRepo = _unitOfWork.GetRepo<Pond>();
             var breeding = await _breedRepo.GetByIdAsync(dto.BreedingProcessId);
+            if (dto.Quantity == null || dto.Quantity <= 0)
+            {
+                throw new ArgumentException("số lượng trứng không hợp lệ");
+            }
             if (breeding == null)
             {
                 throw new KeyNotFoundException("không tìm thấy quy trình sinh sản");
@@ -52,7 +56,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             if (!pond.PondStatus.Equals(PondStatus.Empty))
             {
-                throw new Exception("hiện tại hồ bạn chọn không trống");
+                throw new InvalidOperationException("hiện tại hồ bạn chọn không trống");
             }
             var eggBacth = new EggBatch
             {

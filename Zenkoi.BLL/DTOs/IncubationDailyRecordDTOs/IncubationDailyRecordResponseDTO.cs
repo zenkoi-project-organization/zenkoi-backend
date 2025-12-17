@@ -11,8 +11,5 @@ namespace Zenkoi.BLL.DTOs.IncubationDailyRecordDTOs
         public int? RottenEggs { get; set; }
         public int? HatchedEggs { get; set; }
         public bool Success { get; set; }
-
-        // Optional: Include related batch info if needed
-       //s public EggBatchResponseDTO? EggBatch { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.FryFishDTOs;
 using Zenkoi.BLL.Services.Implements;
@@ -8,6 +9,7 @@ namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Manager,FarmStaff")]
     public class FryFishController : BaseAPIController
     {
         private readonly IFryFishService _fryFishService;
