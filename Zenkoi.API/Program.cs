@@ -66,6 +66,12 @@ namespace Zenkoi.API
             builder.Services.Configure<MapConfiguration>(builder.Configuration.GetSection("MapConfiguration"));
             builder.Services.AddHttpClient<IMapService, MapService>();
 
+            builder.Services.AddHttpClient<IKoiReIDService, KoiReIDService>(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(30);
+            });
+
+
             builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>().AddEntityFrameworkStores<ZenKoiContext>().AddDefaultTokenProviders();
 
 
