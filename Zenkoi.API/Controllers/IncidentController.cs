@@ -7,6 +7,7 @@ using Zenkoi.DAL.Enums;
 namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class IncidentController : BaseAPIController
     {
@@ -52,10 +53,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Tạo sự cố kèm theo thông tin chi tiết về cá và ao bị ảnh hưởng
-        /// </summary>
-        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateIncidentWithDetailsDTO dto)
         {
@@ -81,10 +78,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Cập nhật sự cố (bao gồm cả thay đổi status, resolve, và affected koi/ponds)
-        /// </summary>
-        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] IncidentUpdateRequestDTO dto)
         {
@@ -128,10 +121,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Thay đổi trạng thái của sự cố
-        /// </summary>
-        [Authorize]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] UpdateStatusDto dto)
         {
@@ -157,9 +146,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Thêm cá Koi bị ảnh hưởng vào sự cố
-        /// </summary>
         [HttpPost("{id}/koi")]
         public async Task<IActionResult> AddKoiIncident(int id, [FromBody] KoiIncidentRequestDTO dto)
         {
@@ -185,9 +171,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Thêm ao bị ảnh hưởng vào sự cố
-        /// </summary>
         [HttpPost("{id}/pond")]
         public async Task<IActionResult> AddPondIncident(int id, [FromBody] PondIncidentRequestDTO dto)
         {
@@ -213,9 +196,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Cập nhật thông tin cá Koi bị ảnh hưởng trong sự cố
-        /// </summary>
         [HttpPut("{id}/koi/{koiIncidentId}")]
         public async Task<IActionResult> UpdateKoiIncident(int id, int koiIncidentId, [FromBody] UpdateKoiIncidentRequestDTO dto)
         {
@@ -241,9 +221,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Cập nhật thông tin ao bị ảnh hưởng trong sự cố
-        /// </summary>
         [HttpPut("{id}/pond/{pondIncidentId}")]
         public async Task<IActionResult> UpdatePondIncident(int id, int pondIncidentId, [FromBody] UpdatePondIncidentRequestDTO dto)
         {
@@ -269,9 +246,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy toàn bộ lịch sử sức khỏe của cá Koi (tất cả các sự cố liên quan đến cá)
-        /// </summary>
         [HttpGet("koi/{koiFishId}/history")]
         public async Task<IActionResult> GetKoiHealthHistory(int koiFishId)
         {

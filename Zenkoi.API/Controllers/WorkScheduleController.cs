@@ -8,6 +8,7 @@ namespace Zenkoi.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class WorkScheduleController : BaseAPIController
 {
     private readonly IWorkScheduleService _workScheduleService;
