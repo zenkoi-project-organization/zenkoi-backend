@@ -509,7 +509,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 KoiFishId = koiFishId,
                 ParticipationCount = breedings.Count(),
-                FailCount = breedings.Count(b => b.Status == BreedingStatus.Failed),
+                FailCount = breedings.Count(b => b.Result == BreedingResult.Failed),
                 AvgEggs = Math.Round(breedings.Average(b => b.TotalEggs ?? 0)),
                 FertilizationRate = breedings.Average(b => b.FertilizationRate ?? 0),
                 HatchRate = breedings.Average(b => b.HatchingRate ?? 0),
@@ -622,7 +622,7 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new InvalidDataException("không tìm thấy hồ");
             }
             pond.PondStatus = PondStatus.Empty;
-            breed.Status = BreedingStatus.Failed;
+         // breed.Status = BreedingStatus.Failed;
             breed.Result = BreedingResult.Failed;
             breed.Note = note;
             breed.EndDate = DateTime.UtcNow;

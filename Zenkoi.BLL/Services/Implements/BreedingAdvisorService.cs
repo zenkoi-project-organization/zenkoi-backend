@@ -54,7 +54,7 @@ namespace Zenkoi.BLL.Services.Implements
         new { role = "system", content = "Bạn là Smart Koi Breeder – chuyên gia di truyền cá Koi. Trả lời duy nhất bằng JSON hợp lệ." },
         new { role = "user", content = prompt }
     };
-
+            Console.WriteLine(messages);
             var body = new
             {
                 model = "openai/gpt-4.1-mini",
@@ -313,7 +313,7 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("  • MaleId, MaleRFID, MaleImage, MaleIsMutated, MaleMutationDescription, MaleMutationRate");
             sb.AppendLine("  • FemaleId, FemaleRFID, FemaleImage, FemaleIsMutated, FemaleMutationDescription, FemaleMutationRate");
             sb.AppendLine("  • PredictedFertilizationRate, PredictedHatchRate, PredictedSurvivalRate, PredictedHighQualifiedRate, PredictedHighQualifiedQuantity");
-            sb.AppendLine("  • PredictedMutationRate, PredictedMutationDescription, PercentInbreeding, Rank");
+            sb.AppendLine("  • PredictedMutationDescription, PercentInbreeding, Rank");
             sb.AppendLine("  • Reason: Một hoặc hai câu, diễn đạt tự nhiên, chuyên nghiệp, mang ngôn ngữ của chuyên gia lai tạo.");
             sb.AppendLine();
 
@@ -444,8 +444,7 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("  \"PredictedSurvivalRate\": 81.4,");
             sb.AppendLine("  \"PredictedHighQualifiedRate\": <AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra con số kết luận >,");
             sb.AppendLine("  \"PredictedHighQualifiedQuanity\": <AI sẽ phân tích dựa trên các thông số HighQualifiedQuanity của cá trống và máy được cung cấp và đưa ra con số kết luận >,");
-            sb.AppendLine("  \"PercentInbreeding\": 0.0,");
-            sb.AppendLine("  \"PredictedMutationRate\": 12.4,");
+            sb.AppendLine("  \"PercentInbreeding\": 0.0,");     
             sb.AppendLine("  \"MutationDescription\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng đột biến của cặp cá này\",");
             sb.AppendLine("  \"PredictedMutationDescription\": 90.3,");
 

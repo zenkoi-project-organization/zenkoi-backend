@@ -300,7 +300,7 @@ namespace Zenkoi.BLL.Services.Implements
             var oldPond = await _pondRepo.GetByIdAsync(breed.PondId);
             eggBacth.Status = EggBatchStatus.Failed;
             oldPond.PondStatus = PondStatus.Maintenance;
-            breed.Status = BreedingStatus.Failed;
+            breed.Result = BreedingResult.Failed;
             await _pondRepo.UpdateAsync(oldPond);
             await _breedRepo.UpdateAsync(breed);
             await _eggBatchRepo.UpdateAsync(eggBacth);
