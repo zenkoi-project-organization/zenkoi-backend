@@ -45,7 +45,7 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new InvalidOperationException("phân loại đã hoàn thành không thể chỉnh");
             }
             var breed = await _breedRepo.GetByIdAsync(classìication.BreedingProcessId);
-            if(breed.Status is BreedingStatus.Failed)
+            if(breed.Result is BreedingResult.Failed)
             {
                 throw new InvalidOperationException("quá trình sinh sản đã thất bại hoặc hủy nên không thể update");
             }
