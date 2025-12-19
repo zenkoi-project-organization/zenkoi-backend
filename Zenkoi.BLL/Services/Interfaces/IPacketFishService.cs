@@ -15,7 +15,6 @@ namespace Zenkoi.BLL.Services.Interfaces
         Task<PacketFishResponseDTO> UpdatePacketFishAsync(int id, PacketFishUpdateDTO dto);
         Task<bool> DeletePacketFishAsync(int id);
         Task<PaginatedList<PacketFishResponseDTO>> GetAvailablePacketFishesAsync(int pageIndex = 1, int pageSize = 10);
-        Task<PaginatedList<PacketFishResponseDTO>> GetPacketFishesBySizeAsync(double? minSize, double? maxSize, int pageIndex = 1, int pageSize = 10);
-        Task<PaginatedList<PacketFishResponseDTO>> GetPacketFishesByPriceRangeAsync(decimal minPrice, decimal maxPrice ,int pageIndex = 1, int pageSize = 10);
+        Task<bool> ToggleAvailabilityAsync(int id);
     }
 }
