@@ -10,7 +10,7 @@ namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "FarmStaff,Manager")]
     public class KoiReIDController : BaseAPIController
     {
         private readonly IKoiReIDService _koiReIDService;
@@ -77,9 +77,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Nhận diện cá từ Cloudinary URL
-        /// </summary>
         [Authorize]
         [HttpPost("identify")]
         public async Task<IActionResult> IdentifyFromUrl([FromBody] IdentifyFromUrlRequestDTO dto)
@@ -107,9 +104,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy danh sách enrollments
-        /// </summary>
         [HttpGet("enrollments")]
         public async Task<IActionResult> GetEnrollments(
             [FromQuery] int? koiFishId = null,
@@ -129,9 +123,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy lịch sử nhận diện
-        /// </summary>
         [HttpGet("identifications")]
         public async Task<IActionResult> GetIdentificationHistory(
             [FromQuery] int? koiFishId = null,
@@ -151,9 +142,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy chi tiết 1 identification
-        /// </summary>
         [HttpGet("identifications/{id}")]
         public async Task<IActionResult> GetIdentificationById(int id)
         {
@@ -172,10 +160,6 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Deactivate enrollment (xóa cá khỏi gallery)
-        /// </summary>
-        [Authorize]
         [HttpDelete("enrollments/{id}")]
         public async Task<IActionResult> DeactivateEnrollment(int id)
         {

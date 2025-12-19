@@ -21,7 +21,7 @@ namespace Zenkoi.BLL.Services.Implements
 {
     public class KoiReIDService : IKoiReIDService
     {
-        private const int NUM_FRAMES = 30;
+        private const int NUM_FRAMES = 20;
         private const int TOP_K = 5;
         private const decimal THRESHOLD = 0.3m;
         private const decimal MIN_SIMILARITY_PERCENT = 75m;
@@ -57,17 +57,14 @@ namespace Zenkoi.BLL.Services.Implements
             int userId,
             bool overrideExisting = false)
         {
-            // Validate KoiFish exists
             var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId);
             if (koiFish == null)
             {
                 throw new ArgumentException($"Không tìm thấy cá Koi với id {koiFishId}.");
             }
 
-            // Generate fish_id
             var fishId = $"{koiFish.RFID}";
 
-            // Call Python API
             var requestBody = new
             {
                 fishId = fishId,
@@ -98,12 +95,10 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new Exception($"Python API trả về lỗi: {pythonResponse?.Message}");
                 }
 
-                // Save enrollment to database
                 await _unitOfWork.BeginTransactionAsync();
 
                 try
                 {
-                    // Deactivate old enrollments if override
                     if (overrideExisting)
                     {
                         var oldEnrollments = await _enrollmentRepo.GetAllAsync(
@@ -120,7 +115,6 @@ namespace Zenkoi.BLL.Services.Implements
                         }
                     }
 
-                    // Create new enrollment
                     var enrollment = new KoiGalleryEnrollment
                     {
                         KoiFishId = koiFishId,
