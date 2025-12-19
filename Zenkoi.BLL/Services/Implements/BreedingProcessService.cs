@@ -487,9 +487,9 @@ namespace Zenkoi.BLL.Services.Implements
             var options = new QueryOptions<BreedingProcess>
             {
                 Predicate = bp =>
-                    (bp.MaleKoiId == koiFishId || bp.FemaleKoiId == koiFishId) ,
-                    //&&
-                    //(bp.Status == BreedingStatus.Complete || bp.Status == BreedingStatus.Failed),
+                    (bp.MaleKoiId == koiFishId || bp.FemaleKoiId == koiFishId) 
+                    &&
+                    (bp.Status == BreedingStatus.Complete || bp.Result == BreedingResult.Failed),
                 Tracked = false
             };
 
@@ -527,7 +527,7 @@ namespace Zenkoi.BLL.Services.Implements
             return response;
         }
 
-        public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync(string? variety = null)
+        public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync(double minHatchRate, double minSurvivalRate,string? variety = null)
         {
             var today = DateTime.UtcNow;
 
@@ -553,19 +553,20 @@ namespace Zenkoi.BLL.Services.Implements
             var koiRepo = _unitOfWork.GetRepo<KoiFish>();
             var koiList = await koiRepo.GetAllAsync(options);
 
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(koiList,
-              new System.Text.Json.JsonSerializerOptions
-              {
-                  WriteIndented = true,
-                  ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
-              }));
+          
 
             var result = new List<BreedingParentDTO>();
             foreach (var k in koiList)
             {
                 var perf = await GetKoiFishParentStatsAsync(k.Id);
+                if (perf == null || perf.ParticipationCount == 0)
+                    continue;
 
-                if (perf == null)
+
+                if (!perf.HatchRate.HasValue || perf.HatchRate.Value < minHatchRate)
+                    continue;
+
+                if (!perf.SurvivalRate.HasValue || perf.SurvivalRate.Value < minSurvivalRate)
                     continue;
 
                 var age = (today - k.BirthDate.Value).TotalDays / 365.25;
@@ -579,24 +580,24 @@ namespace Zenkoi.BLL.Services.Implements
                     IsMutated = k.IsMutated,
                     MutationDescription = k.MutationDescription,
                     Size = k.Size.ToString(),
-                    image = k.Images[0],
+                    image = k.Images.FirstOrDefault(), // tránh lỗi index
                     Health = k.HealthStatus.ToString(),
                     Age = Math.Round(age, 1),
                     BreedingHistory = new List<BreedingRecordDTO>
+        {
+            new BreedingRecordDTO
             {
-                new BreedingRecordDTO
-                {
-                    FertilizationRate = perf.FertilizationRate,
-                    HatchRate = perf.HatchRate,
-                    AvgEggs = perf.AvgEggs,
-                    SurvivalRate = perf.SurvivalRate,
-                    HighQualifiedRate = perf.HighQualifiedRate,
-                    ResultNote = $"Participations: {perf.ParticipationCount}, Failed: {perf.FailCount}"
-                }
+                FertilizationRate = perf.FertilizationRate,
+                HatchRate = perf.HatchRate,
+                AvgEggs = perf.AvgEggs,
+                SurvivalRate = perf.SurvivalRate,
+                HighQualifiedRate = perf.HighQualifiedRate,
+                HighQualifiedQuanity = perf.HighQualifiedQuanity,
+                ResultNote = $"Participations: {perf.ParticipationCount}, Failed: {perf.FailCount}"
             }
+        }
                 });
             }
-
             return result;
         }
 
