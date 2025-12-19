@@ -257,8 +257,6 @@ namespace Zenkoi.BLL.Services.Implements
                 }
 
                 await _unitOfWork.SaveChangesAsync();
-
-                // Sync cart item prices if price changed
                 if (priceChanged)
                 {
                     await _cartService.SyncCartItemPricesForPacketFishAsync(id, packetFish.PricePerPacket);
@@ -285,105 +283,7 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
-
-        public async Task<PaginatedList<PacketFishResponseDTO>> GetPacketFishesBySizeAsync(
-            double? minSize, double? maxSize, int pageIndex = 1, int pageSize = 10)
-        {
-            var queryBuilder = new QueryBuilder<PacketFish>()
-                .WithTracking(false)
-                .WithInclude(pf => pf.VarietyPacketFishes)
-                .WithOrderBy(pf => pf.OrderByDescending(x => x.CreatedAt));
-
-            queryBuilder.WithPredicate(pf => pf.IsAvailable == true);
-
-            if (minSize.HasValue && maxSize.HasValue)
-            {
-                queryBuilder.WithPredicate(pf =>
-                    pf.MinSize <= maxSize.Value &&
-                    pf.MaxSize >= minSize.Value);
-            }
-            else if (minSize.HasValue)
-            {
-                queryBuilder.WithPredicate(pf => pf.MaxSize >= minSize.Value);
-            }
-            else if (maxSize.HasValue)
-            {
-                queryBuilder.WithPredicate(pf => pf.MinSize <= maxSize.Value);
-            }
-
-            var packetFishes = await _packetFishRepo.GetAllAsync(queryBuilder.Build());
-
-            foreach (var pf in packetFishes)
-            {
-                foreach (var vpf in pf.VarietyPacketFishes)
-                {
-                    if (vpf.VarietyId > 0)
-                    {
-                        var variety = await _varietyRepo.GetByIdAsync(vpf.VarietyId);
-                        if (variety != null)
-                            vpf.Variety = variety;
-                    }
-                }
-            }
-
-          
-            var mappedList = _mapper.Map<List<PacketFishResponseDTO>>(packetFishes);
-
-            foreach (var dto in mappedList)
-            {
-                var pf = packetFishes.FirstOrDefault(x => x.Id == dto.Id);
-                if (pf != null)
-                    dto.Size = pf.MinSize + "-" + pf.MaxSize;
-            }
-
- 
-            var totalCount = mappedList.Count;
-            var pagedItems = mappedList
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            return new PaginatedList<PacketFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
-        }
-
-        public async Task<PaginatedList<PacketFishResponseDTO>> GetPacketFishesByPriceRangeAsync(decimal minPrice, decimal maxPrice, int pageIndex = 1, int pageSize = 10)
-        {
-            var packetFishes = await _packetFishRepo.GetAllAsync(new QueryBuilder<PacketFish>()
-                .WithPredicate(pf => pf.PricePerPacket >= minPrice && pf.PricePerPacket <= maxPrice && pf.IsAvailable == true)
-                .WithInclude(pf => pf.VarietyPacketFishes)
-                .WithOrderBy(pf => pf.OrderBy(x => x.PricePerPacket))
-                .Build());
-
-            foreach (var pf in packetFishes)
-            {
-                foreach (var vpf in pf.VarietyPacketFishes)
-                {
-                    if (vpf.VarietyId > 0)
-                    {
-                        var variety = await _varietyRepo.GetByIdAsync(vpf.VarietyId);
-                        if (variety != null)
-                            vpf.Variety = variety;
-                    }
-                }
-            }
-
-            var mappedList = _mapper.Map<List<PacketFishResponseDTO>>(packetFishes);
-
-            foreach (var dto in mappedList)
-            {
-                var packetFish = packetFishes.FirstOrDefault(pf => pf.Id == dto.Id);
-                if (packetFish != null)
-                    dto.Size = packetFish.MinSize + "-" + packetFish.MaxSize;
-            }
-
-            var totalCount = mappedList.Count;
-            var pagedItems = mappedList
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            return new PaginatedList<PacketFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
-        }
+     
 
         public async Task<PaginatedList<PacketFishResponseDTO>> GetAvailablePacketFishesAsync(int pageIndex = 1, int pageSize = 10)
         {
@@ -422,6 +322,27 @@ namespace Zenkoi.BLL.Services.Implements
                 .ToList();
 
             return new PaginatedList<PacketFishResponseDTO>(pagedItems, totalCount, pageIndex, pageSize);
+        }
+
+        public async Task<bool> ToggleAvailabilityAsync(int id)
+        {
+            var packetFish = await _packetFishRepo.GetSingleAsync(new QueryOptions<PacketFish>
+            {
+                Predicate = pf => pf.Id == id && !pf.IsDeleted
+            });
+
+            if (packetFish == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy PacketFish với ID {id}");
+            }
+
+            packetFish.IsAvailable = !packetFish.IsAvailable;
+            packetFish.UpdatedAt = DateTime.UtcNow;
+
+            await _packetFishRepo.UpdateAsync(packetFish);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
         }
     }
 }
