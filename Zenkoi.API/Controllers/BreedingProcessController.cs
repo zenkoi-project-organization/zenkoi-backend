@@ -1,8 +1,8 @@
 ﻿using MailKit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System.Text.Json;
+//using Newtonsoft.Json;
 using Zenkoi.BLL.DTOs.AIBreedingDTOs;
 using Zenkoi.BLL.DTOs.AIBreedingDTOs.AIPairAnalysisDTOs;
 using Zenkoi.BLL.DTOs.BreedingDTOs;
@@ -120,7 +120,29 @@ namespace Zenkoi.API.Controllers
         [HttpPost("recommend")]
         public async Task<IActionResult> Recommend([FromBody] BreedingRequestInputDTO input)
         {
-            var allParents = await _service.GetParentsWithPerformanceAsync(input.TargetVariety);
+            var allParents = await _service.GetParentsWithPerformanceAsync(
+                input.MinHatchRate,
+                input.MinSurvivalRate,
+                input.TargetVariety
+            );
+
+            Console.WriteLine("===== ALL PARENTS =====");
+            Console.WriteLine(JsonSerializer.Serialize(
+                allParents,
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                }
+            ));
+            Console.WriteLine("===== END ALL PARENTS =====");
+
+            if (allParents == null || !allParents.Any())
+            {
+                return GetSuccess(new AIBreedingResponseDTO
+                {
+                    RecommendedPairs = new List<BreedingPairResult>()
+                });
+            }
 
             var request = new BreedingRequestDTO
             {
