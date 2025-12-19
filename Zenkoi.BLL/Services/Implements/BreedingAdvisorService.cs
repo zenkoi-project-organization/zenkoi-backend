@@ -133,7 +133,10 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 Console.WriteLine($"❌ Lỗi parse JSON: {ex.Message}");
                 Console.WriteLine($"⚠️ Nội dung AI trả về:\n{message}");
-                throw new Exception("Dữ liệu AI trả về không đúng định dạng JSON mong đợi.");
+                return new AIBreedingResponseDTO
+                {
+                    RecommendedPairs = new List<BreedingPairResult>()
+                };
             }
         }
 
@@ -308,7 +311,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             // 📋 Kết quả cần trả về
             sb.AppendLine("📋 Kết quả cần trả về:");
-            sb.AppendLine("Trả về đối tượng JSON gồm `RecommendedPairs` là mảng 3–5 cặp tốt nhất, sắp xếp theo `Rank` tăng dần (1 là tốt nhất).");
+            sb.AppendLine("Trả về đối tượng JSON gồm `RecommendedPairs` là mảng 2–5 cặp tốt nhất, sắp xếp theo `Rank` tăng dần (1 là tốt nhất), nếu không có đủ thì trả về 1 cặp cũng được");
             sb.AppendLine("Mỗi phần tử gồm:");
             sb.AppendLine("  • MaleId, MaleRFID, MaleImage, MaleIsMutated, MaleMutationDescription, MaleMutationRate");
             sb.AppendLine("  • FemaleId, FemaleRFID, FemaleImage, FemaleIsMutated, FemaleMutationDescription, FemaleMutationRate");
@@ -338,10 +341,9 @@ namespace Zenkoi.BLL.Services.Implements
             sb.AppendLine("     \"PredictedHatchRate\": 88.1,");
             sb.AppendLine("     \"PredictedSurvivalRate\": 79.6,");
             sb.AppendLine("     \"PredictedHighQualifiedRate\": <AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra con số kết luận >,");
-            sb.AppendLine("     \"PredictedHighQualifiedQuanity\": <AI sẽ phân tích dựa trên các thông số HighQualifiedQuanity của cá trống và máy được cung cấp và đưa ra con số kết luận >,");
+            sb.AppendLine("     \"PredictedHighQualifiedQuanity\": <AI sẽ phân tích dựa trên các thông số HighQualifiedQuanity của cá trống và mái được cung cấp và đưa ra con số kết luận >,");
             sb.AppendLine("     \"PercentInbreeding\": 0.0,");
-            sb.AppendLine("  \"MutationDescription\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng đột biến của cặp cá này>\",");
-            sb.AppendLine("     \"PredictedMutationDescription\": 78.5,");
+            sb.AppendLine("  \"PredictedMutationDescription\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng đột biến của cặp cá này>\",");
             sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cặp cá này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\"");
             sb.AppendLine("     \"MaleBreedingInfo\": {");
             sb.AppendLine("  \"Summary\": \"<AI sẽ phân tích dựa trên các thông số được cung cấp và đưa ra kết luận về khả năng phối giống của cá trống này. Các yếu tố như tỷ lệ sinh sản, sức khỏe cá, khả năng di truyền và các đặc điểm đột biến sẽ được xem xét để đưa ra kết luận.>\"");
@@ -351,7 +353,7 @@ namespace Zenkoi.BLL.Services.Implements
             // Sort based on priority
             if (request.Priority == "Số lượng")
             {
-                sb.AppendLine("• Ưu tiên các cặp có tỷ lệ HatchRate và SurvivalRate cao nhất.");
+                sb.AppendLine("• Ưu tiên các cặp có AveEggs và tỷ lệ HatchRate và SurvivalRate cao nhất.");
             }
             else if (request.Priority == "Chất lượng")
             {
