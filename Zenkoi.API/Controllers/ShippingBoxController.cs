@@ -8,7 +8,6 @@ namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ShippingBoxController : BaseAPIController
     {
         private readonly IShippingBoxService _shippingBoxService;

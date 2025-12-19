@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Zenkoi.BLL.DTOs.ShippingBoxDTOs;
 using Zenkoi.BLL.Services.Interfaces;
 using Zenkoi.DAL.Entities;
+using Zenkoi.DAL.Enums;
 using Zenkoi.DAL.Repositories;
 using Zenkoi.DAL.UnitOfWork;
 using Zenkoi.DAL.Queries;
@@ -70,25 +71,14 @@ namespace Zenkoi.BLL.Services.Implements
         }
 
         public async Task<ShippingBoxResponseDTO> CreateAsync(ShippingBoxRequestDTO dto)
-        {
-            if (dto.WeightCapacityLb <= 0)
-            {
-                throw new ArgumentException("WeightCapacityLb must be greater than 0");
-            }
-
+        {        
             if (dto.Fee <= 0)
             {
                 throw new ArgumentException("Fee must be greater than 0");
             }
-
-            if (dto.MaxKoiCount.HasValue && dto.MaxKoiCount.Value <= 0)
+            else if (dto.Fee < 0)
             {
-                throw new ArgumentException("MaxKoiCount must be greater than 0 if specified");
-            }
-
-            if (dto.MaxKoiSizeInch.HasValue && dto.MaxKoiSizeInch.Value <= 0)
-            {
-                throw new ArgumentException("MaxKoiSizeInch must be greater than 0 if specified");
+                throw new ArgumentException("Phí vận chuyển không được âm");
             }
 
             var entity = _mapper.Map<ShippingBox>(dto);
@@ -108,24 +98,10 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("Không tìm thấy hộp vận chuyển");
             }
 
-            if (dto.WeightCapacityLb <= 0)
-            {
-                throw new ArgumentException("WeightCapacityLb must be greater than 0");
-            }
 
             if (dto.Fee <= 0)
             {
                 throw new ArgumentException("Fee must be greater than 0");
-            }
-
-            if (dto.MaxKoiCount.HasValue && dto.MaxKoiCount.Value <= 0)
-            {
-                throw new ArgumentException("MaxKoiCount must be greater than 0 if specified");
-            }
-
-            if (dto.MaxKoiSizeInch.HasValue && dto.MaxKoiSizeInch.Value <= 0)
-            {
-                throw new ArgumentException("MaxKoiSizeInch must be greater than 0 if specified");
             }
 
             _mapper.Map(dto, box);
@@ -167,7 +143,19 @@ namespace Zenkoi.BLL.Services.Implements
                     throw new KeyNotFoundException("Không tìm thấy hộp vận chuyển");
                 }
 
-                ValidateShippingBoxRule(dto.MaxCount, dto.MaxLengthCm, dto.MinLengthCm, dto.MaxWeightLb, dto.Priority);
+                var existingRule = await _shippingBoxRuleRepo.GetSingleAsync(new QueryOptions<ShippingBoxRule>
+                {
+                    Predicate = r => r.ShippingBoxId == dto.ShippingBoxId
+                                  && r.RuleType == dto.RuleType
+                                  && r.IsActive
+                });
+
+                if (existingRule != null)
+                {
+                    throw new ArgumentException($"Hộp '{box.Name}' đã có quy tắc '{dto.RuleType}'. Vui lòng cập nhật quy tắc hiện tại thay vì tạo mới.");
+                }
+
+                ValidateShippingBoxRule(dto.RuleType, dto.MaxCount, dto.MaxLengthCm, dto.MinLengthCm, dto.MaxWeightLb, dto.Priority, box.MaxKoiSizeInch);
 
                 var entity = _mapper.Map<ShippingBoxRule>(dto);
                 entity.CreatedAt = DateTime.UtcNow;
@@ -193,7 +181,29 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("Không tìm thấy quy tắc vận chuyển");
             }
 
-            ValidateShippingBoxRule(dto.MaxCount, dto.MaxLengthCm, dto.MinLengthCm, dto.MaxWeightLb, dto.Priority);
+            var box = await _shippingBoxRepo.GetByIdAsync(rule.ShippingBoxId);
+            if (box == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy hộp vận chuyển liên kết");
+            }
+
+            if (dto.RuleType != rule.RuleType)
+            {
+                var existingRule = await _shippingBoxRuleRepo.GetSingleAsync(new QueryOptions<ShippingBoxRule>
+                {
+                    Predicate = r => r.ShippingBoxId == rule.ShippingBoxId
+                                  && r.RuleType == dto.RuleType
+                                  && r.IsActive
+                                  && r.Id != ruleId
+                });
+
+                if (existingRule != null)
+                {
+                    throw new ArgumentException($"Hộp '{box.Name}' đã có quy tắc '{dto.RuleType}'. Không thể thay đổi thành loại trùng.");
+                }
+            }
+
+            ValidateShippingBoxRule(dto.RuleType, dto.MaxCount, dto.MaxLengthCm, dto.MinLengthCm, dto.MaxWeightLb, dto.Priority, box.MaxKoiSizeInch);
 
             _mapper.Map(dto, rule);
 
@@ -203,36 +213,67 @@ namespace Zenkoi.BLL.Services.Implements
             return true;
         }
 
-        private void ValidateShippingBoxRule(int? maxCount, int? maxLengthCm, int? minLengthCm, int? maxWeightLb, int priority)
+        private void ValidateShippingBoxRule(ShippingRuleType ruleType, int? maxCount, int? maxLengthCm, int? minLengthCm, int? maxWeightLb, int priority, int? boxMaxKoiSizeInch)
         {
-            if (maxCount.HasValue && maxCount.Value <= 0)
-            {
-                throw new ArgumentException("MaxCount must be greater than 0 if specified");
-            }
-
-            if (maxLengthCm.HasValue && maxLengthCm.Value <= 0)
-            {
-                throw new ArgumentException("MaxLengthCm must be greater than 0 if specified");
-            }
-
-            if (minLengthCm.HasValue && minLengthCm.Value <= 0)
-            {
-                throw new ArgumentException("MinLengthCm must be greater than 0 if specified");
-            }
-
-            if (maxWeightLb.HasValue && maxWeightLb.Value <= 0)
-            {
-                throw new ArgumentException("MaxWeightLb must be greater than 0 if specified");
-            }
-
-            if (minLengthCm.HasValue && maxLengthCm.HasValue && minLengthCm.Value > maxLengthCm.Value)
-            {
-                throw new ArgumentException("MinLengthCm cannot be greater than MaxLengthCm");
-            }
-
             if (priority <= 0)
             {
-                throw new ArgumentException("Priority must be greater than 0");
+                throw new ArgumentException("Độ ưu tiên phải lớn hơn 0");
+            }
+
+            if (minLengthCm.HasValue && maxLengthCm.HasValue && minLengthCm.Value >= maxLengthCm.Value)
+            {
+                throw new ArgumentException($"Chiều dài tối thiểu ({minLengthCm}cm) phải nhỏ hơn chiều dài tối đa ({maxLengthCm}cm)");
+            }
+
+            if (boxMaxKoiSizeInch.HasValue)
+            {
+                decimal boxMaxSizeCm = boxMaxKoiSizeInch.Value * 2.54m;
+
+                if (minLengthCm.HasValue && minLengthCm.Value >= boxMaxSizeCm)
+                {
+                    throw new ArgumentException(
+                        $"HỘP MA PHÁT HIỆN: MinLengthCm ({minLengthCm}cm) KHÔNG được lớn hơn hoặc bằng " +
+                        $"sức chứa vật lý của hộp ({boxMaxSizeCm:F1}cm = {boxMaxKoiSizeInch}inch). " +
+                        $"Hậu quả: Không con cá nào vào được hộp này! " +
+                        $"Vui lòng nhập MinLengthCm < {boxMaxSizeCm:F1}cm"
+                    );
+                }
+
+                if (maxLengthCm.HasValue && maxLengthCm.Value > boxMaxSizeCm)
+                {
+                    Console.WriteLine($"WARNING: MaxLengthCm ({maxLengthCm}cm) vượt quá sức chứa hộp ({boxMaxSizeCm:F1}cm)");
+                }
+            }
+
+            switch (ruleType)
+            {
+                case ShippingRuleType.ByMaxLength:
+                    if (!minLengthCm.HasValue && !maxLengthCm.HasValue)
+                    {
+                        throw new ArgumentException("Quy tắc ByMaxLength cần ít nhất một trong MinLengthCm hoặc MaxLengthCm");
+                    }
+                    break;
+
+                case ShippingRuleType.ByAge:
+                    if (minLengthCm.HasValue || maxLengthCm.HasValue)
+                    {
+                        throw new ArgumentException("Quy tắc ByAge không nên có MinLengthCm hoặc MaxLengthCm (chỉ lọc theo tuổi cá)");
+                    }
+                    break;
+
+                case ShippingRuleType.ByCount:
+                    if (!maxCount.HasValue || maxCount.Value <= 0)
+                    {
+                        throw new ArgumentException("Quy tắc ByCount yêu cầu MaxCount > 0");
+                    }
+                    break;
+
+                case ShippingRuleType.ByWeight:
+                    if (!maxWeightLb.HasValue || maxWeightLb.Value <= 0)
+                    {
+                        throw new ArgumentException("Quy tắc ByWeight yêu cầu MaxWeightLb > 0");
+                    }
+                    break;
             }
         }
 

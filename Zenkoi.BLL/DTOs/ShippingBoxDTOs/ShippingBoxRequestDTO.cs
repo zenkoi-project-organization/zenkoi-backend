@@ -4,26 +4,25 @@ namespace Zenkoi.BLL.DTOs.ShippingBoxDTOs
 {
     public class ShippingBoxRequestDTO
     {
-        [Required]
-        [StringLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
+        [Required(ErrorMessage = "Tên hộp vận chuyển là bắt buộc")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "Tên hộp phải có từ 3-100 ký tự")]
         public string Name { get; set; }
-
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "WeightCapacityLb must be greater than 0")]
+   
+        [Range(1, 1000, ErrorMessage = "Trọng tải phải từ 1-1000 lbs")]
         public int WeightCapacityLb { get; set; }
 
-        [Required]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Fee must be greater than 0")]
+        [Required(ErrorMessage = "Phí vận chuyển là bắt buộc")]
+        [Range(0, double.MaxValue, ErrorMessage = "Phí vận chuyển không được âm (0 = Free Ship)")]
         public decimal Fee { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "MaxKoiCount must be greater than 0 if specified")]
+        [Range(1, 100, ErrorMessage = "Sức chứa phải từ 1-100 con cá")]
         public int? MaxKoiCount { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "MaxKoiSizeInch must be greater than 0 if specified")]
+        [Range(1, 100, ErrorMessage = "Kích thước tối đa phải từ 1-100 inch")]
         public int? MaxKoiSizeInch { get; set; }
 
-        [Required]
-        [StringLength(500, ErrorMessage = "Notes cannot exceed 500 characters")]
+        [Required(ErrorMessage = "Ghi chú là bắt buộc")]
+        [StringLength(500, ErrorMessage = "Ghi chú không được vượt quá 500 ký tự")]
         public string Notes { get; set; }
     }
 }

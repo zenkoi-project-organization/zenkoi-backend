@@ -5,31 +5,31 @@ namespace Zenkoi.BLL.DTOs.ShippingBoxDTOs
 {
     public class ShippingBoxRuleRequestDTO
     {
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "ShippingBoxId must be greater than 0")]
+        [Required(ErrorMessage = "ID hộp vận chuyển là bắt buộc")]
+        [Range(1, int.MaxValue, ErrorMessage = "ID hộp vận chuyển phải lớn hơn 0")]
         public int ShippingBoxId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Loại quy tắc là bắt buộc")]
         public ShippingRuleType RuleType { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "MaxCount must be greater than 0 if specified")]
+        [Range(1, 100, ErrorMessage = "Số lượng tối đa phải từ 1-100 nếu có")]
         public int? MaxCount { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "MaxLengthCm must be greater than 0 if specified")]
+        [Range(1, 200, ErrorMessage = "Chiều dài tối đa phải từ 1-200cm nếu có")]
         public int? MaxLengthCm { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "MinLengthCm must be greater than 0 if specified")]
+        [Range(1, 200, ErrorMessage = "Chiều dài tối thiểu phải từ 1-200cm nếu có")]
         public int? MinLengthCm { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "MaxWeightLb must be greater than 0 if specified")]
+        [Range(1, 1000, ErrorMessage = "Trọng lượng tối đa phải từ 1-1000 lbs nếu có")]
         public int? MaxWeightLb { get; set; }
 
-        [Required]
-        [StringLength(500, ErrorMessage = "ExtraInfo cannot exceed 500 characters")]
+        [Required(ErrorMessage = "Thông tin bổ sung là bắt buộc")]
+        [StringLength(500, ErrorMessage = "Thông tin bổ sung không được vượt quá 500 ký tự")]
         public string ExtraInfo { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Priority must be greater than 0")]
+        [Required(ErrorMessage = "Độ ưu tiên là bắt buộc")]
+        [Range(1, 100, ErrorMessage = "Độ ưu tiên phải từ 1-100")]
         public int Priority { get; set; } = 1;
 
         public bool IsActive { get; set; } = true;
