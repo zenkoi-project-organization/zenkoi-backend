@@ -58,7 +58,7 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     var variety = await _varietyRepo.GetByIdAsync(varietyId);
                     if (variety == null)
-                        throw new ArgumentException($"Variety with ID {varietyId} not found");
+                        throw new ArgumentException($"Không tìm thấy giống cá với ID {varietyId}");
 
                     var varietyPacketFish = new VarietyPacketFish
                     {
@@ -93,7 +93,7 @@ namespace Zenkoi.BLL.Services.Implements
             });
 
             if (packetFish == null)
-                throw new ArgumentException("PacketFish not found");
+                throw new ArgumentException("Không tìm thấy gói cá");
 
             if (packetFish.VarietyPacketFishes.Any())
             {
@@ -225,7 +225,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                 var packetFish = await _packetFishRepo.GetByIdAsync(id);
                 if (packetFish == null)
-                    throw new ArgumentException("PacketFish not found");
+                    throw new ArgumentException("Không tìm thấy gói cá");
 
                 var oldPrice = packetFish.PricePerPacket;
                 _mapper.Map(packetFishUpdateDTO, packetFish);
@@ -246,7 +246,7 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     var variety = await _varietyRepo.GetByIdAsync(varietyId);
                     if (variety == null)
-                        throw new ArgumentException($"Variety with ID {varietyId} not found");
+                        throw new ArgumentException($"Không tìm thấy giống cá với ID {varietyId}");
 
                     var varietyPacketFish = new VarietyPacketFish
                     {
