@@ -4,19 +4,22 @@ namespace Zenkoi.BLL.DTOs.WorkScheduleDTOs;
 
 public class WorkScheduleRequestDTO
 {
-    [Required(ErrorMessage = "Task template ID is required")]
+    [Required(ErrorMessage = "Mẫu công việc là bắt buộc")]
+    [Range(1, int.MaxValue, ErrorMessage = "Mẫu công việc không hợp lệ")]
     public int TaskTemplateId { get; set; }
 
-    [Required(ErrorMessage = "Scheduled date is required")]
+    [Required(ErrorMessage = "Ngày lên lịch là bắt buộc")]
     public DateOnly ScheduledDate { get; set; }
 
-    [Required(ErrorMessage = "Start time is required")]
+    [Required(ErrorMessage = "Giờ bắt đầu là bắt buộc")]
     public TimeOnly StartTime { get; set; }
 
-    [MaxLength(1000, ErrorMessage = "Notes cannot exceed 1000 characters")]
+    [StringLength(1000, MinimumLength = 5, ErrorMessage = "Ghi chú phải có từ 5-1000 ký tự")]
     public string? Notes { get; set; }
 
+    [MinLength(1, ErrorMessage = "Phải chỉ định ít nhất 1 nhân viên")]
     public List<int> StaffIds { get; set; } = new();
 
+    [MinLength(1, ErrorMessage = "Phải chỉ định ít nhất 1 hồ")]
     public List<int> PondIds { get; set; } = new();
 }

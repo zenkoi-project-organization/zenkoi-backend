@@ -49,9 +49,10 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(c => c.Customer)
                 .WithInclude(c => c.Customer.ApplicationUser)
                 .WithInclude(c => c.CartItems)
-                .WithThenInclude(q => q.Include(c => c.CartItems).ThenInclude(ci => ci.KoiFish))
+                .WithThenInclude(q => q.Include(c => c.CartItems).ThenInclude(ci => ci.KoiFish).ThenInclude(k => k.Variety))
                 .WithThenInclude(q => q.Include(c => c.CartItems).ThenInclude(ci => ci.PacketFish))
                 .WithThenInclude(q => q.Include(c => c.CartItems).ThenInclude(ci => ci.PacketFish).ThenInclude(pf => pf.PondPacketFishes))
+                .WithThenInclude(q => q.Include(c => c.CartItems).ThenInclude(ci => ci.PacketFish).ThenInclude(pf => pf.VarietyPacketFishes).ThenInclude(vpf => vpf.Variety))
                 .Build());
 
             if (cart == null)
@@ -68,6 +69,12 @@ namespace Zenkoi.BLL.Services.Implements
                 item.ItemTotalPrice = item.UnitPrice * item.Quantity;
 
                 var cartItemEntity = cart.CartItems.First(ci => ci.Id == item.Id);
+
+                // Compute PacketFish.Size from MinSize-MaxSize
+                if (item.PacketFish != null && cartItemEntity.PacketFish != null)
+                {
+                    item.PacketFish.Size = cartItemEntity.PacketFish.MinSize + "-" + cartItemEntity.PacketFish.MaxSize;
+                }
 
                 CalculatePacketFishStockQuantity(item, cartItemEntity);
                 CheckCartItemAvailability(item, cartItemEntity);
@@ -91,9 +98,10 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithInclude(c => c.Customer)
                 .WithInclude(c => c.Customer.ApplicationUser)
                 .WithInclude(c => c.CartItems)
-                .WithThenInclude(q => q.Include(c => c.CartItems).ThenInclude(ci => ci.KoiFish))
+                .WithThenInclude(q => q.Include(c => c.CartItems).ThenInclude(ci => ci.KoiFish).ThenInclude(k => k.Variety))
                 .WithThenInclude(q => q.Include(c => c.CartItems).ThenInclude(ci => ci.PacketFish))
                 .WithThenInclude(q => q.Include(c => c.CartItems).ThenInclude(ci => ci.PacketFish).ThenInclude(pf => pf.PondPacketFishes))
+                .WithThenInclude(q => q.Include(c => c.CartItems).ThenInclude(ci => ci.PacketFish).ThenInclude(pf => pf.VarietyPacketFishes).ThenInclude(vpf => vpf.Variety))
                 .Build());
 
             if (cart == null)
@@ -134,6 +142,12 @@ namespace Zenkoi.BLL.Services.Implements
                 else if (item.PacketFish != null)
                 {
                     item.ItemTotalPrice = item.PacketFish.PricePerPacket * item.Quantity;
+                }
+
+                // Compute PacketFish.Size from MinSize-MaxSize
+                if (item.PacketFish != null && cartItemEntity.PacketFish != null)
+                {
+                    item.PacketFish.Size = cartItemEntity.PacketFish.MinSize + "-" + cartItemEntity.PacketFish.MaxSize;
                 }
 
                 CalculatePacketFishStockQuantity(item, cartItemEntity);

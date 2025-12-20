@@ -5,14 +5,14 @@ namespace Zenkoi.BLL.DTOs.IncidentTypeDTOs
 {
     public class IncidentTypeRequestDTO
     {
-        [Required]
-        [MaxLength(200)]
+        [Required(ErrorMessage = "Tên loại sự cố là bắt buộc")]
+        [StringLength(200, MinimumLength = 3, ErrorMessage = "Tên loại sự cố phải có từ 3-200 ký tự")]
         public string Name { get; set; }
 
-        [MaxLength(2000)]
+        [StringLength(2000, MinimumLength = 10, ErrorMessage = "Mô tả phải có từ 10-2000 ký tự")]
         public string? Description { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Mức độ nghiêm trọng mặc định là bắt buộc")]
         public SeverityLevel DefaultSeverity { get; set; }
 
         public bool? AffectsBreeding { get; set; }

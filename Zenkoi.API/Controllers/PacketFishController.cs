@@ -24,7 +24,7 @@ namespace Zenkoi.API.Controllers
 
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> CreatePacketFish([FromBody] PacketFishRequestDTO packetFishRequestDTO)
         {
             try
@@ -81,7 +81,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Roles = "Manager,FarmStaff,SaleStaff")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdatePacketFish(int id, [FromBody] PacketFishUpdateDTO packetFishUpdateDTO)
         {
@@ -103,7 +103,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeletePacketFish(int id)
         {
@@ -137,50 +137,23 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi lấy danh sách gói cá có sẵn: {ex.Message}");
             }
         }
-
-        [HttpGet("by-size")]
-        public async Task<IActionResult> GetPacketFishesBySize(
-        [FromQuery] double minSize,
-        [FromQuery] double maxSize,
-        [FromQuery] int pageIndex = 1,
-        [FromQuery] int pageSize = 10)
+   
+        [HttpPatch("{id:int}/toggle-availability")]
+        [Authorize(Roles = "Manager,SaleStaff")]
+        public async Task<IActionResult> ToggleAvailability(int id)
         {
             try
             {
-                if (minSize < 0 || maxSize < 0 || minSize > maxSize)
-                {
-                    return GetError("Khoảng giá không hợp lệ");
-                }
-                var result = await _packetFishService.GetPacketFishesBySizeAsync(minSize,maxSize,pageIndex,pageSize);
-                return GetSuccess(result);
+                var result = await _packetFishService.ToggleAvailabilityAsync(id);
+                return SaveSuccess(result, "Thay đổi trạng thái gói cá thành công");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return GetNotFound(ex.Message);
             }
             catch (Exception ex)
             {
-                return GetError($"Lỗi khi lấy gói cá theo kích thước: {ex.Message}");
-            }
-        }
-
-        [HttpGet("by-price")]
-        public async Task<IActionResult> GetPacketFishesByPriceRange(
-            [FromQuery] decimal minPrice,
-            [FromQuery] decimal maxPrice,
-            [FromQuery] int pageIndex = 1,
-            [FromQuery] int pageSize = 10)
-
-        {
-            try
-            {
-                if (minPrice < 0 || maxPrice < 0 || minPrice > maxPrice)
-                {
-                    return GetError("Khoảng giá không hợp lệ");
-                }
-
-                var result = await _packetFishService.GetPacketFishesByPriceRangeAsync(minPrice, maxPrice,pageIndex, pageSize);
-                return GetSuccess(result);
-            }
-            catch (Exception ex)
-            {
-                return GetError($"Lỗi khi lấy gói cá theo khoảng giá: {ex.Message}");
+                return GetError($"Lỗi khi thay đổi trạng thái: {ex.Message}");
             }
         }
     }
