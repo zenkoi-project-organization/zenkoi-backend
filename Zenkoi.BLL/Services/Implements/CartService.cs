@@ -57,7 +57,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (cart == null)
             {
-                throw new ArgumentException("Cart not found");
+                throw new ArgumentException("Không tìm thấy giỏ hàng");
             }
 
             var cartResponse = _mapper.Map<CartResponseDTO>(cart);
@@ -90,7 +90,7 @@ namespace Zenkoi.BLL.Services.Implements
             var customer = await _customerRepo.GetByIdAsync(customerId);
             if (customer == null)
             {
-                throw new ArgumentException("Customer not found");
+                throw new ArgumentException("Không tìm thấy khách hàng");
             }
 
             var cart = await _cartRepo.GetSingleAsync(new QueryBuilder<Cart>()
@@ -164,23 +164,23 @@ namespace Zenkoi.BLL.Services.Implements
             var customer = await _customerRepo.GetByIdAsync(customerId);
             if (customer == null)
             {
-                throw new ArgumentException("Customer not found");
+                throw new ArgumentException("Không tìm thấy khách hàng");
             }
 
             if (addCartItemDTO.KoiFishId.HasValue && addCartItemDTO.PacketFishId.HasValue)
             {
-                throw new ArgumentException("An item cannot be both KoiFish and PacketFish");
+                throw new ArgumentException("Sản phẩm không thể vừa là cá Koi vừa là gói cá");
             }
 
             if (!addCartItemDTO.KoiFishId.HasValue && !addCartItemDTO.PacketFishId.HasValue)
             {
-                throw new ArgumentException("An item must be either KoiFish or PacketFish");
+                throw new ArgumentException("Sản phẩm phải là cá Koi hoặc gói cá");
             }
             if (addCartItemDTO.KoiFishId.HasValue)
             {
                 if (addCartItemDTO.Quantity != 1)
                 {
-                    throw new ArgumentException("KoiFish can only be purchased with quantity of 1");
+                    throw new ArgumentException("Cá Koi chỉ có thể mua với số lượng 1");
                 }
             }
 
@@ -226,7 +226,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                 if (packetFish == null)
                 {
-                    throw new ArgumentException($"PacketFish with ID {addCartItemDTO.PacketFishId} not found");
+                    throw new ArgumentException($"Không tìm thấy gói cá với ID {addCartItemDTO.PacketFishId}");
                 }
 
                 // Calculate new total quantity after adding
@@ -259,12 +259,12 @@ namespace Zenkoi.BLL.Services.Implements
                     koiFish = await _koiFishRepo.GetByIdAsync(addCartItemDTO.KoiFishId.Value);
                     if (koiFish == null)
                     {
-                        throw new ArgumentException($"KoiFish with ID {addCartItemDTO.KoiFishId} not found");
+                        throw new ArgumentException($"Không tìm thấy cá Koi với ID {addCartItemDTO.KoiFishId}");
                     }
 
                     if (koiFish.SaleStatus != SaleStatus.Available)
                     {
-                        throw new ArgumentException($"KoiFish with ID {addCartItemDTO.KoiFishId} is not available for sale");
+                        throw new ArgumentException($"Cá Koi với ID {addCartItemDTO.KoiFishId} không khả dụng để bán");
                     }
                 }
                 else if (addCartItemDTO.PacketFishId.HasValue)
@@ -276,12 +276,12 @@ namespace Zenkoi.BLL.Services.Implements
 
                     if (packetFish == null)
                     {
-                        throw new ArgumentException($"PacketFish with ID {addCartItemDTO.PacketFishId} not found");
+                        throw new ArgumentException($"Không tìm thấy gói cá với ID {addCartItemDTO.PacketFishId}");
                     }
 
                     if (!packetFish.IsAvailable)
                     {
-                        throw new ArgumentException($"PacketFish with ID {addCartItemDTO.PacketFishId} is not available");
+                        throw new ArgumentException($"Gói cá với ID {addCartItemDTO.PacketFishId} không khả dụng");
                     }
                     var totalAvailableFish = packetFish.PondPacketFishes
                         .Where(ppf => ppf.IsActive)
@@ -362,11 +362,11 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (cartItem == null)
             {
-                throw new ArgumentException("Cart item not found");
+                throw new ArgumentException("Không tìm thấy sản phẩm trong giỏ hàng");
             }
             if (cartItem.Cart.CustomerId != customerId)
             {
-                throw new UnauthorizedAccessException("You are not authorized to update this cart item");
+                throw new UnauthorizedAccessException("Bạn không có quyền cập nhật sản phẩm này");
             }
 
 
@@ -374,7 +374,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 if (updateCartItemDTO.Quantity != 1)
                 {
-                    throw new ArgumentException("KoiFish quantity cannot be changed. Each Koi fish can only be purchased once with quantity of 1.");
+                    throw new ArgumentException("Không thể thay đổi số lượng cá Koi. Mỗi cá Koi chỉ có thể mua một lần với số lượng 1.");
                 }
             }
             else if (cartItem.PacketFishId.HasValue && cartItem.PacketFish != null)
@@ -430,11 +430,11 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (cartItem == null)
             {
-                throw new ArgumentException("Cart item not found");
+                throw new ArgumentException("Không tìm thấy sản phẩm trong giỏ hàng");
             }
             if (cartItem.Cart.CustomerId != customerId)
             {
-                throw new UnauthorizedAccessException("You are not authorized to delete this cart item");
+                throw new UnauthorizedAccessException("Bạn không có quyền xóa sản phẩm này");
             }
 
             var cartId = cartItem.CartId;
@@ -462,7 +462,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (cart == null)
             {
-                throw new ArgumentException("Cart not found");
+                throw new ArgumentException("Không tìm thấy giỏ hàng");
             }
 
             foreach (var item in cart.CartItems.ToList())
@@ -963,9 +963,6 @@ namespace Zenkoi.BLL.Services.Implements
             }
         }
 
-        /// <summary>
-        /// Sync cart item prices when manager updates KoiFish price
-        /// </summary>
         public async Task SyncCartItemPricesForKoiFishAsync(int koiFishId, decimal newPrice)
         {
             var cartItems = await _cartItemRepo.GetAllAsync(new QueryBuilder<CartItem>()
@@ -986,9 +983,6 @@ namespace Zenkoi.BLL.Services.Implements
             await _unitOfWork.SaveChangesAsync();
         }
 
-        /// <summary>
-        /// Sync cart item prices when manager updates PacketFish price
-        /// </summary>
         public async Task SyncCartItemPricesForPacketFishAsync(int packetFishId, decimal newPrice)
         {
             var cartItems = await _cartItemRepo.GetAllAsync(new QueryBuilder<CartItem>()

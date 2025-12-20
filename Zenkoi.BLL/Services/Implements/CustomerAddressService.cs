@@ -39,7 +39,7 @@ namespace Zenkoi.BLL.Services.Implements
             var customer = await _customerRepo.GetByIdAsync(customerId);
             if (customer == null)
             {
-                throw new ArgumentException("Customer not found");
+                throw new ArgumentException("Không tìm thấy khách hàng");
             }
 
             var customerAddress = _mapper.Map<CustomerAddress>(requestDTO);
@@ -89,7 +89,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (address == null)
             {
-                throw new ArgumentException("Customer address not found");
+                throw new ArgumentException("Không tìm thấy địa chỉ khách hàng");
             }
 
             var responseDTO = _mapper.Map<CustomerAddressResponseDTO>(address);
@@ -154,7 +154,7 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (address == null)
             {
-                throw new ArgumentException("No default address found for this customer");
+                throw new ArgumentException("Không tìm thấy địa chỉ mặc định cho khách hàng này");
             }
 
             var responseDTO = _mapper.Map<CustomerAddressResponseDTO>(address);
@@ -168,7 +168,7 @@ namespace Zenkoi.BLL.Services.Implements
             var address = await _customerAddressRepo.GetByIdAsync(id);
             if (address == null)
             {
-                throw new ArgumentException("Customer address not found");
+                throw new ArgumentException("Không tìm thấy địa chỉ khách hàng");
             }
 
             if (updateDTO.FullAddress != null)
@@ -260,12 +260,12 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (address == null)
             {
-                throw new ArgumentException("Address not found or does not belong to this customer");
+                throw new ArgumentException("Không tìm thấy địa chỉ hoặc địa chỉ không thuộc về khách hàng này");
             }
 
             if (address.IsDeleted)
             {
-                throw new ArgumentException("Cannot set inactive address as default");
+                throw new ArgumentException("Không thể đặt địa chỉ không hoạt động làm mặc định");
             }
 
             await UnsetAllDefaultAddressesAsync(customerId);
@@ -284,12 +284,12 @@ namespace Zenkoi.BLL.Services.Implements
             var address = await _customerAddressRepo.GetByIdAsync(addressId);
             if (address == null)
             {
-                throw new ArgumentException("Customer address not found");
+                throw new ArgumentException("Không tìm thấy địa chỉ khách hàng");
             }
 
             if (!address.Latitude.HasValue || !address.Longitude.HasValue)
             {
-                throw new ArgumentException("Address does not have coordinates set");
+                throw new ArgumentException("Địa chỉ chưa có tọa độ");
             }
 
             try
@@ -313,7 +313,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
             catch (Exception ex)
             {
-                throw new Exception($"Failed to calculate distance using Map API: {ex.Message}", ex);
+                throw new Exception($"Không thể tính khoảng cách bằng API bản đồ: {ex.Message}", ex);
             }
         }
 
