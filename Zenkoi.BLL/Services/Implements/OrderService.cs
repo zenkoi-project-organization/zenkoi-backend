@@ -49,7 +49,7 @@ namespace Zenkoi.BLL.Services.Implements
             var order = await LoadOrderWithDetailsAsync(o => o.Id == id);
             if (order == null)
             {
-                throw new ArgumentException("Order not found");
+                throw new ArgumentException("Không tìm thấy đơn hàng");
             }
             await LoadOrderDetailProductsAsync(order);
         
@@ -87,7 +87,7 @@ namespace Zenkoi.BLL.Services.Implements
             var order = await LoadOrderWithDetailsAsync(o => o.OrderNumber == orderNumber);
             if (order == null)
             {
-                throw new ArgumentException("Order not found");
+                throw new ArgumentException("Không tìm thấy đơn hàng");
             }
             await LoadOrderDetailProductsAsync(order);
 
@@ -239,7 +239,7 @@ namespace Zenkoi.BLL.Services.Implements
             var order = await _orderRepo.GetByIdAsync(id);
             if (order == null)
             {
-                throw new ArgumentException("Order not found");
+                throw new ArgumentException("Không tìm thấy đơn hàng");
             }
 
             if (!IsValidStatusTransition(order.Status, updateOrderStatusDTO.Status))
@@ -416,7 +416,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .Build());
 
             if (order == null)
-                throw new ArgumentException($"Order with ID {orderId} not found");
+                throw new ArgumentException($"Không tìm thấy đơn hàng với ID {orderId}");
 
             return order;
         }
@@ -513,7 +513,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             if (order.OrderDetails == null || !order.OrderDetails.Any())
             {
-                throw new InvalidOperationException("Order has no items");
+                throw new InvalidOperationException("Đơn hàng không có sản phẩm");
             }
 
             foreach (var orderDetail in order.OrderDetails)
@@ -530,7 +530,7 @@ namespace Zenkoi.BLL.Services.Implements
         {
             if (cartItems == null || !cartItems.Any())
             {
-                throw new InvalidOperationException("Cart has no items");
+                throw new InvalidOperationException("Giỏ hàng trống");
             }
 
             foreach (var cartItem in cartItems)
@@ -548,7 +548,7 @@ namespace Zenkoi.BLL.Services.Implements
                 var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId.Value);
                 if (koiFish == null)
                 {
-                    throw new InvalidOperationException($"KoiFish with ID {koiFishId} not found");
+                    throw new InvalidOperationException($"Không tìm thấy cá Koi với ID {koiFishId}");
                 }
                 if (koiFish.SaleStatus != SaleStatus.Available)
                 {
@@ -567,7 +567,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                 if (packetFish == null)
                 {
-                    throw new InvalidOperationException($"PacketFish with ID {packetFishId} not found");
+                    throw new InvalidOperationException($"Không tìm thấy gói cá với ID {packetFishId}");
                 }
                 if (!packetFish.IsAvailable)
                 {
@@ -595,7 +595,7 @@ namespace Zenkoi.BLL.Services.Implements
                 var koiFish = await _koiFishRepo.GetByIdAsync(koiFishId.Value);
                 if (koiFish == null)
                 {
-                    throw new InvalidOperationException($"KoiFish with ID {koiFishId} not found");
+                    throw new InvalidOperationException($"Không tìm thấy cá Koi với ID {koiFishId}");
                 }
                 if (koiFish.SaleStatus == SaleStatus.Sold)
                 {
@@ -629,7 +629,7 @@ namespace Zenkoi.BLL.Services.Implements
 
                 if (packetFish == null)
                 {
-                    throw new InvalidOperationException($"PacketFish with ID {packetFishId} not found");
+                    throw new InvalidOperationException($"Không tìm thấy gói cá với ID {packetFishId}");
                 }
                 if (!packetFish.IsAvailable)
                 {
