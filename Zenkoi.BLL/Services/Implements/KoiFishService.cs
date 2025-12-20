@@ -67,6 +67,7 @@ namespace Zenkoi.BLL.Services.Implements
                 .WithPredicate(k => !k.IsDeleted)
                 .WithTracking(false)
                 .WithInclude(k => k.Variety)
+                .WithInclude(b => b.BreedingProcess)
                 .WithInclude(k => k.Pond)
                 .WithOrderBy(q => q.OrderByDescending(k => k.Id));
 
