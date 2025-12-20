@@ -57,45 +57,45 @@ namespace Zenkoi.BLL.Services.Implements
         }
 
         public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(
-     KoiFishFilterRequestDTO filter,
-     int pageIndex = 1,
-     int pageSize = 10,
-     int? userId = null)
+        KoiFishFilterRequestDTO filter,
+        int pageIndex = 1,
+        int pageSize = 10,
+        int? userId = null)
         {
+            // 1️⃣ Build query DB (CHỈ static fields)
             var queryBuilder = new QueryBuilder<KoiFish>()
                 .WithPredicate(k => !k.IsDeleted)
                 .WithTracking(false)
-                .WithInclude(v => v.Variety)
-                .WithInclude(p => p.Pond)
+                .WithInclude(k => k.Variety)
+                .WithInclude(k => k.Pond)
                 .WithOrderBy(q => q.OrderByDescending(k => k.Id));
 
-            // Áp dụng các bộ lọc
-            ApplyFilters(filter, queryBuilder);
+            ApplyDbFilters(filter, queryBuilder);
 
-            // Truy vấn danh sách KoiFish và sử dụng AsNoTracking() nếu không cần theo dõi sự thay đổi
             var query = _koiFishRepo.Get(queryBuilder.Build()).AsNoTracking();
             var koiList = await query.ToListAsync();
 
-            // Cập nhật trạng thái sinh sản cho các cá koi
-            bool needSave = false;
-            var updatedKoiFish = new List<KoiFish>();
-
             foreach (var koi in koiList)
             {
-                var newStatus = CalculateBreedingStatus(koi);
-
-                if (newStatus != koi.KoiBreedingStatus)
-                {
-                    koi.KoiBreedingStatus = newStatus;
-                    updatedKoiFish.Add(koi);
-                    needSave = true;
-                }
+                koi.KoiBreedingStatus = CalculateBreedingStatus(koi);
             }
 
-        
-            if (needSave && updatedKoiFish.Any())
+            if (filter.IsBreeding == true)
             {
-                await _unitOfWork.SaveAsync();
+                koiList = koiList
+                    .Where(k =>
+                        k.KoiBreedingStatus == KoiBreedingStatus.Ready &&
+                        k.SaleStatus == SaleStatus.NotForSale)
+                    .ToList();
+            }
+
+            if (filter.IsPostSpawning == true)
+            {
+                koiList = koiList
+                    .Where(k =>
+                        k.KoiBreedingStatus == KoiBreedingStatus.PostSpawning &&
+                        k.SaleStatus != SaleStatus.Sold)
+                    .ToList();
             }
 
             var mapped = _mapper.Map<List<KoiFishResponseDTO>>(koiList);
@@ -105,49 +105,60 @@ namespace Zenkoi.BLL.Services.Implements
                 FormatSizeForResponse(koi);
             }
 
-            
-            HashSet<int> favoriteKoiIds = new HashSet<int>();
             if (userId.HasValue)
             {
                 var koiIds = mapped.Select(k => k.Id).ToList();
-                var userFavorites = await _koiFavoriteRepo.GetAllAsync(new QueryOptions<KoiFavorite>
-                {
-                    Predicate = f => f.CustomerId == userId.Value && koiIds.Contains(f.KoiFishId),
-                    Tracked = false
-                });
 
-                favoriteKoiIds = userFavorites.Select(f => f.KoiFishId).ToHashSet();
+                var favorites = await _koiFavoriteRepo.GetAllAsync(
+                    new QueryOptions<KoiFavorite>
+                    {
+                        Predicate = f =>
+                            f.CustomerId == userId.Value &&
+                            koiIds.Contains(f.KoiFishId),
+                        Tracked = false
+                    });
+
+                var favoriteIds = favorites.Select(f => f.KoiFishId).ToHashSet();
 
                 foreach (var koi in mapped)
                 {
-                    koi.IsFavorited = favoriteKoiIds.Contains(koi.Id);
+                    koi.IsFavorited = favoriteIds.Contains(koi.Id);
                 }
             }
 
             if (filter.IsFavorited.HasValue)
             {
-                mapped = mapped.Where(k => k.IsFavorited == filter.IsFavorited.Value).ToList();
+                mapped = mapped
+                    .Where(k => k.IsFavorited == filter.IsFavorited.Value)
+                    .ToList();
             }
 
+            // 6️⃣ PAGINATION
             var totalCount = mapped.Count;
+
             var paged = mapped
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
-            return new PaginatedList<KoiFishResponseDTO>(paged, totalCount, pageIndex, pageSize);
+            return new PaginatedList<KoiFishResponseDTO>(
+                paged,
+                totalCount,
+                pageIndex,
+                pageSize);
         }
 
-        private void ApplyFilters(KoiFishFilterRequestDTO filter, QueryBuilder<KoiFish> queryBuilder)
+        private void ApplyDbFilters(
+            KoiFishFilterRequestDTO filter,
+            QueryBuilder<KoiFish> queryBuilder)
         {
-            // Áp dụng bộ lọc tìm kiếm theo RFID
-            if (!string.IsNullOrEmpty(filter.Search))
+            if (!string.IsNullOrWhiteSpace(filter.Search))
             {
-                string searchLower = filter.Search.ToLower();
-                queryBuilder.WithPredicate(k => k.RFID != null && k.RFID.ToLower().Contains(searchLower));
+                var search = filter.Search.ToLower();
+                queryBuilder.WithPredicate(k =>
+                    k.RFID != null && k.RFID.ToLower().Contains(search));
             }
 
-            // Áp dụng các bộ lọc khác
             if (filter.Gender.HasValue)
             {
                 queryBuilder.WithPredicate(k => k.Gender == filter.Gender.Value);
@@ -168,16 +179,6 @@ namespace Zenkoi.BLL.Services.Implements
                 queryBuilder.WithPredicate(k => k.SaleStatus == filter.SaleStatus.Value);
             }
 
-            if (filter.IsBreeding.HasValue == true)
-            {
-                queryBuilder.WithPredicate(k => k.KoiBreedingStatus == KoiBreedingStatus.Ready && k.SaleStatus == SaleStatus.NotForSale);
-            }
-            if(filter.IsPostSpawning.HasValue == true)
-            {
-                queryBuilder.WithPredicate(k => k.KoiBreedingStatus == KoiBreedingStatus.PostSpawning && k.SaleStatus != SaleStatus.Sold);
-
-            }
-
             if (filter.VarietyId.HasValue)
             {
                 queryBuilder.WithPredicate(k => k.VarietyId == filter.VarietyId.Value);
@@ -188,32 +189,40 @@ namespace Zenkoi.BLL.Services.Implements
                 queryBuilder.WithPredicate(k => k.PondId == filter.PondId.Value);
             }
 
-            if (!string.IsNullOrEmpty(filter.Origin))
+            if (!string.IsNullOrWhiteSpace(filter.Origin))
             {
-                queryBuilder.WithPredicate(k => k.Origin != null && k.Origin.Contains(filter.Origin));
+                queryBuilder.WithPredicate(k =>
+                    k.Origin != null && k.Origin.Contains(filter.Origin));
             }
 
             if (filter.MinPrice.HasValue)
             {
-                queryBuilder.WithPredicate(k => k.SellingPrice >= filter.MinPrice.Value);
+                queryBuilder.WithPredicate(k =>
+                    k.SellingPrice.HasValue &&
+                    k.SellingPrice.Value >= filter.MinPrice.Value);
             }
 
             if (filter.MaxPrice.HasValue)
             {
-                queryBuilder.WithPredicate(k => k.SellingPrice <= filter.MaxPrice.Value);
+                queryBuilder.WithPredicate(k =>
+                    k.SellingPrice.HasValue &&
+                    k.SellingPrice.Value <= filter.MaxPrice.Value);
             }
 
             if (filter.MinSize.HasValue)
             {
-                queryBuilder.WithPredicate(k => k.Size.HasValue && k.Size.Value >= filter.MinSize.Value);
+                queryBuilder.WithPredicate(k =>
+                    k.Size.HasValue &&
+                    k.Size.Value >= filter.MinSize.Value);
             }
 
             if (filter.MaxSize.HasValue)
             {
-                queryBuilder.WithPredicate(k => k.Size.HasValue && k.Size.Value <= filter.MaxSize.Value);
+                queryBuilder.WithPredicate(k =>
+                    k.Size.HasValue &&
+                    k.Size.Value <= filter.MaxSize.Value);
             }
         }
-
 
         public async Task<KoiFishResponseDTO?> GetByIdAsync(int id)
         {
