@@ -24,6 +24,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Roles = "Manager,SaleStaff")]
         public async Task<IActionResult> GetOrderById(int id)
         {
             try
@@ -42,6 +43,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet("by-order-number/{orderNumber}")]
+        [Authorize(Roles = "Manager,SaleStaff")]
         public async Task<IActionResult> GetOrderByOrderNumber(string orderNumber)
         {
             try
@@ -100,6 +102,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet("all")]
+        [Authorize(Roles = "Manager,SaleStaff")]
         public async Task<IActionResult> GetAllOrders(
             [FromQuery] OrderFilterRequestDTO filter,
             [FromQuery] int pageIndex = 1,
@@ -117,6 +120,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPut("{id:int}/status")]
+        [Authorize(Roles = "Manager,SaleStaff")]
         public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusDTO updateOrderStatusDTO)
         {
             try
@@ -138,6 +142,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteOrder(int id)
         {
             try
@@ -156,6 +161,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost("{id:int}/restock-packetfish")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> RestockPacketFish(int id)
         {
             try
