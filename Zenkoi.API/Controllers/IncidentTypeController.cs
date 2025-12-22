@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.IncidentTypeDTOs;
@@ -55,6 +56,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> CreateIncidentType([FromBody] IncidentTypeRequestDTO dto)
         {
             try
@@ -80,6 +82,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> UpdateIncidentType(int id, [FromBody] IncidentTypeUpdateRequestDTO dto)
         {
             try
@@ -105,6 +108,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteIncidentType(int id)
         {
             try

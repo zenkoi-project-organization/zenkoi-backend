@@ -38,6 +38,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Create([FromBody] PromotionRequestDTO dto)
         {
             if (!ModelState.IsValid)
@@ -55,6 +56,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Update(int id, [FromBody] PromotionRequestDTO dto)
         {
             if (!ModelState.IsValid)
@@ -75,6 +77,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _promotionService.DeleteAsync(id);
@@ -89,6 +92,25 @@ namespace Zenkoi.API.Controllers
         {
             var promotion = await _promotionService.GetCurrentActivePromotionAsync();
             return GetSuccess(promotion);
+        }
+
+        [HttpPatch("{id:int}/toggle-active")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> ToggleIsActive(int id)
+        {
+            try
+            {
+                var result = await _promotionService.ToggleIsActiveAsync(id);
+                return SaveSuccess(result, "Thay đổi trạng thái khuyến mãi thành công.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return GetError(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return GetError(ex.Message);
+            }
         }
     }
 }

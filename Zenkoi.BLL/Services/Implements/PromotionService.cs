@@ -72,10 +72,10 @@ namespace Zenkoi.BLL.Services.Implements
         }
         public async Task<PromotionResponseDTO> CreateAsync(PromotionRequestDTO dto)
         {
-            var existingCode = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
-            {
-                Predicate = p => p.Code == dto.Code
-            });
+            var codeCheckQuery = new QueryBuilder<Promotion>()
+                .WithPredicate(p => p.Code == dto.Code);
+
+            var existingCode = await _promotionRepo.AnyAsync(codeCheckQuery.Build());
             if (existingCode)
             {
                 throw new ArgumentException($"Mã khuyến mãi '{dto.Code}' đã tồn tại.");
@@ -84,16 +84,16 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new ArgumentException("Ngày bắt đầu phải trước ngày kết thúc.");
             }
-           
+
 
             if (dto.IsActive)
             {
-                var overlappingPromotion = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
-                {
-                    Predicate = p => p.IsActive && !p.IsDeleted &&
+                var overlapCheckQuery = new QueryBuilder<Promotion>()
+                    .WithPredicate(p => p.IsActive && !p.IsDeleted &&
                         ((p.ValidFrom <= dto.ValidTo && p.ValidTo >= dto.ValidFrom) ||
-                         (dto.ValidFrom <= p.ValidTo && dto.ValidTo >= p.ValidFrom))
-                });
+                         (dto.ValidFrom <= p.ValidTo && dto.ValidTo >= p.ValidFrom)));
+
+                var overlappingPromotion = await _promotionRepo.AnyAsync(overlapCheckQuery.Build());
                 if (overlappingPromotion)
                 {
                     throw new ArgumentException("Đã tồn tại một promotion active trong khoảng thời gian này. Chỉ có thể có một promotion hoạt động tại một thời điểm.");
@@ -119,10 +119,10 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new ArgumentException("Không thể sửa promotion đang diễn ra. Vui lòng chờ promotion kết thúc hoặc vô hiệu hóa promotion trước khi chỉnh sửa.");
             }
 
-            var existingCode = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
-            {
-                Predicate = p => p.Code == dto.Code && p.Id != id
-            });
+            var codeCheckQuery = new QueryBuilder<Promotion>()
+                .WithPredicate(p => p.Code == dto.Code && p.Id != id);
+
+            var existingCode = await _promotionRepo.AnyAsync(codeCheckQuery.Build());
             if (existingCode)
             {
                 throw new ArgumentException($"Mã khuyến mãi '{dto.Code}' đã tồn tại.");
@@ -134,12 +134,12 @@ namespace Zenkoi.BLL.Services.Implements
 
             if (dto.IsActive)
             {
-                var overlappingPromotion = await _promotionRepo.AnyAsync(new QueryOptions<Promotion>
-                {
-                    Predicate = p => p.IsActive && !p.IsDeleted && p.Id != id &&
+                var overlapCheckQuery = new QueryBuilder<Promotion>()
+                    .WithPredicate(p => p.IsActive && !p.IsDeleted && p.Id != id &&
                         ((p.ValidFrom <= dto.ValidTo && p.ValidTo >= dto.ValidFrom) ||
-                         (dto.ValidFrom <= p.ValidTo && dto.ValidTo >= p.ValidFrom))
-                });
+                         (dto.ValidFrom <= p.ValidTo && dto.ValidTo >= p.ValidFrom)));
+
+                var overlappingPromotion = await _promotionRepo.AnyAsync(overlapCheckQuery.Build());
                 if (overlappingPromotion)
                 {
                     throw new ArgumentException("Đã tồn tại một promotion active khác trong khoảng thời gian này. Chỉ có thể có một promotion hoạt động tại một thời điểm.");
@@ -168,13 +168,43 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<PromotionResponseDTO?> GetCurrentActivePromotionAsync()
         {
             var now = DateTime.UtcNow;
-            var promotion = await _promotionRepo.GetSingleAsync(new QueryOptions<Promotion>
-            {
-                Predicate = p => p.IsActive && !p.IsDeleted &&
-                    p.ValidFrom <= now && p.ValidTo >= now
-            });
+            var queryBuilder = new QueryBuilder<Promotion>()
+                .WithPredicate(p => p.IsActive && !p.IsDeleted &&
+                    p.ValidFrom <= now && p.ValidTo >= now);
+
+            var promotion = await _promotionRepo.GetSingleAsync(queryBuilder.Build());
 
             return promotion == null ? null : _mapper.Map<PromotionResponseDTO>(promotion);
+        }
+
+        public async Task<bool> ToggleIsActiveAsync(int id)
+        {
+            var promotion = await _promotionRepo.GetByIdAsync(id);
+            if (promotion == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy khuyến mãi với ID {id}");
+            }
+
+            if (!promotion.IsActive)
+            {
+                var queryBuilder = new QueryBuilder<Promotion>()
+                    .WithPredicate(p => p.IsActive && !p.IsDeleted && p.Id != id &&
+                        ((p.ValidFrom <= promotion.ValidTo && p.ValidTo >= promotion.ValidFrom) ||
+                         (promotion.ValidFrom <= p.ValidTo && promotion.ValidTo >= p.ValidFrom)));
+
+                var overlappingPromotion = await _promotionRepo.AnyAsync(queryBuilder.Build());
+
+                if (overlappingPromotion)
+                {
+                    throw new ArgumentException("Đã tồn tại một promotion active khác trong khoảng thời gian này. Chỉ có thể có một promotion hoạt động tại một thời điểm.");
+                }
+            }
+
+            promotion.IsActive = !promotion.IsActive;
+            await _promotionRepo.UpdateAsync(promotion);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
         }
     }
 }

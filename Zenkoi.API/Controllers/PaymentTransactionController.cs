@@ -19,8 +19,9 @@ namespace Zenkoi.API.Controllers
         {
             _transactionService = transactionService;
         }
+
         [HttpGet]
-        //[Authorize(Roles = "Admin,Staff")]
+        [Authorize(Roles = "Manager,SaleStaff")]
         public async Task<IActionResult> GetAllTransactions(
             [FromQuery] PaymentTransactionFilterDTO filter,
             [FromQuery] int pageIndex = 1,
@@ -57,7 +58,7 @@ namespace Zenkoi.API.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Roles = "Manager,SaleStaff")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTransactionById(int id)
         {
