@@ -86,8 +86,7 @@ namespace Zenkoi.API.Controllers
             return ok ? Success(ok, "Xóa pattern khỏi variety thành công.")
                       : GetError("Không tìm thấy liên kết để xóa.");
         }
-
-        [Authorize(Roles = "Manager")]
+ 
         [HttpGet("by-variety/{varietyId}")]
         public async Task<IActionResult> GetPatternsByVariety(int varietyId)
         {
@@ -95,7 +94,6 @@ namespace Zenkoi.API.Controllers
             return GetPagedSuccess(list);
         }
 
-        [Authorize(Roles = "Manager")]
         [HttpGet("{patternId}/varieties")]
         public async Task<IActionResult> GetVarietiesByPattern(int patternId)
         {
