@@ -57,28 +57,32 @@ namespace Zenkoi.BLL.Services.Implements
         }
 
         public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(
-        KoiFishFilterRequestDTO filter,
-        int pageIndex = 1,
-        int pageSize = 10,
-        int? userId = null)
+     KoiFishFilterRequestDTO filter,
+     int pageIndex = 1,
+     int pageSize = 10,
+     int? userId = null)
         {
-            // 1️⃣ Build query DB (CHỈ static fields)
             var queryBuilder = new QueryBuilder<KoiFish>()
                 .WithPredicate(k => !k.IsDeleted)
-                .WithTracking(false)
                 .WithInclude(k => k.Variety)
                 .WithInclude(b => b.BreedingProcess)
-                .WithInclude(k => k.Pond)
+                .WithInclude(k => k.Pond)  
                 .WithOrderBy(q => q.OrderByDescending(k => k.Id));
 
             ApplyDbFilters(filter, queryBuilder);
 
-            var query = _koiFishRepo.Get(queryBuilder.Build()).AsNoTracking();
+            var query = _koiFishRepo.Get(queryBuilder.Build()).AsTracking();  
             var koiList = await query.ToListAsync();
 
             foreach (var koi in koiList)
             {
-                koi.KoiBreedingStatus = CalculateBreedingStatus(koi);
+                var calculatedStatus = CalculateBreedingStatus(koi);
+                if (koi.KoiBreedingStatus != calculatedStatus)
+                {
+                    koi.KoiBreedingStatus = calculatedStatus;
+
+                    await UpdateKoiSpawning(koi.Id);
+                }
             }
 
             if (filter.IsBreeding == true)
@@ -134,7 +138,6 @@ namespace Zenkoi.BLL.Services.Implements
                     .ToList();
             }
 
-            // 6️⃣ PAGINATION
             var totalCount = mapped.Count;
 
             var paged = mapped
@@ -148,6 +151,7 @@ namespace Zenkoi.BLL.Services.Implements
                 pageIndex,
                 pageSize);
         }
+
 
         private void ApplyDbFilters(
             KoiFishFilterRequestDTO filter,
@@ -602,11 +606,14 @@ namespace Zenkoi.BLL.Services.Implements
             var koifish = await _koiFishRepo.GetByIdAsync(id);
             if (koifish == null)
             {
-                throw new KeyNotFoundException("không tim thấy cá koi");
+                throw new KeyNotFoundException("Không tìm thấy cá koi");
             }
+
             koifish.KoiBreedingStatus = KoiBreedingStatus.Ready;
+
             await _koiFishRepo.UpdateAsync(koifish);
-            return await _unitOfWork.SaveAsync(); 
+
+            return await _unitOfWork.SaveAsync();
         }
 
         public async Task<KoiBreedingHistoryResponseDTO> GetKoiBreedingHistory(int id)
