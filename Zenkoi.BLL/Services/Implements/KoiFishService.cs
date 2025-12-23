@@ -81,7 +81,7 @@ namespace Zenkoi.BLL.Services.Implements
                 {
                     koi.KoiBreedingStatus = calculatedStatus;
 
-                    await UpdateKoiSpawning(koi.Id);
+                    await UpdateKoiBreedingStatus(koi.Id);
                 }
             }
 
@@ -599,6 +599,21 @@ namespace Zenkoi.BLL.Services.Implements
             return fish.KoiBreedingStatus;
         }
         public async Task<bool> UpdateKoiSpawning(int id)
+        {
+            var koifish = await _koiFishRepo.GetByIdAsync(id);
+            if (koifish == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy cá koi");
+            }
+
+            koifish.KoiBreedingStatus = KoiBreedingStatus.Ready;
+
+            await _koiFishRepo.UpdateAsync(koifish);
+
+            return await _unitOfWork.SaveAsync();
+        }
+
+        public async Task<bool> UpdateKoiBreedingStatus(int id)
         {
             var koifish = await _koiFishRepo.GetByIdAsync(id);
             if (koifish == null)
