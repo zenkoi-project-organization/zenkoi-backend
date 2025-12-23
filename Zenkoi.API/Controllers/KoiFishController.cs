@@ -61,7 +61,7 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(koi);
         }
-        [Authorize]
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPost]
         public async Task<IActionResult> CreateKoiFish([FromBody] KoiFishRequestDTO dto)
         {
@@ -75,7 +75,7 @@ namespace Zenkoi.API.Controllers
             return SaveSuccess(created);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateKoiFish(int id, [FromBody] KoiFishUpdateRequestDTO dto)
         {
