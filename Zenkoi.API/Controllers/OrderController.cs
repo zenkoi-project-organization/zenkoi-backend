@@ -24,7 +24,6 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        [Authorize(Roles = "Manager,SaleStaff")]
         public async Task<IActionResult> GetOrderById(int id)
         {
             try
