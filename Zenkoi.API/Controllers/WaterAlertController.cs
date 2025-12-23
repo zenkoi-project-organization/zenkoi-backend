@@ -36,9 +36,9 @@ namespace Zenkoi.API.Controllers
                 return GetError("Không tìm thấy cảnh báo nước.");
 
             return GetSuccess(alert);
-        }  
+        }
 
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPut("{id}/resolve")]
         public async Task<IActionResult> Resolve(int id)
         {
@@ -59,7 +59,7 @@ namespace Zenkoi.API.Controllers
             return Success(success, "Đã đánh dấu tất cả cảnh báo là đã xem.");
         }
 
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
