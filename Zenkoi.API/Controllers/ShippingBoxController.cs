@@ -52,7 +52,7 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi lấy thông tin hộp vận chuyển: {ex.Message}");
             }
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ShippingBoxRequestDTO dto)
         {
@@ -69,7 +69,7 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi tạo hộp vận chuyển: {ex.Message}");
             }
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] ShippingBoxRequestDTO dto)
         {
@@ -90,7 +90,7 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi cập nhật hộp vận chuyển: {ex.Message}");
             }
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -108,7 +108,7 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi xóa hộp vận chuyển: {ex.Message}");
             }
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPost("rules")]
         public async Task<IActionResult> AddRule([FromBody] ShippingBoxRuleRequestDTO dto)
         {
@@ -129,7 +129,7 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi thêm quy tắc vận chuyển: {ex.Message}");
             }
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPut("rules/{ruleId:int}")]
         public async Task<IActionResult> UpdateRule(int ruleId, [FromBody] ShippingBoxRuleUpdateDTO dto)
         {
@@ -150,7 +150,7 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi cập nhật quy tắc vận chuyển: {ex.Message}");
             }
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpDelete("rules/{ruleId:int}")]
         public async Task<IActionResult> DeleteRule(int ruleId)
         {
@@ -200,7 +200,6 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi lấy danh sách quy tắc vận chuyển: {ex.Message}");
             }
         }
-
         [HttpPost("calculate")]
         public async Task<IActionResult> CalculateShipping([FromBody] ShippingCalculationRequest request)
         {

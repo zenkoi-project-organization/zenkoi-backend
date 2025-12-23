@@ -16,7 +16,7 @@ namespace Zenkoi.API.Controllers
             _patternService = patternService;
         }
 
-      
+        
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
@@ -59,7 +59,7 @@ namespace Zenkoi.API.Controllers
 
             return Success(updated, "Cập nhật pattern thành công.");
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -69,6 +69,7 @@ namespace Zenkoi.API.Controllers
 
             return Success(deleted, "Xóa pattern thành công.");
         }
+        [Authorize(Roles = "Manager")]
         [HttpPost("assign")]
         public async Task<IActionResult> AssignPattern([FromBody] AssignPatternDTO dto)
         {
@@ -77,7 +78,7 @@ namespace Zenkoi.API.Controllers
                       : GetError("Không thể gán pattern.");
         }
 
-        // 2. Gỡ pattern khỏi variety
+        [Authorize(Roles = "Manager")]
         [HttpDelete("remove/{varietyId}/{patternId}")]
         public async Task<IActionResult> RemovePattern(int varietyId, int patternId)
         {
@@ -86,7 +87,7 @@ namespace Zenkoi.API.Controllers
                       : GetError("Không tìm thấy liên kết để xóa.");
         }
 
-        // 3. Lấy danh sách pattern theo variety
+        [Authorize(Roles = "Manager")]
         [HttpGet("by-variety/{varietyId}")]
         public async Task<IActionResult> GetPatternsByVariety(int varietyId)
         {
@@ -94,7 +95,7 @@ namespace Zenkoi.API.Controllers
             return GetPagedSuccess(list);
         }
 
-        // 4. Lấy danh sách variety theo pattern
+        [Authorize(Roles = "Manager")]
         [HttpGet("{patternId}/varieties")]
         public async Task<IActionResult> GetVarietiesByPattern(int patternId)
         {

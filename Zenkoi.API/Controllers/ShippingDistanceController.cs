@@ -47,7 +47,7 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi lấy thông tin khoảng cách vận chuyển: {ex.Message}");
             }
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ShippingDistanceRequestDTO dto)
         {
@@ -64,7 +64,7 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi tạo khoảng cách vận chuyển: {ex.Message}");
             }
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] ShippingDistanceRequestDTO dto)
         {
@@ -85,7 +85,7 @@ namespace Zenkoi.API.Controllers
                 return GetError($"Lỗi khi cập nhật khoảng cách vận chuyển: {ex.Message}");
             }
         }
-
+        [Authorize(Roles = "Manager")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

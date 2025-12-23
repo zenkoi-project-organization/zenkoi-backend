@@ -16,7 +16,6 @@ namespace Zenkoi.API.Controllers
         {
             _koiFishService = koiFishService;
         }
-        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllKoiFish(
             [FromQuery] KoiFishFilterRequestDTO? filter,
@@ -51,7 +50,8 @@ namespace Zenkoi.API.Controllers
                 return GetNotFound($"Không tìm thấy cá koi với ID {id}.");
 
             return GetSuccess(koi);
-        }    
+        }
+        [Authorize]
         [HttpGet("scan-rfid/{RFID}")]
         public async Task<IActionResult> GetKoiFishByRFID( string RFID)
         {
@@ -61,7 +61,7 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(koi);
         }
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateKoiFish([FromBody] KoiFishRequestDTO dto)
         {
@@ -75,7 +75,7 @@ namespace Zenkoi.API.Controllers
             return SaveSuccess(created);
         }
 
-      
+        [Authorize]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateKoiFish(int id, [FromBody] KoiFishUpdateRequestDTO dto)
         {
@@ -88,6 +88,7 @@ namespace Zenkoi.API.Controllers
 
             return SaveSuccess($"Cập nhật cá koi thành công (ID = {id}).");
         }
+        [Authorize]
         [HttpPut("koi-spawn/{id:int}")]
         public async Task<IActionResult> UpdateFishSpawn (int id)
         {
@@ -98,7 +99,7 @@ namespace Zenkoi.API.Controllers
 
             return SaveSuccess($"Cập nhật cá koi thành công (ID = {id}).");
         }
-
+        [Authorize]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteKoiFish(int id)
         {
@@ -108,13 +109,14 @@ namespace Zenkoi.API.Controllers
 
             return SaveSuccess($"Đã xóa cá koi thành công (ID = {id}).");
         }
+        [Authorize]
         [HttpGet("family/{id}")]
         public async Task<IActionResult> GetFamilyTree(int id)
         {
             var result = await _koiFishService.GetFamilyTreeAsync(id);
             return GetSuccess(result);
         }
-
+        [Authorize]
         [HttpPut("{id:int}/transfer/{pondId:int}")]
         public async Task<IActionResult> TransferKoiFish(int id, int pondId)
         {
