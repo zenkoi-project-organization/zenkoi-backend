@@ -588,17 +588,14 @@ namespace Zenkoi.BLL.Services.Implements
         {
             var ageMonths = GetAgeInMonths(fish.BirthDate.Value);
 
-
-            if (ageMonths < 24)
-            {
-                return KoiBreedingStatus.NotMature;
-            }
-
             if (fish.KoiBreedingStatus == KoiBreedingStatus.NotMature)
             {
                 return KoiBreedingStatus.Ready;
             }
-
+            if (ageMonths < 24)
+            {
+                return KoiBreedingStatus.NotMature;
+            }
             return fish.KoiBreedingStatus;
         }
         public async Task<bool> UpdateKoiSpawning(int id)
