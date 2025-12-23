@@ -71,7 +71,6 @@ namespace Zenkoi.API.Controllers
             var created = await _koiFishService.CreateAsync(dto);
             if (created == null)
                 return SaveError();
-
             return SaveSuccess(created);
         }
 

@@ -12,9 +12,6 @@ namespace Zenkoi.BLL.DTOs.WaterParameterThresholdDTOs
     {
         [Required(ErrorMessage = "Tên tham số môi trường nước không được để trống.")]
         public WaterParameterType ParameterName { get; set; }
-
-        [Required(ErrorMessage = "Đơn vị đo không được để trống.")]
-        [MaxLength(50, ErrorMessage = "Đơn vị đo không được vượt quá 50 ký tự.")]
         public string Unit { get; set; } = default!;
 
         [Required(ErrorMessage = "vui lòng nhập giá trị tối thiểu ")]

@@ -92,6 +92,12 @@ namespace Zenkoi.BLL.Services.Implements
                         k.SaleStatus == SaleStatus.NotForSale ||
                         k.SaleStatus == SaleStatus.Available)
                     .ToList();
+            } else
+            {
+                koiList = koiList
+                    .Where(k =>
+                        k.SaleStatus == SaleStatus.Sold)
+                    .ToList();
             }
 
             if (filter.IsBreeding == true)
