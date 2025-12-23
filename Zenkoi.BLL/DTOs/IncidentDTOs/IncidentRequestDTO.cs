@@ -11,11 +11,11 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         public int IncidentTypeId { get; set; }
 
         [Required(ErrorMessage = "Tiêu đề sự cố là bắt buộc")]
-        [StringLength(200, MinimumLength = 5, ErrorMessage = "Tiêu đề phải có từ 5-200 ký tự")]
+        [StringLength(200, ErrorMessage = "Tiêu đề không được vượt quá 200 ký tự")]
         public string IncidentTitle { get; set; }
 
         [Required(ErrorMessage = "Mô tả sự cố là bắt buộc")]
-        [StringLength(2000, MinimumLength = 10, ErrorMessage = "Mô tả phải có từ 10-2000 ký tự")]
+        [StringLength(2000, ErrorMessage = "Mô tả không được vượt quá 2000 ký tự")]
         public string Description { get; set; }
 
         [Required(ErrorMessage = "Thời gian xảy ra sự cố là bắt buộc")]

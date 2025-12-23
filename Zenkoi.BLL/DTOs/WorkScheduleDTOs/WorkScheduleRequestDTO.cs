@@ -16,7 +16,6 @@ public class WorkScheduleRequestDTO
 
     public string? Notes { get; set; }
 
-    [MinLength(1, ErrorMessage = "Phải chỉ định ít nhất 1 nhân viên")]
     public List<int> StaffIds { get; set; } = new();
 
     public List<int> PondIds { get; set; } = new();
