@@ -7,7 +7,6 @@ using Zenkoi.DAL.Enums;
 namespace Zenkoi.API.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     [ApiController]
     public class IncidentController : BaseAPIController
     {
@@ -19,6 +18,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> GetAll(
             [FromQuery] IncidentFilterDTO? filter,
             [FromQuery] int pageIndex = 1,
@@ -36,6 +36,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -54,6 +55,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> Create([FromBody] CreateIncidentWithDetailsDTO dto)
         {
             try
@@ -79,6 +81,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> Update(int id, [FromBody] IncidentUpdateRequestDTO dto)
         {
             try
@@ -104,6 +107,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -122,6 +126,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPatch("{id}/status")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] UpdateStatusDto dto)
         {
             try
@@ -147,6 +152,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost("{id}/koi")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> AddKoiIncident(int id, [FromBody] KoiIncidentRequestDTO dto)
         {
             try
@@ -172,6 +178,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost("{id}/pond")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> AddPondIncident(int id, [FromBody] PondIncidentRequestDTO dto)
         {
             try
@@ -197,6 +204,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPut("{id}/koi/{koiIncidentId}")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> UpdateKoiIncident(int id, int koiIncidentId, [FromBody] UpdateKoiIncidentRequestDTO dto)
         {
             try
@@ -222,6 +230,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPut("{id}/pond/{pondIncidentId}")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         public async Task<IActionResult> UpdatePondIncident(int id, int pondIncidentId, [FromBody] UpdatePondIncidentRequestDTO dto)
         {
             try
