@@ -592,7 +592,7 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 return KoiBreedingStatus.Ready;
             }
-            if (ageMonths < 24)
+            if (ageMonths < 24 && fish.KoiBreedingStatus == KoiBreedingStatus.Ready)
             {
                 return KoiBreedingStatus.NotMature;
             }
@@ -606,7 +606,9 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new KeyNotFoundException("Không tìm thấy cá koi");
             }
 
-            koifish.KoiBreedingStatus = KoiBreedingStatus.Ready;
+            var KoiBreedingStatus = CalculateBreedingStatus(koifish);
+
+            koifish.KoiBreedingStatus = KoiBreedingStatus;
 
             await _koiFishRepo.UpdateAsync(koifish);
 
