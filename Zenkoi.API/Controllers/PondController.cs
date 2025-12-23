@@ -38,7 +38,7 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(data);
         }
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPost]
         public async Task<IActionResult> CreatePond([FromBody] PondRequestDTO dto)
         {
@@ -49,7 +49,7 @@ namespace Zenkoi.API.Controllers
             return SaveSuccess(created, "Tạo ao thành công.");
         }
 
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePond(int id, [FromBody] PondUpdateRequestDTO dto)
         {
@@ -63,7 +63,7 @@ namespace Zenkoi.API.Controllers
             return Success(updated, "Cập nhật ao thành công.");
         }
 
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePond(int id)
         {
