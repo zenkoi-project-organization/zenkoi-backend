@@ -22,6 +22,8 @@ using System.Linq.Expressions;
 using Zenkoi.BLL.DTOs.KoiFishDTOs;
 using Zenkoi.BLL.DTOs.AIBreedingDTOs;
 using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Zenkoi.BLL.Services.Implements
 {
@@ -489,7 +491,9 @@ namespace Zenkoi.BLL.Services.Implements
                 Predicate = bp =>
                     (bp.MaleKoiId == koiFishId || bp.FemaleKoiId == koiFishId) 
                     &&
-                    (bp.Status == BreedingStatus.Complete || bp.Result == BreedingResult.Failed),
+                    (bp.Status == BreedingStatus.Complete || bp.Status == BreedingStatus.Failed)
+                   &&
+                   (bp.Result == BreedingResult.Success || bp.Result == BreedingResult.Failed),
                 Tracked = false
             };
 
@@ -537,10 +541,11 @@ namespace Zenkoi.BLL.Services.Implements
                 Predicate = k =>
                 k.Gender != Gender.Other &&
                 k.HealthStatus == HealthStatus.Healthy &&
+                k.SaleStatus == SaleStatus.NotForSale &&
                 k.KoiBreedingStatus ==KoiBreedingStatus.Ready && 
                 k.BirthDate.HasValue &&
                 EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 2 &&
-                EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 6 &&
+                EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 7 &&
                 (string.IsNullOrEmpty(variety) || k.Variety.VarietyName == variety),
 
                 IncludeProperties = new List<Expression<Func<KoiFish, object>>>
@@ -553,12 +558,23 @@ namespace Zenkoi.BLL.Services.Implements
             var koiRepo = _unitOfWork.GetRepo<KoiFish>();
             var koiList = await koiRepo.GetAllAsync(options);
 
-          
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(
+                koiList,
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                }
+            ));
+
 
             var result = new List<BreedingParentDTO>();
             foreach (var k in koiList)
             {
                 var perf = await GetKoiFishParentStatsAsync(k.Id);
+
+
+
                 if (perf == null || perf.ParticipationCount == 0)
                     continue;
 
