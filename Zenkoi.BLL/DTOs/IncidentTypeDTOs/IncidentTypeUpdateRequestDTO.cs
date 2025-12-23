@@ -5,10 +5,10 @@ namespace Zenkoi.BLL.DTOs.IncidentTypeDTOs
 {
     public class IncidentTypeUpdateRequestDTO
     {
-        [StringLength(200, MinimumLength = 3, ErrorMessage = "Tên loại sự cố phải có từ 3-200 ký tự")]
+        [StringLength(200, ErrorMessage = "Tên loại sự cố không được vượt quá 200 ký tự")]
         public string? Name { get; set; }
 
-        [StringLength(2000, MinimumLength = 10, ErrorMessage = "Mô tả phải có từ 10-2000 ký tự")]
+        [StringLength(2000, ErrorMessage = "Mô tả không được vượt quá 2000 ký tự")]
         public string? Description { get; set; }
 
         public SeverityLevel? DefaultSeverity { get; set; }

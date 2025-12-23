@@ -5,7 +5,7 @@ namespace Zenkoi.BLL.DTOs.ShippingBoxDTOs
     public class ShippingBoxRequestDTO
     {
         [Required(ErrorMessage = "Tên hộp vận chuyển là bắt buộc")]
-        [StringLength(100, MinimumLength = 3, ErrorMessage = "Tên hộp phải có từ 3-100 ký tự")]
+        [StringLength(200, ErrorMessage = "Tên hộp không được vượt quá 200 ký tự")]
         public string Name { get; set; }
    
         [Range(1, 1000, ErrorMessage = "Trọng tải phải từ 1-1000 lbs")]

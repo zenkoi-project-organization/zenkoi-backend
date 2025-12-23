@@ -5,7 +5,7 @@ namespace Zenkoi.BLL.DTOs.ShippingDistanceDTOs
     public class ShippingDistanceRequestDTO
     {
         [Required(ErrorMessage = "Tên khoảng cách là bắt buộc")]
-        [StringLength(500, MinimumLength = 3, ErrorMessage = "Tên phải có từ 3-500 ký tự")]
+        [StringLength(500, ErrorMessage = "Tên không được vượt quá 500 ký tự")]
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Khoảng cách tối thiểu là bắt buộc")]

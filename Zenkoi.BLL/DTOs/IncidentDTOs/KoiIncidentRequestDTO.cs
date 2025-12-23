@@ -13,7 +13,7 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         [Required(ErrorMessage = "Tình trạng sức khỏe là bắt buộc")]
         public HealthStatus AffectedStatus { get; set; } = HealthStatus.Warning;
 
-        [StringLength(1000, MinimumLength = 5, ErrorMessage = "Triệu chứng phải có từ 5-1000 ký tự")]
+        [StringLength(1000, ErrorMessage = "Triệu chứng không được vượt quá 1000 ký tự")]
         public string? SpecificSymptoms { get; set; }
 
         public bool RequiresTreatment { get; set; }
@@ -23,7 +23,7 @@ namespace Zenkoi.BLL.DTOs.IncidentDTOs
         [Required(ErrorMessage = "Thời gian bắt đầu ảnh hưởng là bắt buộc")]
         public DateTime AffectedFrom { get; set; } = DateTime.UtcNow;
 
-        [StringLength(2000, MinimumLength = 10, ErrorMessage = "Ghi chú điều trị phải có từ 10-2000 ký tự")]
+        [StringLength(2000, ErrorMessage = "Ghi chú điều trị không được vượt quá 2000 ký tự")]
         public string? TreatmentNotes { get; set; }
     }
 }

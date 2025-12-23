@@ -11,10 +11,10 @@ namespace Zenkoi.BLL.DTOs.PromotionDTOs
     public class PromotionRequestDTO
     {
         [Required(ErrorMessage = "Mã khuyến mãi là bắt buộc")]
-        [StringLength(50, MinimumLength = 3, ErrorMessage = "Mã khuyến mãi phải có từ 3-50 ký tự")]
+        [StringLength(50, ErrorMessage = "Mã khuyến mãi không được vượt quá 50 ký tự")]
         public string Code { get; set; }
 
-        [StringLength(1000, MinimumLength = 5, ErrorMessage = "Mô tả phải có từ 5-1000 ký tự")]
+        [StringLength(1000, ErrorMessage = "Mô tả không được vượt quá 1000 ký tự")]
         public string? Description { get; set; }
 
         [Required(ErrorMessage = "Ngày bắt đầu là bắt buộc")]
