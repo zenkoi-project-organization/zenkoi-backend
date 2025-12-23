@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Zenkoi.BLL.DTOs.FilterDTOs;
 using Zenkoi.BLL.DTOs.PondPacketFishDTOs;
 using Zenkoi.BLL.Services.Interfaces;
@@ -33,7 +34,7 @@ namespace Zenkoi.API.Controllers
 
             return GetSuccess(data);
         }
-
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPost]
         public async Task<IActionResult> CreatePondPacketFish([FromBody] PondPacketFishRequestDTO dto)
         {
@@ -43,7 +44,7 @@ namespace Zenkoi.API.Controllers
             var created = await _pondPacketFishService.CreateAsync(dto);
             return SaveSuccess(created, "Tạo lô cá thành công.");
         }
-
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPut("{id}/transfer")]
         public async Task<IActionResult> TransferPondPacketFish(int id, [FromBody] PondPacketFishUpdateRequestDTO dto)
         {
@@ -53,7 +54,7 @@ namespace Zenkoi.API.Controllers
             var transferred = await _pondPacketFishService.TranferPacket(id, dto);
             return Success(transferred, "Chuyển lô cá sang hồ mới thành công.");
         }
-
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePondPacketFish(int id)
         {
