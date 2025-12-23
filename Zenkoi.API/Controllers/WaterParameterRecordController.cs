@@ -53,7 +53,7 @@ namespace Zenkoi.API.Controllers
                 return GetError(ex.Message);
             }
         }
-        [Authorize(Roles = "Manager,FarmStaff,SaleStaff")]
+        [Authorize(Roles = "Manager,FarmStaff")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] WaterParameterRecordRequestDTO dto)
         {
