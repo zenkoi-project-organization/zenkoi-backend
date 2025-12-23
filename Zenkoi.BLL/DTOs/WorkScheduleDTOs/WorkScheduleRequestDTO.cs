@@ -14,7 +14,6 @@ public class WorkScheduleRequestDTO
     [Required(ErrorMessage = "Giờ bắt đầu là bắt buộc")]
     public TimeOnly StartTime { get; set; }
 
-    [StringLength(1000, MinimumLength = 5, ErrorMessage = "Ghi chú phải có từ 5-1000 ký tự")]
     public string? Notes { get; set; }
 
     [MinLength(1, ErrorMessage = "Phải chỉ định ít nhất 1 nhân viên")]
