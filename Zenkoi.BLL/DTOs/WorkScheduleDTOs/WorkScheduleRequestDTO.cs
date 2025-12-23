@@ -19,6 +19,5 @@ public class WorkScheduleRequestDTO
     [MinLength(1, ErrorMessage = "Phải chỉ định ít nhất 1 nhân viên")]
     public List<int> StaffIds { get; set; } = new();
 
-    [MinLength(1, ErrorMessage = "Phải chỉ định ít nhất 1 hồ")]
     public List<int> PondIds { get; set; } = new();
 }
