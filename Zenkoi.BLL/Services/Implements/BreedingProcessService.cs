@@ -151,7 +151,7 @@ namespace Zenkoi.BLL.Services.Implements
             });
 
             if (koifish == null || koifish.BreedingProcessId == null)
-                return (null, null); // founder hoặc chưa biết
+                return (null, null); 
 
 
             var bp = await _breedRepo.GetSingleAsync(new QueryOptions<BreedingProcess> 
@@ -200,6 +200,8 @@ namespace Zenkoi.BLL.Services.Implements
                 throw new Exception("vui lòng chọn đúng một cặp cá koi (cá trống và cá mái)");
             }
             malekoi.KoiBreedingStatus = KoiBreedingStatus.Spawning;
+            malekoi.PondId = dto.PondId;
+            femalekoi.PondId = dto.PondId;
             femalekoi.KoiBreedingStatus = KoiBreedingStatus.Spawning;
             pond.PondStatus = PondStatus.Active;
             var entity = _mapper.Map<BreedingProcess>(dto);

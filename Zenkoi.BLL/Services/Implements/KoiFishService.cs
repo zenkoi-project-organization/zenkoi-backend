@@ -56,7 +56,7 @@ namespace Zenkoi.BLL.Services.Implements
             }
         }
 
-        public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(
+      public async Task<PaginatedList<KoiFishResponseDTO>> GetAllKoiFishAsync(
       KoiFishFilterRequestDTO filter,
       int pageIndex = 1,
       int pageSize = 10,
@@ -85,21 +85,6 @@ namespace Zenkoi.BLL.Services.Implements
                 }
             }
 
-            if (filter.IsSale.HasValue && filter.IsSale.Value == true)
-            {
-                koiList = koiList
-                    .Where(k =>
-                        k.SaleStatus == SaleStatus.NotForSale ||
-                        k.SaleStatus == SaleStatus.Available)
-                    .ToList();
-            } else
-            {
-                koiList = koiList
-                    .Where(k =>
-                        k.SaleStatus == SaleStatus.Sold)
-                    .ToList();
-            }
-
             if (filter.IsBreeding == true)
             {
                 koiList = koiList
@@ -108,6 +93,17 @@ namespace Zenkoi.BLL.Services.Implements
                         k.SaleStatus == SaleStatus.NotForSale)
                     .ToList();
             }
+
+            if (filter.IsSale == true)
+            {
+                koiList = koiList.Where(k => k.SaleStatus == SaleStatus.NotForSale ||
+                        k.SaleStatus == SaleStatus.Available ).ToList();
+            }
+            else if (filter.IsSale == false)
+            {
+                koiList = koiList.Where(k => k.SaleStatus == SaleStatus.Sold).ToList();
+            }
+
 
             if (filter.IsPostSpawning == true)
             {

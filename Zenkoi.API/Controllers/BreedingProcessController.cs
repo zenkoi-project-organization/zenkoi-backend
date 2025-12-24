@@ -126,16 +126,6 @@ namespace Zenkoi.API.Controllers
                 input.TargetVariety
             );
 
-            Console.WriteLine("===== ALL PARENTS =====");
-            Console.WriteLine(JsonSerializer.Serialize(
-                allParents,
-                new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                }
-            ));
-            Console.WriteLine("===== END ALL PARENTS =====");
-
             if (allParents == null || !allParents.Any())
             {
                 return GetSuccess(new AIBreedingResponseDTO
