@@ -151,7 +151,7 @@ namespace Zenkoi.BLL.Services.Implements
             });
 
             if (koifish == null || koifish.BreedingProcessId == null)
-                return (null, null); // founder hoặc chưa biết
+                return (null, null); 
 
 
             var bp = await _breedRepo.GetSingleAsync(new QueryOptions<BreedingProcess> 
@@ -191,15 +191,25 @@ namespace Zenkoi.BLL.Services.Implements
             {
                 throw new KeyNotFoundException("không tìm thấy cá trống");
             }
+            if(malekoi.KoiBreedingStatus != KoiBreedingStatus.Ready)
+            {
+                throw new InvalidOperationException("cá trống này hiện tại không sẵn sàng để sinh sản");
+            }
             var femalekoi = await _koifish.GetByIdAsync(dto.FemaleKoiId);
             if(femalekoi == null) {
                 throw new KeyNotFoundException("không tìm thấy cá mái");
+            }
+            if (femalekoi.KoiBreedingStatus != KoiBreedingStatus.Ready)
+            {
+                throw new InvalidOperationException("cá mái này hiện tại không sẵn sàng để sinh sản");
             }
             if (malekoi.Gender.Equals(femalekoi.Gender)) 
             {
                 throw new Exception("vui lòng chọn đúng một cặp cá koi (cá trống và cá mái)");
             }
             malekoi.KoiBreedingStatus = KoiBreedingStatus.Spawning;
+            malekoi.PondId = dto.PondId;
+            femalekoi.PondId = dto.PondId;
             femalekoi.KoiBreedingStatus = KoiBreedingStatus.Spawning;
             pond.PondStatus = PondStatus.Active;
             var entity = _mapper.Map<BreedingProcess>(dto);
@@ -534,26 +544,21 @@ namespace Zenkoi.BLL.Services.Implements
         public async Task<List<BreedingParentDTO>> GetParentsWithPerformanceAsync(double minHatchRate, double minSurvivalRate,string? variety = null)
         {
             var today = DateTime.UtcNow;
-
-            // ✅ Tạo QueryOptions để lọc koi trong độ tuổi sinh sản
             var options = new QueryOptions<KoiFish>
             {
                 Predicate = k =>
-                k.Gender != Gender.Other &&
-                k.HealthStatus == HealthStatus.Healthy &&
-                k.SaleStatus == SaleStatus.NotForSale &&
-                k.KoiBreedingStatus ==KoiBreedingStatus.Ready && 
-                k.BirthDate.HasValue &&
-                EF.Functions.DateDiffYear(k.BirthDate.Value, today) > 2 &&
-                EF.Functions.DateDiffYear(k.BirthDate.Value, today) <= 7 &&
-                (string.IsNullOrEmpty(variety) || k.Variety.VarietyName == variety),
-
+                 k.KoiBreedingStatus == KoiBreedingStatus.Ready &&
+                 k.Gender != Gender.Other &&
+                 k.HealthStatus == HealthStatus.Healthy &&
+                (string.IsNullOrEmpty(variety) || k.Variety.VarietyName == variety) &&
+                k.SaleStatus == SaleStatus.NotForSale,
                 IncludeProperties = new List<Expression<Func<KoiFish, object>>>
-    {
-        k => k.Variety
-    },
-                Tracked = false
-            };
+             {
+                 k => k.Variety
+             },
+                        Tracked = false
+                    };
+
 
             var koiRepo = _unitOfWork.GetRepo<KoiFish>();
             var koiList = await koiRepo.GetAllAsync(options);

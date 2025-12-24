@@ -17,6 +17,7 @@ namespace Zenkoi.BLL.DTOs.FilterDTOs
         public double? MinSize { get; set; }
         public double? MaxSize { get; set; }
         public SaleStatus? SaleStatus { get; set;}
+        public bool? IsSale { get; set; } 
         public bool? IsPostSpawning { get; set;}
         public bool? IsMutation { get; set; }
         public int? PondId { get; set; }
