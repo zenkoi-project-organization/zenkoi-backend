@@ -54,7 +54,7 @@ namespace Zenkoi.BLL.Services.Implements
             while (remainingKoi.Any() && packingAttempts < maxAttempts)
             {
                 packingAttempts++;
-          
+
                 var bestCandidate = boxes
                     .Select(box =>
                     {
@@ -68,12 +68,14 @@ namespace Zenkoi.BLL.Services.Implements
                             Box = box,
                             PackedKoi = packedKoi,
                             PackedCount = packedKoi.Count,
-                            CostPerFish = box.Fee / packedKoi.Count 
+                            CostPerFish = box.Fee / packedKoi.Count,
+                            CanFitAll = packedKoi.Count == remainingKoi.Count 
                         };
                     })
                     .Where(x => x != null)
-                    .OrderBy(x => x.CostPerFish)          
-                    .ThenByDescending(x => x.PackedCount)  
+                    .OrderByDescending(x => x.CanFitAll)  
+                    .ThenBy(x => x.CostPerFish)         
+                    .ThenByDescending(x => x.PackedCount)
                     .FirstOrDefault();
 
                 if (bestCandidate != null)
