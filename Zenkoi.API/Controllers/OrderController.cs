@@ -160,7 +160,7 @@ namespace Zenkoi.API.Controllers
         }
 
         [HttpPost("{id:int}/restock-packetfish")]
-        [Authorize(Roles = "Manager,FarmStaff")]
+        [Authorize(Roles = "Manager,SaleStaff")]
         public async Task<IActionResult> RestockPacketFish(int id)
         {
             try
